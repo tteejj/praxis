@@ -1,0 +1,53 @@
+[
+  {
+    "ID1": "TX2024-001",
+    "T2020Path": "",
+    "BFDate": "2025-07-14T16:35:57",
+    "Deleted": false,
+    "DateDue": "2025-08-04T16:35:57",
+    "DateAssigned": "2025-07-14T16:35:57",
+    "CAAPath": "",
+    "FullProjectName": "Smith Tax Return 2024",
+    "Id": "d245f3ab-73bc-4ac6-8b66-044350bd171d",
+    "RequestPath": "",
+    "Nickname": "SMITH2024",
+    "ClosedDate": "0001-01-01T00:00:00",
+    "CumulativeHrs": 3.5,
+    "Note": "Standard 1040 with Schedule C",
+    "ID2": "CLIENT-SMITH"
+  },
+  {
+    "ID1": "EP2024-002",
+    "T2020Path": "",
+    "BFDate": "2025-07-07T16:35:57",
+    "Deleted": false,
+    "DateDue": "2025-07-28T16:35:57",
+    "DateAssigned": "2025-07-07T16:35:57",
+    "CAAPath": "",
+    "FullProjectName": "Johnson Estate Planning",
+    "Id": "ae9e9205-df05-4d70-b149-06aa781f1bcc",
+    "RequestPath": "",
+    "Nickname": "JOHNSON-EP",
+    "ClosedDate": "0001-01-01T00:00:00",
+    "CumulativeHrs": 12.0,
+    "Note": "Complex estate with multiple trusts",
+    "ID2": "CLIENT-JOHNSON"
+  },
+  {
+    "ID1": "",
+    "T2020Path": "",
+    "BFDate": "2025-07-21T16:35:59",
+    "Deleted": false,
+    "DateDue": "2025-09-01T16:35:59",
+    "DateAssigned": "2025-07-21T16:35:59",
+    "CAAPath": "",
+    "FullProjectName": "Default",
+    "Id": "a5a6fa12-38f3-42f0-88ec-cbdf213da511",
+    "RequestPath": "",
+    "Nickname": "Default",
+    "ClosedDate": "0001-01-01T00:00:00",
+    "CumulativeHrs": 0.0,
+    "Note": "Default project for uncategorized tasks",
+    "ID2": ""
+  }
+]
