@@ -18,17 +18,26 @@ class Button : UIElement {
         $this.Text = $text
         $this.IsFocusable = $true
         $this.Height = 3
+        if ($global:Logger) {
+            $global:Logger.Debug("Button created with text: '$text'")
+        }
     }
     
     [void] Initialize([ServiceContainer]$services) {
         $this.Theme = $services.GetService("ThemeManager")
         $this.Theme.Subscribe({ $this.OnThemeChanged() })
         $this.OnThemeChanged()
+        $this.Invalidate()  # Force initial render
     }
     
     [void] OnThemeChanged() {
         $this._cachedRender = ""
         $this.Invalidate()
+    }
+    
+    [void] Invalidate() {
+        $this._cachedRender = ""
+        ([UIElement]$this).Invalidate()
     }
     
     [string] OnRender() {
@@ -39,6 +48,11 @@ class Button : UIElement {
     }
     
     [void] RebuildCache() {
+        # Debug logging
+        if ($global:Logger) {
+            $global:Logger.Debug("Button.RebuildCache: Text='$($this.Text)' Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
+        }
+        
         $sb = [System.Text.StringBuilder]::new()
         
         # Determine colors based on state
@@ -57,31 +71,76 @@ class Button : UIElement {
         }
         
         # Calculate text position (centered)
-        $textX = $this.X + [int](($this.Width - $this.Text.Length) / 2)
-        $textY = $this.Y + [int]($this.Height / 2)
+        $textX = $this.X + [Math]::Max(1, [int](($this.Width - $this.Text.Length) / 2))
+        $textY = $this.Y + 1  # For height=3, text should be on the middle line
+        
+        if ($global:Logger -and $this.Text -eq "New Project") {
+            $global:Logger.Debug("Button text position: textX=$textX, textY=$textY for button at ($($this.X),$($this.Y)) with height $($this.Height)")
+        }
         
         # Draw button box
         # Top border
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+        $borderWidth = [Math]::Max(0, $this.Width - 2)
+        if ($borderWidth -gt 0) {
+            $sb.Append([VT]::TL() + ([VT]::H() * $borderWidth) + [VT]::TR())
+        } else {
+            $sb.Append([VT]::TL() + [VT]::TR())
+        }
         
-        # Middle line with text
-        $sb.Append([VT]::MoveTo($this.X, $textY))
-        $sb.Append([VT]::V())
-        $sb.Append($bgColor)
-        $sb.Append(" " * ($this.Width - 2))
-        $sb.Append([VT]::MoveTo($textX, $textY))
-        $sb.Append($fgColor)
-        $sb.Append($this.Text)
-        $sb.Append([VT]::Reset())
-        $sb.Append([VT]::MoveTo($this.X + $this.Width - 1, $textY))
-        $sb.Append($borderColor)
-        $sb.Append([VT]::V())
+        # Middle lines
+        for ($y = $this.Y + 1; $y -lt $this.Y + $this.Height - 1; $y++) {
+            if ($global:Logger -and $this.Text -eq "New Project") {
+                $global:Logger.Debug("Button middle line: y=$y, textY=$textY, Text='$($this.Text)'")
+            }
+            
+            $sb.Append([VT]::MoveTo($this.X, $y))
+            $sb.Append($borderColor)
+            $sb.Append([VT]::V())
+            
+            # Fill line with background, but handle text line specially
+            if ($y -eq $textY -and $this.Text) {
+                # Draw background up to text
+                $sb.Append($bgColor)
+                $textStartOffset = [Math]::Max(0, ($this.Width - $this.Text.Length) / 2) - 1
+                if ($textStartOffset -gt 0) {
+                    $sb.Append(" " * [int]$textStartOffset)
+                }
+                
+                # Draw text
+                $sb.Append($fgColor)
+                $sb.Append($this.Text)
+                
+                # Fill rest of line
+                $sb.Append($bgColor)
+                $remainingSpace = $this.Width - 2 - [int]$textStartOffset - $this.Text.Length
+                if ($remainingSpace -gt 0) {
+                    $sb.Append(" " * $remainingSpace)
+                }
+            } else {
+                # Non-text lines - just fill with background
+                $sb.Append($bgColor)
+                $paddingWidth = [Math]::Max(0, $this.Width - 2)
+                if ($paddingWidth -gt 0) {
+                    $sb.Append(" " * $paddingWidth)
+                }
+            }
+            
+            # Draw right border
+            $sb.Append([VT]::MoveTo($this.X + $this.Width - 1, $y))
+            $sb.Append($borderColor)
+            $sb.Append([VT]::V())
+            $sb.Append([VT]::Reset())
+        }
         
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
-        $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+        if ($borderWidth -gt 0) {
+            $sb.Append([VT]::BL() + ([VT]::H() * $borderWidth) + [VT]::BR())
+        } else {
+            $sb.Append([VT]::BL() + [VT]::BR())
+        }
         
         # Add default indicator if needed
         if ($this.IsDefault) {

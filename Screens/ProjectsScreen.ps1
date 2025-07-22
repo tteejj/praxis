@@ -6,6 +6,8 @@ class ProjectsScreen : Screen {
     [Button]$EditButton
     [Button]$DeleteButton
     [ProjectService]$ProjectService
+    [EventBus]$EventBus
+    hidden [hashtable]$EventSubscriptions = @{}
     
     # Layout
     hidden [int]$ButtonHeight = 3
@@ -16,8 +18,50 @@ class ProjectsScreen : Screen {
     }
     
     [void] OnInitialize() {
-        # Get project service
+        # Get services
         $this.ProjectService = $global:ServiceContainer.GetService("ProjectService")
+        $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+        
+        # Subscribe to events
+        if ($this.EventBus) {
+            # Subscribe to project created events
+            $this.EventSubscriptions['ProjectCreated'] = $this.EventBus.Subscribe([EventNames]::ProjectCreated, {
+                param($sender, $eventData)
+                $this.RefreshProjects()
+                # Select the new project if provided
+                if ($eventData.Project) {
+                    for ($i = 0; $i -lt $this.ProjectList.Items.Count; $i++) {
+                        if ($this.ProjectList.Items[$i].Id -eq $eventData.Project.Id) {
+                            $this.ProjectList.SelectIndex($i)
+                            break
+                        }
+                    }
+                }
+            }.GetNewClosure())
+            
+            # Subscribe to command events for this screen
+            $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe([EventNames]::CommandExecuted, {
+                param($sender, $eventData)
+                if ($eventData.Target -eq 'ProjectsScreen') {
+                    switch ($eventData.Command) {
+                        'EditProject' { $this.EditProject() }
+                        'DeleteProject' { $this.DeleteProject() }
+                    }
+                }
+            }.GetNewClosure())
+            
+            # Subscribe to project updated events
+            $this.EventSubscriptions['ProjectUpdated'] = $this.EventBus.Subscribe([EventNames]::ProjectUpdated, {
+                param($sender, $eventData)
+                $this.RefreshProjects()
+            }.GetNewClosure())
+            
+            # Subscribe to project deleted events
+            $this.EventSubscriptions['ProjectDeleted'] = $this.EventBus.Subscribe([EventNames]::ProjectDeleted, {
+                param($sender, $eventData)
+                $this.RefreshProjects()
+            }.GetNewClosure())
+        }
         
         # Create components
         $this.ProjectList = [ListBox]::new()
@@ -77,6 +121,11 @@ class ProjectsScreen : Screen {
     }
     
     [void] OnBoundsChanged() {
+        # Debug
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
+        }
+        
         # Layout: List takes most space, buttons at bottom
         $buttonAreaHeight = $this.ButtonHeight + 2
         $listHeight = $this.Height - $buttonAreaHeight
@@ -90,25 +139,37 @@ class ProjectsScreen : Screen {
         )
         
         # Buttons (horizontally arranged)
-        $buttonWidth = [int](($this.Width - ($this.ButtonSpacing * 2)) / 3)
-        $buttonY = $this.Y + $listHeight + 1
+        $maxButtonWidth = 25  # Maximum button width
+        $totalButtonWidth = ($maxButtonWidth * 3) + ($this.ButtonSpacing * 2)
+        
+        # Center buttons if screen is wide enough
+        if ($this.Width -gt $totalButtonWidth) {
+            $buttonStartX = $this.X + [int](($this.Width - $totalButtonWidth) / 2)
+            $buttonWidth = $maxButtonWidth
+        } else {
+            $buttonStartX = $this.X
+            $buttonWidth = [int](($this.Width - ($this.ButtonSpacing * 2)) / 3)
+        }
+        
+        # Position buttons at bottom of screen bounds
+        $buttonY = $this.Y + $this.Height - $this.ButtonHeight - 1
         
         $this.NewButton.SetBounds(
-            $this.X,
+            $buttonStartX,
             $buttonY,
             $buttonWidth,
             $this.ButtonHeight
         )
         
         $this.EditButton.SetBounds(
-            $this.X + $buttonWidth + $this.ButtonSpacing,
+            $buttonStartX + $buttonWidth + $this.ButtonSpacing,
             $buttonY,
             $buttonWidth,
             $this.ButtonHeight
         )
         
         $this.DeleteButton.SetBounds(
-            $this.X + ($buttonWidth + $this.ButtonSpacing) * 2,
+            $buttonStartX + ($buttonWidth + $this.ButtonSpacing) * 2,
             $buttonY,
             $buttonWidth,
             $this.ButtonHeight
@@ -127,38 +188,140 @@ class ProjectsScreen : Screen {
         $this.ProjectList.SetItems($sorted)
     }
     
-    [void] NewProject() {
-        # TODO: Show dialog to create new project
-        # For now, create a test project
-        $name = "Test Project " + (Get-Date -Format "HHmmss")
-        $project = $this.ProjectService.AddProject($name, "TEST" + (Get-Random -Maximum 999))
+    [void] RefreshProjects() {
+        # Reload projects and update display
         $this.LoadProjects()
+        $this.Invalidate()
+    }
+    
+    [void] NewProject() {
+        # Create new project dialog
+        $dialog = [NewProjectDialog]::new()
         
-        # Select the new project
-        for ($i = 0; $i -lt $this.ProjectList.Items.Count; $i++) {
-            if ($this.ProjectList.Items[$i].Id -eq $project.Id) {
-                $this.ProjectList.SelectIndex($i)
-                break
+        # EventBus will handle project creation and dialog closing
+        # Legacy callbacks are only set as fallback for non-EventBus scenarios
+        if (-not $this.EventBus) {
+            # Capture the screen reference
+            $screen = $this
+            $dialog.OnCreate = {
+                param($projectData)
+                
+                # Create nickname from name
+                $nickname = $projectData.Name -replace '\s+', ''
+                if ($nickname.Length -gt 10) {
+                    $nickname = $nickname.Substring(0, 10)
+                }
+                
+                $project = $screen.ProjectService.AddProject($projectData.Name, $nickname)
+                $screen.LoadProjects()
+                
+                # Select the new project
+                for ($i = 0; $i -lt $screen.ProjectList.Items.Count; $i++) {
+                    if ($screen.ProjectList.Items[$i].Id -eq $project.Id) {
+                        $screen.ProjectList.SelectIndex($i)
+                        break
+                    }
+                }
+                
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            $dialog.OnCancel = {
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
             }
+        }
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
         }
     }
     
     [void] EditProject() {
         $selected = $this.ProjectList.GetSelectedItem()
-        if ($selected) {
-            # TODO: Show edit dialog
-            # For now, just show a message
-            Write-Host "Edit project: $($selected.FullProjectName)" -ForegroundColor Yellow
+        if (-not $selected) { return }
+        
+        # Create edit project dialog
+        $dialog = [EditProjectDialog]::new($selected)
+        # Capture references
+        $screen = $this
+        $project = $selected
+        $dialog.OnSave = {
+            param($projectData)
+            
+            # Update the project
+            $project.FullProjectName = $projectData.FullProjectName
+            $project.Nickname = $projectData.Nickname
+            $project.Note = $projectData.Note
+            $project.DateDue = $projectData.DateDue
+            
+            # Save through service
+            $screen.ProjectService.UpdateProject($project)
+            
+            # Publish project updated event
+            if ($screen.EventBus) {
+                $screen.EventBus.Publish([EventNames]::ProjectUpdated, @{ Project = $project })
+            } else {
+                # Fallback if EventBus not available
+                $screen.LoadProjects()
+            }
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
+        }.GetNewClosure()
+        
+        $dialog.OnCancel = {
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
+        }
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
         }
     }
     
     [void] DeleteProject() {
         $selected = $this.ProjectList.GetSelectedItem()
         if ($selected) {
-            # TODO: Show confirmation dialog
-            # For now, just mark as deleted
-            $this.ProjectService.DeleteProject($selected.Id)
-            $this.LoadProjects()
+            # Show confirmation dialog
+            $dialog = [ConfirmationDialog]::new(
+                "Delete Project",
+                "Are you sure you want to delete project '$($selected.Nickname)'?"
+            )
+            
+            $screen = $this
+            $projectId = $selected.Id
+            $dialog.OnConfirm = {
+                # Delete the project
+                $screen.ProjectService.DeleteProject($projectId)
+                
+                # Publish project deleted event
+                if ($screen.EventBus) {
+                    $screen.EventBus.Publish([EventNames]::ProjectDeleted, @{ ProjectId = $projectId })
+                } else {
+                    # Fallback if EventBus not available
+                    $screen.LoadProjects()
+                }
+                
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            $dialog.OnCancel = {
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
         }
     }
     

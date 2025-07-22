@@ -3,12 +3,28 @@
 class MainScreen : Screen {
     [TabContainer]$TabContainer
     [CommandPalette]$CommandPalette
+    [EventBus]$EventBus
+    hidden [string]$TabChangedSubscription
     
     MainScreen() : base() {
         $this.Title = "PRAXIS"
     }
     
     [void] OnInitialize() {
+        # Get EventBus
+        $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+        
+        # Subscribe to tab change events
+        if ($this.EventBus) {
+            $this.TabChangedSubscription = $this.EventBus.Subscribe([EventNames]::TabChanged, {
+                param($sender, $eventData)
+                if ($eventData.TabIndex -ne $null -and $this.TabContainer) {
+                    $this.TabContainer.ActivateTab($eventData.TabIndex)
+                    $this.RequestRender()
+                }
+            }.GetNewClosure())
+        }
+        
         # Create tab container
         $this.TabContainer = [TabContainer]::new()
         $this.TabContainer.Initialize($global:ServiceContainer)
@@ -22,13 +38,15 @@ class MainScreen : Screen {
         $projectsScreen = [ProjectsScreen]::new()
         $this.TabContainer.AddTab("Projects", $projectsScreen)
         
-        $test2 = [TestScreen]::new()
-        $test2.Message = "Tasks Screen (Coming Soon)"
-        $this.TabContainer.AddTab("Tasks", $test2)
+        $taskScreen = [TaskScreen]::new()
+        $this.TabContainer.AddTab("Tasks", $taskScreen)
         
         $test3 = [TestScreen]::new()
         $test3.Message = "Dashboard (Coming Soon)"
         $this.TabContainer.AddTab("Dashboard", $test3)
+        
+        $settingsScreen = [SettingsScreen]::new()
+        $this.TabContainer.AddTab("Settings", $settingsScreen)
         
         if ($global:Logger) {
             $global:Logger.Debug("MainScreen: Added $($this.TabContainer.Tabs.Count) tabs")

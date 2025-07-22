@@ -12,6 +12,9 @@ class ListBox : UIElement {
     [scriptblock]$ItemRenderer = { param($item) $item.ToString() }
     [string]$Title = ""
     
+    # Callback for selection changes
+    [scriptblock]$OnSelectionChanged = {}
+    
     # Cached rendering
     hidden [string]$_cachedItems = ""
     hidden [bool]$_itemsCacheInvalid = $true
@@ -34,12 +37,18 @@ class ListBox : UIElement {
     }
     
     [void] SetItems([array]$items) {
+        $oldIndex = $this.SelectedIndex
         $this.Items.Clear()
         $this.Items.AddRange($items)
         $this.SelectedIndex = 0
         $this.ScrollOffset = 0
         $this._itemsCacheInvalid = $true
         $this.Invalidate()
+        
+        # Trigger callback if we have items and the selection changed
+        if ($this.Items.Count -gt 0 -and ($oldIndex -ne 0 -or $this.Items.Count -eq 1) -and $this.OnSelectionChanged) {
+            & $this.OnSelectionChanged
+        }
     }
     
     [void] AddItem([object]$item) {
@@ -57,10 +66,16 @@ class ListBox : UIElement {
     
     [void] SelectIndex([int]$index) {
         if ($index -ge 0 -and $index -lt $this.Items.Count) {
+            $oldIndex = $this.SelectedIndex
             $this.SelectedIndex = $index
             $this.EnsureVisible($index)
             $this._itemsCacheInvalid = $true
             $this.Invalidate()
+            
+            # Trigger callback if selection actually changed
+            if ($oldIndex -ne $index -and $this.OnSelectionChanged) {
+                & $this.OnSelectionChanged
+            }
         }
     }
     

@@ -32,6 +32,7 @@ $loadOrder = @(
     
     # Services (needed by base classes)
     "Services/Logger.ps1"
+    "Services/EventBus.ps1"
     "Services/ThemeManager.ps1"
     
     # Base classes
@@ -41,22 +42,43 @@ $loadOrder = @(
     
     # Models
     "Models/Project.ps1"
+    "Models/Task.ps1"
     
     # Services
     "Services/ProjectService.ps1"
+    "Services/TaskService.ps1"
+    "Services/ConfigurationService.ps1"
     
     # Components
     "Components/ListBox.ps1"
+    "Components/TextBox.ps1"
     "Components/Button.ps1"
+    "Components/DataGrid.ps1"
     "Components/TabContainer.ps1"
-    "Components/CommandPalette.ps1"
     
     # Core systems
     "Core/ScreenManager.ps1"
     
-    # Screens
+    # Dialogs (must be loaded before screens that use them)
+    "Screens/TextInputDialog.ps1",
+    "Screens/NumberInputDialog.ps1",
+    "Screens/ConfirmationDialog.ps1",
+    "Screens/NewProjectDialog.ps1",
+    "Screens/EditProjectDialog.ps1",
+    "Screens/NewTaskDialog.ps1",
+    "Screens/EditTaskDialog.ps1",
+    "Screens/EventBusMonitor.ps1",
+    
+    # Screens (after dialogs they depend on)
     "Screens/TestScreen.ps1",
     "Screens/ProjectsScreen.ps1",
+    "Screens/TaskScreen.ps1",
+    "Screens/SettingsScreen.ps1",
+    
+    # CommandPalette (after screens it references)
+    "Components/CommandPalette.ps1"
+    
+    # Main screen
     "Screens/MainScreen.ps1"
 )
 
@@ -95,9 +117,28 @@ if ($Debug) {
 $themeManager = [ThemeManager]::new()
 $global:ServiceContainer.Register("ThemeManager", $themeManager)
 
+# EventBus (after Logger and ThemeManager, before other services)
+$eventBus = [EventBus]::new()
+$eventBus.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("EventBus", $eventBus)
+if ($Debug) {
+    Write-Host "  EventBus initialized" -ForegroundColor DarkGray
+}
+
+# Connect ThemeManager to EventBus
+$themeManager.SetEventBus($eventBus)
+
 # Project service
 $projectService = [ProjectService]::new()
 $global:ServiceContainer.Register("ProjectService", $projectService)
+
+# Task service
+$taskService = [TaskService]::new()
+$global:ServiceContainer.Register("TaskService", $taskService)
+
+# Configuration service
+$configService = [ConfigurationService]::new()
+$global:ServiceContainer.Register("ConfigurationService", $configService)
 
 # Screen manager
 $screenManager = [ScreenManager]::new($global:ServiceContainer)

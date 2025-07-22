@@ -118,12 +118,32 @@ class UIElement {
     
     # Focus management
     [void] Focus() {
-        if (-not $this.IsFocusable) { return }
+        if (-not $this.IsFocusable) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) is not focusable")
+            }
+            return 
+        }
+        
+        # If already focused, nothing to do
+        if ($this.IsFocused) {
+            if ($global:Logger) {
+                $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) is already focused")
+            }
+            return
+        }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("UIElement.Focus: Focusing $($this.GetType().Name)")
+        }
         
         # Unfocus currently focused element
         $root = $this.GetRoot()
         $focused = $root.FindFocused()
         if ($focused -and $focused -ne $this) {
+            if ($global:Logger) {
+                $global:Logger.Debug("UIElement.Focus: Unfocusing $($focused.GetType().Name)")
+            }
             $focused.IsFocused = $false
             $focused.OnLostFocus()
             $focused.Invalidate()
@@ -132,6 +152,10 @@ class UIElement {
         $this.IsFocused = $true
         $this.OnGotFocus()
         $this.Invalidate()
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) is now focused")
+        }
     }
     
     [UIElement] GetRoot() {

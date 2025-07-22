@@ -7,6 +7,7 @@ class CommandPalette : Container {
     [System.Collections.ArrayList]$FilteredCommands
     [scriptblock]$OnCommandSelected = {}
     [bool]$IsVisible = $false
+    [EventBus]$EventBus
     
     # Layout
     hidden [int]$PaletteWidth = 60
@@ -39,6 +40,19 @@ class CommandPalette : Container {
         # Call base initialization
         ([Container]$this).Initialize($services)
         
+        # Get EventBus
+        $this.EventBus = $services.GetService('EventBus')
+        
+        # Subscribe to command registration events
+        if ($this.EventBus) {
+            $this.EventBus.Subscribe([EventNames]::CommandRegistered, {
+                param($sender, $eventData)
+                if ($eventData.Name -and $eventData.Description -and $eventData.Action) {
+                    $this.AddCommand($eventData.Name, $eventData.Description, $eventData.Action)
+                }
+            }.GetNewClosure())
+        }
+        
         # Initialize child components
         if ($this.ResultsList) {
             $this.ResultsList.Initialize($services)
@@ -54,38 +68,196 @@ class CommandPalette : Container {
     }
     
     [void] LoadDefaultCommands() {
+        # Store reference to this palette for use in scriptblocks
+        $palette = $this
+        
         # Add some default commands
-        $this.AddCommand("new project", "Create a new project", { 
-            # Switch to projects tab and trigger new project
-            if ($this.Parent -and $this.Parent.GetType().Name -eq "MainScreen") {
-                $this.Parent.TabContainer.ActivateTab(0)  # Projects is first tab
-                # TODO: Trigger new project dialog
+        $this.AddCommand("new project", "Create a new project", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Executing new project command")
             }
-        })
-        $this.AddCommand("new task", "Create a new task", { 
-            # TODO: Implement new task
-        })
-        $this.AddCommand("search", "Search in files", { 
+            
+            # Publish event to switch to projects tab
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 0 })
+            }
+            
+            # Create and show the dialog
+            $dialog = [NewProjectDialog]::new()
+            $dialog.OnCreate = {
+                param($project)
+                if ($global:Logger) {
+                    $global:Logger.Info("Creating project: $($project.Name)")
+                }
+                # Add project via service
+                $projectService = $global:ServiceContainer.GetService("ProjectService")
+                if ($projectService) {
+                    # Use the AddProject method which creates the project properly
+                    $nickname = $project.Name -replace '\s+', ''  # Remove spaces for nickname
+                    $newProject = $projectService.AddProject($project.Name, $nickname)
+                    
+                    # Publish project created event
+                    $eventBus = $global:ServiceContainer.GetService('EventBus')
+                    if ($eventBus) {
+                        $eventBus.Publish([EventNames]::ProjectCreated, @{ Project = $newProject })
+                    }
+                }
+                # Close dialog
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            $dialog.OnCancel = {
+                # Close dialog
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            # Push dialog to screen manager
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }.GetNewClosure())
+        $this.AddCommand("new task", "Create a new task", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Executing new task command")
+            }
+            
+            # Publish event to switch to tasks tab
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 1 })
+            }
+            
+            # Publish command to create new task
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::CommandExecuted, @{ 
+                    Command = 'NewTask'
+                    Target = 'TaskScreen'
+                })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("edit project", "Edit selected project", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Executing edit project command")
+            }
+            
+            # Publish events
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 0 })
+                $palette.EventBus.Publish([EventNames]::CommandExecuted, @{ 
+                    Command = 'EditProject'
+                    Target = 'ProjectsScreen'
+                })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("edit task", "Edit selected task", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Executing edit task command")
+            }
+            
+            # Publish events
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 1 })
+                $palette.EventBus.Publish([EventNames]::CommandExecuted, @{ 
+                    Command = 'EditTask'
+                    Target = 'TaskScreen'
+                })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("delete project", "Delete selected project", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Executing delete project command")
+            }
+            
+            # Publish events
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 0 })
+                $palette.EventBus.Publish([EventNames]::CommandExecuted, @{ 
+                    Command = 'DeleteProject'
+                    Target = 'ProjectsScreen'
+                })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("delete task", "Delete selected task", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Executing delete task command")
+            }
+            
+            # Publish events
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 1 })
+                $palette.EventBus.Publish([EventNames]::CommandExecuted, @{ 
+                    Command = 'DeleteTask'
+                    Target = 'TaskScreen'
+                })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("search", "Search in files", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Search command executed")
+            }
             # TODO: Implement search
-        })
-        $this.AddCommand("settings", "Open settings", { 
-            # TODO: Implement settings
-        })
-        $this.AddCommand("reload", "Reload configuration", { 
+        }.GetNewClosure())
+        
+        $this.AddCommand("settings", "Open settings", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Settings command executed")
+            }
+            # Switch to settings tab
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 3 })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("eventbus monitor", "Open EventBus monitor", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: EventBus monitor command executed")
+            }
+            # Open EventBus monitor dialog
+            $monitor = [EventBusMonitor]::new()
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($monitor)
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("reload", "Reload configuration", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Reload command executed")
+            }
             # TODO: Implement reload
-        })
-        $this.AddCommand("theme dark", "Switch to dark theme", { 
+        }.GetNewClosure())
+        
+        $this.AddCommand("theme dark", "Switch to dark theme", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Dark theme command executed")
+            }
             # TODO: Implement theme switching
-        })
-        $this.AddCommand("theme light", "Switch to light theme", { 
+        }.GetNewClosure())
+        
+        $this.AddCommand("theme light", "Switch to light theme", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Light theme command executed")
+            }
             # TODO: Implement theme switching
-        })
-        $this.AddCommand("quit", "Exit application", { 
+        }.GetNewClosure())
+        $this.AddCommand("quit", "Exit application", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Quit command executed")
+            }
             if ($global:ScreenManager) {
                 $screen = $global:ScreenManager.GetActiveScreen()
-                if ($screen) { $screen.Active = $false }
+                if ($screen) { 
+                    $screen.Active = $false 
+                }
             }
-        })
+        }.GetNewClosure())
     }
     
     [void] AddCommand([string]$name, [string]$description, [scriptblock]$action) {
@@ -224,15 +396,34 @@ class CommandPalette : Container {
         
         switch ($key.Key) {
             ([System.ConsoleKey]::Escape) {
-                $this.Hide()
+                if ($global:Logger) {
+                    $global:Logger.Debug("CommandPalette: Escape pressed, hiding palette")
+                }
+                try {
+                    $this.Hide()
+                } catch {
+                    if ($global:Logger) {
+                        $global:Logger.Error("CommandPalette: Error hiding palette: $_")
+                    }
+                }
                 return $true
             }
             ([System.ConsoleKey]::Enter) {
                 $selected = $this.ResultsList.GetSelectedItem()
                 if ($selected) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("CommandPalette: Executing command '$($selected.Name)'")
+                    }
                     $this.Hide()
                     if ($selected.Action) {
-                        & $selected.Action
+                        try {
+                            # Execute in the context of the CommandPalette
+                            $selected.Action.Invoke()
+                        } catch {
+                            if ($global:Logger) {
+                                $global:Logger.Error("CommandPalette: Error executing command '$($selected.Name)': $_")
+                            }
+                        }
                     }
                     if ($this.OnCommandSelected) {
                         & $this.OnCommandSelected $selected

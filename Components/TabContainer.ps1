@@ -94,6 +94,8 @@ class TabContainer : Container {
             $this.PositionContent($newTab.Content, $true)
             $this.AddChild($newTab.Content)
             if ($newTab.Content -is [Screen]) {
+                # Ensure tab content doesn't draw its own background
+                $newTab.Content.DrawBackground = $false
                 $newTab.Content.OnActivated()
             }
             $newTab.Content.Focus()
@@ -104,6 +106,11 @@ class TabContainer : Container {
         
         $this._tabBarInvalid = $true
         $this.Invalidate()
+        
+        # Force parent to redraw completely to clear any artifacts
+        if ($this.Parent) {
+            $this.Parent.Invalidate()
+        }
         
         # Force a render request
         if ($global:ScreenManager) {
@@ -148,6 +155,19 @@ class TabContainer : Container {
             $this.RebuildTabBar()
         }
         $sb.Append($this._cachedTabBar)
+        
+        # Clear content area below tab bar
+        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor("background") } else { "" }
+        $contentY = $this.Y + $this.TabBarHeight
+        $contentHeight = $this.Height - $this.TabBarHeight
+        $clearLine = " " * $this.Width
+        
+        for ($y = 0; $y -lt $contentHeight; $y++) {
+            $sb.Append([VT]::MoveTo($this.X, $contentY + $y))
+            if ($bgColor) { $sb.Append($bgColor) }
+            $sb.Append($clearLine)
+        }
+        if ($bgColor) { $sb.Append([VT]::Reset()) }
         
         # Render active content (base class handles children)
         $baseRender = ([Container]$this).OnRender()
@@ -226,6 +246,8 @@ class TabContainer : Container {
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Modifiers=$($key.Modifiers)")
+            $global:Logger.Debug("TabContainer: KeyChar type: $($key.KeyChar.GetType().Name) Value: '$($key.KeyChar)'")
+            $global:Logger.Debug("TabContainer: KeyChar ASCII value: $([int]$key.KeyChar)")
         }
         
         # Check TabContainer shortcuts FIRST before passing to children

@@ -6,10 +6,13 @@ class ThemeManager {
     hidden [string]$_currentTheme = "default"
     hidden [hashtable]$_cache = @{}
     hidden [System.Collections.Generic.List[scriptblock]]$_listeners
+    hidden [EventBus]$EventBus
     
     ThemeManager() {
         $this._listeners = [System.Collections.Generic.List[scriptblock]]::new()
         $this.InitializeDefaultTheme()
+        
+        # EventBus will be set later via SetEventBus
     }
     
     [void] InitializeDefaultTheme() {
@@ -71,8 +74,20 @@ class ThemeManager {
             throw "Theme '$name' not found"
         }
         
+        $oldTheme = $this._currentTheme
         $this._currentTheme = $name
         $this.RebuildCache()
+        
+        # Notify via EventBus if available
+        if ($this.EventBus) {
+            $this.EventBus.Publish([EventNames]::ThemeChanged, @{
+                OldTheme = $oldTheme
+                NewTheme = $name
+                ThemeManager = $this
+            })
+        }
+        
+        # Also notify legacy listeners for backward compatibility
         $this.NotifyListeners()
     }
     
@@ -153,20 +168,38 @@ class ThemeManager {
         $this._cache["clearline"] = [VT]::ClearLine()
     }
     
-    # Subscribe to theme changes
+    # Subscribe to theme changes (legacy method - use EventBus instead)
     [void] Subscribe([scriptblock]$callback) {
-        $this._listeners.Add($callback)
+        # If EventBus is available, use it instead
+        if ($this.EventBus) {
+            # Wrap the callback to match EventBus signature
+            $this.EventBus.Subscribe([EventNames]::ThemeChanged, {
+                param($sender, $eventData)
+                & $callback
+            })
+        } else {
+            # Fall back to legacy listeners
+            $this._listeners.Add($callback)
+        }
     }
     
-    # Notify all listeners of theme change
+    # Notify all listeners of theme change (legacy method)
     hidden [void] NotifyListeners() {
-        foreach ($listener in $this._listeners) {
-            try {
-                & $listener
-            } catch {
-                # Ignore listener errors
+        # Only notify legacy listeners if EventBus is not available
+        if (-not $this.EventBus) {
+            foreach ($listener in $this._listeners) {
+                try {
+                    & $listener
+                } catch {
+                    # Ignore listener errors
+                }
             }
         }
+    }
+    
+    # Set EventBus after initialization (called by ServiceContainer)
+    [void] SetEventBus([EventBus]$eventBus) {
+        $this.EventBus = $eventBus
     }
     
     # Get list of available themes

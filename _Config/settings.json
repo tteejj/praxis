@@ -1,0 +1,35 @@
+{
+  "Theme": "default",
+  "UI": {
+    "ShowScrollbars": true,
+    "CompactMode": false,
+    "AnimationsEnabled": true
+  },
+  "Performance": {
+    "EnableCaching": true,
+    "RenderOptimization": true,
+    "MaxCacheSize": 100
+  },
+  "Logging": {
+    "MaxFileSize": 10,
+    "MaxFiles": 5,
+    "Level": "Info"
+  },
+  "Projects": {
+    "AutoSave": true,
+    "BackupCount": 5,
+    "BackupEnabled": true,
+    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData"
+  },
+  "Editor": {
+    "ShowLineNumbers": true,
+    "WordWrap": false,
+    "TabSize": 4,
+    "HighlightCurrentLine": true
+  },
+  "Tasks": {
+    "ShowCompletedTasks": true,
+    "DefaultPriority": "Medium",
+    "CompletedTaskRetention": 30
+  }
+}
