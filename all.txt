@@ -122,7 +122,10 @@ class BaseDialog : Screen {
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+    # PARENT-DELEGATED INPUT MODEL (inherits from Screen)
+    # Dialog shortcuts are handled via HandleScreenInput
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Dialog-specific shortcuts
         switch ($key.Key) {
             ([System.ConsoleKey]::Enter) {
                 if (-not $key.Modifiers) {
@@ -135,9 +138,7 @@ class BaseDialog : Screen {
                 return $true
             }
         }
-        
-        # Let base handle other keys (like Tab)
-        return ([Screen]$this).HandleInput($key)
+        return $false
     }
     
     [void] OnActivated() {
@@ -484,43 +485,184 @@ class Container : UIElement {
     }
     
     # Route input to focused child
+    # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
             $global:Logger.Debug("Container.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Type=$($this.GetType().Name)")
         }
         
-        # First try focused child
-        $focused = $this.FindFocused()
-        if ($global:Logger -and $focused) {
-            $global:Logger.Debug("Container: Focused child is $($focused.GetType().Name)")
-        }
-        
-        if ($focused -and $focused -ne $this) {
-            if ($focused.HandleInput($key)) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("Container: Input handled by focused child")
-                }
-                return $true
-            }
-        }
-        
-        # If no child is focused but we have children, try the first focusable one
-        if (-not $focused -and $this.Children.Count -gt 0) {
+        # Simple rule: Let focused child handle first
+        $focused = $this.FindFocusedChild()
+        if ($focused) {
             if ($global:Logger) {
-                $global:Logger.Debug("Container: No focused child, trying to focus first focusable")
+                $global:Logger.Debug("Container: Routing to focused child $($focused.GetType().Name)")
             }
-            foreach ($child in $this.Children) {
-                if ($child.IsFocusable -and $child.Visible) {
-                    $child.Focus()
-                    if ($child.HandleInput($key)) {
-                        return $true
-                    }
+            return $focused.HandleInput($key)
+        }
+        
+        # No focused child
+        return $false
+    }
+    
+    # Find direct focused child (not deep search)
+    [UIElement] FindFocusedChild() {
+        foreach ($child in $this.Children) {
+            if ($child.Visible -and $child.IsFocused) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container.FindFocusedChild: Found focused child $($child.GetType().Name)")
+                }
+                return $child
+            }
+        }
+        if ($global:Logger) {
+            $global:Logger.Debug("Container.FindFocusedChild: No focused child found among $($this.Children.Count) children")
+        }
+        return $null
+    }
+    
+    # Parent-delegated focus navigation
+    [void] FocusNextChild([UIElement]$currentChild) {
+        if ($global:Logger) {
+            $global:Logger.Debug("Container.FocusNextChild: Type=$($this.GetType().Name), CurrentChild=$($currentChild.GetType().Name)")
+        }
+        
+        # For containers, we need to consider both focusable children AND containers
+        $allChildren = $this.Children | Where-Object { $_.Visible }
+        $currentIndex = -1
+        
+        # Find current child index
+        for ($i = 0; $i -lt $allChildren.Count; $i++) {
+            if ($allChildren[$i] -eq $currentChild) {
+                $currentIndex = $i
+                break
+            }
+        }
+        
+        if ($currentIndex -eq -1) {
+            # Current child not found, shouldn't happen
+            return
+        }
+        
+        # Look for next child that either is focusable or contains focusable elements
+        for ($i = $currentIndex + 1; $i -lt $allChildren.Count; $i++) {
+            $child = $allChildren[$i]
+            if ($child.IsFocusable) {
+                $child.Focus()
+                return
+            } elseif ($child -is [Container]) {
+                # Try to focus first element in this container
+                $child.FocusFirstInTree()
+                if ($this.GetRoot().FindFocused()) {
+                    return  # Focus was set
                 }
             }
         }
         
-        # Then handle at this level
-        return $false
+        # No next child found, bubble up or wrap
+        if ($this.Parent) {
+            $this.Parent.FocusNextChild($this)
+        } else {
+            # We're at root, wrap to beginning
+            $this.FocusFirstInTree()
+        }
+    }
+    
+    [void] FocusPreviousChild([UIElement]$currentChild) {
+        if ($global:Logger) {
+            $global:Logger.Debug("Container.FocusPreviousChild: Type=$($this.GetType().Name), CurrentChild=$($currentChild.GetType().Name)")
+        }
+        
+        # For containers, we need to consider both focusable children AND containers
+        $allChildren = $this.Children | Where-Object { $_.Visible }
+        $currentIndex = -1
+        
+        # Find current child index
+        for ($i = 0; $i -lt $allChildren.Count; $i++) {
+            if ($allChildren[$i] -eq $currentChild) {
+                $currentIndex = $i
+                break
+            }
+        }
+        
+        if ($currentIndex -eq -1) {
+            # Current child not found, shouldn't happen
+            return
+        }
+        
+        # Look for previous child that either is focusable or contains focusable elements
+        for ($i = $currentIndex - 1; $i -ge 0; $i--) {
+            $child = $allChildren[$i]
+            if ($child.IsFocusable) {
+                $child.Focus()
+                return
+            } elseif ($child -is [Container]) {
+                # Try to focus last element in this container
+                $child.FocusLastInTree()
+                if ($this.GetRoot().FindFocused()) {
+                    return  # Focus was set
+                }
+            }
+        }
+        
+        # No previous child found, bubble up or wrap
+        if ($this.Parent) {
+            $this.Parent.FocusPreviousChild($this)
+        } else {
+            # We're at root, wrap to end
+            $this.FocusLastInTree()
+        }
+    }
+    
+    # Focus first focusable child
+    [void] FocusFirst() {
+        $focusable = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible } | Select-Object -First 1
+        if ($focusable) {
+            $focusable.Focus()
+        }
+    }
+    
+    # Focus first focusable element in the entire tree
+    [void] FocusFirstInTree() {
+        # First check if any direct children are focusable
+        $focusable = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible } | Select-Object -First 1
+        if ($focusable) {
+            $focusable.Focus()
+            return
+        }
+        
+        # Otherwise check children's children
+        foreach ($child in $this.Children) {
+            if ($child -is [Container] -and $child.Visible) {
+                $child.FocusFirstInTree()
+                # If focus was set, we're done
+                $root = $this.GetRoot()
+                if ($root.FindFocused()) {
+                    return
+                }
+            }
+        }
+    }
+    
+    # Focus last focusable element in the entire tree
+    [void] FocusLastInTree() {
+        # Check children in reverse order
+        for ($i = $this.Children.Count - 1; $i -ge 0; $i--) {
+            $child = $this.Children[$i]
+            if ($child.Visible) {
+                if ($child -is [Container]) {
+                    # Recurse into container
+                    $child.FocusLastInTree()
+                    # If focus was set, we're done
+                    $root = $this.GetRoot()
+                    if ($root.FindFocused()) {
+                        return
+                    }
+                } elseif ($child.IsFocusable) {
+                    $child.Focus()
+                    return
+                }
+            }
+        }
     }
 }
 
@@ -539,7 +681,7 @@ class Screen : Container {
     hidden [ServiceContainer]$ServiceContainer
     
     Screen() : base() {
-        $this.IsFocusable = $true
+        $this.IsFocusable = $false  # Screens are containers, not focusable elements
         $this.DrawBackground = $true
     }
     
@@ -577,15 +719,27 @@ class Screen : Container {
         return $false  # Base implementation - no screen-specific handling
     }
     
-    # Input handling - screen-specific then container
+    # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
-        # First try screen-specific input handling
-        if ($this.HandleScreenInput($keyInfo)) {
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen.HandleInput: Key=$($keyInfo.Key) Type=$($this.GetType().Name)")
+        }
+        
+        # 1. Let focused child handle first (components get priority)
+        $handled = ([Container]$this).HandleInput($keyInfo)
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen base handled: $handled")
+        }
+        if ($handled) {
             return $true
         }
         
-        # Then let container handle focused child input
-        return ([Container]$this).HandleInput($keyInfo)
+        # 2. Screen shortcuts as fallback only
+        $screenHandled = $this.HandleScreenInput($keyInfo)
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen shortcuts handled: $screenHandled")
+        }
+        return $screenHandled
     }
     
     # Lifecycle methods - simple and fast
@@ -598,37 +752,11 @@ class Screen : Container {
         # Override in derived classes if needed
     }
     
-    # Simple focus navigation - works with PowerShell patterns
-    [void] FocusNext() {
-        $focusable = [System.Collections.ArrayList]::new()
-        $this.CollectFocusableElements($this, $focusable)
-        
-        if ($focusable.Count -eq 0) { return }
-        
-        # Find current focused element
-        $currentIndex = -1
-        for ($i = 0; $i -lt $focusable.Count; $i++) {
-            if ($focusable[$i].IsFocused) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        # Move to next (wrap around)
-        $nextIndex = ($currentIndex + 1) % $focusable.Count
-        $focusable[$nextIndex].Focus()
-    }
+    # Removed old FocusNext/FocusPrevious - now handled by parent delegation
     
-    # Collect all focusable descendants
-    [void] CollectFocusableElements([UIElement]$element, [System.Collections.ArrayList]$list) {
-        if ($element.Visible) {
-            if ($element.IsFocusable) {
-                $list.Add($element) | Out-Null
-            }
-            foreach ($child in $element.Children) {
-                $this.CollectFocusableElements($child, $list)
-            }
-        }
+    # Delegate to Container's FocusFirst
+    [void] FocusFirst() {
+        ([Container]$this).FocusFirst()
     }
 
     # Request a re-render
@@ -697,11 +825,12 @@ class UIElement {
         $this._cacheInvalid = $true
         $this.InvalidatePosition()  # Position might have changed too
         
-        
         # Propagate up the tree
         if ($this.Parent) {
             $this.Parent.Invalidate()
         }
+        
+        # Render request is handled by propagation to root
     }
     
     # Pre-compute position strings
@@ -766,7 +895,16 @@ class UIElement {
     
     # Simple focus management - works with PowerShell patterns
     [void] Focus() {
-        if (-not $this.IsFocusable -or -not $this.Visible) { return }
+        if (-not $this.IsFocusable -or -not $this.Visible) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("UIElement.Focus: Cannot focus $($this.GetType().Name) - IsFocusable=$($this.IsFocusable), Visible=$($this.Visible)")
+            }
+            return 
+        }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("UIElement.Focus: Focusing $($this.GetType().Name)")
+        }
         
         # Find root and clear any existing focus
         $root = $this
@@ -2205,7 +2343,11 @@ class FileSystemNode {
     
     [string] GetIcon() {
         if ($this.IsDirectory) {
-            return if ($this.IsExpanded) { "📂" } else { "📁" }
+            if ($this.IsExpanded) { 
+                return "📂" 
+            } else { 
+                return "📁" 
+            }
         }
         
         # File type icons based on extension
@@ -4999,9 +5141,15 @@ class TabContainer : Container {
     [void] ActivateTab([int]$index) {
         if ($index -lt 0 -or $index -ge $this.Tabs.Count) { return }
         
+        # Don't switch if already on this tab
+        if ($index -eq $this.ActiveTabIndex) { return }
+        
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.ActivateTab: Switching from tab $($this.ActiveTabIndex) to tab $index")
         }
+        
+        # Store old content reference
+        $oldContent = $null
         
         # Deactivate current
         if ($this.ActiveTabIndex -ge 0 -and $this.ActiveTabIndex -lt $this.Tabs.Count) {
@@ -5010,10 +5158,8 @@ class TabContainer : Container {
                 if ($global:Logger) {
                     $global:Logger.Debug("TabContainer: Removing old tab content: $($oldTab.Title)")
                 }
+                $oldContent = $oldTab.Content
                 $this.RemoveChild($oldTab.Content)
-                if ($oldTab.Content -is [Screen]) {
-                    $oldTab.Content.OnDeactivated()
-                }
             }
         }
         
@@ -5032,10 +5178,14 @@ class TabContainer : Container {
                 $newTab.Content.DrawBackground = $false
                 $newTab.Content.OnActivated()
             }
-            $newTab.Content.Focus()
             if ($global:Logger) {
                 $global:Logger.Debug("TabContainer: New content bounds: X=$($newTab.Content.X) Y=$($newTab.Content.Y) W=$($newTab.Content.Width) H=$($newTab.Content.Height)")
             }
+        }
+        
+        # Now safely deactivate old content after UI tree is updated
+        if ($oldContent -and $oldContent -is [Screen]) {
+            $oldContent.OnDeactivated()
         }
         
         $this._tabBarInvalid = $true
@@ -5176,39 +5326,34 @@ class TabContainer : Container {
         $this._tabBarInvalid = $false
     }
     
-    # Handle keyboard input
+    # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Modifiers=$($key.Modifiers)")
-            $global:Logger.Debug("TabContainer: KeyChar type: $($key.KeyChar.GetType().Name) Value: '$($key.KeyChar)'")
-            $global:Logger.Debug("TabContainer: KeyChar ASCII value: $([int]$key.KeyChar)")
         }
         
-        # Check TabContainer shortcuts FIRST before passing to children
+        # Route to active tab's content FIRST (parent-delegated model)
+        $activeTab = $this.GetActiveTab()
+        if ($activeTab -and $activeTab.Content) {
+            if ($global:Logger) {
+                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
+            }
+            if ($activeTab.Content.HandleInput($key)) {
+                return $true
+            }
+        }
+        
+        # Tab-switching shortcuts as FALLBACK only
         
         # Number keys for quick tab switching
-        if ($global:Logger) {
-            $global:Logger.Debug("TabContainer: About to check number keys. KeyChar='$($key.KeyChar)' ASCII=$([int]$key.KeyChar)")
-            $global:Logger.Debug("TabContainer: Checking if $([int]$key.KeyChar) is between $([int]'1') (49) and $([int]'9') (57)")
-        }
         if ($key.KeyChar -ge '1' -and $key.KeyChar -le '9') {
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Number key detected!")
-            }
             $tabIndex = [int]$key.KeyChar - [int][char]'1'
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Tab index calculated: $tabIndex, Tabs.Count: $($this.Tabs.Count)")
-            }
             if ($tabIndex -lt $this.Tabs.Count) {
                 if ($global:Logger) {
                     $global:Logger.Debug("TabContainer: Switching to tab $($tabIndex + 1)")
                 }
                 $this.ActivateTab($tabIndex)
                 return $true
-            } else {
-                if ($global:Logger) {
-                    $global:Logger.Debug("TabContainer: Tab index $tabIndex is out of range (Tabs.Count=$($this.Tabs.Count))")
-                }
             }
         }
         
@@ -5234,16 +5379,7 @@ class TabContainer : Container {
             }
         }
         
-        # Now pass to active tab's content
-        $activeTab = $this.GetActiveTab()
-        if ($activeTab -and $activeTab.Content) {
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
-            }
-            return $activeTab.Content.HandleInput($key)
-        }
-        
-        # Fallback to container behavior if no active content
+        # No one handled it
         return $false
     }
     
@@ -6300,11 +6436,18 @@ class ScreenManager {
                             $global:Logger.Debug("Key pressed: $($key.Key) Char: '$($key.KeyChar)' Modifiers: $($key.Modifiers)")
                         }
                         
-                        # SIMPLIFIED INPUT CHAIN - Direct global shortcuts + screen handling
-                        
-                        # 1. Handle global shortcuts directly  
+                        # PARENT-DELEGATED INPUT MODEL - Simple routing only
                         $handled = $false
-                        if ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
+                        
+                        # 1. Command Palette override (when visible)
+                        if ($this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
+                            $handled = $this._activeScreen.CommandPalette.HandleInput($key)
+                            if ($global:Logger) {
+                                $global:Logger.Debug("Key routed to CommandPalette")
+                            }
+                        }
+                        # 2. Global shortcuts (minimal set)
+                        elseif ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
                             # Show command palette
                             if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
                                 $this._activeScreen.CommandPalette.Show()
@@ -6313,22 +6456,28 @@ class ScreenManager {
                                     $global:Logger.Debug("Key handled: Command palette opened")
                                 }
                             }
-                        } elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
-                            # Handle Tab navigation
+                        } 
+                        elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
+                            # Handle Tab navigation via parent delegation
                             if ($this._activeScreen) {
-                                $this._activeScreen.FocusNext()
-                                $handled = $true
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("Key handled: Tab navigation")
+                                $handled = $this.HandleTabNavigation($key)
+                            }
+                        }
+                        elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
+                            # Ctrl+Q for quit
+                            if ($key.Key -eq [System.ConsoleKey]::Q) {
+                                if ($this._activeScreen) {
+                                    $this._activeScreen.Active = $false
+                                    $handled = $true
+                                    if ($global:Logger) {
+                                        $global:Logger.Debug("Key handled: Quit application")
+                                    }
                                 }
                             }
-                        } elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control -and $key.Key -eq [System.ConsoleKey]::Q) {
-                            # Quit
-                            if ($this._activeScreen) {
-                                $this._activeScreen.Active = $false
-                                $handled = $true
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("Key handled: Quit application")
+                            # Ctrl+Arrows for focus navigation
+                            elseif ($key.Key -eq [System.ConsoleKey]::RightArrow -or $key.Key -eq [System.ConsoleKey]::LeftArrow) {
+                                if ($this._activeScreen) {
+                                    $handled = $this.HandleTabNavigation($key)
                                 }
                             }
                         }
@@ -6422,6 +6571,70 @@ class ScreenManager {
     # Request render on next frame
     [void] RequestRender() {
         $this._needsRender = $true
+    }
+    
+    # Parent-delegated Tab navigation
+    [bool] HandleTabNavigation([System.ConsoleKeyInfo]$key) {
+        # Find the deepest focused element
+        $focused = $this.FindDeepestFocusedElement($this._activeScreen)
+        if ($global:Logger) {
+            $global:Logger.Debug("HandleTabNavigation: Focused element = " + $(if ($focused) { $focused.GetType().Name } else { "null" }))
+        }
+        
+        if (-not $focused) {
+            # No focus, try to focus first focusable element
+            if ($global:Logger) {
+                $global:Logger.Debug("HandleTabNavigation: No focused element, focusing first")
+            }
+            $this._activeScreen.FocusFirst()
+            return $true
+        }
+        
+        # Ask the parent to handle navigation
+        if ($focused.Parent) {
+            $isReverse = ($key.Modifiers -band [System.ConsoleModifiers]::Shift) -or 
+                         ($key.Key -eq [System.ConsoleKey]::LeftArrow)
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("HandleTabNavigation: Parent = $($focused.Parent.GetType().Name), Reverse = $isReverse")
+            }
+            
+            if ($isReverse) {
+                $focused.Parent.FocusPreviousChild($focused)
+            } else {
+                $focused.Parent.FocusNextChild($focused)
+            }
+            
+            if ($global:Logger) {
+                $direction = if ($isReverse) { "reverse" } else { "forward" }
+                $global:Logger.Debug("Tab navigation: $direction via parent delegation")
+            }
+            return $true
+        }
+        
+        return $false
+    }
+    
+    # Find the deepest focused element in the tree
+    [UIElement] FindDeepestFocusedElement([UIElement]$root) {
+        if (-not $root) { return $null }
+        
+        if ($root.IsFocused) {
+            # Check if any child is focused (go deeper)
+            foreach ($child in $root.Children) {
+                $deeper = $this.FindDeepestFocusedElement($child)
+                if ($deeper) { return $deeper }
+            }
+            return $root
+        }
+        
+        # Not focused, check children
+        foreach ($child in $root.Children) {
+            $found = $this.FindDeepestFocusedElement($child)
+            if ($found) { return $found }
+        }
+        
+        return $null
     }
     
     # Get current FPS
@@ -7034,6 +7247,19 @@ class ConfirmationDialog : Screen {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # CORRECTED INPUT FLOW: Check focused children FIRST, then dialog shortcuts as fallback
+        
+        # 1. Let focused children handle input first (buttons)
+        if (([Container]$this).HandleInput($key)) {
+            return $true
+        }
+        
+        # 2. Let base Screen handle Tab navigation
+        if (([Screen]$this).HandleInput($key)) {
+            return $true
+        }
+        
+        # 3. Handle dialog shortcuts as FALLBACK only
         switch ($key.Key) {
             ([System.ConsoleKey]::Escape) {
                 if ($this.OnCancel) {
@@ -7042,12 +7268,8 @@ class ConfirmationDialog : Screen {
                 return $true
             }
             ([System.ConsoleKey]::Enter) {
-                $focused = $this.FindFocused()
-                if ($focused -eq $this.ConfirmButton) {
-                    & $this.ConfirmButton.OnClick
-                } elseif ($focused -eq $this.CancelButton) {
-                    & $this.CancelButton.OnClick
-                }
+                # Default to confirm action if no button is focused
+                & $this.ConfirmButton.OnClick
                 return $true
             }
             ([System.ConsoleKey]::Y) {
@@ -7064,8 +7286,8 @@ class ConfirmationDialog : Screen {
             }
         }
         
-        # Let base class handle other keys (like Tab navigation)
-        return ([Screen]$this).HandleInput($key)
+        # If no one handled it, return false
+        return $false
     }
     
     [void] OnBoundsChanged() {
@@ -7673,271 +7895,161 @@ class DashboardScreen : Screen {
 ####\Screens/EditProjectDialog.ps1
 # EditProjectDialog.ps1 - Dialog for editing existing projects
 
-class EditProjectDialog : Screen {
+class EditProjectDialog : BaseDialog {
     [Project]$Project
     [TextBox]$NameBox
     [TextBox]$NicknameBox
+    [TextBox]$ID1Box
+    [TextBox]$ID2Box
     [TextBox]$NoteBox
+    [TextBox]$CAAPathBox
+    [TextBox]$RequestPathBox
+    [TextBox]$T2020PathBox
     [TextBox]$DueDateBox
-    [Button]$SaveButton
-    [Button]$CancelButton
-    [scriptblock]$OnSave = {}
-    [scriptblock]$OnCancel = {}
     
-    EditProjectDialog([Project]$project) : base() {
-        $this.Title = "Edit Project"
+    EditProjectDialog([Project]$project) : base("Edit Project") {
         $this.Project = $project
-        $this.DrawBackground = $true
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
+        $this.DialogWidth = 70
+        $this.DialogHeight = 22
     }
     
-    [void] OnInitialize() {
-        # Create name textbox
+    [void] InitializeContent() {
+        # Create all project input fields with current values
         $this.NameBox = [TextBox]::new()
         $this.NameBox.Text = $this.Project.FullProjectName
-        $this.NameBox.Placeholder = "Enter project name..."
-        $this.NameBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NameBox)
+        $this.NameBox.Placeholder = "Enter full project name..."
+        $this.AddContentControl($this.NameBox, 1)
         
-        # Create nickname textbox
         $this.NicknameBox = [TextBox]::new()
         $this.NicknameBox.Text = $this.Project.Nickname
-        $this.NicknameBox.Placeholder = "Enter nickname..."
-        $this.NicknameBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NicknameBox)
+        $this.NicknameBox.Placeholder = "Enter project nickname..."
+        $this.AddContentControl($this.NicknameBox, 2)
         
-        # Create note textbox
+        $this.ID1Box = [TextBox]::new()
+        $this.ID1Box.Text = $this.Project.ID1
+        $this.ID1Box.Placeholder = "Enter ID1..."
+        $this.AddContentControl($this.ID1Box, 3)
+        
+        $this.ID2Box = [TextBox]::new()
+        $this.ID2Box.Text = $this.Project.ID2
+        $this.ID2Box.Placeholder = "Enter ID2..."
+        $this.AddContentControl($this.ID2Box, 4)
+        
         $this.NoteBox = [TextBox]::new()
         $this.NoteBox.Text = $this.Project.Note
-        $this.NoteBox.Placeholder = "Enter notes (optional)..."
-        $this.NoteBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NoteBox)
+        $this.NoteBox.Placeholder = "Enter notes..."
+        $this.AddContentControl($this.NoteBox, 5)
         
-        # Create due date textbox
+        $this.CAAPathBox = [TextBox]::new()
+        $this.CAAPathBox.Text = $this.Project.CAAPath
+        $this.CAAPathBox.Placeholder = "Enter CAA path..."
+        $this.AddContentControl($this.CAAPathBox, 6)
+        
+        $this.RequestPathBox = [TextBox]::new()
+        $this.RequestPathBox.Text = $this.Project.RequestPath
+        $this.RequestPathBox.Placeholder = "Enter request path..."
+        $this.AddContentControl($this.RequestPathBox, 7)
+        
+        $this.T2020PathBox = [TextBox]::new()
+        $this.T2020PathBox.Text = $this.Project.T2020Path
+        $this.T2020PathBox.Placeholder = "Enter T2020 path..."
+        $this.AddContentControl($this.T2020PathBox, 8)
+        
         $this.DueDateBox = [TextBox]::new()
-        $this.DueDateBox.Text = $this.Project.DateDue.ToString("yyyy-MM-dd")
-        $this.DueDateBox.Placeholder = "YYYY-MM-DD"
-        $this.DueDateBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.DueDateBox)
+        $this.DueDateBox.Text = $this.Project.DateDue.ToString("MM/dd/yyyy")
+        $this.DueDateBox.Placeholder = "Enter due date (MM/DD/YYYY)..."
+        $this.AddContentControl($this.DueDateBox, 9)
         
-        # Create buttons
-        $this.SaveButton = [Button]::new("Save")
-        # Capture dialog reference
+        # Set up primary action (Save)
         $dialog = $this
-        $this.SaveButton.OnClick = {
+        $this.OnPrimary = {
             if ($dialog.NameBox.Text.Trim()) {
-                # Parse date
+                # Parse due date
                 $dueDate = $dialog.Project.DateDue
-                $dateText = $dialog.DueDateBox.Text.Trim()
-                if ($dateText) {
-                    $parsedDate = [DateTime]::MinValue
-                    if ([DateTime]::TryParse($dateText, [ref]$parsedDate)) {
-                        $dueDate = $parsedDate
+                if ($dialog.DueDateBox.Text.Trim()) {
+                    try {
+                        $dueDate = [DateTime]::Parse($dialog.DueDateBox.Text)
+                    } catch {
+                        # Keep original date if parsing fails
                     }
                 }
                 
-                if ($dialog.OnSave) {
-                    & $dialog.OnSave @{
-                        FullProjectName = $dialog.NameBox.Text
-                        Nickname = $dialog.NicknameBox.Text
-                        Note = $dialog.NoteBox.Text
-                        DateDue = $dueDate
-                    }
+                # Update project properties
+                $dialog.Project.FullProjectName = $dialog.NameBox.Text
+                $dialog.Project.Nickname = $dialog.NicknameBox.Text
+                $dialog.Project.ID1 = $dialog.ID1Box.Text
+                $dialog.Project.ID2 = $dialog.ID2Box.Text
+                $dialog.Project.Note = $dialog.NoteBox.Text
+                $dialog.Project.CAAPath = $dialog.CAAPathBox.Text
+                $dialog.Project.RequestPath = $dialog.RequestPathBox.Text
+                $dialog.Project.T2020Path = $dialog.T2020PathBox.Text
+                $dialog.Project.DateDue = $dueDate
+                $dialog.Project.UpdatedAt = [DateTime]::Now
+                
+                # Save via service
+                $projectService = $global:ServiceContainer.GetService("ProjectService")
+                if ($projectService) {
+                    $projectService.SaveProject($dialog.Project)
+                }
+                
+                # Publish event if EventBus available
+                if ($dialog.EventBus) {
+                    $dialog.EventBus.Publish([EventNames]::ProjectUpdated, @{ 
+                        Project = $dialog.Project 
+                    })
+                    
+                    $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
+                        Dialog = 'EditProjectDialog'
+                        Action = 'Save'
+                        Data = $dialog.Project
+                    })
                 }
             }
         }.GetNewClosure()
-        $this.SaveButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.SaveButton)
         
-        $this.CancelButton = [Button]::new("Cancel")
-        $this.CancelButton.OnClick = {
-            if ($dialog.OnCancel) {
-                & $dialog.OnCancel
+        # Set up secondary action (Cancel)
+        $this.OnSecondary = {
+            if ($dialog.EventBus) {
+                $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
+                    Dialog = 'EditProjectDialog'
+                    Action = 'Cancel'
+                })
             }
         }.GetNewClosure()
-        $this.CancelButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CancelButton)
-        
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        switch ($key.Key) {
-            ([System.ConsoleKey]::Escape) {
-                if ($this.OnCancel) {
-                    & $this.OnCancel
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Enter) {
-                $focused = $this.FindFocused()
-                if ($focused -eq $this.SaveButton) {
-                    & $this.SaveButton.OnClick
-                } elseif ($focused -eq $this.CancelButton) {
-                    & $this.CancelButton.OnClick
-                }
-                return $true
-            }
-        }
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Custom positioning for all project fields (same as NewProjectDialog)
+        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+        $currentY = $dialogY + 2
         
-        # Let base class handle other keys (like Tab navigation)
-        return ([Screen]$this).HandleInput($key)
-    }
-    
-    [void] OnActivated() {
-        ([Screen]$this).OnActivated()
-        # Focus on name box
-        $this.NameBox.Focus()
-    }
-    
-    [void] OnBoundsChanged() {
-        # Dialog dimensions
-        $dialogWidth = 60
-        $dialogHeight = 18
-        $centerX = [int](($this.Width - $dialogWidth) / 2)
-        $centerY = [int](($this.Height - $dialogHeight) / 2)
+        $this.NameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Position components
-        $this.NameBox.SetBounds($centerX + 2, $centerY + 2, $dialogWidth - 4, 3)
-        $this.NicknameBox.SetBounds($centerX + 2, $centerY + 6, $dialogWidth - 4, 3)
-        $this.NoteBox.SetBounds($centerX + 2, $centerY + 10, $dialogWidth - 4, 3)
-        $this.DueDateBox.SetBounds($centerX + 2, $centerY + 14, 20, 3)
+        $this.NicknameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Position buttons (use similar logic to ProjectsScreen)
-        $buttonY = $centerY + 14
-        $buttonHeight = 3
-        $buttonSpacing = 2
-        $maxButtonWidth = 12
-        $totalButtonWidth = ($maxButtonWidth * 2) + $buttonSpacing
+        # Split ID fields horizontally
+        $halfWidth = [int](($controlWidth - 2) / 2)
+        $this.ID1Box.SetBounds($dialogX + $this.DialogPadding, $currentY, $halfWidth, 2)
+        $this.ID2Box.SetBounds($dialogX + $this.DialogPadding + $halfWidth + 2, $currentY, $halfWidth, 2)
+        $currentY += 2
         
-        # Center buttons if dialog is wide enough
-        if ($dialogWidth -gt $totalButtonWidth) {
-            $buttonStartX = $centerX + [int](($dialogWidth - $totalButtonWidth) / 2)
-            $buttonWidth = $maxButtonWidth
-        } else {
-            $buttonStartX = $centerX + 2
-            $buttonWidth = [int](($dialogWidth - 4 - $buttonSpacing) / 2)
-        }
+        $this.NoteBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        $this.SaveButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
+        $this.CAAPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        $this.CancelButton.SetBounds(
-            $buttonStartX + $buttonWidth + $buttonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
+        $this.RequestPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Store dialog bounds for rendering
-        $this._dialogBounds = @{
-            X = $centerX
-            Y = $centerY
-            Width = $dialogWidth
-            Height = $dialogHeight
-        }
-    }
-    
-    hidden [hashtable]$_dialogBounds
-    
-    [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $this.T2020PathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # First, clear the entire screen with a dark overlay
-        $overlayBg = [VT]::RGBBG(16, 16, 16)  # Dark gray overlay
-        for ($y = 0; $y -lt $this.Height; $y++) {
-            $sb.Append([VT]::MoveTo(0, $y))
-            $sb.Append($overlayBg)
-            $sb.Append(" " * $this.Width)
-        }
-        
-        if ($this._dialogBounds) {
-            # Draw dialog box
-            $borderColor = $this.Theme.GetColor("dialog.border")
-            $bgColor = $this.Theme.GetBgColor("dialog.background")
-            $titleColor = $this.Theme.GetColor("dialog.title")
-            
-            $x = $this._dialogBounds.X
-            $y = $this._dialogBounds.Y
-            $w = $this._dialogBounds.Width
-            $h = $this._dialogBounds.Height
-            
-            # Fill background
-            for ($i = 0; $i -lt $h; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append($bgColor)
-                $sb.Append(" " * $w)
-            }
-            
-            # Draw border
-            $sb.Append([VT]::MoveTo($x, $y))
-            $sb.Append($borderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($w - 2)) + [VT]::TR())
-            
-            for ($i = 1; $i -lt $h - 1; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append([VT]::V())
-                $sb.Append([VT]::MoveTo($x + $w - 1, $y + $i))
-                $sb.Append([VT]::V())
-            }
-            
-            $sb.Append([VT]::MoveTo($x, $y + $h - 1))
-            $sb.Append([VT]::BL() + ([VT]::H() * ($w - 2)) + [VT]::BR())
-            
-            # Draw title
-            $title = " Edit Project "
-            $titleX = $x + [int](($w - $title.Length) / 2)
-            $sb.Append([VT]::MoveTo($titleX, $y))
-            $sb.Append($titleColor)
-            $sb.Append($title)
-            
-            # Draw labels
-            $sb.Append([VT]::MoveTo($x + 2, $y + 1))
-            $sb.Append($this.Theme.GetColor("foreground"))
-            $sb.Append("Name:")
-            
-            $sb.Append([VT]::MoveTo($x + 2, $y + 5))
-            $sb.Append("Nickname:")
-            
-            $sb.Append([VT]::MoveTo($x + 2, $y + 9))
-            $sb.Append("Notes:")
-            
-            $sb.Append([VT]::MoveTo($x + 2, $y + 13))
-            $sb.Append("Due Date:")
-            
-            # Draw project info
-            $sb.Append([VT]::MoveTo($x + 25, $y + 13))
-            $sb.Append($this.Theme.GetColor("disabled"))
-            $sb.Append("Assigned: " + $this.Project.DateAssigned.ToString("yyyy-MM-dd"))
-        }
-        
-        # Render children
-        foreach ($child in $this.Children) {
-            if ($child.Visible) {
-                $sb.Append($child.Render())
-            }
-        }
-        
-        $sb.Append([VT]::Reset())
-        return $sb.ToString()
-    }
-    
-    [void] FocusNext() {
-        $focusableChildren = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible }
-        if ($focusableChildren.Count -eq 0) { return }
-        
-        $currentIndex = -1
-        for ($i = 0; $i -lt $focusableChildren.Count; $i++) {
-            if ($focusableChildren[$i].IsFocused) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        $nextIndex = ($currentIndex + 1) % $focusableChildren.Count
-        $focusableChildren[$nextIndex].Focus()
+        $this.DueDateBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
     }
 }
 
@@ -8952,62 +9064,31 @@ class MainScreen : Screen {
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("MainScreen.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)'")
-        }
-        
-        # Command palette gets input priority when visible
-        if ($this.CommandPalette -and $this.CommandPalette.IsVisible) {
-            $handled = $this.CommandPalette.HandleInput($key)
-            if ($global:Logger) {
-                $global:Logger.Debug("CommandPalette handled: $handled")
-            }
-            if ($handled) { return $true }
-        }
-        
-        # Let TabContainer handle tab-specific shortcuts first
-        if ($this.TabContainer) {
-            $handled = $this.TabContainer.HandleInput($key)
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer handled: $handled")
-            }
-            if ($handled) { return $true }
-        }
-        
-        # Handle MainScreen-specific shortcuts
-        switch ($key.Key) {
+    # Override to handle global shortcuts
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Global shortcuts
+        switch ($keyInfo.Key) {
             ([System.ConsoleKey]::Q) {
-                if (-not $key.Modifiers -and $key.KeyChar -eq 'Q') {
-                    $this.Active = $false
+                if (-not $keyInfo.Modifiers) {
+                    $this.Active = $false  # Exit the main loop
                     return $true
                 }
             }
             ([System.ConsoleKey]::Escape) {
-                try {
-                    if ($this.CommandPalette -and $this.CommandPalette.IsVisible) {
-                        $this.CommandPalette.Hide()
-                    } elseif ($this.TabContainer -and $this.TabContainer.GetActiveTab() -and $this.TabContainer.GetActiveTab().Content) {
-                        if ($this.TabContainer.GetActiveTab().Content.Active) {
-                            $this.Active = $false
-                        }
-                    } else {
-                        $this.Active = $false
-                    }
-                } catch {
-                    # If anything fails, just exit
-                    $this.Active = $false
+                if (-not $keyInfo.Modifiers) {
+                    $this.Active = $false  # Exit the main loop
+                    return $true
                 }
-                return $true
             }
         }
         
-        # Otherwise use normal handling
-        $handled = ([Screen]$this).HandleInput($key)
-        if ($global:Logger) {
-            $global:Logger.Debug("Screen base handled: $handled")
+        # Let TabContainer handle tab switching shortcuts (numbers, Ctrl+Tab, etc)
+        # This is safe because TabContainer is not focusable, so it won't be in the normal input chain
+        if ($this.TabContainer) {
+            return $this.TabContainer.HandleInput($keyInfo)
         }
-        return $handled
+        
+        return $false
     }
 }
 
@@ -9017,31 +9098,86 @@ class MainScreen : Screen {
 
 class NewProjectDialog : BaseDialog {
     [TextBox]$NameBox
-    [TextBox]$DescriptionBox
+    [TextBox]$NicknameBox
+    [TextBox]$ID1Box
+    [TextBox]$ID2Box
+    [TextBox]$NotesBox
+    [TextBox]$CAAPathBox
+    [TextBox]$RequestPathBox
+    [TextBox]$T2020PathBox
+    [TextBox]$DueDateBox
     
     NewProjectDialog() : base("New Project") {
         $this.PrimaryButtonText = "Create"
         $this.SecondaryButtonText = "Cancel"
+        $this.DialogWidth = 70
+        $this.DialogHeight = 22
     }
     
     [void] InitializeContent() {
-        # Create name textbox
+        # Create all project input fields
         $this.NameBox = [TextBox]::new()
-        $this.NameBox.Placeholder = "Enter project name..."
+        $this.NameBox.Placeholder = "Enter full project name..."
         $this.AddContentControl($this.NameBox, 1)
         
-        # Create description textbox
-        $this.DescriptionBox = [TextBox]::new()
-        $this.DescriptionBox.Placeholder = "Enter description..."
-        $this.AddContentControl($this.DescriptionBox, 2)
+        $this.NicknameBox = [TextBox]::new()
+        $this.NicknameBox.Placeholder = "Enter project nickname..."
+        $this.AddContentControl($this.NicknameBox, 2)
+        
+        $this.ID1Box = [TextBox]::new()
+        $this.ID1Box.Placeholder = "Enter ID1..."
+        $this.AddContentControl($this.ID1Box, 3)
+        
+        $this.ID2Box = [TextBox]::new()
+        $this.ID2Box.Placeholder = "Enter ID2..."
+        $this.AddContentControl($this.ID2Box, 4)
+        
+        $this.NotesBox = [TextBox]::new()
+        $this.NotesBox.Placeholder = "Enter notes..."
+        $this.AddContentControl($this.NotesBox, 5)
+        
+        $this.CAAPathBox = [TextBox]::new()
+        $this.CAAPathBox.Placeholder = "Enter CAA path..."
+        $this.AddContentControl($this.CAAPathBox, 6)
+        
+        $this.RequestPathBox = [TextBox]::new()
+        $this.RequestPathBox.Placeholder = "Enter request path..."
+        $this.AddContentControl($this.RequestPathBox, 7)
+        
+        $this.T2020PathBox = [TextBox]::new()
+        $this.T2020PathBox.Placeholder = "Enter T2020 path..."
+        $this.AddContentControl($this.T2020PathBox, 8)
+        
+        $this.DueDateBox = [TextBox]::new()
+        $this.DueDateBox.Placeholder = "Enter due date (MM/DD/YYYY)..."
+        $this.DueDateBox.Text = ([DateTime]::Now.AddDays(42)).ToString("MM/dd/yyyy")
+        $this.AddContentControl($this.DueDateBox, 9)
         
         # Set up primary action
         $dialog = $this
         $this.OnPrimary = {
             if ($dialog.NameBox.Text.Trim()) {
+                # Parse due date
+                $dueDate = [DateTime]::Now.AddDays(42)
+                if ($dialog.DueDateBox.Text.Trim()) {
+                    try {
+                        $dueDate = [DateTime]::Parse($dialog.DueDateBox.Text)
+                    } catch {
+                        # Use default if parsing fails
+                        $dueDate = [DateTime]::Now.AddDays(42)
+                    }
+                }
+                
                 $projectData = @{
-                    Name = $dialog.NameBox.Text
-                    Description = $dialog.DescriptionBox.Text
+                    FullProjectName = $dialog.NameBox.Text
+                    Nickname = if ($dialog.NicknameBox.Text.Trim()) { $dialog.NicknameBox.Text } else { $dialog.NameBox.Text }
+                    ID1 = $dialog.ID1Box.Text
+                    ID2 = $dialog.ID2Box.Text
+                    Note = $dialog.NotesBox.Text
+                    CAAPath = $dialog.CAAPathBox.Text
+                    RequestPath = $dialog.RequestPathBox.Text
+                    T2020Path = $dialog.T2020PathBox.Text
+                    DateDue = $dueDate
                 }
                 
                 # Use EventBus if available
@@ -9049,8 +9185,20 @@ class NewProjectDialog : BaseDialog {
                     # Create project via service
                     $projectService = $global:ServiceContainer.GetService("ProjectService")
                     if ($projectService) {
-                        # Create project using single-parameter constructor
-                        $newProject = $projectService.AddProject($projectData.Name)
+                        # Create project with full data
+                        $newProject = $projectService.AddProject($projectData.FullProjectName, $projectData.Nickname)
+                        
+                        # Update additional properties
+                        $newProject.ID1 = $projectData.ID1
+                        $newProject.ID2 = $projectData.ID2
+                        $newProject.Note = $projectData.Note
+                        $newProject.CAAPath = $projectData.CAAPath
+                        $newProject.RequestPath = $projectData.RequestPath
+                        $newProject.T2020Path = $projectData.T2020Path
+                        $newProject.DateDue = $projectData.DateDue
+                        
+                        # Save the updated project
+                        $projectService.SaveProject($newProject)
                         
                         # Publish event
                         $dialog.EventBus.Publish([EventNames]::ProjectCreated, @{ 
@@ -9091,24 +9239,35 @@ class NewProjectDialog : BaseDialog {
     }
     
     [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        # Custom positioning for name and description
+        # Custom positioning for all project fields
         $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+        $currentY = $dialogY + 2
         
-        # Name box
-        $this.NameBox.SetBounds(
-            $dialogX + $this.DialogPadding, 
-            $dialogY + 2, 
-            $controlWidth, 
-            3
-        )
+        $this.NameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Description box
-        $this.DescriptionBox.SetBounds(
-            $dialogX + $this.DialogPadding, 
-            $dialogY + 6, 
-            $controlWidth, 
-            3
-        )
+        $this.NicknameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
+        
+        # Split ID fields horizontally
+        $halfWidth = [int](($controlWidth - 2) / 2)
+        $this.ID1Box.SetBounds($dialogX + $this.DialogPadding, $currentY, $halfWidth, 2)
+        $this.ID2Box.SetBounds($dialogX + $this.DialogPadding + $halfWidth + 2, $currentY, $halfWidth, 2)
+        $currentY += 2
+        
+        $this.NotesBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
+        
+        $this.CAAPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
+        
+        $this.RequestPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
+        
+        $this.T2020PathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
+        
+        $this.DueDateBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
     }
 }
 
@@ -9507,48 +9666,137 @@ class NumberInputDialog : Screen {
 
 ####\Screens/ProjectDetailScreen.ps1
 # ProjectDetailScreen - Detailed project view with time tracking information
-# Shows comprehensive project data based on tracker.txt structure
+# Redesigned to follow PRAXIS architecture standards using DockPanel and components
 
 class ProjectDetailScreen : Screen {
     [Project]$Project = $null
     [System.Collections.ArrayList]$TimeEntries
-    [System.Collections.ArrayList]$UIComponents
-    [int]$ScrollOffset = 0
-    [int]$MaxScrollOffset = 0
-    [ThemeManager]$ThemeManager
     
-    # Display sections
-    [bool]$ShowProjectInfo = $true
-    [bool]$ShowTimeEntries = $true
-    [bool]$ShowWeeklySummary = $true
+    # PRAXIS Architecture Components
+    [DockPanel]$MainLayout
+    [ListBox]$ProjectInfoPanel
+    [DataGrid]$WeeklySummaryGrid  
+    [DataGrid]$TimeEntriesGrid
+    
+    # Services
+    [ThemeManager]$ThemeManager
+    [EventBus]$EventBus
     
     ProjectDetailScreen() : base() {
         $this.Title = "Project Details"
         $this.TimeEntries = [System.Collections.ArrayList]::new()
-        $this.UIComponents = [System.Collections.ArrayList]::new()
     }
     
     ProjectDetailScreen([Project]$project) : base() {
         $this.Title = "Project Details - $($project.Nickname)"
         $this.Project = $project
         $this.TimeEntries = [System.Collections.ArrayList]::new()
-        $this.UIComponents = [System.Collections.ArrayList]::new()
     }
     
     [void] OnInitialize() {
-        # Get theme service
-        if ($this.ServiceContainer) {
-            $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
-        }
+        # Get services through proper dependency injection
+        $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
+        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
         
         # Load time entries if we have a project
         if ($this.Project) {
             $this.LoadTimeEntries()
         }
         
+        # Create main DockPanel layout
+        $this.MainLayout = [DockPanel]::new()
+        $this.MainLayout.Initialize($this.ServiceContainer)
+        $this.AddChild($this.MainLayout)
+        
+        # Create project info panel (top section)
+        $this.CreateProjectInfoPanel()
+        
+        # Create weekly summary grid (middle section)
+        $this.CreateWeeklySummaryGrid()
+        
+        # Create time entries grid (fill remaining space)
+        $this.CreateTimeEntriesGrid()
+        
         # Update title
         if ($this.Project) {
             $this.Title = "Project Details - $($this.Project.Nickname)"
+        }
+        
+        # Populate data
+        $this.PopulateProjectInfo()
+        $this.PopulateWeeklySummary()
+        $this.PopulateTimeEntries()
+    }
+    
+    [void] CreateProjectInfoPanel() {
+        $this.ProjectInfoPanel = [ListBox]::new()
+        $this.ProjectInfoPanel.Initialize($this.ServiceContainer)
+        $this.ProjectInfoPanel.ShowBorder = $true
+        $this.ProjectInfoPanel.Title = "Project Information"
+        $this.ProjectInfoPanel.IsFocusable = $false  # Read-only display
+        
+        # Dock to top
+        $this.MainLayout.SetChildDock($this.ProjectInfoPanel, [DockPosition]::Top)
+        $this.MainLayout.AddChild($this.ProjectInfoPanel)
+    }
+    
+    [void] CreateWeeklySummaryGrid() {
+        $this.WeeklySummaryGrid = [DataGrid]::new()
+        $this.WeeklySummaryGrid.Initialize($this.ServiceContainer)
+        $this.WeeklySummaryGrid.ShowHeader = $true
+        $this.WeeklySummaryGrid.ShowBorder = $true
+        $this.WeeklySummaryGrid.Title = "Weekly Hours Summary"
+        $this.WeeklySummaryGrid.IsFocusable = $false  # Read-only display
+        
+        # Set up columns for weekly summary
+        $columns = @(
+            @{ Name = "WeekOf"; Header = "Week of"; Width = 12; Getter = { param($item) $item.WeekOf } }
+            @{ Name = "Monday"; Header = "Mon"; Width = 7; Getter = { param($item) $item.Monday.ToString("F1") } }
+            @{ Name = "Tuesday"; Header = "Tue"; Width = 7; Getter = { param($item) $item.Tuesday.ToString("F1") } }
+            @{ Name = "Wednesday"; Header = "Wed"; Width = 7; Getter = { param($item) $item.Wednesday.ToString("F1") } }
+            @{ Name = "Thursday"; Header = "Thu"; Width = 7; Getter = { param($item) $item.Thursday.ToString("F1") } }
+            @{ Name = "Friday"; Header = "Fri"; Width = 7; Getter = { param($item) $item.Friday.ToString("F1") } }
+            @{ Name = "Total"; Header = "Total"; Width = 8; Getter = { param($item) $item.Total.ToString("F1") } }
+        )
+        $this.WeeklySummaryGrid.SetColumns($columns)
+        
+        # Dock to top (after project info)
+        $this.MainLayout.SetChildDock($this.WeeklySummaryGrid, [DockPosition]::Top)
+        $this.MainLayout.AddChild($this.WeeklySummaryGrid)
+    }
+    
+    [void] CreateTimeEntriesGrid() {
+        $this.TimeEntriesGrid = [DataGrid]::new()
+        $this.TimeEntriesGrid.Initialize($this.ServiceContainer)
+        $this.TimeEntriesGrid.ShowHeader = $true
+        $this.TimeEntriesGrid.ShowBorder = $true
+        $this.TimeEntriesGrid.Title = "Time Entries - [A]dd [E]dit [D]elete [R]efresh"
+        $this.TimeEntriesGrid.IsFocusable = $true  # Interactive
+        
+        # Set up columns for time entries
+        $screen = $this  # Capture reference for closure
+        $columns = @(
+            @{ Name = "Date"; Header = "Date"; Width = 12; Getter = { param($item) $screen.FormatDate($item.Date) }.GetNewClosure() }
+            @{ Name = "Hours"; Header = "Hours"; Width = 8; Getter = { param($item) [double]::Parse($item.Total).ToString("F2") } }
+            @{ Name = "Description"; Header = "Description"; Width = 40; Getter = { param($item) if ($item.Description) { $item.Description } else { "No description" } } }
+        )
+        $this.TimeEntriesGrid.SetColumns($columns)
+        
+        # Set up selection changed handler
+        $screen = $this  # Capture reference for closure
+        $this.TimeEntriesGrid.OnSelectionChanged = {
+            # Handle selection changes if needed
+        }.GetNewClosure()
+        
+        # Fill remaining space
+        $this.MainLayout.SetChildDock($this.TimeEntriesGrid, [DockPosition]::Fill)
+        $this.MainLayout.AddChild($this.TimeEntriesGrid)
+    }
+    
+    [void] OnBoundsChanged() {
+        # DockPanel handles layout automatically
+        if ($this.MainLayout) {
+            $this.MainLayout.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
         }
     }
     
@@ -9605,211 +9853,78 @@ class ProjectDetailScreen : Screen {
         }
     }
     
-    [void] CalculateScrollLimits() {
-        # Calculate how many lines of content we have
-        $contentLines = 0
-        
-        if ($this.ShowProjectInfo) {
-            $contentLines += 15  # Project info section
+    [void] PopulateProjectInfo() {
+        if (-not $this.Project -or -not $this.ProjectInfoPanel) {
+            return
         }
         
-        if ($this.ShowWeeklySummary) {
-            $contentLines += 8   # Weekly summary section
-        }
+        $infoItems = [System.Collections.ArrayList]::new()
         
-        if ($this.ShowTimeEntries) {
-            $contentLines += 3 + $this.TimeEntries.Count  # Header + entries
-        }
-        
-        $visibleLines = $this.Height - 4  # Account for borders and title
-        $this.MaxScrollOffset = [Math]::Max(0, $contentLines - $visibleLines)
-    }
-    
-    [string] OnRender() {
-        if (-not $this.Project) {
-            return $this.RenderNoProject()
-        }
-        
-        $this.CalculateScrollLimits()
-        $sb = [System.Text.StringBuilder]::new()
-        
-        # Get colors
-        $headerColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("title") } else { "" }
-        $normalColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("normal") } else { "" }
-        $accentColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("accent") } else { "" }
-        $warningColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("warning") } else { "" }
-        $successColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("success") } else { "" }
-        
-        $currentLine = 0
-        $visibleLines = $this.Height - 4
-        
-        # Project Information Section
-        if ($this.ShowProjectInfo) {
-            $projectLines = $this.RenderProjectInfo($headerColor, $normalColor, $accentColor, $warningColor, $successColor)
-            $linesToShow = $this.GetVisibleLines($projectLines, $currentLine, $visibleLines)
-            foreach ($line in $linesToShow) {
-                $sb.AppendLine($line)
-            }
-            $currentLine += $projectLines.Count
-        }
-        
-        # Weekly Summary Section
-        if ($this.ShowWeeklySummary -and $currentLine -$this.ScrollOffset -lt $visibleLines) {
-            $summaryLines = $this.RenderWeeklySummary($headerColor, $normalColor, $accentColor)
-            $linesToShow = $this.GetVisibleLines($summaryLines, $currentLine, $visibleLines)
-            foreach ($line in $linesToShow) {
-                $sb.AppendLine($line)
-            }
-            $currentLine += $summaryLines.Count
-        }
-        
-        # Time Entries Section
-        if ($this.ShowTimeEntries -and $currentLine - $this.ScrollOffset -lt $visibleLines) {
-            $entryLines = $this.RenderTimeEntries($headerColor, $normalColor, $accentColor)
-            $linesToShow = $this.GetVisibleLines($entryLines, $currentLine, $visibleLines)
-            foreach ($line in $linesToShow) {
-                $sb.AppendLine($line)
-            }
-        }
-        
-        return $sb.ToString()
-    }
-    
-    [System.Collections.ArrayList] GetVisibleLines([System.Collections.ArrayList]$lines, [int]$currentLine, [int]$visibleLines) {
-        $visibleList = [System.Collections.ArrayList]::new()
-        
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            $lineIndex = $currentLine + $i
-            if ($lineIndex -ge $this.ScrollOffset -and ($lineIndex - $this.ScrollOffset) -lt $visibleLines) {
-                $visibleList.Add($lines[$i]) | Out-Null
-            }
-        }
-        
-        return $visibleList
-    }
-    
-    [System.Collections.ArrayList] RenderProjectInfo([string]$headerColor, [string]$normalColor, [string]$accentColor, [string]$warningColor, [string]$successColor) {
-        $lines = [System.Collections.ArrayList]::new()
-        
-        # Project header
-        $lines.Add("$headerColor=== PROJECT INFORMATION ===$normalColor") | Out-Null
-        $lines.Add("") | Out-Null
-        
-        # Basic info
-        $lines.Add("$accentColor  Nickname:$normalColor $($this.Project.Nickname)") | Out-Null
-        $lines.Add("$accentColor  Full Name:$normalColor $($this.Project.FullProjectName)") | Out-Null
+        # Basic project information
+        $infoItems.Add("Nickname: $($this.Project.Nickname)") | Out-Null
+        $infoItems.Add("Full Name: $($this.Project.FullProjectName)") | Out-Null
         
         # IDs
         if ($this.Project.ID1) {
-            $lines.Add("$accentColor  Client Code (ID1):$normalColor $($this.Project.ID1)") | Out-Null
+            $infoItems.Add("Client Code (ID1): $($this.Project.ID1)") | Out-Null
         }
         if ($this.Project.ID2) {
-            $lines.Add("$accentColor  Engagement Code (ID2):$normalColor $($this.Project.ID2)") | Out-Null
+            $infoItems.Add("Engagement Code (ID2): $($this.Project.ID2)") | Out-Null
         }
         
-        $lines.Add("") | Out-Null
+        $infoItems.Add("") | Out-Null  # Separator
         
         # Dates
         if ($this.Project.DateAssigned) {
             $assignedDate = $this.FormatDate($this.Project.DateAssigned)
-            $lines.Add("$accentColor  Date Assigned:$normalColor $assignedDate") | Out-Null
+            $infoItems.Add("Date Assigned: $assignedDate") | Out-Null
         }
         
         if ($this.Project.DateDue) {
             $dueDate = $this.FormatDate($this.Project.DateDue)
-            $statusColor = $this.GetDueDateColor($this.Project.DateDue, $warningColor, $successColor, $normalColor)
-            $lines.Add("$accentColor  Due Date:$statusColor $dueDate$normalColor") | Out-Null
+            $infoItems.Add("Due Date: $dueDate") | Out-Null
         }
         
         if ($this.Project.ClosedDate -and $this.Project.ClosedDate -ne [DateTime]::MinValue) {
             $closedDate = $this.FormatDate($this.Project.ClosedDate)
-            $lines.Add("$accentColor  Completed:$successColor $closedDate$normalColor") | Out-Null
+            $infoItems.Add("Completed: $closedDate") | Out-Null
         }
         
-        $lines.Add("") | Out-Null
+        $infoItems.Add("") | Out-Null  # Separator
         
-        # Status and hours
+        # Status and totals
         $status = if ($this.Project.Status) { $this.Project.Status } else { "Active" }
-        $statusColor = $this.GetStatusColor($status, $successColor, $warningColor, $normalColor)
-        $lines.Add("$accentColor  Status:$statusColor $status$normalColor") | Out-Null
+        $infoItems.Add("Status: $status") | Out-Null
         
-        # Calculate total hours from time entries
         $totalHours = $this.CalculateTotalHours()
-        $lines.Add("$accentColor  Total Hours:$normalColor $($totalHours.ToString('F2'))") | Out-Null
+        $infoItems.Add("Total Hours: $($totalHours.ToString('F2'))") | Out-Null
         
         if ($this.Project.Note) {
-            $lines.Add("") | Out-Null
-            $lines.Add("$accentColor  Notes:$normalColor") | Out-Null
-            $lines.Add("    $($this.Project.Note)") | Out-Null
+            $infoItems.Add("") | Out-Null  # Separator
+            $infoItems.Add("Notes:") | Out-Null
+            $infoItems.Add("  $($this.Project.Note)") | Out-Null
         }
         
-        return $lines
+        $this.ProjectInfoPanel.SetItems($infoItems)
     }
     
-    [System.Collections.ArrayList] RenderWeeklySummary([string]$headerColor, [string]$normalColor, [string]$accentColor) {
-        $lines = [System.Collections.ArrayList]::new()
+    [void] PopulateWeeklySummary() {
+        if (-not $this.WeeklySummaryGrid) {
+            return
+        }
         
-        $lines.Add("") | Out-Null
-        $lines.Add("$headerColor=== WEEKLY HOURS SUMMARY ===$normalColor") | Out-Null
-        $lines.Add("") | Out-Null
-        
-        # Create weekly summary from time entries
         $weeklyData = $this.CalculateWeeklySummary()
-        
-        # Header row
-        $header = "  Week of".PadRight(15) + "Mon".PadLeft(8) + "Tue".PadLeft(8) + "Wed".PadLeft(8) + "Thu".PadLeft(8) + "Fri".PadLeft(8) + "Total".PadLeft(10)
-        $lines.Add("$accentColor$header$normalColor") | Out-Null
-        $lines.Add("  " + ("-" * 75)) | Out-Null
-        
-        # Data rows
-        foreach ($week in $weeklyData) {
-            $weekStr = $week.WeekOf.PadRight(15)
-            $monStr = $week.Monday.ToString("F1").PadLeft(8)
-            $tueStr = $week.Tuesday.ToString("F1").PadLeft(8)
-            $wedStr = $week.Wednesday.ToString("F1").PadLeft(8)
-            $thuStr = $week.Thursday.ToString("F1").PadLeft(8)
-            $friStr = $week.Friday.ToString("F1").PadLeft(8)
-            $totalStr = $week.Total.ToString("F1").PadLeft(10)
-            
-            $lines.Add("  $weekStr$monStr$tueStr$wedStr$thuStr$friStr$totalStr") | Out-Null
-        }
-        
-        return $lines
+        $this.WeeklySummaryGrid.SetItems($weeklyData)
     }
     
-    [System.Collections.ArrayList] RenderTimeEntries([string]$headerColor, [string]$normalColor, [string]$accentColor) {
-        $lines = [System.Collections.ArrayList]::new()
-        
-        $lines.Add("") | Out-Null
-        $lines.Add("$headerColor=== TIME ENTRIES ===$normalColor") | Out-Null
-        $lines.Add("  $accentColor[A]$normalColor Add Entry  $accentColor[E]$normalColor Edit  $accentColor[D]$normalColor Delete  $accentColor[R]$normalColor Refresh") | Out-Null
-        $lines.Add("") | Out-Null
-        
-        if ($this.TimeEntries.Count -eq 0) {
-            $lines.Add("  No time entries found. Press 'A' to add your first entry.") | Out-Null
-            return $lines
+    [void] PopulateTimeEntries() {
+        if (-not $this.TimeEntriesGrid) {
+            return
         }
         
         # Sort entries by date (most recent first)
         $sortedEntries = $this.TimeEntries | Sort-Object { [DateTime]::ParseExact($_.Date, "yyyyMMdd", $null) } -Descending
-        
-        foreach ($entry in $sortedEntries) {
-            $date = $this.FormatDate($entry.Date)
-            $hours = [double]::Parse($entry.Total).ToString("F2")
-            $description = if ($entry.Description) { $entry.Description } else { "No description" }
-            
-            $lines.Add("  $accentColor$date$normalColor - $hours hrs") | Out-Null
-            $lines.Add("    $description") | Out-Null
-            $lines.Add("") | Out-Null
-        }
-        
-        $lines.Add("  Total Entries: $($sortedEntries.Count)") | Out-Null
-        
-        return $lines
-    }
-    
-    [string] RenderNoProject() {
-        return "No project selected for detailed view."
+        $this.TimeEntriesGrid.SetItems($sortedEntries)
     }
     
     [string] FormatDate([string]$dateStr) {
@@ -9837,61 +9952,6 @@ class ProjectDetailScreen : Screen {
             return "Not set"
         }
         return $date.ToString("MM/dd/yyyy")
-    }
-    
-    [string] GetDueDateColor([string]$dueDateStr, [string]$warningColor, [string]$successColor, [string]$normalColor) {
-        try {
-            if ([string]::IsNullOrEmpty($dueDateStr)) {
-                return $normalColor
-            }
-            
-            $dueDate = if ($dueDateStr.Length -eq 8) {
-                [DateTime]::ParseExact($dueDateStr, "yyyyMMdd", $null)
-            } else {
-                [DateTime]::Parse($dueDateStr)
-            }
-            
-            $today = [DateTime]::Now.Date
-            $daysUntilDue = ($dueDate.Date - $today).Days
-            
-            if ($daysUntilDue -lt 0) {
-                return $warningColor  # Overdue
-            } elseif ($daysUntilDue -le 7) {
-                return $warningColor  # Due soon
-            } else {
-                return $successColor  # On track
-            }
-        } catch {
-            return $normalColor
-        }
-    }
-    
-    [string] GetDueDateColor([DateTime]$dueDate, [string]$warningColor, [string]$successColor, [string]$normalColor) {
-        if ($dueDate -eq [DateTime]::MinValue) {
-            return $normalColor
-        }
-        
-        $today = [DateTime]::Now.Date
-        $daysUntilDue = ($dueDate.Date - $today).Days
-        
-        if ($daysUntilDue -lt 0) {
-            return $warningColor  # Overdue
-        } elseif ($daysUntilDue -le 7) {
-            return $warningColor  # Due soon
-        } else {
-            return $successColor  # On track
-        }
-    }
-    
-    [string] GetStatusColor([string]$status, [string]$successColor, [string]$warningColor, [string]$normalColor) {
-        switch ($status.ToLower()) {
-            "completed" { return $successColor }
-            "closed" { return $successColor }
-            "on hold" { return $warningColor }
-            "active" { return $normalColor }
-            default { return $normalColor }
-        }
-        return $normalColor  # Explicit fallback
     }
     
     [double] CalculateTotalHours() {
@@ -9951,8 +10011,13 @@ class ProjectDetailScreen : Screen {
             $weeklyData.Add([PSCustomObject]$week) | Out-Null
         }
         
-        # Sort by week date
-        return $weeklyData | Sort-Object { [DateTime]::Parse($_.WeekOf) } -Descending
+        # Sort by week date (most recent first) and ensure ArrayList type
+        $sortedData = $weeklyData | Sort-Object { [DateTime]::Parse($_.WeekOf) } -Descending
+        $result = [System.Collections.ArrayList]::new()
+        foreach ($item in $sortedData) {
+            $result.Add($item) | Out-Null
+        }
+        return $result
     }
     
     [void] AddTimeEntry() {
@@ -9968,28 +10033,43 @@ class ProjectDetailScreen : Screen {
         $dialog.OnSave = {
             param($timeEntryData)
             
-            # In a full implementation, this would save to actual data store
-            # For now, add to our local time entries collection
+            # Add to local time entries collection
             $screen.TimeEntries.Add($timeEntryData) | Out-Null
-            $screen.Invalidate()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Refresh all displays
+            $screen.PopulateTimeEntries()
+            $screen.PopulateWeeklySummary()
+            $screen.PopulateProjectInfo()  # Update total hours
+            
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
         $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
+        }.GetNewClosure()
+        
+        # Show dialog using proper service access
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        if ($screenManager) {
+            $screenManager.Push($dialog)
+        }
+    }
+    
+    [void] EditSelectedTimeEntry() {
+        $selected = $this.TimeEntriesGrid.GetSelectedItem()
+        if (-not $selected) {
+            return
         }
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $this.EditTimeEntry($selected)
     }
     
     [void] EditTimeEntry([PSCustomObject]$timeEntry) {
@@ -10005,8 +10085,7 @@ class ProjectDetailScreen : Screen {
         $dialog.OnSave = {
             param($timeEntryData)
             
-            # In a full implementation, this would update the actual data store
-            # For now, find and replace in our local collection
+            # Find and replace in local collection
             for ($i = 0; $i -lt $screen.TimeEntries.Count; $i++) {
                 if ($screen.TimeEntries[$i].Date -eq $timeEntry.Date -and
                     $screen.TimeEntries[$i].Description -eq $timeEntry.Description) {
@@ -10014,25 +10093,41 @@ class ProjectDetailScreen : Screen {
                     break
                 }
             }
-            $screen.Invalidate()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Refresh all displays
+            $screen.PopulateTimeEntries()
+            $screen.PopulateWeeklySummary()
+            $screen.PopulateProjectInfo()  # Update total hours
+            
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
         $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
+        }.GetNewClosure()
+        
+        # Show dialog using proper service access
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        if ($screenManager) {
+            $screenManager.Push($dialog)
+        }
+    }
+    
+    [void] DeleteSelectedTimeEntry() {
+        $selected = $this.TimeEntriesGrid.GetSelectedItem()
+        if (-not $selected) {
+            return
         }
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $this.DeleteTimeEntry($selected)
     }
     
     [void] DeleteTimeEntry([PSCustomObject]$timeEntry) {
@@ -10054,74 +10149,56 @@ class ProjectDetailScreen : Screen {
                     break
                 }
             }
-            $screen.Invalidate()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Refresh all displays
+            $screen.PopulateTimeEntries()
+            $screen.PopulateWeeklySummary()
+            $screen.PopulateProjectInfo()  # Update total hours
+            
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
         $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
-        }
+        }.GetNewClosure()
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
+        # Show dialog using proper service access
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        if ($screenManager) {
+            $screenManager.Push($dialog)
+        }
+    }
+    
+    [void] RefreshData() {
+        # Reload time entries
+        $this.LoadTimeEntries()
+        
+        # Refresh all displays
+        $this.PopulateProjectInfo()
+        $this.PopulateWeeklySummary()
+        $this.PopulateTimeEntries()
+        
+        # Focus the time entries grid
+        if ($this.TimeEntriesGrid) {
+            $this.TimeEntriesGrid.Focus()
         }
     }
     
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::UpArrow) {
-                if ($this.ScrollOffset -gt 0) {
-                    $this.ScrollOffset--
-                    $this.Invalidate()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::DownArrow) {
-                if ($this.ScrollOffset -lt $this.MaxScrollOffset) {
-                    $this.ScrollOffset++
-                    $this.Invalidate()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::PageUp) {
-                $pageSize = [Math]::Max(1, ($this.Height - 4) / 2)
-                $this.ScrollOffset = [Math]::Max(0, $this.ScrollOffset - $pageSize)
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::PageDown) {
-                $pageSize = [Math]::Max(1, ($this.Height - 4) / 2)
-                $this.ScrollOffset = [Math]::Min($this.MaxScrollOffset, $this.ScrollOffset + $pageSize)
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::Home) {
-                $this.ScrollOffset = 0
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::End) {
-                $this.ScrollOffset = $this.MaxScrollOffset
-                $this.Invalidate()
-                return $true
-            }
-        }
-        
         # Handle character shortcuts
         if ($keyInfo.KeyChar) {
             switch ($keyInfo.KeyChar) {
                 'r' {
                     # Refresh/reload data
-                    $this.LoadTimeEntries()
-                    $this.Invalidate()
+                    $this.RefreshData()
                     return $true
                 }
                 'a' {
@@ -10130,37 +10207,19 @@ class ProjectDetailScreen : Screen {
                     return $true
                 }
                 'e' {
-                    # Edit selected time entry (placeholder for now)
-                    # In full implementation, would need to track selected entry
+                    # Edit selected time entry
+                    $this.EditSelectedTimeEntry()
                     return $true
                 }
                 'd' {
-                    # Delete selected time entry (placeholder for now)
-                    # In full implementation, would need to track selected entry
-                    return $true
-                }
-                '1' {
-                    # Toggle project info section
-                    $this.ShowProjectInfo = -not $this.ShowProjectInfo
-                    $this.Invalidate()
-                    return $true
-                }
-                '2' {
-                    # Toggle weekly summary section
-                    $this.ShowWeeklySummary = -not $this.ShowWeeklySummary
-                    $this.Invalidate()
-                    return $true
-                }
-                '3' {
-                    # Toggle time entries section
-                    $this.ShowTimeEntries = -not $this.ShowTimeEntries
-                    $this.Invalidate()
+                    # Delete selected time entry
+                    $this.DeleteSelectedTimeEntry()
                     return $true
                 }
             }
         }
         
-        # Let base class handle other input (like tab switching)
+        # Let base class handle other input (like tab switching and navigation)
         return $false
     }
 }
@@ -10251,24 +10310,31 @@ class ProjectsScreen : Screen {
         $this.AddChild($this.ProjectList)
         
         # Create buttons
+        $screen = $this  # Capture reference for closures
+        
         $this.NewButton = [Button]::new("New Project")
         $this.NewButton.IsDefault = $true
-        $this.NewButton.OnClick = { $this.NewProject() }
+        $this.NewButton.OnClick = { 
+            if ($global:Logger) {
+                $global:Logger.Debug("New Project button clicked")
+            }
+            $screen.NewProject() 
+        }.GetNewClosure()
         $this.NewButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.NewButton)
         
         $this.ViewButton = [Button]::new("View Details")
-        $this.ViewButton.OnClick = { $this.ViewProjectDetails() }
+        $this.ViewButton.OnClick = { $screen.ViewProjectDetails() }.GetNewClosure()
         $this.ViewButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.ViewButton)
         
         $this.EditButton = [Button]::new("Edit")
-        $this.EditButton.OnClick = { $this.EditProject() }
+        $this.EditButton.OnClick = { $screen.EditProject() }.GetNewClosure()
         $this.EditButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.EditButton)
         
         $this.DeleteButton = [Button]::new("Delete")
-        $this.DeleteButton.OnClick = { $this.DeleteProject() }
+        $this.DeleteButton.OnClick = { $screen.DeleteProject() }.GetNewClosure()
         $this.DeleteButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.DeleteButton)
         
@@ -10286,6 +10352,21 @@ class ProjectsScreen : Screen {
         
         if ($global:Logger) {
             $global:Logger.Debug("ProjectsScreen.OnActivated: Screen activated with new focus system")
+        }
+        
+        # Focus the list if it has items, otherwise the New button
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen focus check: ProjectList=$($this.ProjectList -ne $null), Items=$($this.ProjectList.Items.Count), NewButton=$($this.NewButton -ne $null)")
+        }
+        
+        if ($this.ProjectList -and $this.ProjectList.Items.Count -gt 0) {
+            $this.ProjectList.Focus()
+        } elseif ($this.NewButton) {
+            $this.NewButton.Focus()
+        } else {
+            if ($global:Logger) {
+                $global:Logger.Debug("ProjectsScreen: No focusable element found!")
+            }
         }
     }
     
@@ -10371,6 +10452,9 @@ class ProjectsScreen : Screen {
     }
     
     [void] NewProject() {
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.NewProject() called")
+        }
         # Create new project dialog
         $dialog = [NewProjectDialog]::new()
         
@@ -10496,6 +10580,9 @@ class ProjectsScreen : Screen {
     }
     
     [void] ViewProjectDetails() {
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.ViewProjectDetails() called")
+        }
         $selected = $this.ProjectList.GetSelectedItem()
         if ($selected) {
             # Create and show project detail screen
@@ -10507,10 +10594,11 @@ class ProjectsScreen : Screen {
         }
     }
     
-    # FocusNext method removed - Tab navigation now handled by FocusManager service
+    # Using parent-delegated focus model - Tab handled by ScreenManager/Container
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Handle screen-specific shortcuts FIRST (before passing to children)
+    # Override HandleScreenInput instead of HandleInput to work with base Screen class
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Screen-specific shortcuts - only called as fallback by base Screen class
         switch ($key.Key) {
             ([System.ConsoleKey]::N) {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
@@ -10554,13 +10642,8 @@ class ProjectsScreen : Screen {
             }
         }
         
-        # Let base Screen class handle other keys (like Tab navigation)
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Finally, pass unhandled input to focused child
-        return ([Container]$this).HandleInput($key)
+        # If no shortcut matched, return false (let base Screen handle it)
+        return $false
     }
 }
 
@@ -12716,7 +12799,7 @@ class TextInputDialog : Screen {
 # TimeEntryDialog - Dialog for adding/editing time entries
 # Based on tracker.txt time tracking structure
 
-class TimeEntryDialog : Screen {
+class TimeEntryDialog : BaseDialog {
     [Project]$Project = $null
     [PSCustomObject]$TimeEntry = $null  # For editing existing entries
     [bool]$IsEditMode = $false
@@ -12734,23 +12817,26 @@ class TimeEntryDialog : Screen {
     [scriptblock]$OnSave = {}
     [scriptblock]$OnCancel = {}
     
-    TimeEntryDialog() : base() {
-        $this.Title = "Add Time Entry"
+    TimeEntryDialog() : base("Add Time Entry") {
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    TimeEntryDialog([Project]$project) : base() {
+    TimeEntryDialog([Project]$project) : base("Add Time Entry") {
         $this.Project = $project
-        $this.Title = "Add Time Entry - $($project.Nickname)"
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    TimeEntryDialog([Project]$project, [PSCustomObject]$timeEntry) : base() {
+    TimeEntryDialog([Project]$project, [PSCustomObject]$timeEntry) : base("Edit Time Entry") {
         $this.Project = $project
         $this.TimeEntry = $timeEntry
         $this.IsEditMode = $true
-        $this.Title = "Edit Time Entry - $($project.Nickname)"
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    [void] OnInitialize() {
+    [void] InitializeContent() {
         # Create input fields
         $this.DateTextBox = [TextBox]::new()
         $this.DateTextBox.Title = "Date (MM/DD/YYYY)"
@@ -13614,254 +13700,6 @@ class CommandRegistration {
 }
 
 
-####\Services/FocusManager.ps1
-# FocusManager.ps1 - High-performance focus management with scope support
-# Based on AxiomPhoenix patterns with PRAXIS string-rendering optimizations
-
-class FocusManager {
-    hidden [System.WeakReference]$_focusedElementRef
-    hidden [System.Collections.Generic.Stack[UIElement]]$_focusScopeStack
-    hidden [hashtable]$_focusCache  # Scope hash -> focusable elements array
-    
-    FocusManager() {
-        $this._focusScopeStack = [System.Collections.Generic.Stack[UIElement]]::new()
-        $this._focusCache = @{}
-    }
-    
-    # Main focus API
-    [UIElement] GetFocusedElement() {
-        if ($this._focusedElementRef -and $this._focusedElementRef.IsAlive) {
-            return $this._focusedElementRef.Target
-        }
-        return $null
-    }
-    
-    [void] SetFocus([UIElement]$element) {
-        if (-not $element -or -not $element.IsFocusable -or -not $element.Visible) { 
-            if ($global:Logger) {
-                $elementName = if ($element) { $element.GetType().Name } else { "null" }
-                $focusable = if ($element) { $element.IsFocusable } else { "N/A" }
-                $visible = if ($element) { $element.Visible } else { "N/A" }
-                $global:Logger.Debug("FocusManager: Cannot focus $elementName (focusable=$focusable, visible=$visible)")
-            }
-            return 
-        }
-        
-        $current = $this.GetFocusedElement()
-        if ($current -eq $element) { 
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: Element already has focus: $($element.GetType().Name)")
-            }
-            return 
-        }
-        
-        # Blur current
-        if ($current) {
-            $current.IsFocused = $false
-            $current.OnLostFocus()
-            $current.Invalidate()
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: Blurred $($current.GetType().Name)")
-            }
-        }
-        
-        # Focus new
-        $this._focusedElementRef = [System.WeakReference]::new($element)
-        $element.IsFocused = $true
-        $element.OnGotFocus()
-        $element.Invalidate()
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("FocusManager: Focused $($element.GetType().Name)")
-        }
-    }
-    
-    [void] ClearFocus() {
-        $current = $this.GetFocusedElement()
-        if ($current) {
-            $current.IsFocused = $false
-            $current.OnLostFocus()
-            $current.Invalidate()
-            $this._focusedElementRef = $null
-            
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: Cleared focus from $($current.GetType().Name)")
-            }
-        }
-    }
-    
-    # Tab navigation (replaces all per-screen FocusNext methods)
-    [void] FocusNext() { 
-        if ($global:Logger) {
-            $global:Logger.Debug("FocusManager.FocusNext: Called")
-        }
-        $this._MoveFocus($false) 
-    }
-    [void] FocusPrevious() { 
-        if ($global:Logger) {
-            $global:Logger.Debug("FocusManager.FocusPrevious: Called")
-        }
-        $this._MoveFocus($true) 
-    }
-    
-    # Scope management for screens/dialogs
-    [void] PushFocusScope([UIElement]$scope) {
-        $this._focusScopeStack.Push($scope)
-        $this.InvalidateFocusCache($scope)
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("FocusManager: Pushed focus scope: $($scope.GetType().Name)")
-        }
-        
-        # Focus first focusable element in new scope
-        $this.FocusFirstInCurrentScope()
-    }
-    
-    [void] PopFocusScope() {
-        if ($this._focusScopeStack.Count -gt 0) {
-            $popped = $this._focusScopeStack.Pop()
-            $this.InvalidateFocusCache($popped)
-            
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: Popped focus scope: $($popped.GetType().Name)")
-            }
-            
-            # Focus first element in previous scope if any
-            if ($this._focusScopeStack.Count -gt 0) {
-                $this.FocusFirstInCurrentScope()
-            } else {
-                $this.ClearFocus()
-            }
-        }
-    }
-    
-    [void] FocusFirstInCurrentScope() {
-        if ($this._focusScopeStack.Count -eq 0) { return }
-        
-        $currentScope = $this._focusScopeStack.Peek()
-        $focusable = $this._GetFocusableElements($currentScope)
-        
-        if ($focusable.Count -gt 0) {
-            $this.SetFocus($focusable[0])
-        }
-    }
-    
-    [void] InvalidateFocusCache([UIElement]$scope) {
-        $scopeHash = $scope.GetHashCode()
-        if ($this._focusCache.ContainsKey($scopeHash)) {
-            $this._focusCache.Remove($scopeHash)
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: Invalidated focus cache for $($scope.GetType().Name)")
-            }
-        }
-    }
-    
-    # Performance-critical focus movement
-    hidden [void] _MoveFocus([bool]$reverse) {
-        if ($this._focusScopeStack.Count -eq 0) { 
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: No focus scope available for tab navigation")
-            }
-            return 
-        }
-        
-        $currentScope = $this._focusScopeStack.Peek()
-        $focusable = $this._GetFocusableElements($currentScope)
-        
-        # Simplified focus debug logging
-        
-        if ($focusable.Count -eq 0) { 
-            if ($global:Logger) {
-                $global:Logger.Debug("FocusManager: No focusable elements in current scope")
-            }
-            return 
-        }
-        
-        $currentFocused = $this.GetFocusedElement()
-        $currentIndex = if ($currentFocused) { [array]::IndexOf($focusable, $currentFocused) } else { -1 }
-        
-        $nextIndex = if ($currentIndex -eq -1) { 
-            0 
-        } else { 
-            $currentIndex + (if ($reverse) { -1 } else { 1 })
-        }
-        
-        # Wrap around
-        if ($nextIndex -ge $focusable.Count) { $nextIndex = 0 }
-        if ($nextIndex -lt 0) { $nextIndex = $focusable.Count - 1 }
-        
-        # Focus move debug logging simplified
-        
-        $this.SetFocus($focusable[$nextIndex])
-    }
-    
-    # Cached focusable element collection (performance critical)
-    hidden [UIElement[]] _GetFocusableElements([UIElement]$scope) {
-        $scopeHash = $scope.GetHashCode()
-        
-        # Return cached if valid
-        if ($this._focusCache.ContainsKey($scopeHash)) {
-            return $this._focusCache[$scopeHash]
-        }
-        
-        if ($global:Logger) {
-            $childCount = if ($scope.Children) { $scope.Children.Count } else { 0 }
-            $global:Logger.Debug("FocusManager: Building focus cache for $($scope.GetType().Name) with $childCount children")
-        }
-        
-        # Build new cache using breadth-first search
-        $focusable = [System.Collections.Generic.List[UIElement]]::new()
-        $queue = [System.Collections.Queue]::new($scope.Children)
-        
-        while ($queue.Count -gt 0) {
-            $current = $queue.Dequeue()
-            
-            if ($current.Visible) {
-                if ($current.IsFocusable) {
-                    $focusable.Add($current)
-                }
-                
-                # Add children to queue
-                foreach ($child in $current.Children) {
-                    $queue.Enqueue($child)
-                }
-            }
-        }
-        
-        # Sort by TabIndex, then Y, then X for predictable order
-        $sorted = $focusable | Sort-Object TabIndex, Y, X
-        
-        # Cache result
-        $this._focusCache[$scopeHash] = $sorted
-        
-        if ($global:Logger) {
-            $elementList = if ($sorted.Count -gt 0) { 
-                ($sorted | ForEach-Object { $_.GetType().Name }) -join ", " 
-            } else { 
-                "none" 
-            }
-            $global:Logger.Debug("FocusManager: Cached $($sorted.Count) focusable elements for $($scope.GetType().Name): $elementList")
-        }
-        
-        return $sorted
-    }
-    
-    # Debug helpers
-    [string] GetCurrentScope() {
-        if ($this._focusScopeStack.Count -eq 0) { return "No scope" }
-        $scope = $this._focusScopeStack.Peek()
-        return $scope.GetType().Name
-    }
-    
-    [int] GetFocusableCount() {
-        if ($this._focusScopeStack.Count -eq 0) { return 0 }
-        $scope = $this._focusScopeStack.Peek()
-        $focusable = $this._GetFocusableElements($scope)
-        return $focusable.Count
-    }
-}
-
-
 ####\Services/Logger.ps1
 # Logger.ps1 - Fast logging service adapted from AxiomPhoenix
 # Optimized for speed - no console output, minimal file I/O
@@ -14118,6 +13956,19 @@ class ProjectService {
         return $project
     }
     
+    [Project] AddProject([string]$fullName, [string]$nickname) {
+        # Check if already exists
+        $existing = $this.GetProjectByName($nickname)
+        if ($existing) {
+            return $existing
+        }
+        
+        $project = [Project]::new($fullName, $nickname)
+        $this.Projects.Add($project) | Out-Null
+        $this.SaveProjects()
+        return $project
+    }
+    
     [Project] AddProject([Project]$project) {
         # Check if already exists by nickname
         $existing = $this.GetProjectByName($project.Nickname)
@@ -14161,166 +14012,6 @@ class ProjectService {
         }
         
         return $result
-    }
-}
-
-
-####\Services/ShortcutManager.ps1
-# ShortcutManager.ps1 - Context-aware key binding system
-# Adapted from AxiomPhoenix KeybindingService with PRAXIS performance optimizations
-
-class ShortcutManager {
-    hidden [System.Collections.Generic.Stack[hashtable]]$_contextStack
-    hidden [hashtable]$_globalBindings
-    
-    ShortcutManager() {
-        $this._contextStack = [System.Collections.Generic.Stack[hashtable]]::new()
-        $this._globalBindings = @{}
-        $this._InitializeDefaults()
-    }
-    
-    hidden [void] _InitializeDefaults() {
-        # Universal shortcuts (always available)
-        $this._globalBindings["CTRL+Q"] = { 
-            try { $global:ScreenManager.GetActiveScreen().Active = $false } catch { }
-        }
-        $this._globalBindings["/"] = { 
-            try { 
-                $mainScreen = $global:ScreenManager.GetActiveScreen()
-                $mainScreen.CommandPalette.Show()
-            } catch { }
-        }
-        $this._globalBindings[":"] = { 
-            try { 
-                $mainScreen = $global:ScreenManager.GetActiveScreen()
-                $mainScreen.CommandPalette.Show()
-            } catch { }
-        }
-        
-        # Tab navigation - handled by FocusManager
-        $this._globalBindings["TAB"] = { 
-            try {
-                $focusManager = $global:ServiceContainer.GetService("FocusManager")
-                $focusManager.FocusNext()
-            } catch { }
-        }
-        $this._globalBindings["SHIFT+TAB"] = { 
-            try {
-                $focusManager = $global:ServiceContainer.GetService("FocusManager")
-                $focusManager.FocusPrevious()
-            } catch { }
-        }
-    }
-    
-    # Context management for screens/dialogs
-    [void] PushContext([hashtable]$bindings) {
-        $this._contextStack.Push($bindings)
-    }
-    
-    [void] PopContext() {
-        if ($this._contextStack.Count -gt 0) { $this._contextStack.Pop() | Out-Null }
-    }
-    
-    # Global shortcut registration
-    [void] RegisterGlobal([string]$keyPattern, [scriptblock]$action) {
-        $this._globalBindings[$keyPattern.ToUpper()] = $action
-    }
-    
-    # Fast input processing (performance critical)
-    [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
-        $keyString = $this._GetKeyString($keyInfo)
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("ShortcutManager.HandleInput: Processing key '$keyString'")
-        }
-        
-        # Priority 1: Current context (screen/dialog)
-        if ($this._contextStack.Count -gt 0) {
-            $context = $this._contextStack.Peek()
-            if ($context.ContainsKey($keyString)) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("ShortcutManager: Executing context shortcut: $keyString")
-                }
-                try {
-                    & $context[$keyString]
-                    return $true
-                } catch {
-                    if ($global:Logger) {
-                        $global:Logger.LogException($_, "Error executing shortcut: $keyString")
-                    }
-                    return $false
-                }
-            }
-        }
-        
-        # Priority 2: Global bindings
-        if ($this._globalBindings.ContainsKey($keyString)) {
-            if ($global:Logger) {
-                $global:Logger.Debug("ShortcutManager: Executing global shortcut: $keyString")
-            }
-            try {
-                & $this._globalBindings[$keyString]
-                return $true
-            } catch {
-                if ($global:Logger) {
-                    $global:Logger.LogException($_, "Error executing global shortcut: $keyString")
-                }
-                return $false
-            }
-        }
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("ShortcutManager: No binding found for: $keyString")
-        }
-        return $false
-    }
-    
-    # Optimized key string generation (cached patterns for speed)
-    hidden [string] _GetKeyString([System.ConsoleKeyInfo]$keyInfo) {
-        $parts = [System.Collections.Generic.List[string]]::new()
-        
-        if ($keyInfo.Modifiers -band [System.ConsoleModifiers]::Control) { $parts.Add("CTRL") }
-        if ($keyInfo.Modifiers -band [System.ConsoleModifiers]::Alt) { $parts.Add("ALT") }
-        if ($keyInfo.Modifiers -band [System.ConsoleModifiers]::Shift) { $parts.Add("SHIFT") }
-        
-        # Fast key mapping (performance optimized)
-        $keyName = switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::Tab) { "TAB" }
-            ([System.ConsoleKey]::Enter) { "ENTER" }
-            ([System.ConsoleKey]::Escape) { "ESCAPE" }
-            ([System.ConsoleKey]::Delete) { "DELETE" }
-            ([System.ConsoleKey]::F5) { "F5" }
-            ([System.ConsoleKey]::UpArrow) { "UP" }
-            ([System.ConsoleKey]::DownArrow) { "DOWN" }
-            ([System.ConsoleKey]::LeftArrow) { "LEFT" }
-            ([System.ConsoleKey]::RightArrow) { "RIGHT" }
-            ([System.ConsoleKey]::Spacebar) { "SPACE" }
-            default { 
-                # For printable characters (including symbols), use the character itself
-                if ($keyInfo.KeyChar -and [char]::IsControl($keyInfo.KeyChar) -eq $false) {
-                    # Don't uppercase symbols like / and :
-                    if ([char]::IsLetter($keyInfo.KeyChar)) {
-                        $keyInfo.KeyChar.ToString().ToUpper()
-                    } else {
-                        $keyInfo.KeyChar.ToString()
-                    }
-                } else {
-                    $keyInfo.Key.ToString().ToUpper()
-                }
-            }
-        }
-        
-        $parts.Add($keyName)
-        return ($parts -join '+')
-    }
-    
-    # Debug helper
-    [string] GetCurrentContext() {
-        if ($this._contextStack.Count -eq 0) { return "Global only" }
-        
-        $context = $this._contextStack.Peek()
-        $keys = $context.Keys -join ", "
-        return "Context keys: $keys"
     }
 }
 
