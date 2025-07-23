@@ -1,0 +1,78 @@
+project info fields, to be implemented with excel import 
+worksheet name is 'SVI-CAS'
+workbook - file identified as the request
+following info to be stored as the project info AND to be copied to the file identified as the CAA
+
+request date w23
+type of audit w78
+auditor name w10
+auditor ph# w12
+auditor TL  w15
+Auditor TL ph #w16
+Name (TP) w3
+Num w4
+Address w5
+City w6
+Prov w7
+Postal Code w8
+country w9
+Audit period from w27
+Audit period to w28
+audit period 1 start w29
+end w30
+audit period 2 start w31
+end w32
+... and so on
+audit period 5 start w37
+end w38
+
+contact 1 name w54
+ph# w55
+ext w56
+address w57
+title w58
+contact2 w59
+...
+title w63
+
+
+
+
+Audit Program w72
+Auditn Type w78
+Audit Case# w18
+CAS Case# w17 (THIS IS THE NUMBER USED FOR ID2!! VERY IMPORTANT) 
+Audit Start Date w24 
+accounting software 1 w98
+other w100
+type w101
+software 2 w102
+other w104
+type w105
+
+required data: this is the title
+GL w110
+	-GL Detail files w111
+AR w112
+AP w...
+Sales Journal
+Purchase Journal
+Payroll
+	-needed for calendar year
+Vendor/Supplier MAster file
+Customer MAster file
+EE Master file
+Product detail master file
+inventory/logistic fields
+TB
+	-	monthly non0cumulative TB ...w125
+YE adj entries w126
+
+FX info - currency and amt w129
+ship to address w130
+tax jurisdiction w...
+GST/HST period field
+incoterms (place of supply of goods if available)
+transfer pricing info
+other w135
+comments w108 

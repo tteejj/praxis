@@ -55,18 +55,6 @@ class SettingsScreen : Screen {
     # Handle screen-specific input
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         switch ($key.Key) {
-            ([System.ConsoleKey]::LeftArrow) { 
-                if ($this.SettingsGrid.IsFocused) {
-                    $this.CategoryList.Focus()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::RightArrow) { 
-                if ($this.CategoryList.IsFocused) {
-                    $this.SettingsGrid.Focus()
-                    return $true
-                }
-            }
             ([System.ConsoleKey]::Enter) { 
                 $this.EditSetting()
                 return $true
@@ -83,10 +71,6 @@ class SettingsScreen : Screen {
         return $false
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Let base class handle the input
-        return ([Screen]$this).HandleInput($key)
-    }
     
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
@@ -267,14 +251,6 @@ class SettingsScreen : Screen {
         }
     }
     
-    [void] FocusNext() {
-        if ($this.CategoryList.IsFocused) {
-            $this.SettingsGrid.Focus()
-        } else {
-            $this.CategoryList.Focus()
-        }
-        $this.Invalidate()
-    }
     
     hidden [string] FormatCategoryName([string]$name) {
         # Convert PascalCase to Title Case

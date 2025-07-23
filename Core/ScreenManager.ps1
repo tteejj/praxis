@@ -7,6 +7,8 @@ class ScreenManager {
     hidden [bool]$_needsRender = $true
     hidden [System.ConsoleKeyInfo]$_lastKey
     hidden [ServiceContainer]$_services
+    hidden [ShortcutManager]$_shortcutManager
+    hidden [bool]$_exitRequested = $false
     
     # Performance tracking
     hidden [System.Diagnostics.Stopwatch]$_renderTimer
@@ -17,26 +19,45 @@ class ScreenManager {
         $this._screenStack = [System.Collections.Generic.Stack[Screen]]::new()
         $this._services = $services
         $this._renderTimer = [System.Diagnostics.Stopwatch]::new()
+        
+        # Get ShortcutManager if available
+        $this._shortcutManager = $services.GetService('ShortcutManager')
     }
     
     # Push a new screen
     [void] Push([Screen]$screen) {
+        if ($global:Logger) {
+            $global:Logger.Info("ScreenManager.Push: Pushing screen $($screen.GetType().Name)")
+        }
+        
         # Deactivate current
         if ($this._activeScreen) {
             $this._activeScreen.Active = $false
             $this._activeScreen.OnDeactivated()
         }
         
-        # Initialize and activate new screen
-        $screen.Initialize($this._services)
-        $screen.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
-        
-        $this._screenStack.Push($screen)
-        $this._activeScreen = $screen
-        $this._activeScreen.Active = $true
-        $this._activeScreen.OnActivated()
-        
-        $this._needsRender = $true
+        try {
+            # Initialize and activate new screen
+            $screen.Initialize($this._services)
+            $screen.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
+            
+            $this._screenStack.Push($screen)
+            $this._activeScreen = $screen
+            $this._activeScreen.Active = $true
+            $this._activeScreen.OnActivated()
+            
+            $this._needsRender = $true
+            
+            if ($global:Logger) {
+                $global:Logger.Info("ScreenManager.Push: Successfully pushed $($screen.GetType().Name), Active=$($this._activeScreen.Active)")
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("ScreenManager.Push: Error pushing screen - $_")
+                $global:Logger.Error("Stack trace: $($_.ScriptStackTrace)")
+            }
+            throw
+        }
     }
     
     # Pop current screen
@@ -91,7 +112,7 @@ class ScreenManager {
         }
         
         try {
-            while ($this._activeScreen -and $this._activeScreen.Active) {
+            while ($this._activeScreen -and $this._activeScreen.Active -and -not $this._exitRequested) {
                 if ($global:Logger) {
                     $global:Logger.Debug("ScreenManager: In main loop iteration")
                 }
@@ -139,35 +160,47 @@ class ScreenManager {
                         # PARENT-DELEGATED INPUT MODEL - Simple routing only
                         $handled = $false
                         
-                        # 1. Command Palette override (when visible)
-                        if ($this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
+                        # 1. Check ShortcutManager for global shortcuts first
+                        if ($this._shortcutManager) {
+                            $currentScreenType = if ($this._activeScreen) { $this._activeScreen.GetType().Name } else { "" }
+                            $currentContext = if ($this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) { "CommandPalette" } else { "" }
+                            
+                            $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, $currentContext)
+                            
+                            if ($handled -and $global:Logger) {
+                                $global:Logger.Debug("Key handled by ShortcutManager")
+                            }
+                        }
+                        
+                        # 2. Command Palette override (when visible) - only if not handled by shortcuts
+                        if (-not $handled -and $this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
                             $handled = $this._activeScreen.CommandPalette.HandleInput($key)
                             if ($global:Logger) {
                                 $global:Logger.Debug("Key routed to CommandPalette")
                             }
                         }
-                        # 2. Global shortcuts (minimal set)
-                        elseif ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
-                            # Show command palette
-                            if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
-                                $this._activeScreen.CommandPalette.Show()
-                                $handled = $true
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("Key handled: Command palette opened")
+                        # 3. Fallback to hardcoded shortcuts if ShortcutManager not available
+                        elseif (-not $this._shortcutManager) {
+                            if ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
+                                # Show command palette
+                                if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
+                                    $this._activeScreen.CommandPalette.Show()
+                                    $handled = $true
+                                    if ($global:Logger) {
+                                        $global:Logger.Debug("Key handled: Command palette opened")
+                                    }
+                                }
+                            } 
+                            elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
+                                # Handle Tab navigation via parent delegation
+                                if ($this._activeScreen) {
+                                    $handled = $this.HandleTabNavigation($key)
                                 }
                             }
-                        } 
-                        elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
-                            # Handle Tab navigation via parent delegation
-                            if ($this._activeScreen) {
-                                $handled = $this.HandleTabNavigation($key)
-                            }
-                        }
-                        elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
-                            # Ctrl+Q for quit
-                            if ($key.Key -eq [System.ConsoleKey]::Q) {
-                                if ($this._activeScreen) {
-                                    $this._activeScreen.Active = $false
+                            elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
+                                # Ctrl+Q for quit
+                                if ($key.Key -eq [System.ConsoleKey]::Q) {
+                                    $this.RequestExit()
                                     $handled = $true
                                     if ($global:Logger) {
                                         $global:Logger.Debug("Key handled: Quit application")
@@ -182,7 +215,12 @@ class ScreenManager {
                             }
                         }
                         
-                        # 2. If not handled by global shortcuts, let screen handle it
+                        # 4. Tab navigation (if not handled above)
+                        if (-not $handled -and $key.Key -eq [System.ConsoleKey]::Tab -and $this._activeScreen) {
+                            $handled = $this.HandleTabNavigation($key)
+                        }
+                        
+                        # 5. If not handled by global shortcuts, let screen handle it
                         if (-not $handled -and $this._activeScreen) {
                             try {
                                 $handled = $this._activeScreen.HandleInput($key)
@@ -340,6 +378,21 @@ class ScreenManager {
     # Get current FPS
     [double] GetFPS() {
         return $this._lastFPS
+    }
+    
+    # Request application exit
+    [void] RequestExit() {
+        $this._exitRequested = $true
+        if ($this._activeScreen) {
+            $this._activeScreen.Active = $false
+        }
+    }
+    
+    # Show command palette
+    [void] ShowCommandPalette() {
+        if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
+            $this._activeScreen.CommandPalette.Show()
+        }
     }
 }
 

@@ -134,7 +134,6 @@ class FastFileTree : UIElement {
     [string]$CollapsedIcon = "▶"
     
     hidden [ThemeManager]$Theme
-    hidden [string]$_cachedRender = ""
     hidden [int]$_lastSelectedIndex = -1
     hidden [System.Collections.Generic.HashSet[string]]$_expandedPaths
     
@@ -154,27 +153,20 @@ class FastFileTree : UIElement {
         $this.RootPath = $rootPath
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        if ($services) {
-            $this.Theme = $services.GetService("ThemeManager")
-            if ($this.Theme) {
-                $this.Theme.Subscribe({ $this.OnThemeChanged() })
-                $this.OnThemeChanged()
-            }
+    [void] OnInitialize() {
+        $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
         }
         
         $this.LoadDirectory($this.RootPath)
     }
     
     [void] OnThemeChanged() {
-        $this._cachedRender = ""
         $this.Invalidate()
     }
     
-    [void] Invalidate() {
-        $this._cachedRender = ""
-        ([UIElement]$this).Invalidate()
-    }
     
     # Public API
     [void] LoadDirectory([string]$path) {
@@ -203,8 +195,9 @@ class FastFileTree : UIElement {
             
         } catch {
             # Handle errors - could show in status or log
-            if ($global:Logger) {
-                $global:Logger.Error("FastFileTree: Failed to load directory '$path': $($_.Exception.Message)")
+            $logger = $this.ServiceContainer.GetService('Logger')
+            if ($logger) {
+                $logger.Error("FastFileTree: Failed to load directory '$path': $($_.Exception.Message)")
             }
         }
     }
@@ -379,23 +372,25 @@ class FastFileTree : UIElement {
     
     # Rendering
     [string] OnRender() {
-        if ([string]::IsNullOrEmpty($this._cachedRender)) {
-            $this.RebuildCache()
-        }
-        return $this._cachedRender
+        return $this.BuildRenderString()
     }
     
-    [void] RebuildCache() {
+    [string] BuildRenderString() {
         # Validate dimensions before rendering
         if ($this.Width -le 0 -or $this.Height -le 0) {
-            $this._cachedRender = ""
-            return
+            return ""
         }
         
         # Disable border if dimensions are too small
         $effectiveShowBorder = $this.ShowBorder -and $this.Width -ge 3 -and $this.Height -ge 2
         
-        $sb = Get-PooledStringBuilder 4096  # File trees can be quite large
+        # Use StringBuilder pool if available, otherwise create new
+        $sb = $null
+        if (Get-Command -Name 'Get-PooledStringBuilder' -ErrorAction SilentlyContinue) {
+            $sb = Get-PooledStringBuilder 4096  # File trees can be quite large
+        } else {
+            $sb = [System.Text.StringBuilder]::new(4096)
+        }
         
         # Colors
         $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
@@ -554,8 +549,11 @@ class FastFileTree : UIElement {
         }
         
         $sb.Append([VT]::Reset())
-        $this._cachedRender = $sb.ToString()
-        Return-PooledStringBuilder $sb  # Return to pool for reuse
+        $result = $sb.ToString()
+        if (Get-Command -Name 'Return-PooledStringBuilder' -ErrorAction SilentlyContinue) {
+            Return-PooledStringBuilder $sb  # Return to pool for reuse
+        }
+        return $result
     }
     
     # Input handling
@@ -662,96 +660,11 @@ class FastFileTree : UIElement {
         }
     }
     
-    # Helper methods for rendering refactoring
-    [hashtable] GetThemeColors() {
-        return @{
-            Border = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-            Title = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-            SelectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selected") } else { "" }
-            Normal = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
-            Directory = if ($this.Theme) { $this.Theme.GetColor("directory") } else { "" }
-            File = if ($this.Theme) { $this.Theme.GetColor("file") } else { "" }
-            FocusBorder = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { "" }
-        }
-    }
-    
-    [hashtable] CalculateContentArea([bool]$effectiveShowBorder) {
-        $contentY = $this.Y
-        $contentHeight = $this.Height
-        $contentWidth = $this.Width - ($effectiveShowBorder ? 2 : 0)
-        
-        # Ensure content width is never negative
-        if ($contentWidth -lt 0) {
-            $contentWidth = 0
-        }
-        
-        return @{
-            Y = $contentY
-            Height = $contentHeight
-            Width = $contentWidth
-        }
-    }
-    
-    [void] RenderBorder([System.Text.StringBuilder]$sb, [hashtable]$colors, [bool]$effectiveShowBorder) {
-        if (-not $effectiveShowBorder) { return }
-        
-        $currentBorderColor = if ($this.IsFocused) { $colors.FocusBorder } else { $colors.Border }
-        
-        # Top border
-        $sb.Append([VT]::MoveTo($this.X, $this.Y))
-        $sb.Append($currentBorderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
-    }
-    
-    [hashtable] RenderTitle([System.Text.StringBuilder]$sb, [hashtable]$colors, [hashtable]$contentArea, [bool]$effectiveShowBorder) {
-        $contentY = $contentArea.Y
-        $contentHeight = $contentArea.Height
-        $contentWidth = $contentArea.Width
-        
-        if ($effectiveShowBorder) {
-            $contentY++
-            $contentHeight--
-            
-            # Title with border
-            if ($this.Title -and $contentWidth -gt 0) {
-                $sb.Append([VT]::MoveTo($this.X + 1, $contentY))
-                $sb.Append($colors.Title)
-                $titleText = "$($this.Title) - $($this.RootPath)"
-                if ($titleText.Length -gt $contentWidth) {
-                    $titleText = "..." + $titleText.Substring($titleText.Length - $contentWidth + 3)
-                }
-                $titleLine = $titleText.PadRight($contentWidth).Substring(0, $contentWidth)
-                $sb.Append($titleLine)
-                $contentY++
-                $contentHeight--
-            }
-        } else {
-            # Title without border
-            if ($this.Title -and $this.Width -gt 0) {
-                $sb.Append([VT]::MoveTo($this.X, $contentY))
-                $sb.Append($colors.Title)
-                $titleText = "$($this.Title) - $($this.RootPath)"
-                $titleLine = $titleText.PadRight($this.Width).Substring(0, $this.Width)
-                $sb.Append($titleLine)
-                $contentY++
-                $contentHeight--
-            }
-        }
-        
-        return @{
-            Y = $contentY
-            Height = $contentHeight
-            Width = $contentWidth
-        }
-    }
-    
     [void] OnGotFocus() {
-        $this._cachedRender = ""
         $this.Invalidate()
     }
     
     [void] OnLostFocus() {
-        $this._cachedRender = ""
         $this.Invalidate()
     }
 }

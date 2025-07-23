@@ -12,12 +12,12 @@ class FileBrowserScreen : Screen {
     [void] OnInitialize() {
         # Create and configure the file tree
         $this.FileTree = [FastFileTree]::new()
-        if ($this.ServiceContainer) {
-            $this.FileTree.Initialize($this.ServiceContainer)
-        }
         $this.FileTree.ShowBorder = $true
         $this.FileTree.Title = "Files"
         $this.FileTree.ShowSize = $true
+        
+        # Add as child so it gets initialized properly
+        $this.AddChild($this.FileTree)
         
         # Start with current directory
         $this.FileTree.LoadDirectory((Get-Location).Path)

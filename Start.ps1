@@ -43,7 +43,7 @@ $loadOrder = @(
     "Base/BaseModel.ps1"
     
     # Services that depend on base classes
-    # (Removed FocusManager and ShortcutManager - using direct patterns instead)
+    "Services/ShortcutManager.ps1"
     
     # Models
     "Models/Project.ps1"
@@ -149,6 +149,11 @@ $global:ServiceContainer.Register("ThemeManager", $themeManager)
 $eventBus = [EventBus]::new()
 $eventBus.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("EventBus", $eventBus)
+
+# ShortcutManager
+$shortcutManager = [ShortcutManager]::new()
+$shortcutManager.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("ShortcutManager", $shortcutManager)
 if ($Debug) {
     Write-Host "  EventBus initialized" -ForegroundColor DarkGray
 }
@@ -179,7 +184,6 @@ $global:ServiceContainer.Register("ConfigurationService", $configService)
 $stateManager = [StateManager]::new()
 $stateManager.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("StateManager", $stateManager)
-$global:StateManager = $stateManager
 
 # Screen manager
 $screenManager = [ScreenManager]::new($global:ServiceContainer)
@@ -225,8 +229,9 @@ try {
 } finally {
     # Cleanup
     $global:Logger.Info("Shutting down PRAXIS")
-    if ($global:StateManager) {
-        $global:StateManager.Cleanup()
+    $stateManager = $global:ServiceContainer.GetService("StateManager")
+    if ($stateManager) {
+        $stateManager.Cleanup()
     }
     $global:Logger.Cleanup()
     $global:ServiceContainer.Cleanup()

@@ -39,6 +39,13 @@ class DashboardScreen : Screen {
     hidden [array]$_projectStats
     hidden [array]$_taskMetrics
     hidden [array]$_recentActivities
+    hidden [bool]$_isLoading = $false
+    hidden [hashtable]$_loadingProgress = @{
+        Projects = 0
+        Tasks = 0
+        Activity = 0
+        Metrics = 0
+    }
     
     DashboardScreen() : base() {
         $this.Title = "PRAXIS Dashboard"
@@ -52,11 +59,19 @@ class DashboardScreen : Screen {
         $this.TaskService = $global:ServiceContainer.GetService("TaskService")
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
         
+        # Subscribe to data loading events for background updates
+        $this.SetupEventHandlers()
+        
         # Create the incredibly complex nested layout structure
         $this.BuildMasterLayout()
         $this.BuildLeftPane()
         $this.BuildRightPane()
-        $this.LoadAllData()
+        
+        # Show initial loading state
+        $this.ShowLoadingState()
+        
+        # Start background data loading (non-blocking)
+        $this.StartBackgroundDataLoad()
         
         Write-Host "Dashboard initialized with maximum complexity!"
     }
@@ -250,7 +265,8 @@ class DashboardScreen : Screen {
             if ($global:Logger) {
                 $global:Logger.Info("Dashboard: Refresh button clicked - reloading all data")
             }
-            $dashboardRef.LoadAllData()
+            $dashboardRef.ShowLoadingState()
+            $dashboardRef.StartBackgroundDataLoad()
         }.GetNewClosure()
         $this.RefreshBtn.Initialize($global:ServiceContainer)
         $this.ActionGrid.AddChild($this.RefreshBtn)
@@ -388,6 +404,276 @@ class DashboardScreen : Screen {
         $this.RecentActivity.SetItems($activities)
     }
     
+    [void] SetupEventHandlers() {
+        # Subscribe to background data loading completion events
+        $dashboardRef = $this
+        
+        $this.EventBus.Subscribe('dashboard.data.projects.loaded', {
+            param($sender, $data)
+            if ($data.Projects) {
+                $dashboardRef.ProjectList.SetItems($data.Projects)
+                $dashboardRef._loadingProgress.Projects = 100
+                $dashboardRef.UpdateLoadingStatus()
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.tasks.loaded', {
+            param($sender, $data)
+            if ($data.Tasks) {
+                $dashboardRef.TaskList.SetItems($data.Tasks)
+                $dashboardRef._loadingProgress.Tasks = 100
+                $dashboardRef.UpdateLoadingStatus()
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.activity.loaded', {
+            param($sender, $data)
+            if ($data.Activities) {
+                $dashboardRef.RecentActivity.SetItems($data.Activities)
+                $dashboardRef._loadingProgress.Activity = 100
+                $dashboardRef.UpdateLoadingStatus()
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.metrics.loaded', {
+            param($sender, $data)
+            if ($data.PriorityStats) {
+                $dashboardRef.PriorityBreakdown.SetItems($data.PriorityStats)
+            }
+            if ($data.StatusData) {
+                $dashboardRef.StatusChart.SetItems($data.StatusData)
+            }
+            $dashboardRef._loadingProgress.Metrics = 100
+            $dashboardRef.UpdateLoadingStatus()
+        }.GetNewClosure())
+    }
+    
+    [void] ShowLoadingState() {
+        # Display loading indicators in each component
+        $loadingProjects = @(
+            "⏳ Loading project data...",
+            "   Please wait..."
+        )
+        $this.ProjectList.SetItems($loadingProjects)
+        
+        $loadingTasks = @(
+            "⏳ Loading task list...",
+            "   Fetching from database..."
+        )
+        $this.TaskList.SetItems($loadingTasks)
+        
+        $loadingActivity = @(
+            "⏳ Loading recent activity...",
+            "   Analyzing events..."
+        )
+        $this.RecentActivity.SetItems($loadingActivity)
+        
+        $loadingMetrics = @(
+            "⏳ Calculating metrics...",
+            "   Processing data..."
+        )
+        $this.PriorityBreakdown.SetItems($loadingMetrics)
+        $this.StatusChart.SetItems($loadingMetrics)
+    }
+    
+    [void] StartBackgroundDataLoad() {
+        if ($this._isLoading) {
+            Write-Host "Data loading already in progress"
+            return
+        }
+        
+        $this._isLoading = $true
+        $this._loadingProgress = @{
+            Projects = 0
+            Tasks = 0
+            Activity = 0
+            Metrics = 0
+        }
+        
+        # Use PowerShell jobs for true background loading
+        $projService = $this.ProjectService
+        $taskSvc = $this.TaskService
+        $evtBus = $this.EventBus
+        
+        # Load projects in background
+        $projectJob = Start-Job -ScriptBlock {
+            param($service, $evtBus)
+            
+            # Simulate loading delay
+            Start-Sleep -Milliseconds 800
+            
+            $projects = @()
+            if ($service) {
+                $allProjects = $service.GetAllProjects()
+                $projects = $allProjects | Where-Object { -not $_.Deleted } | Sort-Object DateDue
+            }
+            
+            if ($projects.Count -eq 0) {
+                $projects = @(
+                    @{ Nickname = "PRAXIS Framework"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(30) }
+                    @{ Nickname = "Dashboard System"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(7) }
+                    @{ Nickname = "Layout Components"; ClosedDate = [DateTime]::Now; DateDue = [DateTime]::Now.AddDays(-5) }
+                    @{ Nickname = "Testing Framework"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(45) }
+                )
+            }
+            
+            # Process projects
+            foreach ($project in $projects) {
+                $project.ClosedDate = if ($project.ClosedDate) { $project.ClosedDate } else { [DateTime]::MinValue }
+                $project.DateDue = if ($project.DateDue) { $project.DateDue } else { [DateTime]::Now.AddDays(30) }
+            }
+            
+            return $projects
+        } -ArgumentList $projService, $evtBus
+        
+        # Load tasks in background
+        $taskJob = Start-Job -ScriptBlock {
+            param($service)
+            
+            # Simulate loading delay
+            Start-Sleep -Milliseconds 1200
+            
+            $tasks = @()
+            if ($service) {
+                $allTasks = $service.GetAllTasks()
+                $tasks = $allTasks | Where-Object { $_.Status -ne "Done" } | Sort-Object Priority, Title
+            }
+            
+            if ($tasks.Count -eq 0) {
+                $tasks = @(
+                    @{ Title = "Implement HorizontalSplit"; Priority = "High"; Status = "Done"; Progress = 100 }
+                    @{ Title = "Create Dashboard Screen"; Priority = "High"; Status = "InProgress"; Progress = 75 }
+                    @{ Title = "Add visual styling"; Priority = "Medium"; Status = "InProgress"; Progress = 25 }
+                    @{ Title = "Fix layout bugs"; Priority = "High"; Status = "Pending"; Progress = 0 }
+                    @{ Title = "Write documentation"; Priority = "Low"; Status = "Pending"; Progress = 0 }
+                    @{ Title = "Performance optimization"; Priority = "Medium"; Status = "Blocked"; Progress = 10 }
+                )
+            }
+            
+            return $tasks
+        } -ArgumentList $taskSvc
+        
+        # Monitor jobs and publish events when complete
+        $monitorJob = Start-Job -ScriptBlock {
+            param($projectJob, $taskJob, $evtBus)
+            
+            # Wait for project job
+            $projects = Receive-Job -Job $projectJob -Wait
+            $evtBus.Publish('dashboard.data.projects.loaded', @{ Projects = $projects })
+            
+            # Wait for task job
+            $tasks = Receive-Job -Job $taskJob -Wait
+            $evtBus.Publish('dashboard.data.tasks.loaded', @{ Tasks = $tasks })
+            
+            # Generate metrics based on loaded data
+            Start-Sleep -Milliseconds 500
+            
+            $priorityStats = @(
+                "🔴 High Priority: $(@($tasks | Where-Object { $_.Priority -eq 'High' }).Count) tasks"
+                "🟡 Medium Priority: $(@($tasks | Where-Object { $_.Priority -eq 'Medium' }).Count) tasks"
+                "🟢 Low Priority: $(@($tasks | Where-Object { $_.Priority -eq 'Low' }).Count) tasks"
+                ""
+                "Progress Overview:"
+                "▓▓▓▓▓▓░░░░ 60% Complete"
+            )
+            
+            $completedTasks = @($tasks | Where-Object { $_.Status -eq "Done" }).Count
+            $totalTasks = $tasks.Count + $completedTasks
+            $completionRate = if ($totalTasks -gt 0) { [int](($completedTasks / $totalTasks) * 100) } else { 0 }
+            
+            $statusData = @(
+                "📊 Project Health Dashboard"
+                ""
+                "Completion Rate: $completionRate%"
+                "[$('█' * [int]($completionRate/10))$('░' * (10 - [int]($completionRate/10)))]"
+                ""
+                "✅ Completed: $completedTasks"
+                "⚡ In Progress: $(@($tasks | Where-Object { $_.Status -eq 'InProgress' }).Count)"
+                "📋 Pending: $(@($tasks | Where-Object { $_.Status -eq 'Pending' }).Count)"
+                "🚫 Blocked: $(@($tasks | Where-Object { $_.Status -eq 'Blocked' }).Count)"
+            )
+            
+            $evtBus.Publish('dashboard.data.metrics.loaded', @{ 
+                PriorityStats = $priorityStats
+                StatusData = $statusData 
+            })
+            
+            # Load activity data
+            Start-Sleep -Milliseconds 300
+            $activities = @(
+                @{ Type = "TaskCompleted"; Message = "Completed 'Layout Components'"; Time = "2 min ago" }
+                @{ Type = "ProjectCreated"; Message = "Started 'Dashboard System'"; Time = "15 min ago" }
+                @{ Type = "TaskCreated"; Message = "Added 'Fix layout bugs'"; Time = "1 hour ago" }
+                @{ Type = "ProjectUpdated"; Message = "Updated PRAXIS Framework"; Time = "2 hours ago" }
+                @{ Type = "TaskCompleted"; Message = "Finished HorizontalSplit tests"; Time = "4 hours ago" }
+            )
+            
+            $evtBus.Publish('dashboard.data.activity.loaded', @{ Activities = $activities })
+            
+            # Clean up jobs
+            Remove-Job -Job $projectJob -Force
+            Remove-Job -Job $taskJob -Force
+            
+        } -ArgumentList $projectJob, $taskJob, $evtBus
+        
+        # Set up item renderers that will be used when data loads
+        $this.ProjectList.ItemRenderer = {
+            param($project)
+            $status = if ($project.ClosedDate -ne [DateTime]::MinValue) { "✅" } else { "🚧" }
+            $daysLeft = ($project.DateDue - [DateTime]::Now).Days
+            $urgency = if ($daysLeft -lt 0) { "🔥 OVERDUE" } elseif ($daysLeft -lt 7) { "⚠️  DUE SOON" } elseif ($daysLeft -lt 30) { "📅 $daysLeft days" } else { "📈 $daysLeft days" }
+            return "$status $($project.Nickname) - $urgency"
+        }
+        
+        $this.TaskList.ItemRenderer = {
+            param($task)
+            $priority = switch ($task.Priority) {
+                "High" { "🔴" }
+                "Medium" { "🟡" }
+                "Low" { "🟢" }
+                default { "⚪" }
+            }
+            $status = switch ($task.Status) {
+                "InProgress" { "⚡" }
+                "Done" { "✅" }
+                "Blocked" { "🚫" }
+                default { "📋" }
+            }
+            return "$priority $status $($task.Title) [$($task.Progress)%]"
+        }
+        
+        $this.RecentActivity.ItemRenderer = {
+            param($activity)
+            $icon = switch ($activity.Type) {
+                "ProjectCreated" { "🆕" }
+                "TaskCompleted" { "✅" }
+                "TaskCreated" { "📝" }
+                "ProjectUpdated" { "📝" }
+                default { "ℹ️" }
+            }
+            return "$icon $($activity.Message) - $($activity.Time)"
+        }
+    }
+    
+    [void] UpdateLoadingStatus() {
+        # Check if all data has loaded
+        $totalProgress = ($this._loadingProgress.Projects + $this._loadingProgress.Tasks + 
+                         $this._loadingProgress.Activity + $this._loadingProgress.Metrics) / 4
+        
+        if ($totalProgress -eq 100) {
+            $this._isLoading = $false
+            Write-Host "Dashboard data fully loaded!"
+        }
+    }
+    
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        # Set initial focus to ProjectList
+        if ($this.ProjectList) {
+            $this.ProjectList.Focus()
+        }
+    }
+    
     [void] OnBoundsChanged() {
         # Update the main layout to fill the entire screen
         if ($this.MainLayout) {
@@ -395,18 +681,20 @@ class DashboardScreen : Screen {
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         # Handle dashboard-specific shortcuts
         switch ($key.Key) {
             ([System.ConsoleKey]::F5) {
-                $this.LoadAllData()
-                Write-Host "Dashboard refreshed!"
+                $this.ShowLoadingState()
+                $this.StartBackgroundDataLoad()
+                Write-Host "Dashboard refresh started!"
                 return $true
             }
             ([System.ConsoleKey]::R) {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'R' -or $key.KeyChar -eq 'r')) {
-                    $this.LoadAllData()
-                    Write-Host "Dashboard data reloaded!"
+                    $this.ShowLoadingState()
+                    $this.StartBackgroundDataLoad()
+                    Write-Host "Dashboard data reload started!"
                     return $true
                 }
             }
@@ -416,36 +704,9 @@ class DashboardScreen : Screen {
                     return $true
                 }
             }
-            ([System.ConsoleKey]::Tab) {
-                # Advanced focus cycling through all panes
-                $this.CycleFocus()
-                return $true
-            }
         }
         
-        # Let base Screen class handle other keys
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Pass to the main layout for complex routing
-        return $this.MainLayout.HandleInput($key)
+        return $false
     }
     
-    [void] CycleFocus() {
-        # Complex focus cycling through nested layouts
-        if ($this.ProjectList.IsFocused) {
-            $this.RecentActivity.Focus()
-        } elseif ($this.RecentActivity.IsFocused) {
-            $this.TaskList.Focus()
-        } elseif ($this.TaskList.IsFocused) {
-            $this.PriorityBreakdown.Focus()
-        } elseif ($this.PriorityBreakdown.IsFocused) {
-            $this.StatusChart.Focus()
-        } elseif ($this.StatusChart.IsFocused) {
-            $this.NewProjectBtn.Focus()
-        } else {
-            $this.ProjectList.Focus()  # Back to start
-        }
-    }
 }

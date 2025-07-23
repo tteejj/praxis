@@ -113,8 +113,60 @@ class ProjectsScreen : Screen {
         # Load projects
         $this.LoadProjects()
         
-        # Key bindings now handled by GetShortcutBindings() method
-        # Initial focus will be handled by FocusManager when screen is activated
+        # Register screen-specific shortcuts with ShortcutManager
+        $this.RegisterShortcuts()
+    }
+    
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { return }
+        
+        # Register screen-specific shortcuts
+        $screen = $this
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.new"
+            Name = "New Project"
+            Description = "Create a new project"
+            KeyChar = 'n'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.NewProject() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.edit"
+            Name = "Edit Project"
+            Description = "Edit the selected project"
+            KeyChar = 'e'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.EditProject() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.delete"
+            Name = "Delete Project"
+            Description = "Delete the selected project"
+            KeyChar = 'd'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.DeleteProject() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.refresh"
+            Name = "Refresh"
+            Description = "Refresh the project list"
+            Key = [System.ConsoleKey]::F5
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.LoadProjects() }.GetNewClosure()
+        })
     }
     
     

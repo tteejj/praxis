@@ -521,12 +521,12 @@ class TaskScreen : Screen {
     
     # FocusNext method removed - Tab navigation now handled by FocusManager service
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)'")
+            $global:Logger.Debug("TaskScreen.HandleScreenInput: Key=$($key.Key) Char='$($key.KeyChar)'")
         }
         
-        # Handle screen-specific shortcuts FIRST (before passing to children)
+        # Handle screen-specific shortcuts
         switch ($key.Key) {
             ([System.ConsoleKey]::N) {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
@@ -606,13 +606,7 @@ class TaskScreen : Screen {
             }
         }
         
-        # Let base Screen class handle other keys (like Tab navigation)
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Finally, pass unhandled input to focused child
-        return ([Container]$this).HandleInput($key)
+        return $false
     }
     
     [string] OnRender() {
