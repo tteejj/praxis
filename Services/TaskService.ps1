@@ -67,7 +67,7 @@ class TaskService {
     }
     
     [void] UpdateTask([Task]$task) {
-        $task.UpdatedAt = Get-Date
+        $task.MarkAsUpdated()  # Use BaseModel method
         $this._isDirty = $true
         $this.Save()
     }
@@ -75,8 +75,7 @@ class TaskService {
     [void] DeleteTask([string]$id) {
         $task = $this.GetTask($id)
         if ($task) {
-            $task.Deleted = $true
-            $task.UpdatedAt = Get-Date
+            $task.SoftDelete()  # Use BaseModel method
             $this._isDirty = $true
             $this.Save()
         }
@@ -87,7 +86,7 @@ class TaskService {
         $task = $this.GetTask($id)
         if ($task) {
             $task.Status = $status
-            $task.UpdatedAt = Get-Date
+            $task.MarkAsUpdated()  # Use BaseModel method
             
             # Auto-update progress
             if ($status -eq [TaskStatus]::Completed) {

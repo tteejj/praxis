@@ -4,10 +4,12 @@ class TaskScreen : Screen {
     [ListBox]$TaskList
     [TextBox]$FilterBox
     [TaskService]$TaskService
+    [SubtaskService]$SubtaskService
     [hashtable]$StatusColors
     [hashtable]$PriorityColors
     [EventBus]$EventBus
     hidden [hashtable]$EventSubscriptions = @{}
+    hidden [bool]$ShowSubtasks = $true
     
     # Layout settings
     hidden [int]$FilterHeight = 3
@@ -18,26 +20,43 @@ class TaskScreen : Screen {
     }
     
     [void] OnInitialize() {
-        # Get services
-        $this.TaskService = $global:ServiceContainer.GetService("TaskService")
+        # Get services using proper dependency injection
+        $this.TaskService = $this.GetService("TaskService")
         if (-not $this.TaskService) {
             $this.TaskService = [TaskService]::new()
-            $global:ServiceContainer.Register("TaskService", $this.TaskService)
+            if ($this.ServiceContainer) {
+                $this.ServiceContainer.Register("TaskService", $this.TaskService)
+            } else {
+                $global:ServiceContainer.Register("TaskService", $this.TaskService)
+            }
         }
         
-        $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+        $this.SubtaskService = $this.GetService("SubtaskService")
+        if (-not $this.SubtaskService) {
+            $this.SubtaskService = [SubtaskService]::new()
+            if ($this.ServiceContainer) {
+                $this.ServiceContainer.Register("SubtaskService", $this.SubtaskService)
+            } else {
+                $global:ServiceContainer.Register("SubtaskService", $this.SubtaskService)
+            }
+        }
+        
+        $this.EventBus = $this.GetService('EventBus')
         
         # Subscribe to events
         if ($this.EventBus) {
+            # Capture reference to this screen instance
+            $screen = $this
+            
             # Subscribe to task created events
             $this.EventSubscriptions['TaskCreated'] = $this.EventBus.Subscribe([EventNames]::TaskCreated, {
                 param($sender, $eventData)
-                $this.LoadTasks()
+                $screen.LoadTasks()
                 # Select the new task if provided
                 if ($eventData.Task) {
-                    for ($i = 0; $i -lt $this.TaskList.Items.Count; $i++) {
-                        if ($this.TaskList.Items[$i].Id -eq $eventData.Task.Id) {
-                            $this.TaskList.SelectIndex($i)
+                    for ($i = 0; $i -lt $screen.TaskList.Items.Count; $i++) {
+                        if ($screen.TaskList.Items[$i].Id -eq $eventData.Task.Id) {
+                            $screen.TaskList.SelectIndex($i)
                             break
                         }
                     }
@@ -47,11 +66,19 @@ class TaskScreen : Screen {
             # Subscribe to command events for this screen
             $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe([EventNames]::CommandExecuted, {
                 param($sender, $eventData)
+                if ($global:Logger) {
+                    $global:Logger.Debug("TaskScreen: Received CommandExecuted event - Command: $($eventData.Command), Target: $($eventData.Target)")
+                }
                 if ($eventData.Target -eq 'TaskScreen') {
                     switch ($eventData.Command) {
-                        'NewTask' { $this.NewTask() }
-                        'EditTask' { $this.EditTask() }
-                        'DeleteTask' { $this.DeleteTask() }
+                        'NewTask' { 
+                            if ($global:Logger) {
+                                $global:Logger.Debug("TaskScreen: Executing NewTask command")
+                            }
+                            $screen.NewTask() 
+                        }
+                        'EditTask' { $screen.EditTask() }
+                        'DeleteTask' { $screen.DeleteTask() }
                     }
                 }
             }.GetNewClosure())
@@ -59,13 +86,13 @@ class TaskScreen : Screen {
             # Subscribe to task updated events
             $this.EventSubscriptions['TaskUpdated'] = $this.EventBus.Subscribe([EventNames]::TaskUpdated, {
                 param($sender, $eventData)
-                $this.LoadTasks()
+                $screen.LoadTasks()
             }.GetNewClosure())
             
             # Subscribe to task deleted events
             $this.EventSubscriptions['TaskDeleted'] = $this.EventBus.Subscribe([EventNames]::TaskDeleted, {
                 param($sender, $eventData)
-                $this.LoadTasks()
+                $screen.LoadTasks()
             }.GetNewClosure())
         }
         
@@ -99,77 +126,95 @@ class TaskScreen : Screen {
         $this.TaskList = [ListBox]::new()
         $this.TaskList.Title = "Tasks"
         $this.TaskList.ShowBorder = $true
+        
+        # Capture screen reference for ItemRenderer closure
+        $screen = $this
         $this.TaskList.ItemRenderer = {
-            param($task)
-            $status = $task.GetStatusDisplay()
-            $priority = $task.GetPriorityDisplay()
+            param($item)
             
-            # Build display string
-            $display = "$status $priority $($task.Title)"
-            
-            # Add due date indicator if applicable
-            if ($task.DueDate -ne [DateTime]::MinValue) {
-                $days = $task.GetDaysUntilDue()
-                if ($task.IsOverdue()) {
-                    $display += " [OVERDUE]"
-                } elseif ($days -le 3) {
-                    $display += " [Due in $days days]"
+            # Check if this is a task or subtask
+            if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                # This is a subtask
+                $subtask = $item
+                $status = $subtask.GetStatusDisplay()
+                $priority = $subtask.GetPriorityDisplay()
+                
+                # Build subtask display with indentation
+                $display = "    └ $status $priority $($subtask.Title)"
+                
+                # Add duration if available
+                $duration = $subtask.GetDurationDisplay()
+                if ($duration) {
+                    $display += " [$duration]"
                 }
+                
+                # Add due date indicator if applicable
+                if ($subtask.DueDate -ne [DateTime]::MinValue) {
+                    $days = $subtask.GetDaysUntilDue()
+                    if ($subtask.IsOverdue()) {
+                        $display += " [OVERDUE]"
+                    } elseif ($days -le 3 -and $days -ge 0) {
+                        $display += " [Due in $days days]"
+                    }
+                }
+                
+                return $display
+            } else {
+                # This is a main task
+                $task = $item
+                $status = $task.GetStatusDisplay()
+                $priority = $task.GetPriorityDisplay()
+                
+                # Build task display string
+                $display = "$status $priority $($task.Title)"
+                
+                # Add subtask count if any (with null check)
+                if ($screen.SubtaskService) {
+                    $subtaskStats = $screen.SubtaskService.GetTaskStatistics($task.Id)
+                    if ($subtaskStats.Total -gt 0) {
+                        $completed = $subtaskStats.Completed
+                        $total = $subtaskStats.Total
+                        $display += " [$completed/$total subtasks]"
+                    }
+                }
+                
+                # Add due date indicator if applicable
+                if ($task.DueDate -ne [DateTime]::MinValue) {
+                    $days = $task.GetDaysUntilDue()
+                    if ($task.IsOverdue()) {
+                        $display += " [OVERDUE]"
+                    } elseif ($days -le 3 -and $days -ge 0) {
+                        $display += " [Due in $days days]"
+                    }
+                }
+                
+                # Add progress if in progress
+                if ($task.Status -eq [TaskStatus]::InProgress -and $task.Progress -gt 0) {
+                    $display += " ($($task.Progress)%)"
+                }
+                
+                return $display
             }
-            
-            # Add progress if in progress
-            if ($task.Status -eq [TaskStatus]::InProgress -and $task.Progress -gt 0) {
-                $display += " ($($task.Progress)%)"
-            }
-            
-            return $display
-        }
+        }.GetNewClosure()
         $this.TaskList.Initialize($global:ServiceContainer)
         $this.AddChild($this.TaskList)
         
         # Load tasks
         $this.LoadTasks()
         
-        # Key bindings
-        $this.BindKey('n', { $this.NewTask() })
-        $this.BindKey('e', { $this.EditTask() })
-        $this.BindKey([System.ConsoleKey]::Enter, { $this.EditTask() })
-        $this.BindKey('d', { $this.DeleteTask() })
-        $this.BindKey([System.ConsoleKey]::Delete, { $this.DeleteTask() })
-        $this.BindKey('r', { $this.LoadTasks() })
-        $this.BindKey([System.ConsoleKey]::F5, { $this.LoadTasks() })
-        $this.BindKey('s', { $this.CycleStatus() })
-        $this.BindKey('p', { $this.CyclePriority() })
-        $this.BindKey('f', { $this.FilterBox.Focus() })  # 'f' for filter
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
-        $this.BindKey([System.ConsoleKey]::Escape, {
-            if ($this.FilterBox.IsFocused -and $this.FilterBox.Text) {
-                $this.FilterBox.Clear()
-                $this.ApplyFilter()
-                $this.TaskList.Focus()
-            }
-        })
-        
-        # Focus on task list
-        $this.TaskList.Focus()
+        # Initial focus will be handled by FocusManager when screen is activated
+        # Remove explicit Focus() call as it will be handled by OnActivated()
     }
     
+    
     [void] OnActivated() {
-        # Call base to trigger render
+        # Call base to manage focus scope and shortcuts
         ([Screen]$this).OnActivated()
         
-        # Make sure task list has focus when screen is activated
-        if ($this.TaskList) {
-            # Ensure the TaskScreen itself is focused first
-            $this.Focus()
-            
-            # Then focus the TaskList
-            $this.TaskList.Focus()
-            if ($global:Logger) {
-                $global:Logger.Debug("TaskScreen.OnActivated: Focused TaskList")
-                $focused = $this.FindFocused()
-                $global:Logger.Debug("TaskScreen.OnActivated: Currently focused element: $($focused.GetType().Name)")
-            }
+        # The base Screen.OnActivated() already pushes the focus scope
+        # and will automatically focus the first focusable element (TaskList)
+        if ($global:Logger) {
+            $global:Logger.Debug("TaskScreen.OnActivated: Screen activated with new focus system")
         }
     }
     
@@ -206,7 +251,24 @@ class TaskScreen : Screen {
             @{Expression = {$_.Status}; Ascending = $true},
             @{Expression = {if ($_.DueDate -eq [DateTime]::MinValue) { [DateTime]::MaxValue } else { $_.DueDate }}; Ascending = $true}
         
-        $this.TaskList.SetItems($sorted)
+        if ($this.ShowSubtasks -and $this.SubtaskService) {
+            # Create combined list with tasks and their subtasks
+            $combinedItems = [System.Collections.ArrayList]::new()
+            
+            foreach ($task in $sorted) {
+                $combinedItems.Add($task) | Out-Null
+                
+                # Add subtasks for this task
+                $subtasks = $this.SubtaskService.GetSubtasksForTask($task.Id)
+                foreach ($subtask in $subtasks) {
+                    $combinedItems.Add($subtask) | Out-Null
+                }
+            }
+            
+            $this.TaskList.SetItems($combinedItems)
+        } else {
+            $this.TaskList.SetItems($sorted)
+        }
     }
     
     [void] ApplyFilter() {
@@ -386,6 +448,69 @@ class TaskScreen : Screen {
         }
     }
     
+    [void] AddSubtask() {
+        $selected = $this.TaskList.GetSelectedItem()
+        if (-not $selected -or -not $this.SubtaskService) { return }
+        
+        # Find the parent task (if selected item is a subtask, get its parent)
+        $parentTask = $null
+        if ($selected.PSObject.Properties.Name -contains 'ParentTaskId') {
+            # Selected item is a subtask, find its parent
+            $parentTask = $this.TaskService.GetTask($selected.ParentTaskId)
+        } else {
+            # Selected item is a task
+            $parentTask = $selected
+        }
+        
+        if (-not $parentTask) { return }
+        
+        # Create subtask dialog
+        $dialog = [SubtaskDialog]::new($parentTask)
+        
+        # Set up callback for when subtask is saved
+        $screen = $this  # Capture reference for closure
+        $dialog.OnSave = {
+            param($subtaskData)
+            
+            # Create subtask using service
+            $properties = @{
+                ParentTaskId = $subtaskData.ParentTaskId
+                Title = $subtaskData.Title
+                Description = $subtaskData.Description
+                Priority = $subtaskData.Priority
+                Progress = $subtaskData.Progress
+                EstimatedMinutes = $subtaskData.EstimatedMinutes
+                ActualMinutes = $subtaskData.ActualMinutes
+                DueDate = $subtaskData.DueDate
+            }
+            
+            $screen.SubtaskService.CreateSubtask($properties)
+            $screen.LoadTasks()
+            
+            # Close dialog
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
+        }.GetNewClosure()
+        
+        $dialog.OnCancel = {
+            # Close dialog
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
+        }
+        
+        # Show dialog
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    [void] ToggleSubtaskView() {
+        $this.ShowSubtasks = -not $this.ShowSubtasks
+        $this.LoadTasks()
+    }
+    
     [void] CyclePriority() {
         $selected = $this.TaskList.GetSelectedItem()
         if (-not $selected) { return }
@@ -394,62 +519,99 @@ class TaskScreen : Screen {
         $this.LoadTasks()
     }
     
-    [void] FocusNext() {
-        $focused = $this.FindFocused()
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.FocusNext: Currently focused: $($focused.GetType().Name)")
-            $global:Logger.Debug("TaskScreen.FocusNext: FilterBox.IsFocused=$($this.FilterBox.IsFocused), TaskList.IsFocused=$($this.TaskList.IsFocused)")
-        }
-        
-        if ($focused -eq $this.FilterBox) {
-            # Focus TaskList (Focus() method will handle unfocusing FilterBox)
-            $this.TaskList.Focus()
-            if ($global:Logger) {
-                $global:Logger.Debug("TaskScreen: Switched focus from FilterBox to TaskList")
-            }
-        } elseif ($focused -eq $this.TaskList) {
-            # Focus FilterBox (Focus() method will handle unfocusing TaskList)
-            $this.FilterBox.Focus()
-            if ($global:Logger) {
-                $global:Logger.Debug("TaskScreen: Switched focus from TaskList to FilterBox")
-            }
-        } else {
-            # Neither has focus, focus the list first
-            $this.TaskList.Focus()
-            if ($global:Logger) {
-                $global:Logger.Debug("TaskScreen: No child focused, focusing TaskList")
-            }
-        }
-        
-        # Verify focus was actually changed
-        $newFocused = $this.FindFocused()
-        if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.FocusNext: After switch, focused: $($newFocused.GetType().Name)")
-            $global:Logger.Debug("TaskScreen.FocusNext: After switch - FilterBox.IsFocused=$($this.FilterBox.IsFocused), TaskList.IsFocused=$($this.TaskList.IsFocused)")
-        }
-        
-        # Force re-render to show focus change
-        $this.Invalidate()
-        if ($global:ScreenManager) {
-            $global:ScreenManager.RequestRender()
-        }
-    }
+    # FocusNext method removed - Tab navigation now handled by FocusManager service
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
             $global:Logger.Debug("TaskScreen.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)'")
         }
         
-        # Let base class handle key bindings first
-        if (([Screen]$this).HandleInput($key)) {
-            if ($global:Logger) {
-                $global:Logger.Debug("TaskScreen: Input handled by Screen base class")
+        # Handle screen-specific shortcuts FIRST (before passing to children)
+        switch ($key.Key) {
+            ([System.ConsoleKey]::N) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
+                    $this.NewTask()
+                    return $true
+                }
             }
+            ([System.ConsoleKey]::E) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'E' -or $key.KeyChar -eq 'e')) {
+                    $this.EditTask()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::Enter) {
+                $this.EditTask()
+                return $true
+            }
+            ([System.ConsoleKey]::D) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'D' -or $key.KeyChar -eq 'd')) {
+                    $this.DeleteTask()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::Delete) {
+                $this.DeleteTask()
+                return $true
+            }
+            ([System.ConsoleKey]::R) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'R' -or $key.KeyChar -eq 'r')) {
+                    $this.LoadTasks()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::F5) {
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::S) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'S' -or $key.KeyChar -eq 's')) {
+                    $this.CycleStatus()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::P) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'P' -or $key.KeyChar -eq 'p')) {
+                    $this.CyclePriority()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::F) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'F' -or $key.KeyChar -eq 'f')) {
+                    $this.FilterBox.Focus()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::A) {
+                if ($key.Modifiers -band [ConsoleModifiers]::Shift -and ($key.KeyChar -eq 'A')) {
+                    # Shift+A to add subtask
+                    $this.AddSubtask()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::T) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'T' -or $key.KeyChar -eq 't')) {
+                    # Toggle subtask view
+                    $this.ToggleSubtaskView()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::Escape) {
+                if ($this.FilterBox.IsFocused -and $this.FilterBox.Text) {
+                    $this.FilterBox.Clear()
+                    $this.ApplyFilter()
+                    $this.TaskList.Focus()
+                    return $true
+                }
+            }
+        }
+        
+        # Let base Screen class handle other keys (like Tab navigation)
+        if (([Screen]$this).HandleInput($key)) {
             return $true
         }
         
-        # Otherwise let Container handle focused child input
+        # Finally, pass unhandled input to focused child
         return ([Container]$this).HandleInput($key)
     }
     

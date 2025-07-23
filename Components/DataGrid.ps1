@@ -96,7 +96,7 @@ class DataGrid : UIElement {
     }
     
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048  # DataGrid can render many rows and columns
         
         # Calculate content area
         $contentX = $this.X + 1
@@ -311,7 +311,9 @@ class DataGrid : UIElement {
         }
         
         $sb.Append([VT]::Reset())
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

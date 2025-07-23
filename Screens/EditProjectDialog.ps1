@@ -84,21 +84,29 @@ class EditProjectDialog : Screen {
         $this.CancelButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.CancelButton)
         
-        # Key bindings
-        $this.BindKey([System.ConsoleKey]::Escape, { 
-            if ($this.OnCancel) {
-                & $this.OnCancel
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::Escape) {
+                if ($this.OnCancel) {
+                    & $this.OnCancel
+                }
+                return $true
             }
-        })
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
-        $this.BindKey([System.ConsoleKey]::Enter, {
-            $focused = $this.FindFocused()
-            if ($focused -eq $this.SaveButton) {
-                & $this.SaveButton.OnClick
-            } elseif ($focused -eq $this.CancelButton) {
-                & $this.CancelButton.OnClick
+            ([System.ConsoleKey]::Enter) {
+                $focused = $this.FindFocused()
+                if ($focused -eq $this.SaveButton) {
+                    & $this.SaveButton.OnClick
+                } elseif ($focused -eq $this.CancelButton) {
+                    & $this.CancelButton.OnClick
+                }
+                return $true
             }
-        })
+        }
+        
+        # Let base class handle other keys (like Tab navigation)
+        return ([Screen]$this).HandleInput($key)
     }
     
     [void] OnActivated() {

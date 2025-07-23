@@ -81,8 +81,12 @@ class ScreenManager {
         
         if ($global:Logger) {
             $global:Logger.Info("ScreenManager.Run: Starting main loop")
-            $global:Logger.Info("Active screen: $($this._activeScreen.GetType().Name)")
-            $global:Logger.Info("Active screen.Active: $($this._activeScreen.Active)")
+            if ($this._activeScreen) {
+                $global:Logger.Info("Active screen: $($this._activeScreen.GetType().Name)")
+                $global:Logger.Info("Active screen.Active: $($this._activeScreen.Active)")
+            } else {
+                $global:Logger.Info("Active screen: null")
+            }
             $global:Logger.Flush()
         }
         
@@ -125,22 +129,57 @@ class ScreenManager {
                     if ([Console]::KeyAvailable) {
                         $key = [Console]::ReadKey($true)
                         $this._lastKey = $key
+                        $handled = $false
                         
                         # Log key press for debugging
                         if ($global:Logger) {
                             $global:Logger.Debug("Key pressed: $($key.Key) Char: '$($key.KeyChar)' Modifiers: $($key.Modifiers)")
                         }
                         
-                        # Let active screen handle it
+                        # SIMPLIFIED INPUT CHAIN - Direct global shortcuts + screen handling
+                        
+                        # 1. Handle global shortcuts directly  
                         $handled = $false
-                        try {
-                            $handled = $this._activeScreen.HandleInput($key)
-                            if ($global:Logger) {
-                                $global:Logger.Debug("Key handled by screen: $handled")
+                        if ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
+                            # Show command palette
+                            if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
+                                $this._activeScreen.CommandPalette.Show()
+                                $handled = $true
+                                if ($global:Logger) {
+                                    $global:Logger.Debug("Key handled: Command palette opened")
+                                }
                             }
-                        } catch {
-                            if ($global:Logger) {
-                                $global:Logger.LogException($_, "Error handling input")
+                        } elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
+                            # Handle Tab navigation
+                            if ($this._activeScreen) {
+                                $this._activeScreen.FocusNext()
+                                $handled = $true
+                                if ($global:Logger) {
+                                    $global:Logger.Debug("Key handled: Tab navigation")
+                                }
+                            }
+                        } elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control -and $key.Key -eq [System.ConsoleKey]::Q) {
+                            # Quit
+                            if ($this._activeScreen) {
+                                $this._activeScreen.Active = $false
+                                $handled = $true
+                                if ($global:Logger) {
+                                    $global:Logger.Debug("Key handled: Quit application")
+                                }
+                            }
+                        }
+                        
+                        # 2. If not handled by global shortcuts, let screen handle it
+                        if (-not $handled -and $this._activeScreen) {
+                            try {
+                                $handled = $this._activeScreen.HandleInput($key)
+                                if ($handled -and $global:Logger) {
+                                    $global:Logger.Debug("Key handled by screen: $($this._activeScreen.GetType().Name)")
+                                }
+                            } catch {
+                                if ($global:Logger) {
+                                    $global:Logger.LogException($_.Exception, "Error in screen input handling")
+                                }
                             }
                         }
                         
@@ -148,7 +187,7 @@ class ScreenManager {
                             $this._needsRender = $true
                         }
                         
-                        # Global hotkeys
+                        # Emergency exit (Ctrl+Esc)
                         if ($key.Key -eq [System.ConsoleKey]::Escape -and 
                             ($key.Modifiers -band [System.ConsoleModifiers]::Control)) {
                             break  # Ctrl+Esc to exit
@@ -159,7 +198,7 @@ class ScreenManager {
                     }
                 } catch {
                     if ($global:Logger) {
-                        $global:Logger.LogException($_, "Error in input handling")
+                        $global:Logger.LogException($_.Exception, "Error in input handling")
                     }
                     
                     # In non-interactive mode, just sleep

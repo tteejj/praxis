@@ -14,17 +14,25 @@ class TestScreen : Screen {
             $global:Logger.Debug("TestScreen.OnInitialize: $($this.Title)")
         }
         
-        # Set up key bindings
-        $this.BindKey([System.ConsoleKey]::Spacebar, { 
+        # No more BindKey - use HandleScreenInput instead
+        
+        # Don't rebuild content here - wait until we have bounds
+    }
+    
+    # Handle screen-specific input
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        if ($key.Key -eq [System.ConsoleKey]::Spacebar) {
             $this.Counter++
             $this._cachedContent = ""  # Force re-render
             $this.RequestRender() 
-        })
+            return $true
+        }
+        elseif ($key.KeyChar -eq 'q') {
+            $this.Active = $false
+            return $true
+        }
         
-        $this.BindKey('q', { $this.Active = $false })
-        $this.BindKey([System.ConsoleKey]::Escape, { $this.Active = $false })
-        
-        # Don't rebuild content here - wait until we have bounds
+        return $false
     }
     
     [void] OnThemeChanged() {

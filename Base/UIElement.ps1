@@ -103,59 +103,53 @@ class UIElement {
         # Base implementation does nothing
     }
     
-    # Child management
+    # Child management - now invalidates focus cache
     [void] AddChild([UIElement]$child) {
         $child.Parent = $this
         $this.Children.Add($child)
+        
+        # No focus cache invalidation needed - using simple direct focus
+        
         $this.Invalidate()
     }
     
     [void] RemoveChild([UIElement]$child) {
         $child.Parent = $null
         $this.Children.Remove($child)
+        
+        # No focus cache invalidation needed - using simple direct focus
+        
         $this.Invalidate()
     }
     
-    # Focus management
+    # Simple focus management - works with PowerShell patterns
     [void] Focus() {
-        if (-not $this.IsFocusable) { 
-            if ($global:Logger) {
-                $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) is not focusable")
-            }
-            return 
+        if (-not $this.IsFocusable -or -not $this.Visible) { return }
+        
+        # Find root and clear any existing focus
+        $root = $this
+        while ($root.Parent) { $root = $root.Parent }
+        $current = $this.FindFocusedElement($root)
+        if ($current -and $current -ne $this) {
+            $current.IsFocused = $false
+            $current.OnLostFocus()
+            $current.Invalidate()
         }
         
-        # If already focused, nothing to do
-        if ($this.IsFocused) {
-            if ($global:Logger) {
-                $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) is already focused")
-            }
-            return
-        }
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("UIElement.Focus: Focusing $($this.GetType().Name)")
-        }
-        
-        # Unfocus currently focused element
-        $root = $this.GetRoot()
-        $focused = $root.FindFocused()
-        if ($focused -and $focused -ne $this) {
-            if ($global:Logger) {
-                $global:Logger.Debug("UIElement.Focus: Unfocusing $($focused.GetType().Name)")
-            }
-            $focused.IsFocused = $false
-            $focused.OnLostFocus()
-            $focused.Invalidate()
-        }
-        
+        # Focus this element
         $this.IsFocused = $true
         $this.OnGotFocus()
         $this.Invalidate()
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) is now focused")
+    }
+    
+    # Find focused element in tree
+    [UIElement] FindFocusedElement([UIElement]$element) {
+        if ($element.IsFocused) { return $element }
+        foreach ($child in $element.Children) {
+            $found = $this.FindFocusedElement($child)
+            if ($found) { return $found }
         }
+        return $null
     }
     
     [UIElement] GetRoot() {

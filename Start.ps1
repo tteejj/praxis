@@ -29,6 +29,7 @@ $loadOrder = @(
     # Core modules first
     "Core/VT100.ps1"
     "Core/ServiceContainer.ps1"
+    "Core/StringBuilderPool.ps1"
     
     # Services (needed by base classes)
     "Services/Logger.ps1"
@@ -39,25 +40,46 @@ $loadOrder = @(
     "Base/UIElement.ps1"
     "Base/Container.ps1"
     "Base/Screen.ps1"
+    "Base/BaseModel.ps1"
+    
+    # Services that depend on base classes
+    # (Removed FocusManager and ShortcutManager - using direct patterns instead)
     
     # Models
     "Models/Project.ps1"
     "Models/Task.ps1"
+    "Models/Subtask.ps1"
     
     # Services
     "Services/ProjectService.ps1"
     "Services/TaskService.ps1"
+    "Services/SubtaskService.ps1"
     "Services/ConfigurationService.ps1"
+    "Services/StateManager.ps1"
     
     # Components
     "Components/ListBox.ps1"
     "Components/TextBox.ps1"
     "Components/Button.ps1"
     "Components/DataGrid.ps1"
+    "Components/TreeView.ps1"
+    "Components/ProgressBar.ps1"
+    "Components/FastFileTree.ps1"
+    "Components/SearchableListBox.ps1"
+    "Components/MultiSelectListBox.ps1"
     "Components/TabContainer.ps1"
+    
+    # Layout Components (NEW!)
+    "Components/HorizontalSplit.ps1"
+    "Components/VerticalSplit.ps1"
+    "Components/GridPanel.ps1"
+    "Components/DockPanel.ps1"
     
     # Core systems
     "Core/ScreenManager.ps1"
+    
+    # BaseDialog (after components are loaded)
+    "Base/BaseDialog.ps1"
     
     # Dialogs (must be loaded before screens that use them)
     "Screens/TextInputDialog.ps1",
@@ -67,13 +89,19 @@ $loadOrder = @(
     "Screens/EditProjectDialog.ps1",
     "Screens/NewTaskDialog.ps1",
     "Screens/EditTaskDialog.ps1",
+    "Screens/SubtaskDialog.ps1",
+    "Screens/TimeEntryDialog.ps1",
     "Screens/EventBusMonitor.ps1",
     
     # Screens (after dialogs they depend on)
     "Screens/TestScreen.ps1",
+    "Screens/ProjectDetailScreen.ps1",
     "Screens/ProjectsScreen.ps1",
     "Screens/TaskScreen.ps1",
+    "Screens/DashboardScreen.ps1",
     "Screens/SettingsScreen.ps1",
+    "Screens/FileBrowserScreen.ps1",
+    "Screens/TextEditorScreen.ps1",
     
     # CommandPalette (after screens it references)
     "Components/CommandPalette.ps1"
@@ -128,6 +156,9 @@ if ($Debug) {
 # Connect ThemeManager to EventBus
 $themeManager.SetEventBus($eventBus)
 
+# Removed FocusManager and ShortcutManager services
+# Using direct patterns instead: ScreenManager global shortcuts + Screen.FocusNext()
+
 # Project service
 $projectService = [ProjectService]::new()
 $global:ServiceContainer.Register("ProjectService", $projectService)
@@ -136,9 +167,19 @@ $global:ServiceContainer.Register("ProjectService", $projectService)
 $taskService = [TaskService]::new()
 $global:ServiceContainer.Register("TaskService", $taskService)
 
+# Subtask service
+$subtaskService = [SubtaskService]::new()
+$global:ServiceContainer.Register("SubtaskService", $subtaskService)
+
 # Configuration service
 $configService = [ConfigurationService]::new()
 $global:ServiceContainer.Register("ConfigurationService", $configService)
+
+# State manager - high-performance centralized state
+$stateManager = [StateManager]::new()
+$stateManager.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("StateManager", $stateManager)
+$global:StateManager = $stateManager
 
 # Screen manager
 $screenManager = [ScreenManager]::new($global:ServiceContainer)
@@ -158,7 +199,7 @@ $screenManager.Push($mainScreen)
 if ($Debug) { Write-Host "  Main screen initialized" -ForegroundColor DarkGray }
 
 Write-Host "Starting PRAXIS..." -ForegroundColor Green
-Write-Host "  • Press 1-3 to switch tabs" -ForegroundColor DarkGray
+Write-Host "  • Press 1-6 to switch tabs (Projects, Tasks, Dashboard, Files, Editor, Settings)" -ForegroundColor DarkGray
 Write-Host "  • Press Ctrl+Tab to cycle tabs" -ForegroundColor DarkGray
 Write-Host "  • Press / or : for command palette" -ForegroundColor DarkGray
 Write-Host "  • Press Q or Escape to quit" -ForegroundColor DarkGray
@@ -184,6 +225,9 @@ try {
 } finally {
     # Cleanup
     $global:Logger.Info("Shutting down PRAXIS")
+    if ($global:StateManager) {
+        $global:StateManager.Cleanup()
+    }
     $global:Logger.Cleanup()
     $global:ServiceContainer.Cleanup()
     Write-Host "`nPRAXIS terminated." -ForegroundColor Cyan

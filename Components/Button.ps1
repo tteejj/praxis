@@ -53,7 +53,7 @@ class Button : UIElement {
             $global:Logger.Debug("Button.RebuildCache: Text='$($this.Text)' Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
         }
         
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 512  # Button rendering typically needs small capacity
         
         # Determine colors based on state
         $bgColor = ""
@@ -151,20 +151,34 @@ class Button : UIElement {
         
         $sb.Append([VT]::Reset())
         $this._cachedRender = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($key.Key -eq [System.ConsoleKey]::Enter -or 
-            $key.Key -eq [System.ConsoleKey]::Spacebar) {
-            $this.Click()
-            return $true
+        try {
+            if ($key.Key -eq [System.ConsoleKey]::Enter -or 
+                $key.Key -eq [System.ConsoleKey]::Spacebar) {
+                $this.Click()
+                return $true
+            }
+            return $false
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("Button.HandleInput: Error processing input - $($_.Exception.Message)")
+            }
+            return $false
         }
-        return $false
     }
     
     [void] Click() {
-        if ($this.OnClick) {
-            & $this.OnClick
+        try {
+            if ($this.OnClick) {
+                & $this.OnClick
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("Button.Click: Error executing OnClick handler - $($_.Exception.Message)")
+            }
         }
     }
     

@@ -1,7 +1,6 @@
 # Project Model - Enhanced project definition based on PMC pattern
 
-class Project {
-    [string]$Id
+class Project : BaseModel {
     [string]$FullProjectName
     [string]$Nickname
     [string]$ID1
@@ -15,11 +14,8 @@ class Project {
     [string]$T2020Path
     [decimal]$CumulativeHrs
     [DateTime]$ClosedDate
-    [bool]$Deleted
-    [DateTime]$CreatedAt
     
-    Project([string]$fullName, [string]$nickname) {
-        $this.Id = [Guid]::NewGuid().ToString()
+    Project([string]$fullName, [string]$nickname) : base() {
         $this.FullProjectName = $fullName
         $this.Nickname = $nickname
         $this.ID1 = ""
@@ -33,13 +29,11 @@ class Project {
         $this.T2020Path = ""
         $this.CumulativeHrs = 0
         $this.ClosedDate = [DateTime]::MinValue
-        $this.Deleted = $false
-        $this.CreatedAt = [DateTime]::Now
+        # BaseModel handles Id, CreatedAt, UpdatedAt, Deleted initialization
     }
     
     # Legacy constructor for backward compatibility
-    Project([string]$name) {
-        $this.Id = [Guid]::NewGuid().ToString()
+    Project([string]$name) : base() {
         $this.FullProjectName = $name
         $this.Nickname = $name
         $this.ID1 = ""
@@ -53,7 +47,6 @@ class Project {
         $this.T2020Path = ""
         $this.CumulativeHrs = 0
         $this.ClosedDate = [DateTime]::MinValue
-        $this.Deleted = $false
-        $this.CreatedAt = [DateTime]::Now
+        # BaseModel handles Id, CreatedAt, UpdatedAt, Deleted initialization
     }
 }

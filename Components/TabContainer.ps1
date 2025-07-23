@@ -300,8 +300,17 @@ class TabContainer : Container {
             }
         }
         
-        # Now pass to active content
-        return ([Container]$this).HandleInput($key)
+        # Now pass to active tab's content
+        $activeTab = $this.GetActiveTab()
+        if ($activeTab -and $activeTab.Content) {
+            if ($global:Logger) {
+                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
+            }
+            return $activeTab.Content.HandleInput($key)
+        }
+        
+        # Fallback to container behavior if no active content
+        return $false
     }
     
     # Navigation helpers

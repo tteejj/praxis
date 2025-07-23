@@ -7,6 +7,9 @@ class Screen : Container {
     hidden [hashtable]$_keyBindings = @{}
     hidden [ThemeManager]$Theme
     
+    # Protected service container for dependency injection
+    hidden [ServiceContainer]$ServiceContainer
+    
     Screen() : base() {
         $this.IsFocusable = $true
         $this.DrawBackground = $true
@@ -14,10 +17,22 @@ class Screen : Container {
     
     # Initialize with services
     [void] Initialize([ServiceContainer]$services) {
+        $this.ServiceContainer = $services
         $this.Theme = $services.GetService("ThemeManager")
         $this.Theme.Subscribe({ $this.OnThemeChanged() })
         $this.OnThemeChanged()
         $this.OnInitialize()
+    }
+    
+    # Helper method for service access with error handling
+    [object] GetService([string]$serviceName) {
+        if (-not $this.ServiceContainer) {
+            if ($global:Logger) {
+                $global:Logger.Warning("Screen.GetService: ServiceContainer not available, falling back to global access for $serviceName")
+            }
+            return $global:ServiceContainer.GetService($serviceName)
+        }
+        return $this.ServiceContainer.GetService($serviceName)
     }
     
     # Override for custom initialization
@@ -29,57 +44,65 @@ class Screen : Container {
         $this.Invalidate()
     }
     
-    # Key binding management
-    [void] BindKey([object]$key, [scriptblock]$action) {
-        if ($key -is [System.ConsoleKey]) {
-            $this._keyBindings[$key] = $action
-        } elseif ($key -is [char]) {
-            $this._keyBindings[[int]$key] = $action
-        } elseif ($key -is [string] -and $key.Length -eq 1) {
-            $this._keyBindings[[int]$key[0]] = $action
-        } else {
-            throw "Invalid key type for binding"
-        }
+    # Override this method in derived screens to handle screen-specific input
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        return $false  # Base implementation - no screen-specific handling
     }
     
-    # Input handling
+    # Input handling - screen-specific then container
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
-        if ($global:Logger) {
-            $global:Logger.Debug("Screen.HandleInput: Key=$($keyInfo.Key) Char='$($keyInfo.KeyChar)'")
-        }
-        
-        # Check key bindings
-        if ($this._keyBindings.ContainsKey($keyInfo.Key)) {
-            if ($global:Logger) {
-                $global:Logger.Debug("Screen: Found key binding for $($keyInfo.Key)")
-            }
-            & $this._keyBindings[$keyInfo.Key]
+        # First try screen-specific input handling
+        if ($this.HandleScreenInput($keyInfo)) {
             return $true
         }
         
-        # Check char bindings
-        if ($keyInfo.KeyChar) {
-            $charCode = [int]$keyInfo.KeyChar
-            if ($this._keyBindings.ContainsKey($charCode)) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("Screen: Found char binding for '$($keyInfo.KeyChar)'")
-                }
-                & $this._keyBindings[$charCode]
-                return $true
-            }
-        }
-        
-        # Let base class handle it
+        # Then let container handle focused child input
         return ([Container]$this).HandleInput($keyInfo)
     }
     
-    # Lifecycle methods
+    # Lifecycle methods - simple and fast
     [void] OnActivated() {
         # Force a render when screen is activated
         $this.Invalidate()
     }
-    [void] OnDeactivated() {}
     
+    [void] OnDeactivated() {
+        # Override in derived classes if needed
+    }
+    
+    # Simple focus navigation - works with PowerShell patterns
+    [void] FocusNext() {
+        $focusable = [System.Collections.ArrayList]::new()
+        $this.CollectFocusableElements($this, $focusable)
+        
+        if ($focusable.Count -eq 0) { return }
+        
+        # Find current focused element
+        $currentIndex = -1
+        for ($i = 0; $i -lt $focusable.Count; $i++) {
+            if ($focusable[$i].IsFocused) {
+                $currentIndex = $i
+                break
+            }
+        }
+        
+        # Move to next (wrap around)
+        $nextIndex = ($currentIndex + 1) % $focusable.Count
+        $focusable[$nextIndex].Focus()
+    }
+    
+    # Collect all focusable descendants
+    [void] CollectFocusableElements([UIElement]$element, [System.Collections.ArrayList]$list) {
+        if ($element.Visible) {
+            if ($element.IsFocusable) {
+                $list.Add($element) | Out-Null
+            }
+            foreach ($child in $element.Children) {
+                $this.CollectFocusableElements($child, $list)
+            }
+        }
+    }
+
     # Request a re-render
     [void] RequestRender() {
         $this.Invalidate()

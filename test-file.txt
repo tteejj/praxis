@@ -1,0 +1,6 @@
+This is a test file for the text editor.
+You can edit this file using the file browser.
+
+Line 4
+Line 5
+Line 6

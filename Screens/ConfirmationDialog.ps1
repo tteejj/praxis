@@ -37,25 +37,41 @@ class ConfirmationDialog : Screen {
         $this.CancelButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.CancelButton)
         
-        # Key bindings
-        $this.BindKey([System.ConsoleKey]::Escape, { 
-            if ($this.OnCancel) {
-                & $this.OnCancel
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::Escape) {
+                if ($this.OnCancel) {
+                    & $this.OnCancel
+                }
+                return $true
             }
-        })
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
-        $this.BindKey([System.ConsoleKey]::Enter, {
-            $focused = $this.FindFocused()
-            if ($focused -eq $this.ConfirmButton) {
-                & $this.ConfirmButton.OnClick
-            } elseif ($focused -eq $this.CancelButton) {
-                & $this.CancelButton.OnClick
+            ([System.ConsoleKey]::Enter) {
+                $focused = $this.FindFocused()
+                if ($focused -eq $this.ConfirmButton) {
+                    & $this.ConfirmButton.OnClick
+                } elseif ($focused -eq $this.CancelButton) {
+                    & $this.CancelButton.OnClick
+                }
+                return $true
             }
-        })
-        $this.BindKey('y', { & $this.ConfirmButton.OnClick })
-        $this.BindKey('Y', { & $this.ConfirmButton.OnClick })
-        $this.BindKey('n', { & $this.CancelButton.OnClick })
-        $this.BindKey('N', { & $this.CancelButton.OnClick })
+            ([System.ConsoleKey]::Y) {
+                if ($key.KeyChar -eq 'Y' -or $key.KeyChar -eq 'y') {
+                    & $this.ConfirmButton.OnClick
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::N) {
+                if ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n') {
+                    & $this.CancelButton.OnClick
+                    return $true
+                }
+            }
+        }
+        
+        # Let base class handle other keys (like Tab navigation)
+        return ([Screen]$this).HandleInput($key)
     }
     
     [void] OnBoundsChanged() {

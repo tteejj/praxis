@@ -47,7 +47,13 @@ class ListBox : UIElement {
         
         # Trigger callback if we have items and the selection changed
         if ($this.Items.Count -gt 0 -and ($oldIndex -ne 0 -or $this.Items.Count -eq 1) -and $this.OnSelectionChanged) {
-            & $this.OnSelectionChanged
+            try {
+                & $this.OnSelectionChanged
+            } catch {
+                if ($global:Logger) {
+                    $global:Logger.Error("ListBox.SetItems: Error executing OnSelectionChanged handler - $($_.Exception.Message)")
+                }
+            }
         }
     }
     
@@ -74,7 +80,13 @@ class ListBox : UIElement {
             
             # Trigger callback if selection actually changed
             if ($oldIndex -ne $index -and $this.OnSelectionChanged) {
-                & $this.OnSelectionChanged
+                try {
+                    & $this.OnSelectionChanged
+                } catch {
+                    if ($global:Logger) {
+                        $global:Logger.Error("ListBox.SelectIndex: Error executing OnSelectionChanged handler - $($_.Exception.Message)")
+                    }
+                }
             }
         }
     }
@@ -108,7 +120,7 @@ class ListBox : UIElement {
     }
     
     [void] RebuildItemsCache() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048  # ListBox can have many items
         
         $contentX = $this.X
         $contentY = $this.Y
@@ -184,6 +196,7 @@ class ListBox : UIElement {
         
         $sb.Append([VT]::Reset())
         $this._cachedItems = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
         $this._itemsCacheInvalid = $false
     }
     
@@ -243,9 +256,10 @@ class ListBox : UIElement {
     
     # Input handling
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        $handled = $false
-        
-        switch ($key.Key) {
+        try {
+            $handled = $false
+            
+            switch ($key.Key) {
             ([System.ConsoleKey]::UpArrow) {
                 if ($this.SelectedIndex -gt 0) {
                     $this.SelectIndex($this.SelectedIndex - 1)
@@ -276,9 +290,15 @@ class ListBox : UIElement {
                 $this.SelectIndex($this.Items.Count - 1)
                 $handled = $true
             }
+            }
+            
+            return $handled
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("ListBox.HandleInput: Error processing input - $($_.Exception.Message)")
+            }
+            return $false
         }
-        
-        return $handled
     }
     
     # Focus handling

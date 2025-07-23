@@ -92,9 +92,8 @@ class CommandPalette : Container {
                 # Add project via service
                 $projectService = $global:ServiceContainer.GetService("ProjectService")
                 if ($projectService) {
-                    # Use the AddProject method which creates the project properly
-                    $nickname = $project.Name -replace '\s+', ''  # Remove spaces for nickname
-                    $newProject = $projectService.AddProject($project.Name, $nickname)
+                    # Create proper Project object using single-parameter constructor
+                    $newProject = $projectService.AddProject($project.Name)
                     
                     # Publish project created event
                     $eventBus = $global:ServiceContainer.GetService('EventBus')
@@ -130,12 +129,40 @@ class CommandPalette : Container {
                 $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 1 })
             }
             
-            # Publish command to create new task
-            if ($palette.EventBus) {
-                $palette.EventBus.Publish([EventNames]::CommandExecuted, @{ 
-                    Command = 'NewTask'
-                    Target = 'TaskScreen'
-                })
+            # Create and show the dialog directly (same pattern as new project)
+            $dialog = [NewTaskDialog]::new()
+            $dialog.OnCreate = {
+                param($task)
+                if ($global:Logger) {
+                    $global:Logger.Info("Creating task: $($task.Title)")
+                }
+                # Create task via service
+                $taskService = $global:ServiceContainer.GetService("TaskService")
+                if ($taskService) {
+                    $newTask = $taskService.CreateTask($task)
+                    
+                    # Publish task created event
+                    $eventBus = $global:ServiceContainer.GetService('EventBus')
+                    if ($eventBus) {
+                        $eventBus.Publish([EventNames]::TaskCreated, @{ Task = $newTask })
+                    }
+                }
+                # Close dialog
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            $dialog.OnCancel = {
+                # Close dialog
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            # Push dialog to screen manager
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
             }
         }.GetNewClosure())
         
@@ -206,13 +233,43 @@ class CommandPalette : Container {
             # TODO: Implement search
         }.GetNewClosure())
         
+        $this.AddCommand("files", "Open file browser", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Files command executed")
+            }
+            # Switch to files tab (tab index 3 - Projects, Tasks, Dashboard, Files)
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 3 })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("text editor", "Open text editor", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Text editor command executed")
+            }
+            # Switch to editor tab (tab index 4 - Projects, Tasks, Dashboard, Files, Editor)
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 4 })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("editor", "Open text editor tab", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Editor tab command executed")
+            }
+            # Switch to editor tab
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 4 })
+            }
+        }.GetNewClosure())
+        
         $this.AddCommand("settings", "Open settings", {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Settings command executed")
             }
-            # Switch to settings tab
+            # Switch to settings tab (tab index 5 - Projects, Tasks, Dashboard, Files, Editor, Settings)
             if ($palette.EventBus) {
-                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 3 })
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 5 })
             }
         }.GetNewClosure())
         

@@ -36,7 +36,7 @@ class TextBox : UIElement {
             return $this._cachedRender
         }
         
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 512  # TextBox typically needs moderate capacity
         
         # Colors based on focus state
         $borderColor = if ($this.Theme -and $this.IsFocused) {
@@ -141,6 +141,7 @@ class TextBox : UIElement {
         $sb.Append([VT]::Reset())
         
         $this._cachedRender = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
         $this._needsRender = $false
         return $this._cachedRender
     }
@@ -164,10 +165,11 @@ class TextBox : UIElement {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        $handled = $true
-        $oldText = $this.Text
-        
-        switch ($key.Key) {
+        try {
+            $handled = $true
+            $oldText = $this.Text
+            
+            switch ($key.Key) {
             ([System.ConsoleKey]::LeftArrow) {
                 if ($this.CursorPosition -gt 0) {
                     $this.CursorPosition--
@@ -196,8 +198,14 @@ class TextBox : UIElement {
                 }
             }
             ([System.ConsoleKey]::Enter) {
-                if ($this.OnSubmit) {
-                    & $this.OnSubmit $this.Text
+                try {
+                    if ($this.OnSubmit) {
+                        & $this.OnSubmit $this.Text
+                    }
+                } catch {
+                    if ($global:Logger) {
+                        $global:Logger.Error("TextBox.HandleInput: Error executing OnSubmit handler - $($_.Exception.Message)")
+                    }
                 }
             }
             ([System.ConsoleKey]::Tab) {
@@ -220,16 +228,28 @@ class TextBox : UIElement {
             }
         }
         
-        if ($handled) {
-            # Call OnChange if text was modified
-            if ($oldText -ne $this.Text -and $this.OnChange) {
-                & $this.OnChange $this.Text
+            if ($handled) {
+                # Call OnChange if text was modified
+                if ($oldText -ne $this.Text -and $this.OnChange) {
+                    try {
+                        & $this.OnChange $this.Text
+                    } catch {
+                        if ($global:Logger) {
+                            $global:Logger.Error("TextBox.HandleInput: Error executing OnChange handler - $($_.Exception.Message)")
+                        }
+                    }
+                }
+                $this._needsRender = $true
+                $this.Invalidate()
             }
-            $this._needsRender = $true
-            $this.Invalidate()
+            
+            return $handled
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("TextBox.HandleInput: Error processing input - $($_.Exception.Message)")
+            }
+            return $false
         }
-        
-        return $handled
     }
     
     # Helper methods

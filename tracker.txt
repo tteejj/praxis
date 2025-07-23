@@ -1,0 +1,1978 @@
+# Time Tracking Functions
+# Functions for tracking time spent on projects
+
+# Add a new time entry
+function Add-TimeEntry {
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$Nickname,
+        
+        [Parameter(Mandatory=$false)]
+        [double]$Hours,
+        
+        [Parameter(Mandatory=$false)]
+        [string]$Description,
+        
+        [Parameter(Mandatory=$false)]
+        [string]$Date
+    )
+    
+    Render-Header "Add Time Entry"
+    
+    try {
+        $id1 = ""
+        $id2 = ""
+        
+        if ([string]::IsNullOrWhiteSpace($Nickname)) {
+            $proj = Show-ProjectSelect -ActionName "add time for"
+            if (-not $proj) { return }
+            $Nickname = $proj.Nickname
+            $id1 = $proj.ID1
+            $id2 = $proj.ID2
+        } else {
+            $projects = @(Get-Projects)
+            $proj = $projects | Where-Object { $_.Nickname -eq $Nickname } | Select-Object -First 1
+            
+            if (-not $proj) {
+                Write-Host "Project '$Nickname' not found." -ForegroundColor $script:colors.Error
+                Read-Host "Press Enter to continue..."
+                return
+            }
+            
+            $id1 = $proj.ID1
+            $id2 = $proj.ID2
+        }
+        
+        # Format ID2 with V0 prefix, S suffix, padded to 12 characters
+        if (-not [string]::IsNullOrWhiteSpace($id2)) {
+            # Calculate how many zeros needed:
+            # Total length should be 12, we add V at start and S at end (2 chars)
+            # So padding is 12 - (original ID2 length + 2)
+            $id2Text = $id2.Trim()
+            $paddingNeeded = 12 - ($id2Text.Length + 2)
+            
+            if ($paddingNeeded > 0) {
+                # Create the padded ID2 with V0 prefix and S suffix
+                $id2 = "V" + ("0" * $paddingNeeded) + $id2Text + "S"
+            } else {
+                # If ID2 is already too long (unlikely), just add V and S
+                $id2 = "V" + $id2Text + "S"
+            }
+        }
+        
+        Write-Host "Adding Time Entry for Project: $Nickname" -ForegroundColor $script:colors.Accent2
+
+        $entryDateInternal = ""
+        while (-not $entryDateInternal) {
+            $dateInput = Read-UserInput -Prompt "Enter date (MM/DD/YYYY, Enter=Today)"
+            $entryDateInternal = Parse-DateInput -InputDate $dateInput -AllowEmptyForToday
+            
+            if ($entryDateInternal -eq "CANCEL") {
+                Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+                return
+            }
+        }
+        
+        $entryDate = [datetime]::ParseExact($entryDateInternal, "yyyyMMdd", $null)
+        $dayOfWeek = $entryDate.DayOfWeek
+        
+        if ($dayOfWeek -eq "Saturday" -or $dayOfWeek -eq "Sunday") {
+            Write-Host "Warning: Selected day is a weekend ($dayOfWeek)." -ForegroundColor $script:colors.Warning
+            $confirm = Read-UserInput -Prompt "Continue? (y/n)"
+            
+            if ($confirm -ne "y") {
+                Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+                Read-Host "Press Enter to continue..."
+                return
+            }
+        }
+
+        $hours = 0.0
+        while ($hours -le 0) {
+            $hoursInput = Read-UserInput -Prompt "Enter hours worked (e.g., 1.5)"
+            
+            if ([double]::TryParse($hoursInput, [ref]$hours) -and $hours -gt 0) {
+                break
+            } else {
+                Write-Host "Invalid hours. Enter positive number." -ForegroundColor $script:colors.Error
+                $hours = 0.0
+            }
+        }
+        
+        $description = Read-UserInput -Prompt "Enter description (optional)"
+
+        $entry = [PSCustomObject]@{
+            Date = $entryDateInternal
+            Nickname = $Nickname
+            ID1 = $id1
+            ID2 = $id2  # This now has the correctly formatted value
+            MonHours = if ($dayOfWeek -eq "Monday") { $hours.ToString("F2") } else { "" }
+            TueHours = if ($dayOfWeek -eq "Tuesday") { $hours.ToString("F2") } else { "" }
+            WedHours = if ($dayOfWeek -eq "Wednesday") { $hours.ToString("F2") } else { "" }
+            ThuHours = if ($dayOfWeek -eq "Thursday") { $hours.ToString("F2") } else { "" }
+            FriHours = if ($dayOfWeek -eq "Friday") { $hours.ToString("F2") } else { "" }
+            Total = $hours.ToString("F2")
+            Description = $description
+        }
+
+        $allEntries = @(Get-TimeEntries)
+        # Create a new array with existing entries
+        $updatedEntries = @()
+        foreach ($e in $allEntries) {
+            $updatedEntries += $e
+        }
+        # Add the new entry
+        $updatedEntries += $entry
+
+        if (Save-TimeEntries $updatedEntries) {
+            Update-CumulativeHours -Nickname $Nickname # Update project hours
+            
+            Write-Host "Time entry added successfully:" -ForegroundColor $script:colors.Success
+            Write-Host "  Project: $Nickname" -ForegroundColor $script:colors.Success
+            Write-Host "  Date: $(Convert-InternalDateToDisplay $entryDateInternal) ($dayOfWeek)" -ForegroundColor $script:colors.Success
+            Write-Host "  Hours: $hours" -ForegroundColor $script:colors.Success
+            if (-not [string]::IsNullOrWhiteSpace($description)) {
+                Write-Host "  Description: $description" -ForegroundColor $script:colors.Success
+            }
+        }
+    } catch {
+        Write-Host "Error adding time entry: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Show time reports
+function Show-TimeReport {
+    Render-Header "Time Report"
+    
+    try {
+        $timeEntries = @(Get-TimeEntries)
+        
+        if ($timeEntries.Count -eq 0) {
+            Write-Host "No time entries found." -ForegroundColor $script:colors.Warning
+            Read-Host "Press Enter to continue..."
+            return
+        }
+
+        $projects = @(Get-Projects)
+        $projectLookup = @{}
+        foreach ($p in $projects) {
+            $projectLookup[$p.Nickname] = $p.FullProjectName
+        }
+
+        $reportMenuItems = @()
+        
+        $reportMenuItems += @{
+            Key = "1"
+            Text = "All Time Entries"
+            Function = {
+                Show-AllTimeEntries -TimeEntries $timeEntries -ProjectLookup $projectLookup
+                return $null
+            }
+            Type = "option"
+        }
+        
+        $reportMenuItems += @{
+            Key = "2"
+            Text = "Weekly Summary"
+            Function = {
+                Show-WeeklySummary -TimeEntries $timeEntries -ProjectLookup $projectLookup
+                return $null
+            }
+            Type = "option"
+        }
+        
+        $reportMenuItems += @{
+            Key = "0"
+            Text = "Back to Time Menu"
+            Function = { return $true }
+            IsExit = $false # Changed to false to prevent exiting application
+            Type = "option"
+        }
+
+        Show-DynamicMenu -Title "Time Report" -Subtitle "Select Report Type" -MenuItems $reportMenuItems
+    } catch {
+        Write-Host "Error displaying time report: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+        Read-Host "Press Enter to continue..."
+    }
+}
+
+# Show all time entries
+function Show-AllTimeEntries {
+    param (
+        [Parameter(Mandatory=$true)]
+        [array]$TimeEntries,
+        
+        [Parameter(Mandatory=$false)]
+        [hashtable]$ProjectLookup = @{},
+        
+        [Parameter(Mandatory=$false)]
+        [string]$Title = "All Time Entries"
+    )
+    
+    Render-Header $Title
+    
+    try {
+        if ($TimeEntries.Count -eq 0) {
+            Write-Host "No time entries found." -ForegroundColor $script:colors.Warning
+            Read-Host "Press Enter to continue..."
+            return
+        }
+
+        $sortedEntries = $TimeEntries | Sort-Object {
+            try {
+                [datetime]::ParseExact($_.Date, "yyyyMMdd", $null)
+            } catch {
+                [datetime]::MinValue
+            }
+        } -Descending
+
+        $columnsToShow = @("Date", "Nickname", "MonHours", "TueHours", "WedHours", "ThuHours", "FriHours", "Total", "Description")
+        
+        $headers = @{
+            MonHours = "Mon"
+            TueHours = "Tue"
+            WedHours = "Wed"
+            ThuHours = "Thu"
+            FriHours = "Fri"
+        }
+        
+        $formatters = @{
+            Date = { param($val) Convert-InternalDateToDisplay $val }
+            Nickname = {
+                param($val)
+                $projectName = if ($ProjectLookup.ContainsKey($val)) {
+                    $ProjectLookup[$val]
+                } else {
+                    $val
+                }
+                return $projectName
+            }
+            MonHours = {
+                param($val)
+                try {
+                    if ([string]::IsNullOrWhiteSpace($val)) {
+                        ""
+                    } else {
+                        [double]::Parse($val).ToString("F1")
+                    }
+                } catch {
+                    $val
+                }
+            }
+            TueHours = {
+                param($val)
+                try {
+                    if ([string]::IsNullOrWhiteSpace($val)) {
+                        ""
+                    } else {
+                        [double]::Parse($val).ToString("F1")
+                    }
+                } catch {
+                    $val
+                }
+            }
+            WedHours = {
+                param($val)
+                try {
+                    if ([string]::IsNullOrWhiteSpace($val)) {
+                        ""
+                    } else {
+                        [double]::Parse($val).ToString("F1")
+                    }
+                } catch {
+                    $val
+                }
+            }
+            ThuHours = {
+                param($val)
+                try {
+                    if ([string]::IsNullOrWhiteSpace($val)) {
+                        ""
+                    } else {
+                        [double]::Parse($val).ToString("F1")
+                    }
+                } catch {
+                    $val
+                }
+            }
+            FriHours = {
+                param($val)
+                try {
+                    if ([string]::IsNullOrWhiteSpace($val)) {
+                        ""
+                    } else {
+                        [double]::Parse($val).ToString("F1")
+                    }
+                } catch {
+                    $val
+                }
+            }
+            Total = {
+                param($val)
+                try {
+                    if ([string]::IsNullOrWhiteSpace($val)) {
+                        "0.0"
+                    } else {
+                        [double]::Parse($val).ToString("F1")
+                    }
+                } catch {
+                    $val
+                }
+            }
+        }
+
+        Show-Table -Data $sortedEntries -Columns $columnsToShow -Headers $headers -Formatters $formatters
+
+        $grandTotal = 0.0
+        foreach ($entry in $sortedEntries) {
+            $entryTotal = 0.0
+            if ([double]::TryParse($entry.Total, [ref]$entryTotal)) {
+                $grandTotal += $entryTotal
+            }
+        }
+        
+        Write-Host ""
+        Write-Host "Total Hours Recorded: $($grandTotal.ToString("F2"))" -ForegroundColor $script:colors.Success
+    } catch {
+        Write-Host "Error displaying time entries: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Show weekly time summary
+function Show-WeeklySummary {
+    param (
+        [Parameter(Mandatory=$true)]
+        [array]$TimeEntries,
+        
+        [Parameter(Mandatory=$false)]
+        [hashtable]$ProjectLookup = @{}
+    )
+    
+    Render-Header "Weekly Time Summary"
+    
+    try {
+        $today = (Get-Date).Date
+        $daysUntilMonday = ([int][DayOfWeek]::Monday - [int]$today.DayOfWeek - 7) % 7
+        $currentWeekStart = $today.AddDays($daysUntilMonday)
+        
+        $weekSelectItems = @()
+        
+        $weekSelectItems += @{
+            Key = "1"
+            Text = "Current week ($($currentWeekStart.ToString($script:config.displayDateFormat)) - $($currentWeekStart.AddDays(4).ToString($script:config.displayDateFormat)))"
+            Function = { return @{ weekOffset = 0 } }
+            Type = "option"
+        }
+        
+        $weekSelectItems += @{
+            Key = "2"
+            Text = "Previous week"
+            Function = { return @{ weekOffset = -1 } }
+            Type = "option"
+        }
+        
+        $weekSelectItems += @{
+            Key = "3"
+            Text = "Two weeks ago"
+            Function = { return @{ weekOffset = -2 } }
+            Type = "option"
+        }
+        
+        $weekSelectItems += @{
+            Key = "0"
+            Text = "Back"
+            Function = { return $null }
+            IsExit = $false # Changed to false to prevent exiting application
+            Type = "option"
+        }
+
+        $weekChoice = Show-DynamicMenu -Title "Weekly Time Summary" -Subtitle "Select Week" -MenuItems $weekSelectItems
+        
+        if ($null -eq $weekChoice) {
+            return
+        }
+
+        $weekOffset = $weekChoice.weekOffset
+        $startDate = $currentWeekStart.AddDays($weekOffset * 7)
+        $endDate = $startDate.AddDays(4)
+        
+        $weekTitle = "Week of $($startDate.ToString($script:config.displayDateFormat)) - $($endDate.ToString($script:config.displayDateFormat))"
+        
+        Render-Header $weekTitle
+
+        $weekEntries = $TimeEntries | Where-Object {
+            try {
+                $entryDate = [datetime]::ParseExact($_.Date, "yyyyMMdd", $null).Date
+                return $entryDate -ge $startDate -and $entryDate -le $endDate
+            } catch {
+                return $false
+            }
+        }
+        
+        if ($weekEntries.Count -eq 0) {
+            Write-Host "No time entries found for selected week." -ForegroundColor $script:colors.Warning
+            Read-Host "Press Enter to continue..."
+            return
+        }
+
+        $projectTotals = @{}
+        
+        foreach ($entry in $weekEntries) {
+            $projectKey = $entry.Nickname
+            
+            if (-not $projectTotals.ContainsKey($projectKey)) {
+                $projectTotals[$projectKey] = @{
+                    Mon = 0.0; Tue = 0.0; Wed = 0.0; Thu = 0.0; Fri = 0.0; Total = 0.0
+                }
+            }
+            
+            $monHours = 0.0
+            if ([double]::TryParse($entry.MonHours, [ref]$monHours)) {
+                $projectTotals[$projectKey].Mon += $monHours
+            }
+            
+            $tueHours = 0.0
+            if ([double]::TryParse($entry.TueHours, [ref]$tueHours)) {
+                $projectTotals[$projectKey].Tue += $tueHours
+            }
+            
+            $wedHours = 0.0
+            if ([double]::TryParse($entry.WedHours, [ref]$wedHours)) {
+                $projectTotals[$projectKey].Wed += $wedHours
+            }
+            
+            $thuHours = 0.0
+            if ([double]::TryParse($entry.ThuHours, [ref]$thuHours)) {
+                $projectTotals[$projectKey].Thu += $thuHours
+            }
+            
+            $friHours = 0.0
+            if ([double]::TryParse($entry.FriHours, [ref]$friHours)) {
+                $projectTotals[$projectKey].Fri += $friHours
+            }
+            
+            $projectTotals[$projectKey].Total = $projectTotals[$projectKey].Mon +
+                                         $projectTotals[$projectKey].Tue +
+                                         $projectTotals[$projectKey].Wed +
+                                         $projectTotals[$projectKey].Thu +
+                                         $projectTotals[$projectKey].Fri
+        }
+
+        $summaryData = @()
+        $grandTotals = @{
+            Mon = 0.0; Tue = 0.0; Wed = 0.0; Thu = 0.0; Fri = 0.0; Total = 0.0
+        }
+        
+        foreach ($projectKey in ($projectTotals.Keys | Sort-Object)) {
+            $projectData = $projectTotals[$projectKey]
+            $projectName = if ($ProjectLookup.ContainsKey($projectKey)) {
+                $ProjectLookup[$projectKey]
+            } else {
+                $projectKey
+            }
+            
+            $summaryObj = [PSCustomObject]@{
+                Project = $projectName
+                Mon = $projectData.Mon
+                Tue = $projectData.Tue
+                Wed = $projectData.Wed
+                Thu = $projectData.Thu
+                Fri = $projectData.Fri
+                Total = $projectData.Total
+            }
+            
+            $summaryData += $summaryObj
+            
+            $grandTotals.Mon += $projectData.Mon
+            $grandTotals.Tue += $projectData.Tue
+            $grandTotals.Wed += $projectData.Wed
+            $grandTotals.Thu += $projectData.Thu
+            $grandTotals.Fri += $projectData.Fri
+            $grandTotals.Total += $projectData.Total
+        }
+        
+        $summaryData += [PSCustomObject]@{
+            Project = "TOTAL"
+            Mon = $grandTotals.Mon
+            Tue = $grandTotals.Tue
+            Wed = $grandTotals.Wed
+            Thu = $grandTotals.Thu
+            Fri = $grandTotals.Fri
+            Total = $grandTotals.Total
+        }
+
+        $formatters = @{
+            Mon = { param($val) ([double]$val).ToString("F1") }
+            Tue = { param($val) ([double]$val).ToString("F1") }
+            Wed = { param($val) ([double]$val).ToString("F1") }
+            Thu = { param($val) ([double]$val).ToString("F1") }
+            Fri = { param($val) ([double]$val).ToString("F1") }
+            Total = { param($val) ([double]$val).ToString("F1") }
+        }
+        
+        $rowColorizer = {
+            param($item, $rowIndex)
+            if ($item.Project -eq "TOTAL") {
+                return "White"
+            } else {
+                return "Gray"
+            }
+        }
+
+        $columnsToShow = @("Project", "Mon", "Tue", "Wed", "Thu", "Fri", "Total")
+        
+        Show-Table -Data $summaryData -Columns $columnsToShow -Formatters $formatters -RowColorizer $rowColorizer
+    } catch {
+        Write-Host "Error displaying weekly summary: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Generate a timesheet for a specific period
+function New-Timesheet {
+    param(
+        [Parameter(Mandatory=$false)]
+        [string]$StartDate = "",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$EndDate = "",
+        
+        [Parameter(Mandatory=$false)]
+        [string]$Nickname = ""
+    )
+    
+    Render-Header "Generate Timesheet Report"
+    
+    try {
+        # Get date range if not provided
+        if ([string]::IsNullOrWhiteSpace($StartDate)) {
+            # Default to current week's Monday
+            $today = Get-Date
+            $dayOfWeek = [int]$today.DayOfWeek # 0 = Sunday, 1 = Monday, etc.
+            $daysToSubtract = ($dayOfWeek + 6) % 7 # Calculate days back to Monday (0 if today is Monday)
+            $monday = $today.AddDays(-$daysToSubtract)
+            $defaultStart = $monday.ToString("yyyyMMdd")
+            
+            $startDateInternal = ""
+            while ([string]::IsNullOrWhiteSpace($startDateInternal)) {
+                $startInput = Read-UserInput -Prompt "Enter timesheet START date (MM/DD/YYYY, Enter=$($monday.ToString($script:config.displayDateFormat)), 0=Cancel)"
+                
+                if ($startInput -eq '0') {
+                    Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+                    Read-Host "Press Enter to continue..."
+                    return
+                }
+                
+                if ([string]::IsNullOrWhiteSpace($startInput)) {
+                    $startDateInternal = $defaultStart
+                } else {
+                    $startDateInternal = Parse-DateInput -InputDate $startInput
+                    if ($startDateInternal -eq "CANCEL") {
+                        Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+                        Read-Host "Press Enter to continue..."
+                        return
+                    }
+                    if ($null -eq $startDateInternal) {
+                        Write-Host "Invalid date format. Try again." -ForegroundColor $script:colors.Error
+                    }
+                }
+            }
+            
+            $StartDate = $startDateInternal
+        }
+        
+        # Convert to DateTime for calculations
+        $startDt = [DateTime]::ParseExact($StartDate, "yyyyMMdd", $null)
+        
+        if ([string]::IsNullOrWhiteSpace($EndDate)) {
+            # Default to Friday of the same week as StartDate
+            $dayOfWeek = [int]$startDt.DayOfWeek # 0 = Sunday, 1 = Monday, etc.
+            $daysToAdd = (5 - $dayOfWeek + 7) % 7 # Calculate days to Friday (4 if StartDate is Monday)
+            $friday = $startDt.AddDays($daysToAdd)
+            $defaultEnd = $friday.ToString("yyyyMMdd")
+            
+            $endDateInternal = ""
+            while ([string]::IsNullOrWhiteSpace($endDateInternal)) {
+                $endInput = Read-UserInput -Prompt "Enter timesheet END date (MM/DD/YYYY, Enter=$($friday.ToString($script:config.displayDateFormat)), 0=Cancel)"
+                
+                if ($endInput -eq '0') {
+                    Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+                    Read-Host "Press Enter to continue..."
+                    return
+                }
+                
+                if ([string]::IsNullOrWhiteSpace($endInput)) {
+                    $endDateInternal = $defaultEnd
+                } else {
+                    $endDateInternal = Parse-DateInput -InputDate $endInput
+                    if ($endDateInternal -eq "CANCEL") {
+                        Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+                        Read-Host "Press Enter to continue..."
+                        return
+                    }
+                    if ($null -eq $endDateInternal) {
+                        Write-Host "Invalid date format. Try again." -ForegroundColor $script:colors.Error
+                    }
+                }
+            }
+            
+            $EndDate = $endDateInternal
+        }
+        
+        # Parse dates to DateTime objects for comparisons
+        $startDt = [DateTime]::ParseExact($StartDate, "yyyyMMdd", $null)
+        $endDt = [DateTime]::ParseExact($EndDate, "yyyyMMdd", $null)
+        
+        # Ensure end date is not before start date
+        if ($endDt -lt $startDt) {
+            Write-Host "End date cannot be before start date. Swapping dates." -ForegroundColor $script:colors.Warning
+            $temp = $StartDate
+            $StartDate = $EndDate
+            $EndDate = $temp
+            $startDt = [DateTime]::ParseExact($StartDate, "yyyyMMdd", $null)
+            $endDt = [DateTime]::ParseExact($EndDate, "yyyyMMdd", $null)
+        }
+        
+        # Get optional project filter
+        if ([string]::IsNullOrWhiteSpace($Nickname)) {
+            $filterByProject = Read-UserInput -Prompt "Filter by project? (Y/N, Enter=N)"
+            
+            if ($filterByProject -match '^[yY]') {
+                $proj = Show-ProjectSelect -ActionName "generate timesheet for" -IncludeAll
+                if ($proj) {
+                    $Nickname = $proj.Nickname
+                }
+            }
+        }
+        
+        # Load time entries
+        $allEntries = @(Get-TimeEntries)
+        
+        # Filter entries by date range
+        $filteredEntries = $allEntries | Where-Object {
+            try {
+                $entryDate = [DateTime]::ParseExact($_.Date, "yyyyMMdd", $null)
+                return $entryDate -ge $startDt -and $entryDate -le $endDt
+            } catch {
+                return $false
+            }
+        }
+        
+        # Apply project filter if specified
+        if (-not [string]::IsNullOrWhiteSpace($Nickname)) {
+            $filteredEntries = $filteredEntries | Where-Object { $_.Nickname -eq $Nickname }
+        }
+        
+        # Group entries by project and day of week
+        $timesheet = @{}
+        
+        foreach ($entry in $filteredEntries) {
+            try {
+                # Process day-by-day entries
+                if (-not $timesheet.ContainsKey($entry.Nickname)) {
+                    $timesheet[$entry.Nickname] = @{
+                        Sunday = 0
+                        Monday = 0
+                        Tuesday = 0
+                        Wednesday = 0
+                        Thursday = 0
+                        Friday = 0
+                        Saturday = 0
+                        Total = 0
+                    }
+                }
+                
+                $monHours = 0.0
+                if (-not [string]::IsNullOrWhiteSpace($entry.MonHours) -and
+                    [double]::TryParse($entry.MonHours, [ref]$monHours)) {
+                    $timesheet[$entry.Nickname].Monday += $monHours
+                    $timesheet[$entry.Nickname].Total += $monHours
+                }
+                
+                $tueHours = 0.0
+                if (-not [string]::IsNullOrWhiteSpace($entry.TueHours) -and
+                    [double]::TryParse($entry.TueHours, [ref]$tueHours)) {
+                    $timesheet[$entry.Nickname].Tuesday += $tueHours
+                    $timesheet[$entry.Nickname].Total += $tueHours
+                }
+                
+                $wedHours = 0.0
+                if (-not [string]::IsNullOrWhiteSpace($entry.WedHours) -and
+                    [double]::TryParse($entry.WedHours, [ref]$wedHours)) {
+                    $timesheet[$entry.Nickname].Wednesday += $wedHours
+                    $timesheet[$entry.Nickname].Total += $wedHours
+                }
+                
+                $thuHours = 0.0
+                if (-not [string]::IsNullOrWhiteSpace($entry.ThuHours) -and
+                    [double]::TryParse($entry.ThuHours, [ref]$thuHours)) {
+                    $timesheet[$entry.Nickname].Thursday += $thuHours
+                    $timesheet[$entry.Nickname].Total += $thuHours
+                }
+                
+                $friHours = 0.0
+                if (-not [string]::IsNullOrWhiteSpace($entry.FriHours) -and
+                    [double]::TryParse($entry.FriHours, [ref]$friHours)) {
+                    $timesheet[$entry.Nickname].Friday += $friHours
+                    $timesheet[$entry.Nickname].Total += $friHours
+                }
+                
+                # If no day-specific entries but has a total, use that
+                if ($timesheet[$entry.Nickname].Total == 0) {
+                    $totalHours = 0.0
+                    if ([double]::TryParse($entry.Total, [ref]$totalHours)) {
+                        try {
+                            $entryDate = [DateTime]::ParseExact($entry.Date, "yyyyMMdd", $null)
+                            $dayOfWeek = $entryDate.DayOfWeek.ToString()
+                            $timesheet[$entry.Nickname].$dayOfWeek += $totalHours
+                            $timesheet[$entry.Nickname].Total += $totalHours
+                        } catch {
+                            # If can't determine day, just add to total
+                            $timesheet[$entry.Nickname].Total += $totalHours
+                        }
+                    }
+                }
+            } catch {
+                # Skip entries with invalid data
+                Write-Verbose "Skipping entry with invalid data: $($entry.Nickname) - $($entry.Date)"
+            }
+        }
+        
+        # Display timesheet
+        $startFormatted = $startDt.ToString($script:config.displayDateFormat)
+        $endFormatted = $endDt.ToString($script:config.displayDateFormat)
+        
+        Write-Host "`nTimesheet for $startFormatted to $endFormatted" -ForegroundColor $script:colors.Accent2
+        
+        if ($timesheet.Count -eq 0) {
+            Write-Host "No time entries found for the specified period." -ForegroundColor $script:colors.Warning
+            Read-Host "Press Enter to continue..."
+            return
+        }
+        
+        # Convert to array of objects for table display
+        $timesheetData = @()
+        $grandTotals = @{
+            Monday = 0.0
+            Tuesday = 0.0
+            Wednesday = 0.0
+            Thursday = 0.0
+            Friday = 0.0
+            Saturday = 0.0
+            Sunday = 0.0
+            Total = 0.0
+        }
+        
+        # Get project names for better display
+        $projects = @(Get-Projects)
+        $projectLookup = @{}
+        foreach ($p in $projects) {
+            $projectLookup[$p.Nickname] = $p.FullProjectName
+        }
+        
+        foreach ($nickname in ($timesheet.Keys | Sort-Object)) {
+            $projectData = $timesheet[$nickname]
+            $projectName = if ($projectLookup.ContainsKey($nickname)) {
+                $projectLookup[$nickname]
+            } else {
+                $nickname
+            }
+            
+            $dataRow = [PSCustomObject]@{
+                Project = $projectName
+                Mon = $projectData.Monday
+                Tue = $projectData.Tuesday
+                Wed = $projectData.Wednesday
+                Thu = $projectData.Thursday
+                Fri = $projectData.Friday
+                Sat = $projectData.Saturday
+                Sun = $projectData.Sunday
+                Total = $projectData.Total
+            }
+            
+            $timesheetData += $dataRow
+            
+            # Update grand totals
+            $grandTotals.Monday += $projectData.Monday
+            $grandTotals.Tuesday += $projectData.Tuesday
+            $grandTotals.Wednesday += $projectData.Wednesday
+            $grandTotals.Thursday += $projectData.Thursday
+            $grandTotals.Friday += $projectData.Friday
+            $grandTotals.Saturday += $projectData.Saturday
+            $grandTotals.Sunday += $projectData.Sunday
+            $grandTotals.Total += $projectData.Total
+        }
+        
+        # Add totals row
+        $totalsRow = [PSCustomObject]@{
+            Project = "TOTAL"
+            Mon = $grandTotals.Monday
+            Tue = $grandTotals.Tuesday
+            Wed = $grandTotals.Wednesday
+            Thu = $grandTotals.Thursday
+            Fri = $grandTotals.Friday
+            Sat = $grandTotals.Saturday
+            Sun = $grandTotals.Sunday
+            Total = $grandTotals.Total
+        }
+        
+        $timesheetData += $totalsRow
+        
+        # Define formatters for the table display
+        $formatters = @{
+            Mon = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Tue = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Wed = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Thu = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Fri = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Sat = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Sun = { param($val) if ($val -gt 0) { ([double]$val).ToString("F1") } else { "-" } }
+            Total = { param($val) ([double]$val).ToString("F1") }
+        }
+        
+        $rowColorizer = {
+            param($item, $rowIndex)
+            if ($item.Project -eq "TOTAL") {
+                return "White"
+            } else {
+                return "Gray"
+            }
+        }
+        
+        # Show the timesheet table
+        $columnsToShow = @("Project", "Mon", "Tue", "Wed", "Thu", "Fri", "Total")
+        
+        # Only show weekends if there's data
+        if ($grandTotals.Saturday -gt 0) {
+            $columnsToShow += "Sat"
+        }
+        
+        if ($grandTotals.Sunday -gt 0) {
+            $columnsToShow += "Sun"
+        }
+        
+        Show-Table -Data $timesheetData -Columns $columnsToShow -Formatters $formatters -RowColorizer $rowColorizer
+        
+        # Offer to export to CSV
+        $exportOption = Read-UserInput -Prompt "`nExport timesheet to CSV? (Y/N, Enter=N)"
+        
+        if ($exportOption -match '^[yY]') {
+            $defaultPath = Join-Path $script:baseDir "Timesheet_$($startDt.ToString('yyyyMMdd'))-$($endDt.ToString('yyyyMMdd')).csv"
+            $exportPath = Read-UserInput -Prompt "Enter export path (Enter=$defaultPath)" -DefaultValue $defaultPath
+            
+            try {
+                # Export to CSV
+                $timesheetData | Export-Csv -Path $exportPath -NoTypeInformation -Encoding UTF8
+                Write-Host "Timesheet exported to $exportPath" -ForegroundColor $script:colors.Success
+            } catch {
+                Write-Host "Error exporting timesheet: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+            }
+        }
+    } catch {
+        if ($_.Exception.Message -eq "Cancelled") {
+            Write-Host "`nTimesheet generation cancelled." -ForegroundColor $script:colors.Warning
+        } else {
+            Write-Host "`nError generating timesheet: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+        }
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Edit Time Entry
+function Edit-TimeEntry {
+    param(
+        [string]$TimeID
+    )
+    
+    Render-Header "Edit Time Entry"
+    
+    $entries = @(Get-TimeEntries)
+    
+    if ($entries.Count -eq 0) {
+        Write-Host "No time entries exist to edit." -ForegroundColor $script:colors.Warning
+        Read-Host "..."
+        return
+    }
+    
+    # Load projects for display formatting
+    $projects = @(Get-Projects)
+    $projectLookup = @{}
+    foreach ($p in $projects) {
+        $projectLookup[$p.Nickname] = $p.FullProjectName
+    }
+    
+    # Select entry to edit
+    $selectionMenu = @()
+    for ($i = 0; $i -lt $entries.Count; $i++) {
+        $entry = $entries[$i]
+        $projectName = if ($projectLookup.ContainsKey($entry.Nickname)) {
+            $projectLookup[$entry.Nickname]
+        } else {
+            $entry.Nickname
+        }
+        
+        $displayHours = 0.0
+        if ([double]::TryParse($entry.Total, [ref]$displayHours)) {
+            $hoursDisplay = $displayHours.ToString("F2")
+        } else {
+            $hoursDisplay = $entry.Total
+        }
+        
+        $selectionMenu += [PSCustomObject]@{
+            Number = $i + 1
+            Date = Convert-InternalDateToDisplay $entry.Date
+            Project = $projectName
+            Hours = $hoursDisplay
+            Description = $entry.Description
+            EntryObject = $entry
+        }
+    }
+    
+    # Display selection menu
+    Render-Header "Select Time Entry to Edit"
+    Show-Table -Data $selectionMenu -Columns @("Number", "Date", "Project", "Hours", "Description")
+    
+    $selection = Read-UserInput -Prompt "Enter entry number to edit (0=Cancel)"
+    if ($selection -eq "0" -or [string]::IsNullOrWhiteSpace($selection)) {
+        return
+    }
+    
+    $selectedIndex = 0
+    if ([int]::TryParse($selection, [ref]$selectedIndex) -and $selectedIndex -ge 1 -and $selectedIndex -le $selectionMenu.Count) {
+        $entryToEdit = $selectionMenu[$selectedIndex - 1].EntryObject
+    } else {
+        Write-Host "Invalid selection." -ForegroundColor $script:colors.Error
+        Read-Host "Press Enter to continue..."
+        return
+    }
+    
+    # Create a copy of the entry to track changes
+    $updatedEntry = $entryToEdit | Select-Object *
+    
+    # Display current values
+    $projDisplay = $updatedEntry.Nickname
+    if ($projectLookup.ContainsKey($projDisplay)) {
+        $projDisplay += " (" + $projectLookup[$projDisplay] + ")"
+    }
+    
+    Write-Host "Editing Time Entry:" -ForegroundColor $script:colors.Accent2
+    Write-Host "  Current Date: $(Convert-InternalDateToDisplay $updatedEntry.Date)" -ForegroundColor $script:colors.Normal
+    Write-Host "  Current Project: $projDisplay" -ForegroundColor $script:colors.Normal
+    Write-Host "  Current Hours: $($selectionMenu[$selectedIndex - 1].Hours)" -ForegroundColor $script:colors.Normal
+    
+    # Only show description if it exists
+    if (-not [string]::IsNullOrWhiteSpace($updatedEntry.Description)) {
+        Write-Host "  Current Description: $($updatedEntry.Description)" -ForegroundColor $script:colors.Normal
+    }
+    
+    Write-Host "`nEnter new value or press Enter to keep. Enter '0' to CANCEL." -ForegroundColor $script:colors.Accent2
+    
+    # Edit Date
+    $newDateInput = Read-UserInput -Prompt "New date (MM/DD/YYYY)"
+    if ($newDateInput -eq '0') {
+        Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+        Read-Host "Press Enter to continue..."
+        return
+    }
+    
+    if (-not [string]::IsNullOrWhiteSpace($newDateInput)) {
+        $newDate = Parse-DateInput -InputDate $newDateInput
+        if ($newDate -eq "CANCEL") {
+            Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+            Read-Host "Press Enter to continue..."
+            return
+        }
+        
+        if ($newDate) {
+            # Save old date to detect changes
+            $oldDate = $updatedEntry.Date
+            
+            # Update date
+            $updatedEntry.Date = $newDate
+            
+            # Get new day of week
+            $newDayOfWeek = [datetime]::ParseExact($newDate, "yyyyMMdd", $null).DayOfWeek
+            
+            # Clear all day hours
+            $updatedEntry.MonHours = ""
+            $updatedEntry.TueHours = ""
+            $updatedEntry.WedHours = ""
+            $updatedEntry.ThuHours = ""
+            $updatedEntry.FriHours = ""
+            
+            # Set new day hours based on Total
+            $currentTotal = 0.0
+            if ([double]::TryParse($updatedEntry.Total, [ref]$currentTotal)) {
+                switch ($newDayOfWeek) {
+                    "Monday" { $updatedEntry.MonHours = $currentTotal.ToString("F2") }
+                    "Tuesday" { $updatedEntry.TueHours = $currentTotal.ToString("F2") }
+                    "Wednesday" { $updatedEntry.WedHours = $currentTotal.ToString("F2") }
+                    "Thursday" { $updatedEntry.ThuHours = $currentTotal.ToString("F2") }
+                    "Friday" { $updatedEntry.FriHours = $currentTotal.ToString("F2") }
+                }
+            }
+        }
+    }
+    
+    # Edit Hours
+    $inputHours = Read-UserInput -Prompt "New hours (e.g., 1.5)"
+    if ($inputHours -eq '0') {
+        Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+        Read-Host "Press Enter to continue..."
+        return
+    }
+    
+    if (-not [string]::IsNullOrWhiteSpace($inputHours)) {
+        if ($inputHours -match '^\d+(\.\d+)?$' -and [double]::TryParse($inputHours, [ref]$null) -and ([double]$inputHours) -gt 0) {
+            $newHours = [double]$inputHours
+            
+            # Update the total hours
+            $updatedEntry.Total = $newHours.ToString("F2")
+            
+            # Update the day-specific hours based on the entry's day of week
+            $entryDate = try { [DateTime]::ParseExact($updatedEntry.Date, "yyyyMMdd", $null) } catch { $null }
+            if ($entryDate) {
+                $dayOfWeek = $entryDate.DayOfWeek
+                # Clear all day hours
+                $updatedEntry.MonHours = ""
+                $updatedEntry.TueHours = ""
+                $updatedEntry.WedHours = ""
+                $updatedEntry.ThuHours = ""
+                $updatedEntry.FriHours = ""
+                
+                # Set specific day's hours
+                switch ($dayOfWeek) {
+                    "Monday" { $updatedEntry.MonHours = $newHours.ToString("F2") }
+                    "Tuesday" { $updatedEntry.TueHours = $newHours.ToString("F2") }
+                    "Wednesday" { $updatedEntry.WedHours = $newHours.ToString("F2") }
+                    "Thursday" { $updatedEntry.ThuHours = $newHours.ToString("F2") }
+                    "Friday" { $updatedEntry.FriHours = $newHours.ToString("F2") }
+                }
+            }
+        }
+        else {
+            Write-Host "Invalid hours format. Hours not changed." -ForegroundColor $script:colors.Error
+        }
+    }
+    
+    # Edit Description
+    $inputDesc = Read-UserInput -Prompt "New description"
+    if ($inputDesc -eq '0') {
+        Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+        Read-Host "Press Enter to continue..."
+        return
+    }
+    
+    if (-not [string]::IsNullOrWhiteSpace($inputDesc) -or $inputDesc -eq "") {
+        $updatedEntry.Description = $inputDesc
+    }
+    
+    # Create a new array with the updates
+    $updatedEntries = @()
+    $updated = $false
+    
+    for ($i = 0; $i -lt $entries.Count; $i++) {
+        if ($entries[$i].Date -eq $entryToEdit.Date -and
+            $entries[$i].Nickname -eq $entryToEdit.Nickname -and
+            $entries[$i].Description -eq $entryToEdit.Description) {
+            
+            $updatedEntries += $updatedEntry
+            $updated = $true
+        } else {
+            $updatedEntries += $entries[$i]
+        }
+    }
+    
+    # Save the updated list
+    if ($updated -and (Save-TimeEntries $updatedEntries)) {
+        # Update project cumulative hours
+        Update-CumulativeHours -Nickname $updatedEntry.Nickname
+        
+        Write-Host "Time entry updated successfully." -ForegroundColor $script:colors.Success
+    } else {
+        Write-Host "Error saving time entry update." -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Delete Time Entry
+function Remove-TimeEntry {
+    Render-Header "Delete Time Entry"
+    
+    $entries = @(Get-TimeEntries)
+    
+    if ($entries.Count -eq 0) {
+        Write-Host "No time entries exist to delete." -ForegroundColor $script:colors.Warning
+        Read-Host "Press Enter to continue..."
+        return
+    }
+    
+    # Load projects for display formatting
+    $projects = @(Get-Projects)
+    $projectLookup = @{}
+    foreach ($p in $projects) {
+        $projectLookup[$p.Nickname] = $p.FullProjectName
+    }
+    
+    # Select entry to delete
+    $selectionMenu = @()
+    for ($i = 0; $i -lt $entries.Count; $i++) {
+        $entry = $entries[$i]
+        $projectName = if ($projectLookup.ContainsKey($entry.Nickname)) {
+            $projectLookup[$entry.Nickname]
+        } else {
+            $entry.Nickname
+        }
+        
+        $displayHours = 0.0
+        if ([double]::TryParse($entry.Total, [ref]$displayHours)) {
+            $hoursDisplay = $displayHours.ToString("F2")
+        } else {
+            $hoursDisplay = $entry.Total
+        }
+        
+        $selectionMenu += [PSCustomObject]@{
+            Number = $i + 1
+            Date = Convert-InternalDateToDisplay $entry.Date
+            Project = $projectName
+            Hours = $hoursDisplay
+            Description = $entry.Description
+            EntryObject = $entry
+        }
+    }
+    
+    # Display selection menu
+    Render-Header "Select Time Entry to Delete"
+    Show-Table -Data $selectionMenu -Columns @("Number", "Date", "Project", "Hours", "Description")
+    
+    $selection = Read-UserInput -Prompt "Enter entry number to delete (0=Cancel)"
+    if ($selection -eq "0" -or [string]::IsNullOrWhiteSpace($selection)) {
+        return
+    }
+    
+    $selectedIndex = 0
+    if ([int]::TryParse($selection, [ref]$selectedIndex) -and $selectedIndex -ge 1 -and $selectedIndex -le $selectionMenu.Count) {
+        $entryToDelete = $selectionMenu[$selectedIndex - 1].EntryObject
+    } else {
+        Write-Host "Invalid selection." -ForegroundColor $script:colors.Error
+        Read-Host "Press Enter to continue..."
+        return
+    }
+    
+    # Display entry details for confirmation
+    $projName = if ($projectLookup.ContainsKey($entryToDelete.Nickname)) {
+        $projectLookup[$entryToDelete.Nickname]
+    } else {
+        $entryToDelete.Nickname
+    }
+    
+    Write-Host "`n!! Deleting Time Entry !!" -ForegroundColor $script:colors.Error
+    Write-Host "  Date: $(Convert-InternalDateToDisplay $entryToDelete.Date)" -ForegroundColor $script:colors.Normal
+    Write-Host "  Project: $projName" -ForegroundColor $script:colors.Normal
+    Write-Host "  Hours: $($selectionMenu[$selectedIndex - 1].Hours)" -ForegroundColor $script:colors.Normal
+    
+    if (-not [string]::IsNullOrWhiteSpace($entryToDelete.Description)) {
+        Write-Host "  Description: $($entryToDelete.Description)" -ForegroundColor $script:colors.Normal
+    }
+    
+    $confirm = Read-UserInput -Prompt "Are you sure? (Y/N)"
+    
+    if ($confirm -match '^[yY]') {
+        # Store nickname before deletion for cumulative hours update
+        $projectNickname = $entryToDelete.Nickname
+        
+        # Create a new array without the deleted entry
+        $updatedEntries = @()
+        foreach ($e in $entries) {
+            if (-not ($e.Date -eq $entryToDelete.Date -and
+                 $e.Nickname -eq $entryToDelete.Nickname -and
+                 $e.Total -eq $entryToDelete.Total -and
+                 $e.Description -eq $entryToDelete.Description)) {
+                $updatedEntries += $e
+            }
+        }
+        
+        if ($updatedEntries.Count -lt $entries.Count) {
+            if (Save-TimeEntries $updatedEntries) {
+                Write-Host "Time entry deleted successfully." -ForegroundColor $script:colors.Success
+                
+                # Update project cumulative hours if applicable
+                if (-not [string]::IsNullOrEmpty($projectNickname)) {
+                    Update-CumulativeHours -Nickname $projectNickname
+                }
+            }
+        } else {
+            Write-Host "Error: Time entry not found in data file." -ForegroundColor $script:colors.Error
+        }
+    } else {
+        Write-Host "Delete operation cancelled." -ForegroundColor $script:colors.Warning
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Time Tracking Menu
+function Show-TimeMenu {
+    $timeMenuItems = @()
+    
+    $timeMenuItems += @{
+        Key = "header_1"
+        Text = "Time Tracking"
+        Type = "header"
+    }
+    
+    $timeMenuItems += @{
+        Key = "1"
+        Text = "Add Time Entry"
+        Function = {
+            Add-TimeEntry
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $timeMenuItems += @{
+        Key = "2"
+        Text = "Generate Timesheet"
+        Function = {
+            New-Timesheet
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $timeMenuItems += @{
+        Key = "3"
+        Text = "View Time Reports"
+        Function = {
+            Show-TimeReport
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $timeMenuItems += @{
+        Key = "4"
+        Text = "Edit Time Entry"
+        Function = {
+            Edit-TimeEntry
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $timeMenuItems += @{
+        Key = "5"
+        Text = "Delete Time Entry"
+        Function = {
+            Remove-TimeEntry
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $timeMenuItems += @{
+        Key = "sep_1"
+        Type = "separator"
+    }
+    
+    $timeMenuItems += @{
+        Key = "0"
+        Text = "Back to Main Menu"
+        Function = { return $true }
+        IsExit = $false  # Changed to false to prevent exiting application
+        Type = "option"
+    }
+    
+    Push-NavigationPath "Time Tracking"
+    Show-DynamicMenu -Title "Time Tracking" -MenuItems $timeMenuItems -UseNavigationBar
+    Pop-NavigationPath
+}
+# Project Management Functions
+# Functions for creating, updating, and managing projects
+
+# Show active projects or all projects
+function Show-Overview {
+    param([switch]$All)
+      
+    $viewTitle = if ($All) { "All Projects" } else { "Active Projects" }
+    Render-Header $viewTitle
+
+    $projects = @(Get-Projects)
+    if (-not $All) {
+        $projects = $projects | Where-Object {
+            $_.Status -ne "Closed" -and [string]::IsNullOrWhiteSpace($_.ClosedDate)
+        }
+    }
+      
+    if ($projects.Count -eq 0) {
+        Write-Host "No projects found." -ForegroundColor $script:colors.Warning
+        Read-Host "Press Enter to continue..."
+        return
+    }
+
+    # Update hours before display
+    $projects | ForEach-Object { Update-CumulativeHours -Nickname $_.Nickname }
+    $projects = @(Get-Projects) # Re-get projects after update
+      
+    if (-not $All) {
+        $projects = $projects | Where-Object {
+            $_.Status -ne "Closed" -and [string]::IsNullOrWhiteSpace($_.ClosedDate)
+        }
+    }
+
+    # Include Note column in display
+    $columnsToShow = @("Nickname", "FullProjectName", "DateAssigned", "DueDate", "BFDate", "CumulativeHrs", "Note", "Status")
+      
+    $tableHeaders = @{
+        FullProjectName = "Full Name"
+        DateAssigned = "Assigned"
+        DueDate = "Due"
+        BFDate = "BF Date"
+        CumulativeHrs = "Hrs"
+        Note = "Notes"
+    }
+
+    $today = (Get-Date).Date
+      
+    $tableFormatters = @{
+        DateAssigned = { param($val) Convert-InternalDateToDisplay $val }
+        DueDate = { param($val) Convert-InternalDateToDisplay $val }
+        BFDate = { param($val) Convert-InternalDateToDisplay $val }
+        CumulativeHrs = {
+            param($val)
+            try {
+                [double]::Parse($val).ToString("F1")
+            } catch {
+                $val
+            }
+        }
+    }
+
+    $rowColorizer = {
+        param($item, $rowIndex)
+        $status = if ([string]::IsNullOrWhiteSpace($item.Status)) { "Active" } else { $item.Status }
+        
+        if ($status -eq "Closed") {
+            return $script:colors.Completed
+        }
+        
+        if ($status -eq "On Hold") {
+            return $script:colors.Warning
+        }
+        
+        try {
+            $dueDate = $item.DueDate
+            if($dueDate -match '^\d{8}$') {
+                $dt = [datetime]::ParseExact($dueDate, "yyyyMMdd", $null).Date
+                if ($dt -lt $today) {
+                    return $script:colors.Overdue
+                }
+                if (($dt - $today).Days -le 7) {
+                    return $script:colors.DueSoon
+                }
+            }
+        } catch {}
+        
+        return $script:colors.Normal
+    }
+
+    Show-Table -Data $projects -Columns $columnsToShow -Headers $tableHeaders -Formatters $tableFormatters -RowColorizer $rowColorizer
+    Read-Host "Press Enter to continue..."
+}
+
+# Create a new project
+function New-Project {
+    Render-Header "Create New Project"
+    
+    $newProj = @{}
+
+    while (-not $newProj.Nickname) {
+        $newProj.Nickname = Read-UserInput -Prompt "Enter Nickname (unique, max 15 chars)"
+        
+        if ([string]::IsNullOrWhiteSpace($newProj.Nickname)) {
+            $newProj.Nickname = $null
+            Write-Host "Nickname cannot be empty." -ForegroundColor $script:colors.Error
+            continue
+        }
+        
+        if ($newProj.Nickname.Length -gt 15) {
+            $newProj.Nickname = $newProj.Nickname.Substring(0,15)
+            Write-Host "Nickname truncated to 15 chars." -ForegroundColor $script:colors.Warning
+        }
+        
+        # Ensure projects is always an array
+        $projects = @(Get-Projects)
+        if ($projects | Where-Object { $_.Nickname -eq $newProj.Nickname }) {
+            Write-Host "Nickname '$($newProj.Nickname)' already exists." -ForegroundColor $script:colors.Error
+            $newProj.Nickname = $null
+        }
+    }
+
+    $newProj.FullProjectName = Read-UserInput -Prompt "Enter Full Name"
+    
+    if ([string]::IsNullOrWhiteSpace($newProj.FullProjectName)) {
+        Write-Host "Full Name cannot be empty." -ForegroundColor $script:colors.Error
+        Read-Host "Press Enter to start over..."
+        return
+    }
+
+    $newProj.ID1 = Read-UserInput -Prompt "Enter ID1 (e.g., Client Code)"
+    $newProj.ID2 = Read-UserInput -Prompt "Enter ID2 (e.g., Engagement Code)"
+
+    $assignedDateInternal = $null
+    while($assignedDateInternal -eq $null) {
+        $assignedDateInput = Read-UserInput -Prompt "Enter Assigned Date (MM/DD/YYYY, Enter=Today)"
+        $assignedDateInternal = Parse-DateInput -InputDate $assignedDateInput -AllowEmptyForToday
+        
+        if ($assignedDateInternal -eq "CANCEL") {
+            Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+            Read-Host "..."
+            return
+        }
+    }
+    
+    $newProj.DateAssigned = $assignedDateInternal # Store in internal format
+
+    # Calculate Due Date
+    $dtAssigned = [datetime]::ParseExact($assignedDateInternal, "yyyyMMdd", $null)
+    $dtDue = $dtAssigned.AddDays(42)
+    $newProj.DueDate = $dtDue.ToString("yyyyMMdd") # Store in internal format
+    
+    Write-Host "Due Date calculated: $(Convert-InternalDateToDisplay $newProj.DueDate)" -ForegroundColor $script:colors.Accent2
+
+    # BF Date
+    $bfDateInternal = $null
+    while($bfDateInternal -eq $null) {
+        $bfDateInput = Read-UserInput -Prompt "Enter BF Date (MM/DD/YYYY, Enter=DueDate)"
+        
+        if ([string]::IsNullOrWhiteSpace($bfDateInput)) {
+            $bfDateInternal = $dtDue.ToString("yyyyMMdd") # Use internal format from calculated due date
+            break
+        }
+        
+        $bfDateInternal = Parse-DateInput -InputDate $bfDateInput
+        
+        if ($bfDateInternal -eq "CANCEL") {
+            Write-Host "Cancelled." -ForegroundColor $script:colors.Warning
+            Read-Host "..."
+            return
+        }
+    }
+    
+    $newProj.BFDate = $bfDateInternal # Store in internal format
+
+    $newProj.Note = Read-UserInput -Prompt "Enter Note (optional)"
+    $newProj.ProjFolder = Read-UserInput -Prompt "Enter Project Folder Path (optional)"
+    $newProj.ClosedDate = ""
+    $newProj.Status = $script:config.defaultProjectStatus
+    $newProj.CumulativeHrs = "0.0"
+
+    # Get projects as array and create new project object
+    $projects = @(Get-Projects)
+    
+    # Create the new project as a PSCustomObject first
+    $newProjObject = [PSCustomObject]$newProj
+    
+    # Create a new array with all items including the new project
+    $updatedProjects = @()
+    foreach ($proj in $projects) {
+        $updatedProjects += $proj
+    }
+    $updatedProjects += $newProjObject
+    
+    if (Save-Projects $updatedProjects) {
+        Write-Host "Project '$($newProj.Nickname)' created successfully!" -ForegroundColor $script:colors.Success
+        
+        # Add initial todo using internal format for DueDate
+        $todoDescription = if ([string]::IsNullOrWhiteSpace($newProj.Note)) {
+            "$($newProj.Nickname)"
+        } else {
+            "$($newProj.Note)"
+        }
+        
+        Add-TodoItem -Nickname $newProj.Nickname -TaskDescription $todoDescription -DueDate $bfDateInternal -Importance "Normal" -IsSilent
+    } else {
+        Write-Host "Failed to save new project." -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Project selection helper
+function Show-ProjectSelect {
+    param(
+        [string]$ActionName = "select",
+        [switch]$IncludeAll # Include closed projects
+    )
+    
+    # Always ensure projects is an array
+    $projects = @(Get-Projects)
+    
+    if (-not $IncludeAll) {
+        # Default: Filter out closed projects
+        $projects = $projects | Where-Object {
+            $_.Status -ne "Closed" -and [string]::IsNullOrWhiteSpace($_.ClosedDate)
+        }
+    }
+    
+    if ($projects.Count -eq 0) {
+        Write-Host "No projects available to $ActionName." -ForegroundColor $script:colors.Warning
+        Read-Host "Press Enter to continue..."
+        return $null
+    }
+    
+    Render-Header "Select Project to $ActionName"
+    
+    # Create menu items array
+    $menuItems = @()
+    $counter = 1
+    
+    # Sort projects by nickname for consistent display
+    $sortedProjects = $projects | Sort-Object Nickname
+    
+    foreach ($proj in $sortedProjects) {
+        $status = if ([string]::IsNullOrWhiteSpace($proj.Status)) { "Active" } else { $proj.Status }
+        
+        # Create a dedicated closure for each project
+        $projCopy = $proj # Create a copy to avoid reference issues
+        
+        $menuItems += @{
+            Key = "$counter"
+            Text = "$($proj.Nickname) - $($proj.FullProjectName)"
+            Description = "Status: $status"
+            Function = { return $projCopy } # Return the project object copy
+            IsHighlighted = ($status -eq "Active")
+            IsDisabled = $false
+            Type = "option"
+        }
+        
+        $counter++
+    }
+    
+    $menuItems += @{
+        Key = "0"
+        Text = "Cancel"
+        Function = { return $null }
+        IsExit = $false # Changed to false to prevent application exit
+        Type = "option"
+    }
+    
+    return Show-DynamicMenu -Title "Select Project" -Subtitle "Choose a project to $ActionName" -MenuItems $menuItems -Prompt "Enter selection number:"
+}
+
+# Update an existing project
+function Update-Project {
+    Render-Header "Update Project Details"
+    $projToUpdate = Show-ProjectSelect -ActionName "update" -IncludeAll
+    
+    if (-not $projToUpdate) {
+        return
+    }
+
+    $projects = @(Get-Projects)
+    $originalProject = $projects | Where-Object { $_.Nickname -eq $projToUpdate.Nickname } | Select-Object -First 1
+    
+    if (-not $originalProject) {
+        Write-Host "Error: Project not found." -ForegroundColor $script:colors.Error
+        Read-Host "Press Enter to continue..."
+        return
+    }
+
+    $updatedProj = $originalProject | Select-Object * # Create mutable copy
+
+    Write-Host "`nUpdating Project: $($updatedProj.Nickname)" -ForegroundColor $script:colors.Accent2
+    Write-Host "Enter new value or press Enter to keep current. Enter '0' to cancel." -ForegroundColor $script:colors.Accent2
+
+    function Read-UpdateField {
+        param($FieldName, [ref]$ProjectObject, [switch]$IsDate)
+        
+        $currentValue = $ProjectObject.Value.$FieldName
+        $displayCurrent = if ($IsDate) { Convert-InternalDateToDisplay $currentValue } else { $currentValue }
+        $input = Read-UserInput -Prompt "$FieldName (current: $displayCurrent)"
+        
+        if ($input -eq '0') {
+            return $false
+        } # Cancel
+        
+        if (-not [string]::IsNullOrWhiteSpace($input) -and $input -ne $currentValue) {
+            if ($IsDate) {
+                $internalDate = Parse-DateInput -InputDate $input
+                if ($internalDate -and $internalDate -ne "CANCEL") {
+                    $ProjectObject.Value.$FieldName = $internalDate # Store internal format
+                } elseif ($internalDate -ne "CANCEL") {
+                    Write-Host "Invalid date format. Keeping original." -ForegroundColor $script:colors.Warning
+                } else {
+                    return $false
+                } # Cancelled during date parse
+            } else {
+                $ProjectObject.Value.$FieldName = $input
+            }
+        }
+        
+        return $true # Continue
+    }
+
+    if (-not (Read-UpdateField "FullProjectName" ([ref]$updatedProj))) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "ID1" ([ref]$updatedProj))) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "ID2" ([ref]$updatedProj))) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "DateAssigned" ([ref]$updatedProj) -IsDate)) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "DueDate" ([ref]$updatedProj) -IsDate)) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "BFDate" ([ref]$updatedProj) -IsDate)) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "Note" ([ref]$updatedProj))) {
+        return
+    }
+    
+    if (-not (Read-UpdateField "ProjFolder" ([ref]$updatedProj))) {
+        return
+    }
+
+    # Status update
+    $currentStatus = if ([string]::IsNullOrWhiteSpace($updatedProj.Status)) { "Active" } else { $updatedProj.Status }
+    
+    Write-Host "Current Status: $currentStatus" -ForegroundColor $script:colors.Accent2
+    Write-Host "[1] Active" -ForegroundColor $script:colors.Success
+    Write-Host "[2] Closed" -ForegroundColor $script:colors.Completed
+    Write-Host "[3] On Hold" -ForegroundColor $script:colors.Warning
+    Write-Host "[0] Keep Current" -ForegroundColor $script:colors.Accent2
+    
+    $statusChoice = Read-UserInput -Prompt "Select new status"
+    
+    switch($statusChoice) {
+        '1' { $updatedProj.Status = "Active" }
+        '2' { $updatedProj.Status = "Closed" }
+        '3' { $updatedProj.Status = "On Hold" }
+        '0' {} '' {} default {
+            Write-Host "Invalid status choice. Keeping original." -ForegroundColor $script:colors.Warning
+        }
+    }
+
+    # Update ClosedDate based on Status
+    if ($updatedProj.Status -eq "Closed" -and [string]::IsNullOrWhiteSpace($updatedProj.ClosedDate)) {
+        $updatedProj.ClosedDate = (Get-Date).ToString("yyyyMMdd") # Store internal format
+    } elseif ($updatedProj.Status -ne "Closed") {
+        $updatedProj.ClosedDate = ""
+    }
+
+    # Find and replace safely using array indices
+    $updated = $false
+    $updatedProjects = @()
+
+    for ($i = 0; $i -lt $projects.Count; $i++) {
+        if ($projects[$i].Nickname -eq $originalProject.Nickname) {
+            $updatedProjects += $updatedProj
+            $updated = $true
+        } else {
+            $updatedProjects += $projects[$i]
+        }
+    }
+
+    if ($updated) {
+        if (Save-Projects $updatedProjects) {
+            Write-Host "Project '$($updatedProj.Nickname)' updated successfully!" -ForegroundColor $script:colors.Success
+            
+            # Update related todo if BFDate or Note changed
+            if (($updatedProj.BFDate -ne $originalProject.BFDate) -or ($updatedProj.Note -ne $originalProject.Note)) {
+                Update-TodoForProject -Nickname $updatedProj.Nickname -NewBFDate $updatedProj.BFDate -NewNote $updatedProj.Note
+            }
+        } else {
+            Write-Host "Failed to save updated project." -ForegroundColor $script:colors.Error
+        }
+    } else {
+        Write-Host "No changes detected or project not found." -ForegroundColor $script:colors.Warning
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Set a project's status
+function Set-ProjectStatus {
+    param (
+        [string]$Nickname,
+        [string]$Status = "Closed"
+    )
+    
+    Render-Header "Change Project Status"
+    
+    try {
+        # If not provided, prompt for project
+        if ([string]::IsNullOrWhiteSpace($Nickname)) {
+            $proj = Show-ProjectSelect -ActionName "change status for" -IncludeAll
+            if (-not $proj) { return }
+            $Nickname = $proj.Nickname
+        }
+        
+        $projects = @(Get-Projects)
+        $project = $projects | Where-Object { $_.Nickname -eq $Nickname } | Select-Object -First 1
+        
+        if (-not $project) {
+            Write-Host "Project '$Nickname' not found." -ForegroundColor $script:colors.Error
+            Read-Host "Press Enter to continue..."
+            return
+        }
+
+        $currentStatus = $project.Status
+        
+        if ([string]::IsNullOrWhiteSpace($currentStatus)) {
+            $currentStatus = if ([string]::IsNullOrWhiteSpace($project.ClosedDate)) {
+                "Active"
+            } else {
+                "Closed"
+            }
+        }
+
+        Write-Host "Project: $($project.Nickname) - $($project.FullProjectName)" -ForegroundColor $script:colors.Accent2
+        Write-Host "Current Status: $currentStatus" -ForegroundColor $script:colors.Accent2
+
+        $project.Status = $Status
+        
+        if ($Status -eq "Closed") {
+            if ([string]::IsNullOrWhiteSpace($project.ClosedDate)) {
+                $project.ClosedDate = (Get-Date).ToString("yyyyMMdd")
+            }
+            
+            Write-Host "Setting project status to CLOSED with completion date: $(Convert-InternalDateToDisplay $project.ClosedDate)" -ForegroundColor $script:colors.Warning
+        } else {
+            if (-not [string]::IsNullOrWhiteSpace($project.ClosedDate)) {
+                $project.ClosedDate = ""
+                Write-Host "Setting project status to '$Status' and clearing completion date." -ForegroundColor $script:colors.Success
+            }
+            else {
+                Write-Host "Setting project status to '$Status'." -ForegroundColor $script:colors.Success
+            }
+        }
+
+        # Create new array to avoid reference issues
+        $updatedProjects = @()
+        foreach ($p in $projects) {
+            if ($p.Nickname -eq $Nickname) {
+                $updatedProjects += $project
+            } else {
+                $updatedProjects += $p
+            }
+        }
+
+        if (Save-Projects $updatedProjects) {
+            Write-Host "Project status updated successfully!" -ForegroundColor $script:colors.Success
+        }
+        else {
+            Write-Host "Failed to save project status update." -ForegroundColor $script:colors.Error
+        }
+    } catch {
+        Write-Host "Error changing project status: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Delete a project
+function Remove-Project {
+    Render-Header "Delete Project"
+    
+    try {
+        $proj = Show-ProjectSelect -ActionName "delete" -IncludeAll
+        if (-not $proj) { return }
+        
+        $Nickname = $proj.Nickname
+        
+        Write-Host "WARNING: This will permanently delete project '$Nickname'!" -ForegroundColor $script:colors.Error
+        Write-Host "This action cannot be undone." -ForegroundColor $script:colors.Error
+        
+        $confirm = Read-UserInput -Prompt "Type the project nickname to confirm deletion"
+        
+        if ($confirm -ne $Nickname) {
+            Write-Host "Deletion cancelled (confirmation did not match)." -ForegroundColor $script:colors.Warning
+            Read-Host "Press Enter to continue..."
+            return
+        }
+        
+        $projects = @(Get-Projects)
+        $newProjects = $projects | Where-Object { $_.Nickname -ne $Nickname }
+        
+        if ($newProjects.Count -eq $projects.Count) {
+            Write-Host "Project not found in database." -ForegroundColor $script:colors.Error
+            Read-Host "Press Enter to continue..."
+            return
+        }
+        
+        if (Save-Projects $newProjects) {
+            # Also remove related todos
+            $todos = @(Get-TodoItems)
+            $newTodos = $todos | Where-Object { $_.Nickname -ne $Nickname }
+            
+            if ($newTodos.Count -ne $todos.Count) {
+                Save-TodoItems $newTodos | Out-Null
+            }
+            
+            # Also remove related time entries
+            $timeEntries = @(Get-TimeEntries)
+            $newTimeEntries = $timeEntries | Where-Object { $_.Nickname -ne $Nickname }
+            
+            if ($newTimeEntries.Count -ne $timeEntries.Count) {
+                Save-TimeEntries $newTimeEntries | Out-Null
+            }
+            
+            Write-Host "Project '$Nickname' has been deleted." -ForegroundColor $script:colors.Success
+        } else {
+            Write-Host "Failed to delete project." -ForegroundColor $script:colors.Error
+        }
+    } catch {
+        Write-Host "Error deleting project: $($_.Exception.Message)" -ForegroundColor $script:colors.Error
+    }
+    
+    Read-Host "Press Enter to continue..."
+}
+
+# Helper to update related todo (called by Update-Project)
+function Update-TodoForProject {
+    param (
+        [string]$Nickname,
+        [string]$NewBFDate, # Should be in YYYYMMDD format
+        [string]$NewNote
+    )
+    
+    if ([string]::IsNullOrWhiteSpace($Nickname)) {
+        return
+    }
+    
+    $todos = @(Get-TodoItems)
+    $updated = $false
+    
+    foreach ($todo in $todos) {
+        if ($todo.Nickname -eq $Nickname -and ($todo.TaskDescription -like "*follow up*" -or $todo.TaskDescription -match "Initial setup/follow up")) {
+            if (-not [string]::IsNullOrWhiteSpace($NewBFDate)) {
+                if ($todo.DueDate -ne $NewBFDate) {
+                    $todo.DueDate = $NewBFDate
+                    $updated = $true
+                }
+            }
+            
+            if (-not [string]::IsNullOrWhiteSpace($NewNote)) {
+                $newDesc = "Follow up: $NewNote"
+                if ($todo.TaskDescription -ne $newDesc) {
+                    $todo.TaskDescription = $newDesc
+                    $updated = $true
+                }
+            }
+        }
+    }
+    
+    if ($updated) {
+        if (-not (Save-TodoItems $todos)) {
+            Write-Host "ERROR saving updated follow-up todo." -ForegroundColor $script:colors.Error
+        }
+    }
+}
+
+# Show Project Management Menu
+function Show-ProjectMenu {
+    $projectMenuItems = @()
+    
+    $projectMenuItems += @{
+        Key = "header_1"
+        Text = "Project Management"
+        Type = "header"
+    }
+    
+    $projectMenuItems += @{
+        Key = "1"
+        Text = "Create New Project"
+        Function = {
+            New-Project
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $projectMenuItems += @{
+        Key = "2"
+        Text = "View Active Projects"
+        Function = {
+            Show-Overview
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $projectMenuItems += @{
+        Key = "3"
+        Text = "View All Projects"
+        Function = {
+            Show-Overview -All
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $projectMenuItems += @{
+        Key = "4"
+        Text = "Update Project"
+        Function = {
+            Update-Project
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $projectMenuItems += @{
+        Key = "5"
+        Text = "Close Project"
+        Function = {
+            Set-ProjectStatus -Status "Closed"
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $projectMenuItems += @{
+        Key = "6"
+        Text = "Delete Project"
+        Function = {
+            Remove-Project
+            return $null
+        }
+        Type = "option"
+    }
+    
+    $projectMenuItems += @{
+        Key = "sep_1"
+        Type = "separator"
+    }
+    
+    $projectMenuItems += @{
+        Key = "0"
+        Text = "Back to Main Menu"
+        Function = { return $true }
+        IsExit = $false  # Changed to false to prevent exiting application
+        Type = "option"
+    }
+    
+    Push-NavigationPath "Project Management"
+    Show-DynamicMenu -Title "Project Management" -MenuItems $projectMenuItems -UseNavigationBar
+    Pop-NavigationPath
+}

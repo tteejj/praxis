@@ -3,6 +3,7 @@
 class ProjectsScreen : Screen {
     [ListBox]$ProjectList
     [Button]$NewButton
+    [Button]$ViewButton
     [Button]$EditButton
     [Button]$DeleteButton
     [ProjectService]$ProjectService
@@ -24,15 +25,18 @@ class ProjectsScreen : Screen {
         
         # Subscribe to events
         if ($this.EventBus) {
-            # Subscribe to project created events
+            # Capture reference to this screen instance
+            $screen = $this
+            
+            # Subscribe to project created events with explicit closure
             $this.EventSubscriptions['ProjectCreated'] = $this.EventBus.Subscribe([EventNames]::ProjectCreated, {
                 param($sender, $eventData)
-                $this.RefreshProjects()
+                $screen.RefreshProjects()
                 # Select the new project if provided
                 if ($eventData.Project) {
-                    for ($i = 0; $i -lt $this.ProjectList.Items.Count; $i++) {
-                        if ($this.ProjectList.Items[$i].Id -eq $eventData.Project.Id) {
-                            $this.ProjectList.SelectIndex($i)
+                    for ($i = 0; $i -lt $screen.ProjectList.Items.Count; $i++) {
+                        if ($screen.ProjectList.Items[$i].Id -eq $eventData.Project.Id) {
+                            $screen.ProjectList.SelectIndex($i)
                             break
                         }
                     }
@@ -44,8 +48,8 @@ class ProjectsScreen : Screen {
                 param($sender, $eventData)
                 if ($eventData.Target -eq 'ProjectsScreen') {
                     switch ($eventData.Command) {
-                        'EditProject' { $this.EditProject() }
-                        'DeleteProject' { $this.DeleteProject() }
+                        'EditProject' { $screen.EditProject() }
+                        'DeleteProject' { $screen.DeleteProject() }
                     }
                 }
             }.GetNewClosure())
@@ -53,13 +57,13 @@ class ProjectsScreen : Screen {
             # Subscribe to project updated events
             $this.EventSubscriptions['ProjectUpdated'] = $this.EventBus.Subscribe([EventNames]::ProjectUpdated, {
                 param($sender, $eventData)
-                $this.RefreshProjects()
+                $screen.RefreshProjects()
             }.GetNewClosure())
             
             # Subscribe to project deleted events
             $this.EventSubscriptions['ProjectDeleted'] = $this.EventBus.Subscribe([EventNames]::ProjectDeleted, {
                 param($sender, $eventData)
-                $this.RefreshProjects()
+                $screen.RefreshProjects()
             }.GetNewClosure())
         }
         
@@ -84,6 +88,11 @@ class ProjectsScreen : Screen {
         $this.NewButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.NewButton)
         
+        $this.ViewButton = [Button]::new("View Details")
+        $this.ViewButton.OnClick = { $this.ViewProjectDetails() }
+        $this.ViewButton.Initialize($global:ServiceContainer)
+        $this.AddChild($this.ViewButton)
+        
         $this.EditButton = [Button]::new("Edit")
         $this.EditButton.OnClick = { $this.EditProject() }
         $this.EditButton.Initialize($global:ServiceContainer)
@@ -97,26 +106,17 @@ class ProjectsScreen : Screen {
         # Load projects
         $this.LoadProjects()
         
-        # Key bindings
-        $this.BindKey('n', { $this.NewProject() })
-        $this.BindKey('e', { $this.EditProject() })
-        $this.BindKey('d', { $this.DeleteProject() })
-        $this.BindKey('r', { $this.LoadProjects() })
-        $this.BindKey([System.ConsoleKey]::Enter, { $this.EditProject() })
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
-        $this.BindKey('q', { $this.Active = $false })
-        
-        # Focus on list
-        $this.ProjectList.Focus()
+        # Key bindings now handled by GetShortcutBindings() method
+        # Initial focus will be handled by FocusManager when screen is activated
     }
     
+    
     [void] OnActivated() {
-        # Call base to trigger render
+        # Call base to manage focus scope and shortcuts
         ([Screen]$this).OnActivated()
         
-        # Make sure list has focus when screen is activated
-        if ($this.ProjectList) {
-            $this.ProjectList.Focus()
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.OnActivated: Screen activated with new focus system")
         }
     }
     
@@ -138,9 +138,9 @@ class ProjectsScreen : Screen {
             $listHeight
         )
         
-        # Buttons (horizontally arranged)
-        $maxButtonWidth = 25  # Maximum button width
-        $totalButtonWidth = ($maxButtonWidth * 3) + ($this.ButtonSpacing * 2)
+        # Buttons (horizontally arranged) - now 4 buttons
+        $maxButtonWidth = 20  # Reduced button width to fit 4 buttons
+        $totalButtonWidth = ($maxButtonWidth * 4) + ($this.ButtonSpacing * 3)
         
         # Center buttons if screen is wide enough
         if ($this.Width -gt $totalButtonWidth) {
@@ -148,7 +148,7 @@ class ProjectsScreen : Screen {
             $buttonWidth = $maxButtonWidth
         } else {
             $buttonStartX = $this.X
-            $buttonWidth = [int](($this.Width - ($this.ButtonSpacing * 2)) / 3)
+            $buttonWidth = [int](($this.Width - ($this.ButtonSpacing * 3)) / 4)
         }
         
         # Position buttons at bottom of screen bounds
@@ -161,15 +161,22 @@ class ProjectsScreen : Screen {
             $this.ButtonHeight
         )
         
-        $this.EditButton.SetBounds(
+        $this.ViewButton.SetBounds(
             $buttonStartX + $buttonWidth + $this.ButtonSpacing,
             $buttonY,
             $buttonWidth,
             $this.ButtonHeight
         )
         
-        $this.DeleteButton.SetBounds(
+        $this.EditButton.SetBounds(
             $buttonStartX + ($buttonWidth + $this.ButtonSpacing) * 2,
+            $buttonY,
+            $buttonWidth,
+            $this.ButtonHeight
+        )
+        
+        $this.DeleteButton.SetBounds(
+            $buttonStartX + ($buttonWidth + $this.ButtonSpacing) * 3,
             $buttonY,
             $buttonWidth,
             $this.ButtonHeight
@@ -207,12 +214,8 @@ class ProjectsScreen : Screen {
                 param($projectData)
                 
                 # Create nickname from name
-                $nickname = $projectData.Name -replace '\s+', ''
-                if ($nickname.Length -gt 10) {
-                    $nickname = $nickname.Substring(0, 10)
-                }
-                
-                $project = $screen.ProjectService.AddProject($projectData.Name, $nickname)
+                # Create project using single-parameter constructor
+                $project = $screen.ProjectService.AddProject($projectData.Name)
                 $screen.LoadProjects()
                 
                 # Select the new project
@@ -289,10 +292,8 @@ class ProjectsScreen : Screen {
         $selected = $this.ProjectList.GetSelectedItem()
         if ($selected) {
             # Show confirmation dialog
-            $dialog = [ConfirmationDialog]::new(
-                "Delete Project",
-                "Are you sure you want to delete project '$($selected.Nickname)'?"
-            )
+            $message = "Are you sure you want to delete project '$($selected.Nickname)'?"
+            $dialog = [ConfirmationDialog]::new($message)
             
             $screen = $this
             $projectId = $selected.Id
@@ -325,27 +326,71 @@ class ProjectsScreen : Screen {
         }
     }
     
-    [void] FocusNext() {
-        $focused = $this.FindFocused()
-        
-        if ($focused -eq $this.ProjectList) {
-            $this.NewButton.Focus()
-        } elseif ($focused -eq $this.NewButton) {
-            $this.EditButton.Focus()
-        } elseif ($focused -eq $this.EditButton) {
-            $this.DeleteButton.Focus()
-        } else {
-            $this.ProjectList.Focus()
+    [void] ViewProjectDetails() {
+        $selected = $this.ProjectList.GetSelectedItem()
+        if ($selected) {
+            # Create and show project detail screen
+            $detailScreen = [ProjectDetailScreen]::new($selected)
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($detailScreen)
+            }
         }
     }
     
+    # FocusNext method removed - Tab navigation now handled by FocusManager service
+    
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Let base class handle registered keys first
+        # Handle screen-specific shortcuts FIRST (before passing to children)
+        switch ($key.Key) {
+            ([System.ConsoleKey]::N) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
+                    $this.NewProject()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::E) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'E' -or $key.KeyChar -eq 'e')) {
+                    $this.EditProject()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::Enter) {
+                $this.ViewProjectDetails()
+                return $true
+            }
+            ([System.ConsoleKey]::V) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'V' -or $key.KeyChar -eq 'v')) {
+                    $this.ViewProjectDetails()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::D) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'D' -or $key.KeyChar -eq 'd')) {
+                    $this.DeleteProject()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::R) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'R' -or $key.KeyChar -eq 'r')) {
+                    $this.LoadProjects()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::Q) {
+                if (-not $key.Modifiers -and ($key.KeyChar -eq 'Q' -or $key.KeyChar -eq 'q')) {
+                    $this.Active = $false
+                    return $true
+                }
+            }
+        }
+        
+        # Let base Screen class handle other keys (like Tab navigation)
         if (([Screen]$this).HandleInput($key)) {
             return $true
         }
         
-        # Pass unhandled input to focused child
+        # Finally, pass unhandled input to focused child
         return ([Container]$this).HandleInput($key)
     }
 }

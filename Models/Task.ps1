@@ -13,8 +13,7 @@ enum TaskPriority {
     High
 }
 
-class Task {
-    [string]$Id
+class Task : BaseModel {
     [string]$Title
     [string]$Description = ""
     [TaskStatus]$Status = [TaskStatus]::Pending
@@ -23,14 +22,9 @@ class Task {
     [string]$ProjectId = ""
     [string[]]$Tags = @()
     [DateTime]$DueDate = [DateTime]::MinValue
-    [DateTime]$CreatedAt
-    [DateTime]$UpdatedAt
-    [bool]$Deleted = $false
     
-    Task() {
-        $this.Id = [guid]::NewGuid().ToString()
-        $this.CreatedAt = Get-Date
-        $this.UpdatedAt = $this.CreatedAt
+    Task() : base() {
+        # BaseModel handles Id, CreatedAt, UpdatedAt, Deleted initialization
     }
     
     # Helper methods

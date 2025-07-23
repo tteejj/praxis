@@ -49,23 +49,38 @@ class SettingsScreen : Screen {
         # Load categories
         $this.LoadCategories()
         
-        # Key bindings
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
-        $this.BindKey([System.ConsoleKey]::LeftArrow, { 
-            if ($this.SettingsGrid.IsFocused) {
-                $this.CategoryList.Focus()
+        # No more BindKey - use HandleScreenInput instead
+    }
+    
+    # Handle screen-specific input
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::LeftArrow) { 
+                if ($this.SettingsGrid.IsFocused) {
+                    $this.CategoryList.Focus()
+                    return $true
+                }
             }
-        })
-        $this.BindKey([System.ConsoleKey]::RightArrow, { 
-            if ($this.CategoryList.IsFocused) {
-                $this.SettingsGrid.Focus()
+            ([System.ConsoleKey]::RightArrow) { 
+                if ($this.CategoryList.IsFocused) {
+                    $this.SettingsGrid.Focus()
+                    return $true
+                }
             }
-        })
-        $this.BindKey([System.ConsoleKey]::Enter, { $this.EditSetting() })
-        $this.BindKey('e', { $this.EditSetting() })
-        $this.BindKey('r', { $this.ResetCategory() })
-        $this.BindKey('R', { $this.ResetAll() })
-        $this.BindKey('s', { $this.SaveSettings() })
+            ([System.ConsoleKey]::Enter) { 
+                $this.EditSetting()
+                return $true
+            }
+        }
+        
+        switch ($key.KeyChar) {
+            'e' { $this.EditSetting(); return $true }
+            'r' { $this.ResetCategory(); return $true }
+            'R' { $this.ResetAll(); return $true }
+            's' { $this.SaveSettings(); return $true }
+        }
+        
+        return $false
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
