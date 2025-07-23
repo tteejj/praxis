@@ -124,6 +124,19 @@ class ProjectService {
         return $project
     }
     
+    [Project] AddProject([string]$fullName, [string]$nickname) {
+        # Check if already exists
+        $existing = $this.GetProjectByName($nickname)
+        if ($existing) {
+            return $existing
+        }
+        
+        $project = [Project]::new($fullName, $nickname)
+        $this.Projects.Add($project) | Out-Null
+        $this.SaveProjects()
+        return $project
+    }
+    
     [Project] AddProject([Project]$project) {
         # Check if already exists by nickname
         $existing = $this.GetProjectByName($project.Nickname)

@@ -82,24 +82,31 @@ class ProjectsScreen : Screen {
         $this.AddChild($this.ProjectList)
         
         # Create buttons
+        $screen = $this  # Capture reference for closures
+        
         $this.NewButton = [Button]::new("New Project")
         $this.NewButton.IsDefault = $true
-        $this.NewButton.OnClick = { $this.NewProject() }
+        $this.NewButton.OnClick = { 
+            if ($global:Logger) {
+                $global:Logger.Debug("New Project button clicked")
+            }
+            $screen.NewProject() 
+        }.GetNewClosure()
         $this.NewButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.NewButton)
         
         $this.ViewButton = [Button]::new("View Details")
-        $this.ViewButton.OnClick = { $this.ViewProjectDetails() }
+        $this.ViewButton.OnClick = { $screen.ViewProjectDetails() }.GetNewClosure()
         $this.ViewButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.ViewButton)
         
         $this.EditButton = [Button]::new("Edit")
-        $this.EditButton.OnClick = { $this.EditProject() }
+        $this.EditButton.OnClick = { $screen.EditProject() }.GetNewClosure()
         $this.EditButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.EditButton)
         
         $this.DeleteButton = [Button]::new("Delete")
-        $this.DeleteButton.OnClick = { $this.DeleteProject() }
+        $this.DeleteButton.OnClick = { $screen.DeleteProject() }.GetNewClosure()
         $this.DeleteButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.DeleteButton)
         
@@ -117,6 +124,21 @@ class ProjectsScreen : Screen {
         
         if ($global:Logger) {
             $global:Logger.Debug("ProjectsScreen.OnActivated: Screen activated with new focus system")
+        }
+        
+        # Focus the list if it has items, otherwise the New button
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen focus check: ProjectList=$($this.ProjectList -ne $null), Items=$($this.ProjectList.Items.Count), NewButton=$($this.NewButton -ne $null)")
+        }
+        
+        if ($this.ProjectList -and $this.ProjectList.Items.Count -gt 0) {
+            $this.ProjectList.Focus()
+        } elseif ($this.NewButton) {
+            $this.NewButton.Focus()
+        } else {
+            if ($global:Logger) {
+                $global:Logger.Debug("ProjectsScreen: No focusable element found!")
+            }
         }
     }
     
@@ -202,6 +224,9 @@ class ProjectsScreen : Screen {
     }
     
     [void] NewProject() {
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.NewProject() called")
+        }
         # Create new project dialog
         $dialog = [NewProjectDialog]::new()
         
@@ -327,6 +352,9 @@ class ProjectsScreen : Screen {
     }
     
     [void] ViewProjectDetails() {
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.ViewProjectDetails() called")
+        }
         $selected = $this.ProjectList.GetSelectedItem()
         if ($selected) {
             # Create and show project detail screen
@@ -338,10 +366,11 @@ class ProjectsScreen : Screen {
         }
     }
     
-    # FocusNext method removed - Tab navigation now handled by FocusManager service
+    # Using parent-delegated focus model - Tab handled by ScreenManager/Container
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Handle screen-specific shortcuts FIRST (before passing to children)
+    # Override HandleScreenInput instead of HandleInput to work with base Screen class
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Screen-specific shortcuts - only called as fallback by base Screen class
         switch ($key.Key) {
             ([System.ConsoleKey]::N) {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
@@ -385,12 +414,7 @@ class ProjectsScreen : Screen {
             }
         }
         
-        # Let base Screen class handle other keys (like Tab navigation)
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Finally, pass unhandled input to focused child
-        return ([Container]$this).HandleInput($key)
+        # If no shortcut matched, return false (let base Screen handle it)
+        return $false
     }
 }

@@ -1,46 +1,135 @@
 # ProjectDetailScreen - Detailed project view with time tracking information
-# Shows comprehensive project data based on tracker.txt structure
+# Redesigned to follow PRAXIS architecture standards using DockPanel and components
 
 class ProjectDetailScreen : Screen {
     [Project]$Project = $null
     [System.Collections.ArrayList]$TimeEntries
-    [System.Collections.ArrayList]$UIComponents
-    [int]$ScrollOffset = 0
-    [int]$MaxScrollOffset = 0
-    [ThemeManager]$ThemeManager
     
-    # Display sections
-    [bool]$ShowProjectInfo = $true
-    [bool]$ShowTimeEntries = $true
-    [bool]$ShowWeeklySummary = $true
+    # PRAXIS Architecture Components
+    [DockPanel]$MainLayout
+    [ListBox]$ProjectInfoPanel
+    [DataGrid]$WeeklySummaryGrid  
+    [DataGrid]$TimeEntriesGrid
+    
+    # Services
+    [ThemeManager]$ThemeManager
+    [EventBus]$EventBus
     
     ProjectDetailScreen() : base() {
         $this.Title = "Project Details"
         $this.TimeEntries = [System.Collections.ArrayList]::new()
-        $this.UIComponents = [System.Collections.ArrayList]::new()
     }
     
     ProjectDetailScreen([Project]$project) : base() {
         $this.Title = "Project Details - $($project.Nickname)"
         $this.Project = $project
         $this.TimeEntries = [System.Collections.ArrayList]::new()
-        $this.UIComponents = [System.Collections.ArrayList]::new()
     }
     
     [void] OnInitialize() {
-        # Get theme service
-        if ($this.ServiceContainer) {
-            $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
-        }
+        # Get services through proper dependency injection
+        $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
+        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
         
         # Load time entries if we have a project
         if ($this.Project) {
             $this.LoadTimeEntries()
         }
         
+        # Create main DockPanel layout
+        $this.MainLayout = [DockPanel]::new()
+        $this.MainLayout.Initialize($this.ServiceContainer)
+        $this.AddChild($this.MainLayout)
+        
+        # Create project info panel (top section)
+        $this.CreateProjectInfoPanel()
+        
+        # Create weekly summary grid (middle section)
+        $this.CreateWeeklySummaryGrid()
+        
+        # Create time entries grid (fill remaining space)
+        $this.CreateTimeEntriesGrid()
+        
         # Update title
         if ($this.Project) {
             $this.Title = "Project Details - $($this.Project.Nickname)"
+        }
+        
+        # Populate data
+        $this.PopulateProjectInfo()
+        $this.PopulateWeeklySummary()
+        $this.PopulateTimeEntries()
+    }
+    
+    [void] CreateProjectInfoPanel() {
+        $this.ProjectInfoPanel = [ListBox]::new()
+        $this.ProjectInfoPanel.Initialize($this.ServiceContainer)
+        $this.ProjectInfoPanel.ShowBorder = $true
+        $this.ProjectInfoPanel.Title = "Project Information"
+        $this.ProjectInfoPanel.IsFocusable = $false  # Read-only display
+        
+        # Dock to top
+        $this.MainLayout.SetChildDock($this.ProjectInfoPanel, [DockPosition]::Top)
+        $this.MainLayout.AddChild($this.ProjectInfoPanel)
+    }
+    
+    [void] CreateWeeklySummaryGrid() {
+        $this.WeeklySummaryGrid = [DataGrid]::new()
+        $this.WeeklySummaryGrid.Initialize($this.ServiceContainer)
+        $this.WeeklySummaryGrid.ShowHeader = $true
+        $this.WeeklySummaryGrid.ShowBorder = $true
+        $this.WeeklySummaryGrid.Title = "Weekly Hours Summary"
+        $this.WeeklySummaryGrid.IsFocusable = $false  # Read-only display
+        
+        # Set up columns for weekly summary
+        $columns = @(
+            @{ Name = "WeekOf"; Header = "Week of"; Width = 12; Getter = { param($item) $item.WeekOf } }
+            @{ Name = "Monday"; Header = "Mon"; Width = 7; Getter = { param($item) $item.Monday.ToString("F1") } }
+            @{ Name = "Tuesday"; Header = "Tue"; Width = 7; Getter = { param($item) $item.Tuesday.ToString("F1") } }
+            @{ Name = "Wednesday"; Header = "Wed"; Width = 7; Getter = { param($item) $item.Wednesday.ToString("F1") } }
+            @{ Name = "Thursday"; Header = "Thu"; Width = 7; Getter = { param($item) $item.Thursday.ToString("F1") } }
+            @{ Name = "Friday"; Header = "Fri"; Width = 7; Getter = { param($item) $item.Friday.ToString("F1") } }
+            @{ Name = "Total"; Header = "Total"; Width = 8; Getter = { param($item) $item.Total.ToString("F1") } }
+        )
+        $this.WeeklySummaryGrid.SetColumns($columns)
+        
+        # Dock to top (after project info)
+        $this.MainLayout.SetChildDock($this.WeeklySummaryGrid, [DockPosition]::Top)
+        $this.MainLayout.AddChild($this.WeeklySummaryGrid)
+    }
+    
+    [void] CreateTimeEntriesGrid() {
+        $this.TimeEntriesGrid = [DataGrid]::new()
+        $this.TimeEntriesGrid.Initialize($this.ServiceContainer)
+        $this.TimeEntriesGrid.ShowHeader = $true
+        $this.TimeEntriesGrid.ShowBorder = $true
+        $this.TimeEntriesGrid.Title = "Time Entries - [A]dd [E]dit [D]elete [R]efresh"
+        $this.TimeEntriesGrid.IsFocusable = $true  # Interactive
+        
+        # Set up columns for time entries
+        $screen = $this  # Capture reference for closure
+        $columns = @(
+            @{ Name = "Date"; Header = "Date"; Width = 12; Getter = { param($item) $screen.FormatDate($item.Date) }.GetNewClosure() }
+            @{ Name = "Hours"; Header = "Hours"; Width = 8; Getter = { param($item) [double]::Parse($item.Total).ToString("F2") } }
+            @{ Name = "Description"; Header = "Description"; Width = 40; Getter = { param($item) if ($item.Description) { $item.Description } else { "No description" } } }
+        )
+        $this.TimeEntriesGrid.SetColumns($columns)
+        
+        # Set up selection changed handler
+        $screen = $this  # Capture reference for closure
+        $this.TimeEntriesGrid.OnSelectionChanged = {
+            # Handle selection changes if needed
+        }.GetNewClosure()
+        
+        # Fill remaining space
+        $this.MainLayout.SetChildDock($this.TimeEntriesGrid, [DockPosition]::Fill)
+        $this.MainLayout.AddChild($this.TimeEntriesGrid)
+    }
+    
+    [void] OnBoundsChanged() {
+        # DockPanel handles layout automatically
+        if ($this.MainLayout) {
+            $this.MainLayout.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
         }
     }
     
@@ -97,211 +186,78 @@ class ProjectDetailScreen : Screen {
         }
     }
     
-    [void] CalculateScrollLimits() {
-        # Calculate how many lines of content we have
-        $contentLines = 0
-        
-        if ($this.ShowProjectInfo) {
-            $contentLines += 15  # Project info section
+    [void] PopulateProjectInfo() {
+        if (-not $this.Project -or -not $this.ProjectInfoPanel) {
+            return
         }
         
-        if ($this.ShowWeeklySummary) {
-            $contentLines += 8   # Weekly summary section
-        }
+        $infoItems = [System.Collections.ArrayList]::new()
         
-        if ($this.ShowTimeEntries) {
-            $contentLines += 3 + $this.TimeEntries.Count  # Header + entries
-        }
-        
-        $visibleLines = $this.Height - 4  # Account for borders and title
-        $this.MaxScrollOffset = [Math]::Max(0, $contentLines - $visibleLines)
-    }
-    
-    [string] OnRender() {
-        if (-not $this.Project) {
-            return $this.RenderNoProject()
-        }
-        
-        $this.CalculateScrollLimits()
-        $sb = [System.Text.StringBuilder]::new()
-        
-        # Get colors
-        $headerColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("title") } else { "" }
-        $normalColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("normal") } else { "" }
-        $accentColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("accent") } else { "" }
-        $warningColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("warning") } else { "" }
-        $successColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("success") } else { "" }
-        
-        $currentLine = 0
-        $visibleLines = $this.Height - 4
-        
-        # Project Information Section
-        if ($this.ShowProjectInfo) {
-            $projectLines = $this.RenderProjectInfo($headerColor, $normalColor, $accentColor, $warningColor, $successColor)
-            $linesToShow = $this.GetVisibleLines($projectLines, $currentLine, $visibleLines)
-            foreach ($line in $linesToShow) {
-                $sb.AppendLine($line)
-            }
-            $currentLine += $projectLines.Count
-        }
-        
-        # Weekly Summary Section
-        if ($this.ShowWeeklySummary -and $currentLine -$this.ScrollOffset -lt $visibleLines) {
-            $summaryLines = $this.RenderWeeklySummary($headerColor, $normalColor, $accentColor)
-            $linesToShow = $this.GetVisibleLines($summaryLines, $currentLine, $visibleLines)
-            foreach ($line in $linesToShow) {
-                $sb.AppendLine($line)
-            }
-            $currentLine += $summaryLines.Count
-        }
-        
-        # Time Entries Section
-        if ($this.ShowTimeEntries -and $currentLine - $this.ScrollOffset -lt $visibleLines) {
-            $entryLines = $this.RenderTimeEntries($headerColor, $normalColor, $accentColor)
-            $linesToShow = $this.GetVisibleLines($entryLines, $currentLine, $visibleLines)
-            foreach ($line in $linesToShow) {
-                $sb.AppendLine($line)
-            }
-        }
-        
-        return $sb.ToString()
-    }
-    
-    [System.Collections.ArrayList] GetVisibleLines([System.Collections.ArrayList]$lines, [int]$currentLine, [int]$visibleLines) {
-        $visibleList = [System.Collections.ArrayList]::new()
-        
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            $lineIndex = $currentLine + $i
-            if ($lineIndex -ge $this.ScrollOffset -and ($lineIndex - $this.ScrollOffset) -lt $visibleLines) {
-                $visibleList.Add($lines[$i]) | Out-Null
-            }
-        }
-        
-        return $visibleList
-    }
-    
-    [System.Collections.ArrayList] RenderProjectInfo([string]$headerColor, [string]$normalColor, [string]$accentColor, [string]$warningColor, [string]$successColor) {
-        $lines = [System.Collections.ArrayList]::new()
-        
-        # Project header
-        $lines.Add("$headerColor=== PROJECT INFORMATION ===$normalColor") | Out-Null
-        $lines.Add("") | Out-Null
-        
-        # Basic info
-        $lines.Add("$accentColor  Nickname:$normalColor $($this.Project.Nickname)") | Out-Null
-        $lines.Add("$accentColor  Full Name:$normalColor $($this.Project.FullProjectName)") | Out-Null
+        # Basic project information
+        $infoItems.Add("Nickname: $($this.Project.Nickname)") | Out-Null
+        $infoItems.Add("Full Name: $($this.Project.FullProjectName)") | Out-Null
         
         # IDs
         if ($this.Project.ID1) {
-            $lines.Add("$accentColor  Client Code (ID1):$normalColor $($this.Project.ID1)") | Out-Null
+            $infoItems.Add("Client Code (ID1): $($this.Project.ID1)") | Out-Null
         }
         if ($this.Project.ID2) {
-            $lines.Add("$accentColor  Engagement Code (ID2):$normalColor $($this.Project.ID2)") | Out-Null
+            $infoItems.Add("Engagement Code (ID2): $($this.Project.ID2)") | Out-Null
         }
         
-        $lines.Add("") | Out-Null
+        $infoItems.Add("") | Out-Null  # Separator
         
         # Dates
         if ($this.Project.DateAssigned) {
             $assignedDate = $this.FormatDate($this.Project.DateAssigned)
-            $lines.Add("$accentColor  Date Assigned:$normalColor $assignedDate") | Out-Null
+            $infoItems.Add("Date Assigned: $assignedDate") | Out-Null
         }
         
         if ($this.Project.DateDue) {
             $dueDate = $this.FormatDate($this.Project.DateDue)
-            $statusColor = $this.GetDueDateColor($this.Project.DateDue, $warningColor, $successColor, $normalColor)
-            $lines.Add("$accentColor  Due Date:$statusColor $dueDate$normalColor") | Out-Null
+            $infoItems.Add("Due Date: $dueDate") | Out-Null
         }
         
         if ($this.Project.ClosedDate -and $this.Project.ClosedDate -ne [DateTime]::MinValue) {
             $closedDate = $this.FormatDate($this.Project.ClosedDate)
-            $lines.Add("$accentColor  Completed:$successColor $closedDate$normalColor") | Out-Null
+            $infoItems.Add("Completed: $closedDate") | Out-Null
         }
         
-        $lines.Add("") | Out-Null
+        $infoItems.Add("") | Out-Null  # Separator
         
-        # Status and hours
+        # Status and totals
         $status = if ($this.Project.Status) { $this.Project.Status } else { "Active" }
-        $statusColor = $this.GetStatusColor($status, $successColor, $warningColor, $normalColor)
-        $lines.Add("$accentColor  Status:$statusColor $status$normalColor") | Out-Null
+        $infoItems.Add("Status: $status") | Out-Null
         
-        # Calculate total hours from time entries
         $totalHours = $this.CalculateTotalHours()
-        $lines.Add("$accentColor  Total Hours:$normalColor $($totalHours.ToString('F2'))") | Out-Null
+        $infoItems.Add("Total Hours: $($totalHours.ToString('F2'))") | Out-Null
         
         if ($this.Project.Note) {
-            $lines.Add("") | Out-Null
-            $lines.Add("$accentColor  Notes:$normalColor") | Out-Null
-            $lines.Add("    $($this.Project.Note)") | Out-Null
+            $infoItems.Add("") | Out-Null  # Separator
+            $infoItems.Add("Notes:") | Out-Null
+            $infoItems.Add("  $($this.Project.Note)") | Out-Null
         }
         
-        return $lines
+        $this.ProjectInfoPanel.SetItems($infoItems)
     }
     
-    [System.Collections.ArrayList] RenderWeeklySummary([string]$headerColor, [string]$normalColor, [string]$accentColor) {
-        $lines = [System.Collections.ArrayList]::new()
+    [void] PopulateWeeklySummary() {
+        if (-not $this.WeeklySummaryGrid) {
+            return
+        }
         
-        $lines.Add("") | Out-Null
-        $lines.Add("$headerColor=== WEEKLY HOURS SUMMARY ===$normalColor") | Out-Null
-        $lines.Add("") | Out-Null
-        
-        # Create weekly summary from time entries
         $weeklyData = $this.CalculateWeeklySummary()
-        
-        # Header row
-        $header = "  Week of".PadRight(15) + "Mon".PadLeft(8) + "Tue".PadLeft(8) + "Wed".PadLeft(8) + "Thu".PadLeft(8) + "Fri".PadLeft(8) + "Total".PadLeft(10)
-        $lines.Add("$accentColor$header$normalColor") | Out-Null
-        $lines.Add("  " + ("-" * 75)) | Out-Null
-        
-        # Data rows
-        foreach ($week in $weeklyData) {
-            $weekStr = $week.WeekOf.PadRight(15)
-            $monStr = $week.Monday.ToString("F1").PadLeft(8)
-            $tueStr = $week.Tuesday.ToString("F1").PadLeft(8)
-            $wedStr = $week.Wednesday.ToString("F1").PadLeft(8)
-            $thuStr = $week.Thursday.ToString("F1").PadLeft(8)
-            $friStr = $week.Friday.ToString("F1").PadLeft(8)
-            $totalStr = $week.Total.ToString("F1").PadLeft(10)
-            
-            $lines.Add("  $weekStr$monStr$tueStr$wedStr$thuStr$friStr$totalStr") | Out-Null
-        }
-        
-        return $lines
+        $this.WeeklySummaryGrid.SetItems($weeklyData)
     }
     
-    [System.Collections.ArrayList] RenderTimeEntries([string]$headerColor, [string]$normalColor, [string]$accentColor) {
-        $lines = [System.Collections.ArrayList]::new()
-        
-        $lines.Add("") | Out-Null
-        $lines.Add("$headerColor=== TIME ENTRIES ===$normalColor") | Out-Null
-        $lines.Add("  $accentColor[A]$normalColor Add Entry  $accentColor[E]$normalColor Edit  $accentColor[D]$normalColor Delete  $accentColor[R]$normalColor Refresh") | Out-Null
-        $lines.Add("") | Out-Null
-        
-        if ($this.TimeEntries.Count -eq 0) {
-            $lines.Add("  No time entries found. Press 'A' to add your first entry.") | Out-Null
-            return $lines
+    [void] PopulateTimeEntries() {
+        if (-not $this.TimeEntriesGrid) {
+            return
         }
         
         # Sort entries by date (most recent first)
         $sortedEntries = $this.TimeEntries | Sort-Object { [DateTime]::ParseExact($_.Date, "yyyyMMdd", $null) } -Descending
-        
-        foreach ($entry in $sortedEntries) {
-            $date = $this.FormatDate($entry.Date)
-            $hours = [double]::Parse($entry.Total).ToString("F2")
-            $description = if ($entry.Description) { $entry.Description } else { "No description" }
-            
-            $lines.Add("  $accentColor$date$normalColor - $hours hrs") | Out-Null
-            $lines.Add("    $description") | Out-Null
-            $lines.Add("") | Out-Null
-        }
-        
-        $lines.Add("  Total Entries: $($sortedEntries.Count)") | Out-Null
-        
-        return $lines
-    }
-    
-    [string] RenderNoProject() {
-        return "No project selected for detailed view."
+        $this.TimeEntriesGrid.SetItems($sortedEntries)
     }
     
     [string] FormatDate([string]$dateStr) {
@@ -329,61 +285,6 @@ class ProjectDetailScreen : Screen {
             return "Not set"
         }
         return $date.ToString("MM/dd/yyyy")
-    }
-    
-    [string] GetDueDateColor([string]$dueDateStr, [string]$warningColor, [string]$successColor, [string]$normalColor) {
-        try {
-            if ([string]::IsNullOrEmpty($dueDateStr)) {
-                return $normalColor
-            }
-            
-            $dueDate = if ($dueDateStr.Length -eq 8) {
-                [DateTime]::ParseExact($dueDateStr, "yyyyMMdd", $null)
-            } else {
-                [DateTime]::Parse($dueDateStr)
-            }
-            
-            $today = [DateTime]::Now.Date
-            $daysUntilDue = ($dueDate.Date - $today).Days
-            
-            if ($daysUntilDue -lt 0) {
-                return $warningColor  # Overdue
-            } elseif ($daysUntilDue -le 7) {
-                return $warningColor  # Due soon
-            } else {
-                return $successColor  # On track
-            }
-        } catch {
-            return $normalColor
-        }
-    }
-    
-    [string] GetDueDateColor([DateTime]$dueDate, [string]$warningColor, [string]$successColor, [string]$normalColor) {
-        if ($dueDate -eq [DateTime]::MinValue) {
-            return $normalColor
-        }
-        
-        $today = [DateTime]::Now.Date
-        $daysUntilDue = ($dueDate.Date - $today).Days
-        
-        if ($daysUntilDue -lt 0) {
-            return $warningColor  # Overdue
-        } elseif ($daysUntilDue -le 7) {
-            return $warningColor  # Due soon
-        } else {
-            return $successColor  # On track
-        }
-    }
-    
-    [string] GetStatusColor([string]$status, [string]$successColor, [string]$warningColor, [string]$normalColor) {
-        switch ($status.ToLower()) {
-            "completed" { return $successColor }
-            "closed" { return $successColor }
-            "on hold" { return $warningColor }
-            "active" { return $normalColor }
-            default { return $normalColor }
-        }
-        return $normalColor  # Explicit fallback
     }
     
     [double] CalculateTotalHours() {
@@ -443,8 +344,13 @@ class ProjectDetailScreen : Screen {
             $weeklyData.Add([PSCustomObject]$week) | Out-Null
         }
         
-        # Sort by week date
-        return $weeklyData | Sort-Object { [DateTime]::Parse($_.WeekOf) } -Descending
+        # Sort by week date (most recent first) and ensure ArrayList type
+        $sortedData = $weeklyData | Sort-Object { [DateTime]::Parse($_.WeekOf) } -Descending
+        $result = [System.Collections.ArrayList]::new()
+        foreach ($item in $sortedData) {
+            $result.Add($item) | Out-Null
+        }
+        return $result
     }
     
     [void] AddTimeEntry() {
@@ -460,28 +366,43 @@ class ProjectDetailScreen : Screen {
         $dialog.OnSave = {
             param($timeEntryData)
             
-            # In a full implementation, this would save to actual data store
-            # For now, add to our local time entries collection
+            # Add to local time entries collection
             $screen.TimeEntries.Add($timeEntryData) | Out-Null
-            $screen.Invalidate()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Refresh all displays
+            $screen.PopulateTimeEntries()
+            $screen.PopulateWeeklySummary()
+            $screen.PopulateProjectInfo()  # Update total hours
+            
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
         $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
+        }.GetNewClosure()
+        
+        # Show dialog using proper service access
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        if ($screenManager) {
+            $screenManager.Push($dialog)
+        }
+    }
+    
+    [void] EditSelectedTimeEntry() {
+        $selected = $this.TimeEntriesGrid.GetSelectedItem()
+        if (-not $selected) {
+            return
         }
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $this.EditTimeEntry($selected)
     }
     
     [void] EditTimeEntry([PSCustomObject]$timeEntry) {
@@ -497,8 +418,7 @@ class ProjectDetailScreen : Screen {
         $dialog.OnSave = {
             param($timeEntryData)
             
-            # In a full implementation, this would update the actual data store
-            # For now, find and replace in our local collection
+            # Find and replace in local collection
             for ($i = 0; $i -lt $screen.TimeEntries.Count; $i++) {
                 if ($screen.TimeEntries[$i].Date -eq $timeEntry.Date -and
                     $screen.TimeEntries[$i].Description -eq $timeEntry.Description) {
@@ -506,25 +426,41 @@ class ProjectDetailScreen : Screen {
                     break
                 }
             }
-            $screen.Invalidate()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Refresh all displays
+            $screen.PopulateTimeEntries()
+            $screen.PopulateWeeklySummary()
+            $screen.PopulateProjectInfo()  # Update total hours
+            
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
         $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
+        }.GetNewClosure()
+        
+        # Show dialog using proper service access
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        if ($screenManager) {
+            $screenManager.Push($dialog)
+        }
+    }
+    
+    [void] DeleteSelectedTimeEntry() {
+        $selected = $this.TimeEntriesGrid.GetSelectedItem()
+        if (-not $selected) {
+            return
         }
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $this.DeleteTimeEntry($selected)
     }
     
     [void] DeleteTimeEntry([PSCustomObject]$timeEntry) {
@@ -546,74 +482,56 @@ class ProjectDetailScreen : Screen {
                     break
                 }
             }
-            $screen.Invalidate()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Refresh all displays
+            $screen.PopulateTimeEntries()
+            $screen.PopulateWeeklySummary()
+            $screen.PopulateProjectInfo()  # Update total hours
+            
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
         $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # Close dialog using proper service access
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
-        }
+        }.GetNewClosure()
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
+        # Show dialog using proper service access
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        if ($screenManager) {
+            $screenManager.Push($dialog)
+        }
+    }
+    
+    [void] RefreshData() {
+        # Reload time entries
+        $this.LoadTimeEntries()
+        
+        # Refresh all displays
+        $this.PopulateProjectInfo()
+        $this.PopulateWeeklySummary()
+        $this.PopulateTimeEntries()
+        
+        # Focus the time entries grid
+        if ($this.TimeEntriesGrid) {
+            $this.TimeEntriesGrid.Focus()
         }
     }
     
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::UpArrow) {
-                if ($this.ScrollOffset -gt 0) {
-                    $this.ScrollOffset--
-                    $this.Invalidate()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::DownArrow) {
-                if ($this.ScrollOffset -lt $this.MaxScrollOffset) {
-                    $this.ScrollOffset++
-                    $this.Invalidate()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::PageUp) {
-                $pageSize = [Math]::Max(1, ($this.Height - 4) / 2)
-                $this.ScrollOffset = [Math]::Max(0, $this.ScrollOffset - $pageSize)
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::PageDown) {
-                $pageSize = [Math]::Max(1, ($this.Height - 4) / 2)
-                $this.ScrollOffset = [Math]::Min($this.MaxScrollOffset, $this.ScrollOffset + $pageSize)
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::Home) {
-                $this.ScrollOffset = 0
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::End) {
-                $this.ScrollOffset = $this.MaxScrollOffset
-                $this.Invalidate()
-                return $true
-            }
-        }
-        
         # Handle character shortcuts
         if ($keyInfo.KeyChar) {
             switch ($keyInfo.KeyChar) {
                 'r' {
                     # Refresh/reload data
-                    $this.LoadTimeEntries()
-                    $this.Invalidate()
+                    $this.RefreshData()
                     return $true
                 }
                 'a' {
@@ -622,37 +540,19 @@ class ProjectDetailScreen : Screen {
                     return $true
                 }
                 'e' {
-                    # Edit selected time entry (placeholder for now)
-                    # In full implementation, would need to track selected entry
+                    # Edit selected time entry
+                    $this.EditSelectedTimeEntry()
                     return $true
                 }
                 'd' {
-                    # Delete selected time entry (placeholder for now)
-                    # In full implementation, would need to track selected entry
-                    return $true
-                }
-                '1' {
-                    # Toggle project info section
-                    $this.ShowProjectInfo = -not $this.ShowProjectInfo
-                    $this.Invalidate()
-                    return $true
-                }
-                '2' {
-                    # Toggle weekly summary section
-                    $this.ShowWeeklySummary = -not $this.ShowWeeklySummary
-                    $this.Invalidate()
-                    return $true
-                }
-                '3' {
-                    # Toggle time entries section
-                    $this.ShowTimeEntries = -not $this.ShowTimeEntries
-                    $this.Invalidate()
+                    # Delete selected time entry
+                    $this.DeleteSelectedTimeEntry()
                     return $true
                 }
             }
         }
         
-        # Let base class handle other input (like tab switching)
+        # Let base class handle other input (like tab switching and navigation)
         return $false
     }
 }

@@ -1,7 +1,7 @@
 # TimeEntryDialog - Dialog for adding/editing time entries
 # Based on tracker.txt time tracking structure
 
-class TimeEntryDialog : Screen {
+class TimeEntryDialog : BaseDialog {
     [Project]$Project = $null
     [PSCustomObject]$TimeEntry = $null  # For editing existing entries
     [bool]$IsEditMode = $false
@@ -19,23 +19,26 @@ class TimeEntryDialog : Screen {
     [scriptblock]$OnSave = {}
     [scriptblock]$OnCancel = {}
     
-    TimeEntryDialog() : base() {
-        $this.Title = "Add Time Entry"
+    TimeEntryDialog() : base("Add Time Entry") {
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    TimeEntryDialog([Project]$project) : base() {
+    TimeEntryDialog([Project]$project) : base("Add Time Entry") {
         $this.Project = $project
-        $this.Title = "Add Time Entry - $($project.Nickname)"
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    TimeEntryDialog([Project]$project, [PSCustomObject]$timeEntry) : base() {
+    TimeEntryDialog([Project]$project, [PSCustomObject]$timeEntry) : base("Edit Time Entry") {
         $this.Project = $project
         $this.TimeEntry = $timeEntry
         $this.IsEditMode = $true
-        $this.Title = "Edit Time Entry - $($project.Nickname)"
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    [void] OnInitialize() {
+    [void] InitializeContent() {
         # Create input fields
         $this.DateTextBox = [TextBox]::new()
         $this.DateTextBox.Title = "Date (MM/DD/YYYY)"

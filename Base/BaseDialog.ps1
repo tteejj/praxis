@@ -121,7 +121,10 @@ class BaseDialog : Screen {
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+    # PARENT-DELEGATED INPUT MODEL (inherits from Screen)
+    # Dialog shortcuts are handled via HandleScreenInput
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Dialog-specific shortcuts
         switch ($key.Key) {
             ([System.ConsoleKey]::Enter) {
                 if (-not $key.Modifiers) {
@@ -134,9 +137,7 @@ class BaseDialog : Screen {
                 return $true
             }
         }
-        
-        # Let base handle other keys (like Tab)
-        return ([Screen]$this).HandleInput($key)
+        return $false
     }
     
     [void] OnActivated() {

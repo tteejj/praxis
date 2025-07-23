@@ -94,61 +94,30 @@ class MainScreen : Screen {
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("MainScreen.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)'")
-        }
-        
-        # Command palette gets input priority when visible
-        if ($this.CommandPalette -and $this.CommandPalette.IsVisible) {
-            $handled = $this.CommandPalette.HandleInput($key)
-            if ($global:Logger) {
-                $global:Logger.Debug("CommandPalette handled: $handled")
-            }
-            if ($handled) { return $true }
-        }
-        
-        # Let TabContainer handle tab-specific shortcuts first
-        if ($this.TabContainer) {
-            $handled = $this.TabContainer.HandleInput($key)
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer handled: $handled")
-            }
-            if ($handled) { return $true }
-        }
-        
-        # Handle MainScreen-specific shortcuts
-        switch ($key.Key) {
+    # Override to handle global shortcuts
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Global shortcuts
+        switch ($keyInfo.Key) {
             ([System.ConsoleKey]::Q) {
-                if (-not $key.Modifiers -and $key.KeyChar -eq 'Q') {
-                    $this.Active = $false
+                if (-not $keyInfo.Modifiers) {
+                    $this.Active = $false  # Exit the main loop
                     return $true
                 }
             }
             ([System.ConsoleKey]::Escape) {
-                try {
-                    if ($this.CommandPalette -and $this.CommandPalette.IsVisible) {
-                        $this.CommandPalette.Hide()
-                    } elseif ($this.TabContainer -and $this.TabContainer.GetActiveTab() -and $this.TabContainer.GetActiveTab().Content) {
-                        if ($this.TabContainer.GetActiveTab().Content.Active) {
-                            $this.Active = $false
-                        }
-                    } else {
-                        $this.Active = $false
-                    }
-                } catch {
-                    # If anything fails, just exit
-                    $this.Active = $false
+                if (-not $keyInfo.Modifiers) {
+                    $this.Active = $false  # Exit the main loop
+                    return $true
                 }
-                return $true
             }
         }
         
-        # Otherwise use normal handling
-        $handled = ([Screen]$this).HandleInput($key)
-        if ($global:Logger) {
-            $global:Logger.Debug("Screen base handled: $handled")
+        # Let TabContainer handle tab switching shortcuts (numbers, Ctrl+Tab, etc)
+        # This is safe because TabContainer is not focusable, so it won't be in the normal input chain
+        if ($this.TabContainer) {
+            return $this.TabContainer.HandleInput($keyInfo)
         }
-        return $handled
+        
+        return $false
     }
 }

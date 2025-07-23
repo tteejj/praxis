@@ -55,11 +55,12 @@ class UIElement {
         $this._cacheInvalid = $true
         $this.InvalidatePosition()  # Position might have changed too
         
-        
         # Propagate up the tree
         if ($this.Parent) {
             $this.Parent.Invalidate()
         }
+        
+        # Render request is handled by propagation to root
     }
     
     # Pre-compute position strings
@@ -124,7 +125,16 @@ class UIElement {
     
     # Simple focus management - works with PowerShell patterns
     [void] Focus() {
-        if (-not $this.IsFocusable -or -not $this.Visible) { return }
+        if (-not $this.IsFocusable -or -not $this.Visible) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("UIElement.Focus: Cannot focus $($this.GetType().Name) - IsFocusable=$($this.IsFocusable), Visible=$($this.Visible)")
+            }
+            return 
+        }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("UIElement.Focus: Focusing $($this.GetType().Name)")
+        }
         
         # Find root and clear any existing focus
         $root = $this

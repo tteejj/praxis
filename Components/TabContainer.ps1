@@ -65,9 +65,15 @@ class TabContainer : Container {
     [void] ActivateTab([int]$index) {
         if ($index -lt 0 -or $index -ge $this.Tabs.Count) { return }
         
+        # Don't switch if already on this tab
+        if ($index -eq $this.ActiveTabIndex) { return }
+        
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.ActivateTab: Switching from tab $($this.ActiveTabIndex) to tab $index")
         }
+        
+        # Store old content reference
+        $oldContent = $null
         
         # Deactivate current
         if ($this.ActiveTabIndex -ge 0 -and $this.ActiveTabIndex -lt $this.Tabs.Count) {
@@ -76,10 +82,8 @@ class TabContainer : Container {
                 if ($global:Logger) {
                     $global:Logger.Debug("TabContainer: Removing old tab content: $($oldTab.Title)")
                 }
+                $oldContent = $oldTab.Content
                 $this.RemoveChild($oldTab.Content)
-                if ($oldTab.Content -is [Screen]) {
-                    $oldTab.Content.OnDeactivated()
-                }
             }
         }
         
@@ -98,10 +102,14 @@ class TabContainer : Container {
                 $newTab.Content.DrawBackground = $false
                 $newTab.Content.OnActivated()
             }
-            $newTab.Content.Focus()
             if ($global:Logger) {
                 $global:Logger.Debug("TabContainer: New content bounds: X=$($newTab.Content.X) Y=$($newTab.Content.Y) W=$($newTab.Content.Width) H=$($newTab.Content.Height)")
             }
+        }
+        
+        # Now safely deactivate old content after UI tree is updated
+        if ($oldContent -and $oldContent -is [Screen]) {
+            $oldContent.OnDeactivated()
         }
         
         $this._tabBarInvalid = $true
@@ -242,39 +250,34 @@ class TabContainer : Container {
         $this._tabBarInvalid = $false
     }
     
-    # Handle keyboard input
+    # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Modifiers=$($key.Modifiers)")
-            $global:Logger.Debug("TabContainer: KeyChar type: $($key.KeyChar.GetType().Name) Value: '$($key.KeyChar)'")
-            $global:Logger.Debug("TabContainer: KeyChar ASCII value: $([int]$key.KeyChar)")
         }
         
-        # Check TabContainer shortcuts FIRST before passing to children
+        # Route to active tab's content FIRST (parent-delegated model)
+        $activeTab = $this.GetActiveTab()
+        if ($activeTab -and $activeTab.Content) {
+            if ($global:Logger) {
+                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
+            }
+            if ($activeTab.Content.HandleInput($key)) {
+                return $true
+            }
+        }
+        
+        # Tab-switching shortcuts as FALLBACK only
         
         # Number keys for quick tab switching
-        if ($global:Logger) {
-            $global:Logger.Debug("TabContainer: About to check number keys. KeyChar='$($key.KeyChar)' ASCII=$([int]$key.KeyChar)")
-            $global:Logger.Debug("TabContainer: Checking if $([int]$key.KeyChar) is between $([int]'1') (49) and $([int]'9') (57)")
-        }
         if ($key.KeyChar -ge '1' -and $key.KeyChar -le '9') {
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Number key detected!")
-            }
             $tabIndex = [int]$key.KeyChar - [int][char]'1'
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Tab index calculated: $tabIndex, Tabs.Count: $($this.Tabs.Count)")
-            }
             if ($tabIndex -lt $this.Tabs.Count) {
                 if ($global:Logger) {
                     $global:Logger.Debug("TabContainer: Switching to tab $($tabIndex + 1)")
                 }
                 $this.ActivateTab($tabIndex)
                 return $true
-            } else {
-                if ($global:Logger) {
-                    $global:Logger.Debug("TabContainer: Tab index $tabIndex is out of range (Tabs.Count=$($this.Tabs.Count))")
-                }
             }
         }
         
@@ -300,16 +303,7 @@ class TabContainer : Container {
             }
         }
         
-        # Now pass to active tab's content
-        $activeTab = $this.GetActiveTab()
-        if ($activeTab -and $activeTab.Content) {
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
-            }
-            return $activeTab.Content.HandleInput($key)
-        }
-        
-        # Fallback to container behavior if no active content
+        # No one handled it
         return $false
     }
     

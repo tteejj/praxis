@@ -40,6 +40,19 @@ class ConfirmationDialog : Screen {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # CORRECTED INPUT FLOW: Check focused children FIRST, then dialog shortcuts as fallback
+        
+        # 1. Let focused children handle input first (buttons)
+        if (([Container]$this).HandleInput($key)) {
+            return $true
+        }
+        
+        # 2. Let base Screen handle Tab navigation
+        if (([Screen]$this).HandleInput($key)) {
+            return $true
+        }
+        
+        # 3. Handle dialog shortcuts as FALLBACK only
         switch ($key.Key) {
             ([System.ConsoleKey]::Escape) {
                 if ($this.OnCancel) {
@@ -48,12 +61,8 @@ class ConfirmationDialog : Screen {
                 return $true
             }
             ([System.ConsoleKey]::Enter) {
-                $focused = $this.FindFocused()
-                if ($focused -eq $this.ConfirmButton) {
-                    & $this.ConfirmButton.OnClick
-                } elseif ($focused -eq $this.CancelButton) {
-                    & $this.CancelButton.OnClick
-                }
+                # Default to confirm action if no button is focused
+                & $this.ConfirmButton.OnClick
                 return $true
             }
             ([System.ConsoleKey]::Y) {
@@ -70,8 +79,8 @@ class ConfirmationDialog : Screen {
             }
         }
         
-        # Let base class handle other keys (like Tab navigation)
-        return ([Screen]$this).HandleInput($key)
+        # If no one handled it, return false
+        return $false
     }
     
     [void] OnBoundsChanged() {

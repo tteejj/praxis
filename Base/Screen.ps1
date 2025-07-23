@@ -11,7 +11,7 @@ class Screen : Container {
     hidden [ServiceContainer]$ServiceContainer
     
     Screen() : base() {
-        $this.IsFocusable = $true
+        $this.IsFocusable = $false  # Screens are containers, not focusable elements
         $this.DrawBackground = $true
     }
     
@@ -49,15 +49,27 @@ class Screen : Container {
         return $false  # Base implementation - no screen-specific handling
     }
     
-    # Input handling - screen-specific then container
+    # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
-        # First try screen-specific input handling
-        if ($this.HandleScreenInput($keyInfo)) {
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen.HandleInput: Key=$($keyInfo.Key) Type=$($this.GetType().Name)")
+        }
+        
+        # 1. Let focused child handle first (components get priority)
+        $handled = ([Container]$this).HandleInput($keyInfo)
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen base handled: $handled")
+        }
+        if ($handled) {
             return $true
         }
         
-        # Then let container handle focused child input
-        return ([Container]$this).HandleInput($keyInfo)
+        # 2. Screen shortcuts as fallback only
+        $screenHandled = $this.HandleScreenInput($keyInfo)
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen shortcuts handled: $screenHandled")
+        }
+        return $screenHandled
     }
     
     # Lifecycle methods - simple and fast
@@ -70,37 +82,11 @@ class Screen : Container {
         # Override in derived classes if needed
     }
     
-    # Simple focus navigation - works with PowerShell patterns
-    [void] FocusNext() {
-        $focusable = [System.Collections.ArrayList]::new()
-        $this.CollectFocusableElements($this, $focusable)
-        
-        if ($focusable.Count -eq 0) { return }
-        
-        # Find current focused element
-        $currentIndex = -1
-        for ($i = 0; $i -lt $focusable.Count; $i++) {
-            if ($focusable[$i].IsFocused) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        # Move to next (wrap around)
-        $nextIndex = ($currentIndex + 1) % $focusable.Count
-        $focusable[$nextIndex].Focus()
-    }
+    # Removed old FocusNext/FocusPrevious - now handled by parent delegation
     
-    # Collect all focusable descendants
-    [void] CollectFocusableElements([UIElement]$element, [System.Collections.ArrayList]$list) {
-        if ($element.Visible) {
-            if ($element.IsFocusable) {
-                $list.Add($element) | Out-Null
-            }
-            foreach ($child in $element.Children) {
-                $this.CollectFocusableElements($child, $list)
-            }
-        }
+    # Delegate to Container's FocusFirst
+    [void] FocusFirst() {
+        ([Container]$this).FocusFirst()
     }
 
     # Request a re-render

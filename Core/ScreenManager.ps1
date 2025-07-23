@@ -136,11 +136,18 @@ class ScreenManager {
                             $global:Logger.Debug("Key pressed: $($key.Key) Char: '$($key.KeyChar)' Modifiers: $($key.Modifiers)")
                         }
                         
-                        # SIMPLIFIED INPUT CHAIN - Direct global shortcuts + screen handling
-                        
-                        # 1. Handle global shortcuts directly  
+                        # PARENT-DELEGATED INPUT MODEL - Simple routing only
                         $handled = $false
-                        if ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
+                        
+                        # 1. Command Palette override (when visible)
+                        if ($this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
+                            $handled = $this._activeScreen.CommandPalette.HandleInput($key)
+                            if ($global:Logger) {
+                                $global:Logger.Debug("Key routed to CommandPalette")
+                            }
+                        }
+                        # 2. Global shortcuts (minimal set)
+                        elseif ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
                             # Show command palette
                             if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
                                 $this._activeScreen.CommandPalette.Show()
@@ -149,22 +156,28 @@ class ScreenManager {
                                     $global:Logger.Debug("Key handled: Command palette opened")
                                 }
                             }
-                        } elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
-                            # Handle Tab navigation
+                        } 
+                        elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
+                            # Handle Tab navigation via parent delegation
                             if ($this._activeScreen) {
-                                $this._activeScreen.FocusNext()
-                                $handled = $true
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("Key handled: Tab navigation")
+                                $handled = $this.HandleTabNavigation($key)
+                            }
+                        }
+                        elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
+                            # Ctrl+Q for quit
+                            if ($key.Key -eq [System.ConsoleKey]::Q) {
+                                if ($this._activeScreen) {
+                                    $this._activeScreen.Active = $false
+                                    $handled = $true
+                                    if ($global:Logger) {
+                                        $global:Logger.Debug("Key handled: Quit application")
+                                    }
                                 }
                             }
-                        } elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control -and $key.Key -eq [System.ConsoleKey]::Q) {
-                            # Quit
-                            if ($this._activeScreen) {
-                                $this._activeScreen.Active = $false
-                                $handled = $true
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("Key handled: Quit application")
+                            # Ctrl+Arrows for focus navigation
+                            elseif ($key.Key -eq [System.ConsoleKey]::RightArrow -or $key.Key -eq [System.ConsoleKey]::LeftArrow) {
+                                if ($this._activeScreen) {
+                                    $handled = $this.HandleTabNavigation($key)
                                 }
                             }
                         }
@@ -258,6 +271,70 @@ class ScreenManager {
     # Request render on next frame
     [void] RequestRender() {
         $this._needsRender = $true
+    }
+    
+    # Parent-delegated Tab navigation
+    [bool] HandleTabNavigation([System.ConsoleKeyInfo]$key) {
+        # Find the deepest focused element
+        $focused = $this.FindDeepestFocusedElement($this._activeScreen)
+        if ($global:Logger) {
+            $global:Logger.Debug("HandleTabNavigation: Focused element = " + $(if ($focused) { $focused.GetType().Name } else { "null" }))
+        }
+        
+        if (-not $focused) {
+            # No focus, try to focus first focusable element
+            if ($global:Logger) {
+                $global:Logger.Debug("HandleTabNavigation: No focused element, focusing first")
+            }
+            $this._activeScreen.FocusFirst()
+            return $true
+        }
+        
+        # Ask the parent to handle navigation
+        if ($focused.Parent) {
+            $isReverse = ($key.Modifiers -band [System.ConsoleModifiers]::Shift) -or 
+                         ($key.Key -eq [System.ConsoleKey]::LeftArrow)
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("HandleTabNavigation: Parent = $($focused.Parent.GetType().Name), Reverse = $isReverse")
+            }
+            
+            if ($isReverse) {
+                $focused.Parent.FocusPreviousChild($focused)
+            } else {
+                $focused.Parent.FocusNextChild($focused)
+            }
+            
+            if ($global:Logger) {
+                $direction = if ($isReverse) { "reverse" } else { "forward" }
+                $global:Logger.Debug("Tab navigation: $direction via parent delegation")
+            }
+            return $true
+        }
+        
+        return $false
+    }
+    
+    # Find the deepest focused element in the tree
+    [UIElement] FindDeepestFocusedElement([UIElement]$root) {
+        if (-not $root) { return $null }
+        
+        if ($root.IsFocused) {
+            # Check if any child is focused (go deeper)
+            foreach ($child in $root.Children) {
+                $deeper = $this.FindDeepestFocusedElement($child)
+                if ($deeper) { return $deeper }
+            }
+            return $root
+        }
+        
+        # Not focused, check children
+        foreach ($child in $root.Children) {
+            $found = $this.FindDeepestFocusedElement($child)
+            if ($found) { return $found }
+        }
+        
+        return $null
     }
     
     # Get current FPS

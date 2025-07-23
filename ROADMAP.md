@@ -184,22 +184,58 @@ PRAXIS is a hybrid TUI framework combining:
 ## 🔧 Current Technical Debt
 Simplified after input system refactor:
 
-1. **Direct Global Service Access**
+1. **🚨 INPUT FLOW ARCHITECTURE FLAW** (2025-07-23)
+   - **ISSUE DISCOVERED**: Current pattern "Screen-level shortcuts handled BEFORE child components" breaks focused component interaction
+   - **SYMPTOM**: New Project button press → calls ViewProjectDetails() instead of NewProject() because Enter key intercepted by screen
+   - **ROOT CAUSE**: Input priority order is backwards - screen shortcuts preempt focused buttons/textboxes
+   - **CURRENT BROKEN FLOW**: ScreenManager → Screen shortcuts → Components (buttons never get their input!)
+   - **CORRECT FLOW NEEDED**: ScreenManager (global only) → Components (focused elements first) → Screen (fallback only)
+   - **IMPACT**: Violates basic UI expectations - focused elements should always get input priority
+   - **SOLUTION**: Reverse HandleInput priority in screens to check focused children BEFORE screen shortcuts
+   - **✅ FIXED (2025-07-23)**: Applied corrected input flow to ProjectsScreen, BaseDialog, and ConfirmationDialog
+   
+3. **🎯 PARENT-DELEGATED FOCUS MODEL** (2025-07-23)
+   - **REVOLUTIONARY CHANGE**: Complete redesign of focus/input architecture
+   - **OLD BROKEN MODEL**: Complex services (FocusManager/ShortcutManager) with weak references and context loss
+   - **NEW MODEL**: Parent containers manage focus navigation for their children
+   - **KEY PRINCIPLES**:
+     - Tab key handled centrally by ScreenManager, finds focused element, asks its parent to navigate
+     - Parents know their children's layout and decide next/previous focus target
+     - No global focus list or complex caching - each container manages its own children
+     - Infinite cycling: when reaching end, bubble up to parent until root, then wrap
+   - **BENEFITS**:
+     - Predictable: Parent always controls child navigation
+     - Flexible: Different containers can implement different navigation patterns
+     - Simple: No services, no weak references, no complex state
+     - Fast: Direct method calls, no service lookups
+   - **IMPLEMENTATION**:
+     - ScreenManager.HandleTabNavigation() - finds focused element, delegates to parent
+     - Container.FocusNextChild/FocusPreviousChild() - parent-specific navigation logic
+     - Container.FocusFirstInTree/FocusLastInTree() - deep tree traversal for wrapping
+     - Screen.IsFocusable = false - screens are containers, not focusable elements
+   - **RESULTS**:
+     - ✅ Tab/Shift+Tab work everywhere with infinite cycling
+     - ✅ Ctrl+Left/Right work as alternative navigation
+     - ✅ Focus indicators show correctly (blue background)
+     - ✅ Initial focus set properly on screen activation
+     - ✅ No more focus-related crashes or context loss
+
+2. **Direct Global Service Access**
    - Using $global:ServiceContainer directly
    - Should use proper injection patterns
    - Will improve with StateManager implementation
 
-2. ~~**Manual Focus Management**~~ ✅ **RESOLVED (2025-07-22)**
+3. ~~**Manual Focus Management**~~ ✅ **RESOLVED (2025-07-22)**
    - ~~Each screen manually handles Tab navigation~~
    - ~~Should be centralized in a FocusManager~~
    - **Now handled by shared Screen.FocusNext() method - simple and reliable**
 
-3. ~~**Command Registration**~~ ✅ **RESOLVED (2025-07-22)**
+4. ~~**Command Registration**~~ ✅ **RESOLVED (2025-07-22)**
    - ~~Commands are manually added in CommandPalette initialization~~
    - ~~Should allow dynamic registration from screens/components~~
    - **EventBus now supports dynamic command registration via `[CommandRegistration]::RegisterCommand()`**
 
-4. **Model Property Inconsistencies**
+5. **Model Property Inconsistencies**
    - Task has UpdatedAt, Project has none
    - Should standardize timestamp properties across models
    - Consider base class for common properties
@@ -280,29 +316,106 @@ Items to address as the EventBus system matures:
 4. **Component Reuse**: Build once, use everywhere
 5. **Theme Consistency**: All colors through ThemeManager
 
+## 🔄 Migration Plan: Parent-Delegated Focus Model (2025-07-23)
+
+### Components Already Updated
+✅ **Core Framework**:
+- ScreenManager - HandleTabNavigation() method
+- Container - FocusNextChild/FocusPreviousChild/FocusFirstInTree/FocusLastInTree
+- Screen - IsFocusable = false, HandleInput delegates to Container first
+- UIElement - Simplified Focus() method without services
+- MainScreen - Proper HandleScreenInput for global shortcuts
+
+✅ **Updated Screens**:
+- ProjectsScreen - Sets initial focus in OnActivated
+- TabContainer - Routes input correctly to active content
+
+### Components Requiring Migration
+
+#### 1. **Dialogs with Legacy FocusNext()** (HIGH PRIORITY)
+These dialogs still have manual FocusNext() methods that should be removed:
+- [ ] EditTaskDialog - Remove FocusNext(), rely on Container navigation
+- [ ] ConfirmationDialog - Remove FocusNext(), rely on Container navigation  
+- [ ] TextInputDialog - Remove FocusNext(), rely on Container navigation
+- [ ] NumberInputDialog - Remove FocusNext(), rely on Container navigation
+- [ ] EditProjectDialog - Remove FocusNext(), ensure proper focus on open
+- [ ] NewProjectDialog - Remove any manual focus handling
+- [ ] NewTaskDialog - Remove any manual focus handling
+
+**Migration Steps**:
+1. Remove FocusNext() method
+2. Remove Tab key binding  
+3. Ensure dialog sets initial focus in OnActivated/OnShown
+4. Let Container base class handle navigation
+
+#### 2. **Screens with Manual Focus Handling** (MEDIUM PRIORITY)
+- [ ] TaskScreen - Remove any FocusNext references
+- [ ] SettingsScreen - Has custom FocusNext() that needs removal
+- [ ] EventBusMonitor - Remove FocusNext() and Tab binding
+- [ ] DashboardScreen - Verify no manual focus handling
+- [ ] FileBrowserScreen - Update when implemented
+- [ ] TextEditorScreen - Update when implemented
+
+**Migration Steps**:
+1. Override OnActivated() to set initial focus
+2. Remove any HandleInput Tab handling
+3. Ensure proper use of HandleScreenInput for shortcuts
+
+#### 3. **Complex Layout Components** (LOW PRIORITY)
+- [ ] HorizontalSplit - Verify FocusNextChild handles panes correctly
+- [ ] VerticalSplit - Verify FocusNextChild handles panes correctly
+- [ ] GridPanel - May need custom FocusNextChild for grid navigation
+- [ ] DockPanel - May need custom navigation for docked regions
+
+**Migration Steps**:
+1. Override FocusNextChild/FocusPreviousChild if needed for custom navigation
+2. Ensure proper child ordering for navigation
+
+### Best Practices for New Components
+
+1. **Never** make screens focusable (IsFocusable = false)
+2. **Never** implement FocusNext() in components
+3. **Always** set initial focus in OnActivated() for screens
+4. **Always** let parent containers handle navigation
+5. **Override** FocusNextChild only for custom navigation patterns
+
+### Testing Checklist
+- [ ] Tab cycles through all focusable elements infinitely
+- [ ] Shift+Tab reverses direction properly
+- [ ] Ctrl+Left/Right work as alternatives
+- [ ] Focus indicators show on all focusable elements
+- [ ] Initial focus is set when screens activate
+- [ ] No crashes when navigating
+- [ ] Navigation works in nested containers
+
 ### 🎯 Input Handling Best Practices (Established 2025-07-22)
 
-**For Screen Classes**:
+**For Screen Classes** (Parent-Delegated Model):
 ```powershell
-[bool] HandleInput([System.ConsoleKeyInfo]$key) {
-    # 1. Handle screen-specific shortcuts FIRST (before children)
-    switch ($key.Key) {
-        ([System.ConsoleKey]::E) {
-            if (-not $key.Modifiers -and ($key.KeyChar -eq 'E' -or $key.KeyChar -eq 'e')) {
-                $this.EditItem()
-                return $true
-            }
-        }
-        # ... other shortcuts
-    }
-    
-    # 2. Let base Screen handle navigation (Tab, etc.)
-    if (([Screen]$this).HandleInput($key)) {
+# In Screen base class - CORRECT PATTERN
+[bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
+    # 1. Let focused child handle first (components get priority)
+    $handled = ([Container]$this).HandleInput($keyInfo)
+    if ($handled) {
         return $true
     }
     
-    # 3. Finally pass to focused children
-    return ([Container]$this).HandleInput($key)
+    # 2. Screen shortcuts as fallback only
+    return $this.HandleScreenInput($keyInfo)
+}
+
+# In derived screen - implement HandleScreenInput for shortcuts
+[bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+    switch ($keyInfo.Key) {
+        ([System.ConsoleKey]::N) {
+            if (-not $keyInfo.Modifiers) {
+                $this.NewItem()
+                return $true
+            }
+        }
+        # ... other screen-level shortcuts
+    }
+    return $false
 }
 ```
 

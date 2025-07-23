@@ -1,269 +1,159 @@
 # EditProjectDialog.ps1 - Dialog for editing existing projects
 
-class EditProjectDialog : Screen {
+class EditProjectDialog : BaseDialog {
     [Project]$Project
     [TextBox]$NameBox
     [TextBox]$NicknameBox
+    [TextBox]$ID1Box
+    [TextBox]$ID2Box
     [TextBox]$NoteBox
+    [TextBox]$CAAPathBox
+    [TextBox]$RequestPathBox
+    [TextBox]$T2020PathBox
     [TextBox]$DueDateBox
-    [Button]$SaveButton
-    [Button]$CancelButton
-    [scriptblock]$OnSave = {}
-    [scriptblock]$OnCancel = {}
     
-    EditProjectDialog([Project]$project) : base() {
-        $this.Title = "Edit Project"
+    EditProjectDialog([Project]$project) : base("Edit Project") {
         $this.Project = $project
-        $this.DrawBackground = $true
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
+        $this.DialogWidth = 70
+        $this.DialogHeight = 22
     }
     
-    [void] OnInitialize() {
-        # Create name textbox
+    [void] InitializeContent() {
+        # Create all project input fields with current values
         $this.NameBox = [TextBox]::new()
         $this.NameBox.Text = $this.Project.FullProjectName
-        $this.NameBox.Placeholder = "Enter project name..."
-        $this.NameBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NameBox)
+        $this.NameBox.Placeholder = "Enter full project name..."
+        $this.AddContentControl($this.NameBox, 1)
         
-        # Create nickname textbox
         $this.NicknameBox = [TextBox]::new()
         $this.NicknameBox.Text = $this.Project.Nickname
-        $this.NicknameBox.Placeholder = "Enter nickname..."
-        $this.NicknameBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NicknameBox)
+        $this.NicknameBox.Placeholder = "Enter project nickname..."
+        $this.AddContentControl($this.NicknameBox, 2)
         
-        # Create note textbox
+        $this.ID1Box = [TextBox]::new()
+        $this.ID1Box.Text = $this.Project.ID1
+        $this.ID1Box.Placeholder = "Enter ID1..."
+        $this.AddContentControl($this.ID1Box, 3)
+        
+        $this.ID2Box = [TextBox]::new()
+        $this.ID2Box.Text = $this.Project.ID2
+        $this.ID2Box.Placeholder = "Enter ID2..."
+        $this.AddContentControl($this.ID2Box, 4)
+        
         $this.NoteBox = [TextBox]::new()
         $this.NoteBox.Text = $this.Project.Note
-        $this.NoteBox.Placeholder = "Enter notes (optional)..."
-        $this.NoteBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NoteBox)
+        $this.NoteBox.Placeholder = "Enter notes..."
+        $this.AddContentControl($this.NoteBox, 5)
         
-        # Create due date textbox
+        $this.CAAPathBox = [TextBox]::new()
+        $this.CAAPathBox.Text = $this.Project.CAAPath
+        $this.CAAPathBox.Placeholder = "Enter CAA path..."
+        $this.AddContentControl($this.CAAPathBox, 6)
+        
+        $this.RequestPathBox = [TextBox]::new()
+        $this.RequestPathBox.Text = $this.Project.RequestPath
+        $this.RequestPathBox.Placeholder = "Enter request path..."
+        $this.AddContentControl($this.RequestPathBox, 7)
+        
+        $this.T2020PathBox = [TextBox]::new()
+        $this.T2020PathBox.Text = $this.Project.T2020Path
+        $this.T2020PathBox.Placeholder = "Enter T2020 path..."
+        $this.AddContentControl($this.T2020PathBox, 8)
+        
         $this.DueDateBox = [TextBox]::new()
-        $this.DueDateBox.Text = $this.Project.DateDue.ToString("yyyy-MM-dd")
-        $this.DueDateBox.Placeholder = "YYYY-MM-DD"
-        $this.DueDateBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.DueDateBox)
+        $this.DueDateBox.Text = $this.Project.DateDue.ToString("MM/dd/yyyy")
+        $this.DueDateBox.Placeholder = "Enter due date (MM/DD/YYYY)..."
+        $this.AddContentControl($this.DueDateBox, 9)
         
-        # Create buttons
-        $this.SaveButton = [Button]::new("Save")
-        # Capture dialog reference
+        # Set up primary action (Save)
         $dialog = $this
-        $this.SaveButton.OnClick = {
+        $this.OnPrimary = {
             if ($dialog.NameBox.Text.Trim()) {
-                # Parse date
+                # Parse due date
                 $dueDate = $dialog.Project.DateDue
-                $dateText = $dialog.DueDateBox.Text.Trim()
-                if ($dateText) {
-                    $parsedDate = [DateTime]::MinValue
-                    if ([DateTime]::TryParse($dateText, [ref]$parsedDate)) {
-                        $dueDate = $parsedDate
+                if ($dialog.DueDateBox.Text.Trim()) {
+                    try {
+                        $dueDate = [DateTime]::Parse($dialog.DueDateBox.Text)
+                    } catch {
+                        # Keep original date if parsing fails
                     }
                 }
                 
-                if ($dialog.OnSave) {
-                    & $dialog.OnSave @{
-                        FullProjectName = $dialog.NameBox.Text
-                        Nickname = $dialog.NicknameBox.Text
-                        Note = $dialog.NoteBox.Text
-                        DateDue = $dueDate
-                    }
+                # Update project properties
+                $dialog.Project.FullProjectName = $dialog.NameBox.Text
+                $dialog.Project.Nickname = $dialog.NicknameBox.Text
+                $dialog.Project.ID1 = $dialog.ID1Box.Text
+                $dialog.Project.ID2 = $dialog.ID2Box.Text
+                $dialog.Project.Note = $dialog.NoteBox.Text
+                $dialog.Project.CAAPath = $dialog.CAAPathBox.Text
+                $dialog.Project.RequestPath = $dialog.RequestPathBox.Text
+                $dialog.Project.T2020Path = $dialog.T2020PathBox.Text
+                $dialog.Project.DateDue = $dueDate
+                $dialog.Project.UpdatedAt = [DateTime]::Now
+                
+                # Save via service
+                $projectService = $global:ServiceContainer.GetService("ProjectService")
+                if ($projectService) {
+                    $projectService.SaveProject($dialog.Project)
+                }
+                
+                # Publish event if EventBus available
+                if ($dialog.EventBus) {
+                    $dialog.EventBus.Publish([EventNames]::ProjectUpdated, @{ 
+                        Project = $dialog.Project 
+                    })
+                    
+                    $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
+                        Dialog = 'EditProjectDialog'
+                        Action = 'Save'
+                        Data = $dialog.Project
+                    })
                 }
             }
         }.GetNewClosure()
-        $this.SaveButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.SaveButton)
         
-        $this.CancelButton = [Button]::new("Cancel")
-        $this.CancelButton.OnClick = {
-            if ($dialog.OnCancel) {
-                & $dialog.OnCancel
+        # Set up secondary action (Cancel)
+        $this.OnSecondary = {
+            if ($dialog.EventBus) {
+                $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
+                    Dialog = 'EditProjectDialog'
+                    Action = 'Cancel'
+                })
             }
         }.GetNewClosure()
-        $this.CancelButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CancelButton)
-        
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        switch ($key.Key) {
-            ([System.ConsoleKey]::Escape) {
-                if ($this.OnCancel) {
-                    & $this.OnCancel
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Enter) {
-                $focused = $this.FindFocused()
-                if ($focused -eq $this.SaveButton) {
-                    & $this.SaveButton.OnClick
-                } elseif ($focused -eq $this.CancelButton) {
-                    & $this.CancelButton.OnClick
-                }
-                return $true
-            }
-        }
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Custom positioning for all project fields (same as NewProjectDialog)
+        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+        $currentY = $dialogY + 2
         
-        # Let base class handle other keys (like Tab navigation)
-        return ([Screen]$this).HandleInput($key)
-    }
-    
-    [void] OnActivated() {
-        ([Screen]$this).OnActivated()
-        # Focus on name box
-        $this.NameBox.Focus()
-    }
-    
-    [void] OnBoundsChanged() {
-        # Dialog dimensions
-        $dialogWidth = 60
-        $dialogHeight = 18
-        $centerX = [int](($this.Width - $dialogWidth) / 2)
-        $centerY = [int](($this.Height - $dialogHeight) / 2)
+        $this.NameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Position components
-        $this.NameBox.SetBounds($centerX + 2, $centerY + 2, $dialogWidth - 4, 3)
-        $this.NicknameBox.SetBounds($centerX + 2, $centerY + 6, $dialogWidth - 4, 3)
-        $this.NoteBox.SetBounds($centerX + 2, $centerY + 10, $dialogWidth - 4, 3)
-        $this.DueDateBox.SetBounds($centerX + 2, $centerY + 14, 20, 3)
+        $this.NicknameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Position buttons (use similar logic to ProjectsScreen)
-        $buttonY = $centerY + 14
-        $buttonHeight = 3
-        $buttonSpacing = 2
-        $maxButtonWidth = 12
-        $totalButtonWidth = ($maxButtonWidth * 2) + $buttonSpacing
+        # Split ID fields horizontally
+        $halfWidth = [int](($controlWidth - 2) / 2)
+        $this.ID1Box.SetBounds($dialogX + $this.DialogPadding, $currentY, $halfWidth, 2)
+        $this.ID2Box.SetBounds($dialogX + $this.DialogPadding + $halfWidth + 2, $currentY, $halfWidth, 2)
+        $currentY += 2
         
-        # Center buttons if dialog is wide enough
-        if ($dialogWidth -gt $totalButtonWidth) {
-            $buttonStartX = $centerX + [int](($dialogWidth - $totalButtonWidth) / 2)
-            $buttonWidth = $maxButtonWidth
-        } else {
-            $buttonStartX = $centerX + 2
-            $buttonWidth = [int](($dialogWidth - 4 - $buttonSpacing) / 2)
-        }
+        $this.NoteBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        $this.SaveButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
+        $this.CAAPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        $this.CancelButton.SetBounds(
-            $buttonStartX + $buttonWidth + $buttonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
+        $this.RequestPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # Store dialog bounds for rendering
-        $this._dialogBounds = @{
-            X = $centerX
-            Y = $centerY
-            Width = $dialogWidth
-            Height = $dialogHeight
-        }
-    }
-    
-    hidden [hashtable]$_dialogBounds
-    
-    [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $this.T2020PathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
+        $currentY += 2
         
-        # First, clear the entire screen with a dark overlay
-        $overlayBg = [VT]::RGBBG(16, 16, 16)  # Dark gray overlay
-        for ($y = 0; $y -lt $this.Height; $y++) {
-            $sb.Append([VT]::MoveTo(0, $y))
-            $sb.Append($overlayBg)
-            $sb.Append(" " * $this.Width)
-        }
-        
-        if ($this._dialogBounds) {
-            # Draw dialog box
-            $borderColor = $this.Theme.GetColor("dialog.border")
-            $bgColor = $this.Theme.GetBgColor("dialog.background")
-            $titleColor = $this.Theme.GetColor("dialog.title")
-            
-            $x = $this._dialogBounds.X
-            $y = $this._dialogBounds.Y
-            $w = $this._dialogBounds.Width
-            $h = $this._dialogBounds.Height
-            
-            # Fill background
-            for ($i = 0; $i -lt $h; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append($bgColor)
-                $sb.Append(" " * $w)
-            }
-            
-            # Draw border
-            $sb.Append([VT]::MoveTo($x, $y))
-            $sb.Append($borderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($w - 2)) + [VT]::TR())
-            
-            for ($i = 1; $i -lt $h - 1; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append([VT]::V())
-                $sb.Append([VT]::MoveTo($x + $w - 1, $y + $i))
-                $sb.Append([VT]::V())
-            }
-            
-            $sb.Append([VT]::MoveTo($x, $y + $h - 1))
-            $sb.Append([VT]::BL() + ([VT]::H() * ($w - 2)) + [VT]::BR())
-            
-            # Draw title
-            $title = " Edit Project "
-            $titleX = $x + [int](($w - $title.Length) / 2)
-            $sb.Append([VT]::MoveTo($titleX, $y))
-            $sb.Append($titleColor)
-            $sb.Append($title)
-            
-            # Draw labels
-            $sb.Append([VT]::MoveTo($x + 2, $y + 1))
-            $sb.Append($this.Theme.GetColor("foreground"))
-            $sb.Append("Name:")
-            
-            $sb.Append([VT]::MoveTo($x + 2, $y + 5))
-            $sb.Append("Nickname:")
-            
-            $sb.Append([VT]::MoveTo($x + 2, $y + 9))
-            $sb.Append("Notes:")
-            
-            $sb.Append([VT]::MoveTo($x + 2, $y + 13))
-            $sb.Append("Due Date:")
-            
-            # Draw project info
-            $sb.Append([VT]::MoveTo($x + 25, $y + 13))
-            $sb.Append($this.Theme.GetColor("disabled"))
-            $sb.Append("Assigned: " + $this.Project.DateAssigned.ToString("yyyy-MM-dd"))
-        }
-        
-        # Render children
-        foreach ($child in $this.Children) {
-            if ($child.Visible) {
-                $sb.Append($child.Render())
-            }
-        }
-        
-        $sb.Append([VT]::Reset())
-        return $sb.ToString()
-    }
-    
-    [void] FocusNext() {
-        $focusableChildren = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible }
-        if ($focusableChildren.Count -eq 0) { return }
-        
-        $currentIndex = -1
-        for ($i = 0; $i -lt $focusableChildren.Count; $i++) {
-            if ($focusableChildren[$i].IsFocused) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        $nextIndex = ($currentIndex + 1) % $focusableChildren.Count
-        $focusableChildren[$nextIndex].Focus()
+        $this.DueDateBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 2)
     }
 }

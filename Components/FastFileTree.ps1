@@ -67,7 +67,11 @@ class FileSystemNode {
     
     [string] GetIcon() {
         if ($this.IsDirectory) {
-            return if ($this.IsExpanded) { "📂" } else { "📁" }
+            if ($this.IsExpanded) { 
+                return "📂" 
+            } else { 
+                return "📁" 
+            }
         }
         
         # File type icons based on extension
