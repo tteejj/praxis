@@ -2410,7 +2410,6 @@ class FastFileTree : UIElement {
     [string]$CollapsedIcon = "▶"
     
     hidden [ThemeManager]$Theme
-    hidden [string]$_cachedRender = ""
     hidden [int]$_lastSelectedIndex = -1
     hidden [System.Collections.Generic.HashSet[string]]$_expandedPaths
     
@@ -2430,27 +2429,20 @@ class FastFileTree : UIElement {
         $this.RootPath = $rootPath
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        if ($services) {
-            $this.Theme = $services.GetService("ThemeManager")
-            if ($this.Theme) {
-                $this.Theme.Subscribe({ $this.OnThemeChanged() })
-                $this.OnThemeChanged()
-            }
+    [void] OnInitialize() {
+        $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
         }
         
         $this.LoadDirectory($this.RootPath)
     }
     
     [void] OnThemeChanged() {
-        $this._cachedRender = ""
         $this.Invalidate()
     }
     
-    [void] Invalidate() {
-        $this._cachedRender = ""
-        ([UIElement]$this).Invalidate()
-    }
     
     # Public API
     [void] LoadDirectory([string]$path) {
@@ -2479,8 +2471,9 @@ class FastFileTree : UIElement {
             
         } catch {
             # Handle errors - could show in status or log
-            if ($global:Logger) {
-                $global:Logger.Error("FastFileTree: Failed to load directory '$path': $($_.Exception.Message)")
+            $logger = $this.ServiceContainer.GetService('Logger')
+            if ($logger) {
+                $logger.Error("FastFileTree: Failed to load directory '$path': $($_.Exception.Message)")
             }
         }
     }
@@ -2655,23 +2648,25 @@ class FastFileTree : UIElement {
     
     # Rendering
     [string] OnRender() {
-        if ([string]::IsNullOrEmpty($this._cachedRender)) {
-            $this.RebuildCache()
-        }
-        return $this._cachedRender
+        return $this.BuildRenderString()
     }
     
-    [void] RebuildCache() {
+    [string] BuildRenderString() {
         # Validate dimensions before rendering
         if ($this.Width -le 0 -or $this.Height -le 0) {
-            $this._cachedRender = ""
-            return
+            return ""
         }
         
         # Disable border if dimensions are too small
         $effectiveShowBorder = $this.ShowBorder -and $this.Width -ge 3 -and $this.Height -ge 2
         
-        $sb = Get-PooledStringBuilder 4096  # File trees can be quite large
+        # Use StringBuilder pool if available, otherwise create new
+        $sb = $null
+        if (Get-Command -Name 'Get-PooledStringBuilder' -ErrorAction SilentlyContinue) {
+            $sb = Get-PooledStringBuilder 4096  # File trees can be quite large
+        } else {
+            $sb = [System.Text.StringBuilder]::new(4096)
+        }
         
         # Colors
         $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
@@ -2830,8 +2825,11 @@ class FastFileTree : UIElement {
         }
         
         $sb.Append([VT]::Reset())
-        $this._cachedRender = $sb.ToString()
-        Return-PooledStringBuilder $sb  # Return to pool for reuse
+        $result = $sb.ToString()
+        if (Get-Command -Name 'Return-PooledStringBuilder' -ErrorAction SilentlyContinue) {
+            Return-PooledStringBuilder $sb  # Return to pool for reuse
+        }
+        return $result
     }
     
     # Input handling
@@ -2938,96 +2936,11 @@ class FastFileTree : UIElement {
         }
     }
     
-    # Helper methods for rendering refactoring
-    [hashtable] GetThemeColors() {
-        return @{
-            Border = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-            Title = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-            SelectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selected") } else { "" }
-            Normal = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
-            Directory = if ($this.Theme) { $this.Theme.GetColor("directory") } else { "" }
-            File = if ($this.Theme) { $this.Theme.GetColor("file") } else { "" }
-            FocusBorder = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { "" }
-        }
-    }
-    
-    [hashtable] CalculateContentArea([bool]$effectiveShowBorder) {
-        $contentY = $this.Y
-        $contentHeight = $this.Height
-        $contentWidth = $this.Width - ($effectiveShowBorder ? 2 : 0)
-        
-        # Ensure content width is never negative
-        if ($contentWidth -lt 0) {
-            $contentWidth = 0
-        }
-        
-        return @{
-            Y = $contentY
-            Height = $contentHeight
-            Width = $contentWidth
-        }
-    }
-    
-    [void] RenderBorder([System.Text.StringBuilder]$sb, [hashtable]$colors, [bool]$effectiveShowBorder) {
-        if (-not $effectiveShowBorder) { return }
-        
-        $currentBorderColor = if ($this.IsFocused) { $colors.FocusBorder } else { $colors.Border }
-        
-        # Top border
-        $sb.Append([VT]::MoveTo($this.X, $this.Y))
-        $sb.Append($currentBorderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
-    }
-    
-    [hashtable] RenderTitle([System.Text.StringBuilder]$sb, [hashtable]$colors, [hashtable]$contentArea, [bool]$effectiveShowBorder) {
-        $contentY = $contentArea.Y
-        $contentHeight = $contentArea.Height
-        $contentWidth = $contentArea.Width
-        
-        if ($effectiveShowBorder) {
-            $contentY++
-            $contentHeight--
-            
-            # Title with border
-            if ($this.Title -and $contentWidth -gt 0) {
-                $sb.Append([VT]::MoveTo($this.X + 1, $contentY))
-                $sb.Append($colors.Title)
-                $titleText = "$($this.Title) - $($this.RootPath)"
-                if ($titleText.Length -gt $contentWidth) {
-                    $titleText = "..." + $titleText.Substring($titleText.Length - $contentWidth + 3)
-                }
-                $titleLine = $titleText.PadRight($contentWidth).Substring(0, $contentWidth)
-                $sb.Append($titleLine)
-                $contentY++
-                $contentHeight--
-            }
-        } else {
-            # Title without border
-            if ($this.Title -and $this.Width -gt 0) {
-                $sb.Append([VT]::MoveTo($this.X, $contentY))
-                $sb.Append($colors.Title)
-                $titleText = "$($this.Title) - $($this.RootPath)"
-                $titleLine = $titleText.PadRight($this.Width).Substring(0, $this.Width)
-                $sb.Append($titleLine)
-                $contentY++
-                $contentHeight--
-            }
-        }
-        
-        return @{
-            Y = $contentY
-            Height = $contentHeight
-            Width = $contentWidth
-        }
-    }
-    
     [void] OnGotFocus() {
-        $this._cachedRender = ""
         $this.Invalidate()
     }
     
     [void] OnLostFocus() {
-        $this._cachedRender = ""
         $this.Invalidate()
     }
 }
@@ -6307,6 +6220,8 @@ class ScreenManager {
     hidden [bool]$_needsRender = $true
     hidden [System.ConsoleKeyInfo]$_lastKey
     hidden [ServiceContainer]$_services
+    hidden [ShortcutManager]$_shortcutManager
+    hidden [bool]$_exitRequested = $false
     
     # Performance tracking
     hidden [System.Diagnostics.Stopwatch]$_renderTimer
@@ -6317,26 +6232,45 @@ class ScreenManager {
         $this._screenStack = [System.Collections.Generic.Stack[Screen]]::new()
         $this._services = $services
         $this._renderTimer = [System.Diagnostics.Stopwatch]::new()
+        
+        # Get ShortcutManager if available
+        $this._shortcutManager = $services.GetService('ShortcutManager')
     }
     
     # Push a new screen
     [void] Push([Screen]$screen) {
+        if ($global:Logger) {
+            $global:Logger.Info("ScreenManager.Push: Pushing screen $($screen.GetType().Name)")
+        }
+        
         # Deactivate current
         if ($this._activeScreen) {
             $this._activeScreen.Active = $false
             $this._activeScreen.OnDeactivated()
         }
         
-        # Initialize and activate new screen
-        $screen.Initialize($this._services)
-        $screen.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
-        
-        $this._screenStack.Push($screen)
-        $this._activeScreen = $screen
-        $this._activeScreen.Active = $true
-        $this._activeScreen.OnActivated()
-        
-        $this._needsRender = $true
+        try {
+            # Initialize and activate new screen
+            $screen.Initialize($this._services)
+            $screen.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
+            
+            $this._screenStack.Push($screen)
+            $this._activeScreen = $screen
+            $this._activeScreen.Active = $true
+            $this._activeScreen.OnActivated()
+            
+            $this._needsRender = $true
+            
+            if ($global:Logger) {
+                $global:Logger.Info("ScreenManager.Push: Successfully pushed $($screen.GetType().Name), Active=$($this._activeScreen.Active)")
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("ScreenManager.Push: Error pushing screen - $_")
+                $global:Logger.Error("Stack trace: $($_.ScriptStackTrace)")
+            }
+            throw
+        }
     }
     
     # Pop current screen
@@ -6391,7 +6325,7 @@ class ScreenManager {
         }
         
         try {
-            while ($this._activeScreen -and $this._activeScreen.Active) {
+            while ($this._activeScreen -and $this._activeScreen.Active -and -not $this._exitRequested) {
                 if ($global:Logger) {
                     $global:Logger.Debug("ScreenManager: In main loop iteration")
                 }
@@ -6439,35 +6373,47 @@ class ScreenManager {
                         # PARENT-DELEGATED INPUT MODEL - Simple routing only
                         $handled = $false
                         
-                        # 1. Command Palette override (when visible)
-                        if ($this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
+                        # 1. Check ShortcutManager for global shortcuts first
+                        if ($this._shortcutManager) {
+                            $currentScreenType = if ($this._activeScreen) { $this._activeScreen.GetType().Name } else { "" }
+                            $currentContext = if ($this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) { "CommandPalette" } else { "" }
+                            
+                            $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, $currentContext)
+                            
+                            if ($handled -and $global:Logger) {
+                                $global:Logger.Debug("Key handled by ShortcutManager")
+                            }
+                        }
+                        
+                        # 2. Command Palette override (when visible) - only if not handled by shortcuts
+                        if (-not $handled -and $this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
                             $handled = $this._activeScreen.CommandPalette.HandleInput($key)
                             if ($global:Logger) {
                                 $global:Logger.Debug("Key routed to CommandPalette")
                             }
                         }
-                        # 2. Global shortcuts (minimal set)
-                        elseif ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
-                            # Show command palette
-                            if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
-                                $this._activeScreen.CommandPalette.Show()
-                                $handled = $true
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("Key handled: Command palette opened")
+                        # 3. Fallback to hardcoded shortcuts if ShortcutManager not available
+                        elseif (-not $this._shortcutManager) {
+                            if ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
+                                # Show command palette
+                                if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
+                                    $this._activeScreen.CommandPalette.Show()
+                                    $handled = $true
+                                    if ($global:Logger) {
+                                        $global:Logger.Debug("Key handled: Command palette opened")
+                                    }
+                                }
+                            } 
+                            elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
+                                # Handle Tab navigation via parent delegation
+                                if ($this._activeScreen) {
+                                    $handled = $this.HandleTabNavigation($key)
                                 }
                             }
-                        } 
-                        elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
-                            # Handle Tab navigation via parent delegation
-                            if ($this._activeScreen) {
-                                $handled = $this.HandleTabNavigation($key)
-                            }
-                        }
-                        elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
-                            # Ctrl+Q for quit
-                            if ($key.Key -eq [System.ConsoleKey]::Q) {
-                                if ($this._activeScreen) {
-                                    $this._activeScreen.Active = $false
+                            elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
+                                # Ctrl+Q for quit
+                                if ($key.Key -eq [System.ConsoleKey]::Q) {
+                                    $this.RequestExit()
                                     $handled = $true
                                     if ($global:Logger) {
                                         $global:Logger.Debug("Key handled: Quit application")
@@ -6482,7 +6428,12 @@ class ScreenManager {
                             }
                         }
                         
-                        # 2. If not handled by global shortcuts, let screen handle it
+                        # 4. Tab navigation (if not handled above)
+                        if (-not $handled -and $key.Key -eq [System.ConsoleKey]::Tab -and $this._activeScreen) {
+                            $handled = $this.HandleTabNavigation($key)
+                        }
+                        
+                        # 5. If not handled by global shortcuts, let screen handle it
                         if (-not $handled -and $this._activeScreen) {
                             try {
                                 $handled = $this._activeScreen.HandleInput($key)
@@ -6640,6 +6591,21 @@ class ScreenManager {
     # Get current FPS
     [double] GetFPS() {
         return $this._lastFPS
+    }
+    
+    # Request application exit
+    [void] RequestExit() {
+        $this._exitRequested = $true
+        if ($this._activeScreen) {
+            $this._activeScreen.Active = $false
+        }
+    }
+    
+    # Show command palette
+    [void] ShowCommandPalette() {
+        if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
+            $this._activeScreen.CommandPalette.Show()
+        }
     }
 }
 
@@ -7205,197 +7171,98 @@ class Task : BaseModel {
 
 
 ####\Screens/ConfirmationDialog.ps1
-# ConfirmationDialog.ps1 - Generic confirmation dialog
+# ConfirmationDialog.ps1 - Generic confirmation dialog using BaseDialog
 
-class ConfirmationDialog : Screen {
+class ConfirmationDialog : BaseDialog {
     [string]$Message
     [string]$ConfirmText = "Yes"
     [string]$CancelText = "No"
-    [Button]$ConfirmButton
-    [Button]$CancelButton
-    [scriptblock]$OnConfirm = {}
-    [scriptblock]$OnCancel = {}
     
-    ConfirmationDialog([string]$message) : base() {
-        $this.Title = "Confirm"
+    ConfirmationDialog([string]$message) : base("Confirm") {
         $this.Message = $message
-        $this.DrawBackground = $true
+        # Set button texts before initialization
+        $this.PrimaryButtonText = $this.ConfirmText
+        $this.SecondaryButtonText = $this.CancelText
     }
     
-    [void] OnInitialize() {
-        # Create buttons
-        $this.ConfirmButton = [Button]::new($this.ConfirmText)
-        # Capture dialog reference
-        $dialog = $this
-        $this.ConfirmButton.OnClick = {
-            if ($dialog.OnConfirm) {
-                & $dialog.OnConfirm
-            }
-        }.GetNewClosure()
-        $this.ConfirmButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.ConfirmButton)
+    [void] InitializeContent() {
+        # Base dialog handles button creation, we just need to update button texts if needed
+        if ($this.PrimaryButton -and $this.ConfirmText -ne "Yes") {
+            $this.PrimaryButton.Text = $this.ConfirmText
+        }
         
-        $this.CancelButton = [Button]::new($this.CancelText)
-        $this.CancelButton.OnClick = {
-            if ($dialog.OnCancel) {
-                & $dialog.OnCancel
-            }
-        }.GetNewClosure()
-        $this.CancelButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CancelButton)
+        if ($this.SecondaryButton -and $this.CancelText -ne "No") {
+            $this.SecondaryButton.Text = $this.CancelText
+        }
         
+        # No additional content controls needed for simple confirmation
+        # The message is rendered directly in the dialog
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # CORRECTED INPUT FLOW: Check focused children FIRST, then dialog shortcuts as fallback
-        
-        # 1. Let focused children handle input first (buttons)
-        if (([Container]$this).HandleInput($key)) {
-            return $true
+    [void] OnActivated() {
+        ([BaseDialog]$this).OnActivated()
+        # Override to focus on cancel button by default (safer)
+        if ($this.SecondaryButton) {
+            $this.SecondaryButton.Focus()
         }
-        
-        # 2. Let base Screen handle Tab navigation
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # 3. Handle dialog shortcuts as FALLBACK only
-        switch ($key.Key) {
-            ([System.ConsoleKey]::Escape) {
-                if ($this.OnCancel) {
-                    & $this.OnCancel
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Enter) {
-                # Default to confirm action if no button is focused
-                & $this.ConfirmButton.OnClick
-                return $true
-            }
-            ([System.ConsoleKey]::Y) {
-                if ($key.KeyChar -eq 'Y' -or $key.KeyChar -eq 'y') {
-                    & $this.ConfirmButton.OnClick
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::N) {
-                if ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n') {
-                    & $this.CancelButton.OnClick
-                    return $true
-                }
-            }
-        }
-        
-        # If no one handled it, return false
-        return $false
     }
     
     [void] OnBoundsChanged() {
         # Calculate dialog dimensions based on message
         $messageLines = $this.Message -split "`n"
         $maxLineLength = ($messageLines | ForEach-Object { $_.Length } | Measure-Object -Maximum).Maximum
-        $dialogWidth = [Math]::Max(40, $maxLineLength + 8)
-        $dialogHeight = 10 + $messageLines.Count
-        $centerX = [int](($this.Width - $dialogWidth) / 2)
-        $centerY = [int](($this.Height - $dialogHeight) / 2)
+        $this.DialogWidth = [Math]::Max(40, $maxLineLength + 8)
+        $this.DialogHeight = 10 + $messageLines.Count
         
-        # Position buttons (use similar logic to ProjectsScreen)
-        $buttonY = $centerY + $dialogHeight - 3
-        $buttonHeight = 3
-        $buttonSpacing = 2
-        $maxButtonWidth = 12
-        $totalButtonWidth = ($maxButtonWidth * 2) + $buttonSpacing
-        
-        # Center buttons if dialog is wide enough
-        if ($dialogWidth -gt $totalButtonWidth) {
-            $buttonStartX = $centerX + [int](($dialogWidth - $totalButtonWidth) / 2)
-            $buttonWidth = $maxButtonWidth
-        } else {
-            $buttonStartX = $centerX + 2
-            $buttonWidth = [int](($dialogWidth - 4 - $buttonSpacing) / 2)
-        }
-        
-        $this.ConfirmButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
-        
-        $this.CancelButton.SetBounds(
-            $buttonStartX + $buttonWidth + $buttonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
-        
-        # Store dialog bounds for rendering
-        $this._dialogBounds = @{
-            X = $centerX
-            Y = $centerY
-            Width = $dialogWidth
-            Height = $dialogHeight
-        }
+        # Let base class handle the rest
+        ([BaseDialog]$this).OnBoundsChanged()
     }
     
-    [void] OnActivated() {
-        ([Screen]$this).OnActivated()
-        # Focus on cancel button by default (safer)
-        $this.CancelButton.Focus()
+    # Override HandleScreenInput to add Y/N shortcuts
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Let base class handle standard dialog shortcuts first
+        if (([BaseDialog]$this).HandleScreenInput($key)) {
+            return $true
+        }
+        
+        # Add Y/N shortcuts specific to confirmation dialog
+        switch ($key.Key) {
+            ([System.ConsoleKey]::Y) {
+                if ($key.KeyChar -eq 'Y' -or $key.KeyChar -eq 'y') {
+                    $this.HandlePrimaryAction()
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::N) {
+                if ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n') {
+                    $this.HandleSecondaryAction()
+                    return $true
+                }
+            }
+        }
+        
+        return $false
     }
-    
-    hidden [hashtable]$_dialogBounds
     
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
-        # First, clear the entire screen with a dark overlay
-        $overlayBg = [VT]::RGBBG(16, 16, 16)  # Dark gray overlay
-        for ($y = 0; $y -lt $this.Height; $y++) {
-            $sb.Append([VT]::MoveTo(0, $y))
-            $sb.Append($overlayBg)
-            $sb.Append(" " * $this.Width)
-        }
+        # Render the base dialog (overlay, box, title, buttons)
+        $baseRender = ([BaseDialog]$this).OnRender()
+        $sb.Append($baseRender)
         
-        if ($this._dialogBounds) {
-            # Draw dialog box
-            $borderColor = $this.Theme.GetColor("dialog.border")
-            $bgColor = $this.Theme.GetBgColor("dialog.background")
-            $titleColor = $this.Theme.GetColor("dialog.title")
-            $warningColor = $this.Theme.GetColor("warning")
-            
+        # Add our custom content - the message and hint
+        if ($this._dialogBounds -and $this._dialogBounds.Count -gt 0) {
             $x = $this._dialogBounds.X
             $y = $this._dialogBounds.Y
             $w = $this._dialogBounds.Width
             $h = $this._dialogBounds.Height
             
-            # Fill background
-            for ($i = 0; $i -lt $h; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append($bgColor)
-                $sb.Append(" " * $w)
-            }
-            
-            # Draw border
-            $sb.Append([VT]::MoveTo($x, $y))
-            $sb.Append($borderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($w - 2)) + [VT]::TR())
-            
-            for ($i = 1; $i -lt $h - 1; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append([VT]::V())
-                $sb.Append([VT]::MoveTo($x + $w - 1, $y + $i))
-                $sb.Append([VT]::V())
-            }
-            
-            $sb.Append([VT]::MoveTo($x, $y + $h - 1))
-            $sb.Append([VT]::BL() + ([VT]::H() * ($w - 2)) + [VT]::BR())
-            
-            # Draw title with warning icon
+            # Draw warning icon in title
             $title = " ⚠ Confirm "
             $titleX = $x + [int](($w - $title.Length) / 2)
             $sb.Append([VT]::MoveTo($titleX, $y))
-            $sb.Append($warningColor)
+            $sb.Append($this.Theme.GetColor("warning"))
             $sb.Append($title)
             
             # Draw message
@@ -7417,23 +7284,10 @@ class ConfirmationDialog : Screen {
             $sb.Append($hint)
         }
         
-        # Render children
-        foreach ($child in $this.Children) {
-            if ($child.Visible) {
-                $sb.Append($child.Render())
-            }
-        }
-        
         $sb.Append([VT]::Reset())
-        return $sb.ToString()
-    }
-    
-    [void] FocusNext() {
-        if ($this.ConfirmButton.IsFocused) {
-            $this.CancelButton.Focus()
-        } else {
-            $this.ConfirmButton.Focus()
-        }
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
 }
 
@@ -7480,6 +7334,13 @@ class DashboardScreen : Screen {
     hidden [array]$_projectStats
     hidden [array]$_taskMetrics
     hidden [array]$_recentActivities
+    hidden [bool]$_isLoading = $false
+    hidden [hashtable]$_loadingProgress = @{
+        Projects = 0
+        Tasks = 0
+        Activity = 0
+        Metrics = 0
+    }
     
     DashboardScreen() : base() {
         $this.Title = "PRAXIS Dashboard"
@@ -7493,11 +7354,19 @@ class DashboardScreen : Screen {
         $this.TaskService = $global:ServiceContainer.GetService("TaskService")
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
         
+        # Subscribe to data loading events for background updates
+        $this.SetupEventHandlers()
+        
         # Create the incredibly complex nested layout structure
         $this.BuildMasterLayout()
         $this.BuildLeftPane()
         $this.BuildRightPane()
-        $this.LoadAllData()
+        
+        # Show initial loading state
+        $this.ShowLoadingState()
+        
+        # Start background data loading (non-blocking)
+        $this.StartBackgroundDataLoad()
         
         Write-Host "Dashboard initialized with maximum complexity!"
     }
@@ -7691,7 +7560,8 @@ class DashboardScreen : Screen {
             if ($global:Logger) {
                 $global:Logger.Info("Dashboard: Refresh button clicked - reloading all data")
             }
-            $dashboardRef.LoadAllData()
+            $dashboardRef.ShowLoadingState()
+            $dashboardRef.StartBackgroundDataLoad()
         }.GetNewClosure()
         $this.RefreshBtn.Initialize($global:ServiceContainer)
         $this.ActionGrid.AddChild($this.RefreshBtn)
@@ -7829,6 +7699,276 @@ class DashboardScreen : Screen {
         $this.RecentActivity.SetItems($activities)
     }
     
+    [void] SetupEventHandlers() {
+        # Subscribe to background data loading completion events
+        $dashboardRef = $this
+        
+        $this.EventBus.Subscribe('dashboard.data.projects.loaded', {
+            param($sender, $data)
+            if ($data.Projects) {
+                $dashboardRef.ProjectList.SetItems($data.Projects)
+                $dashboardRef._loadingProgress.Projects = 100
+                $dashboardRef.UpdateLoadingStatus()
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.tasks.loaded', {
+            param($sender, $data)
+            if ($data.Tasks) {
+                $dashboardRef.TaskList.SetItems($data.Tasks)
+                $dashboardRef._loadingProgress.Tasks = 100
+                $dashboardRef.UpdateLoadingStatus()
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.activity.loaded', {
+            param($sender, $data)
+            if ($data.Activities) {
+                $dashboardRef.RecentActivity.SetItems($data.Activities)
+                $dashboardRef._loadingProgress.Activity = 100
+                $dashboardRef.UpdateLoadingStatus()
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.metrics.loaded', {
+            param($sender, $data)
+            if ($data.PriorityStats) {
+                $dashboardRef.PriorityBreakdown.SetItems($data.PriorityStats)
+            }
+            if ($data.StatusData) {
+                $dashboardRef.StatusChart.SetItems($data.StatusData)
+            }
+            $dashboardRef._loadingProgress.Metrics = 100
+            $dashboardRef.UpdateLoadingStatus()
+        }.GetNewClosure())
+    }
+    
+    [void] ShowLoadingState() {
+        # Display loading indicators in each component
+        $loadingProjects = @(
+            "⏳ Loading project data...",
+            "   Please wait..."
+        )
+        $this.ProjectList.SetItems($loadingProjects)
+        
+        $loadingTasks = @(
+            "⏳ Loading task list...",
+            "   Fetching from database..."
+        )
+        $this.TaskList.SetItems($loadingTasks)
+        
+        $loadingActivity = @(
+            "⏳ Loading recent activity...",
+            "   Analyzing events..."
+        )
+        $this.RecentActivity.SetItems($loadingActivity)
+        
+        $loadingMetrics = @(
+            "⏳ Calculating metrics...",
+            "   Processing data..."
+        )
+        $this.PriorityBreakdown.SetItems($loadingMetrics)
+        $this.StatusChart.SetItems($loadingMetrics)
+    }
+    
+    [void] StartBackgroundDataLoad() {
+        if ($this._isLoading) {
+            Write-Host "Data loading already in progress"
+            return
+        }
+        
+        $this._isLoading = $true
+        $this._loadingProgress = @{
+            Projects = 0
+            Tasks = 0
+            Activity = 0
+            Metrics = 0
+        }
+        
+        # Use PowerShell jobs for true background loading
+        $projService = $this.ProjectService
+        $taskSvc = $this.TaskService
+        $evtBus = $this.EventBus
+        
+        # Load projects in background
+        $projectJob = Start-Job -ScriptBlock {
+            param($service, $evtBus)
+            
+            # Simulate loading delay
+            Start-Sleep -Milliseconds 800
+            
+            $projects = @()
+            if ($service) {
+                $allProjects = $service.GetAllProjects()
+                $projects = $allProjects | Where-Object { -not $_.Deleted } | Sort-Object DateDue
+            }
+            
+            if ($projects.Count -eq 0) {
+                $projects = @(
+                    @{ Nickname = "PRAXIS Framework"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(30) }
+                    @{ Nickname = "Dashboard System"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(7) }
+                    @{ Nickname = "Layout Components"; ClosedDate = [DateTime]::Now; DateDue = [DateTime]::Now.AddDays(-5) }
+                    @{ Nickname = "Testing Framework"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(45) }
+                )
+            }
+            
+            # Process projects
+            foreach ($project in $projects) {
+                $project.ClosedDate = if ($project.ClosedDate) { $project.ClosedDate } else { [DateTime]::MinValue }
+                $project.DateDue = if ($project.DateDue) { $project.DateDue } else { [DateTime]::Now.AddDays(30) }
+            }
+            
+            return $projects
+        } -ArgumentList $projService, $evtBus
+        
+        # Load tasks in background
+        $taskJob = Start-Job -ScriptBlock {
+            param($service)
+            
+            # Simulate loading delay
+            Start-Sleep -Milliseconds 1200
+            
+            $tasks = @()
+            if ($service) {
+                $allTasks = $service.GetAllTasks()
+                $tasks = $allTasks | Where-Object { $_.Status -ne "Done" } | Sort-Object Priority, Title
+            }
+            
+            if ($tasks.Count -eq 0) {
+                $tasks = @(
+                    @{ Title = "Implement HorizontalSplit"; Priority = "High"; Status = "Done"; Progress = 100 }
+                    @{ Title = "Create Dashboard Screen"; Priority = "High"; Status = "InProgress"; Progress = 75 }
+                    @{ Title = "Add visual styling"; Priority = "Medium"; Status = "InProgress"; Progress = 25 }
+                    @{ Title = "Fix layout bugs"; Priority = "High"; Status = "Pending"; Progress = 0 }
+                    @{ Title = "Write documentation"; Priority = "Low"; Status = "Pending"; Progress = 0 }
+                    @{ Title = "Performance optimization"; Priority = "Medium"; Status = "Blocked"; Progress = 10 }
+                )
+            }
+            
+            return $tasks
+        } -ArgumentList $taskSvc
+        
+        # Monitor jobs and publish events when complete
+        $monitorJob = Start-Job -ScriptBlock {
+            param($projectJob, $taskJob, $evtBus)
+            
+            # Wait for project job
+            $projects = Receive-Job -Job $projectJob -Wait
+            $evtBus.Publish('dashboard.data.projects.loaded', @{ Projects = $projects })
+            
+            # Wait for task job
+            $tasks = Receive-Job -Job $taskJob -Wait
+            $evtBus.Publish('dashboard.data.tasks.loaded', @{ Tasks = $tasks })
+            
+            # Generate metrics based on loaded data
+            Start-Sleep -Milliseconds 500
+            
+            $priorityStats = @(
+                "🔴 High Priority: $(@($tasks | Where-Object { $_.Priority -eq 'High' }).Count) tasks"
+                "🟡 Medium Priority: $(@($tasks | Where-Object { $_.Priority -eq 'Medium' }).Count) tasks"
+                "🟢 Low Priority: $(@($tasks | Where-Object { $_.Priority -eq 'Low' }).Count) tasks"
+                ""
+                "Progress Overview:"
+                "▓▓▓▓▓▓░░░░ 60% Complete"
+            )
+            
+            $completedTasks = @($tasks | Where-Object { $_.Status -eq "Done" }).Count
+            $totalTasks = $tasks.Count + $completedTasks
+            $completionRate = if ($totalTasks -gt 0) { [int](($completedTasks / $totalTasks) * 100) } else { 0 }
+            
+            $statusData = @(
+                "📊 Project Health Dashboard"
+                ""
+                "Completion Rate: $completionRate%"
+                "[$('█' * [int]($completionRate/10))$('░' * (10 - [int]($completionRate/10)))]"
+                ""
+                "✅ Completed: $completedTasks"
+                "⚡ In Progress: $(@($tasks | Where-Object { $_.Status -eq 'InProgress' }).Count)"
+                "📋 Pending: $(@($tasks | Where-Object { $_.Status -eq 'Pending' }).Count)"
+                "🚫 Blocked: $(@($tasks | Where-Object { $_.Status -eq 'Blocked' }).Count)"
+            )
+            
+            $evtBus.Publish('dashboard.data.metrics.loaded', @{ 
+                PriorityStats = $priorityStats
+                StatusData = $statusData 
+            })
+            
+            # Load activity data
+            Start-Sleep -Milliseconds 300
+            $activities = @(
+                @{ Type = "TaskCompleted"; Message = "Completed 'Layout Components'"; Time = "2 min ago" }
+                @{ Type = "ProjectCreated"; Message = "Started 'Dashboard System'"; Time = "15 min ago" }
+                @{ Type = "TaskCreated"; Message = "Added 'Fix layout bugs'"; Time = "1 hour ago" }
+                @{ Type = "ProjectUpdated"; Message = "Updated PRAXIS Framework"; Time = "2 hours ago" }
+                @{ Type = "TaskCompleted"; Message = "Finished HorizontalSplit tests"; Time = "4 hours ago" }
+            )
+            
+            $evtBus.Publish('dashboard.data.activity.loaded', @{ Activities = $activities })
+            
+            # Clean up jobs
+            Remove-Job -Job $projectJob -Force
+            Remove-Job -Job $taskJob -Force
+            
+        } -ArgumentList $projectJob, $taskJob, $evtBus
+        
+        # Set up item renderers that will be used when data loads
+        $this.ProjectList.ItemRenderer = {
+            param($project)
+            $status = if ($project.ClosedDate -ne [DateTime]::MinValue) { "✅" } else { "🚧" }
+            $daysLeft = ($project.DateDue - [DateTime]::Now).Days
+            $urgency = if ($daysLeft -lt 0) { "🔥 OVERDUE" } elseif ($daysLeft -lt 7) { "⚠️  DUE SOON" } elseif ($daysLeft -lt 30) { "📅 $daysLeft days" } else { "📈 $daysLeft days" }
+            return "$status $($project.Nickname) - $urgency"
+        }
+        
+        $this.TaskList.ItemRenderer = {
+            param($task)
+            $priority = switch ($task.Priority) {
+                "High" { "🔴" }
+                "Medium" { "🟡" }
+                "Low" { "🟢" }
+                default { "⚪" }
+            }
+            $status = switch ($task.Status) {
+                "InProgress" { "⚡" }
+                "Done" { "✅" }
+                "Blocked" { "🚫" }
+                default { "📋" }
+            }
+            return "$priority $status $($task.Title) [$($task.Progress)%]"
+        }
+        
+        $this.RecentActivity.ItemRenderer = {
+            param($activity)
+            $icon = switch ($activity.Type) {
+                "ProjectCreated" { "🆕" }
+                "TaskCompleted" { "✅" }
+                "TaskCreated" { "📝" }
+                "ProjectUpdated" { "📝" }
+                default { "ℹ️" }
+            }
+            return "$icon $($activity.Message) - $($activity.Time)"
+        }
+    }
+    
+    [void] UpdateLoadingStatus() {
+        # Check if all data has loaded
+        $totalProgress = ($this._loadingProgress.Projects + $this._loadingProgress.Tasks + 
+                         $this._loadingProgress.Activity + $this._loadingProgress.Metrics) / 4
+        
+        if ($totalProgress -eq 100) {
+            $this._isLoading = $false
+            Write-Host "Dashboard data fully loaded!"
+        }
+    }
+    
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        # Set initial focus to ProjectList
+        if ($this.ProjectList) {
+            $this.ProjectList.Focus()
+        }
+    }
+    
     [void] OnBoundsChanged() {
         # Update the main layout to fill the entire screen
         if ($this.MainLayout) {
@@ -7836,18 +7976,20 @@ class DashboardScreen : Screen {
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         # Handle dashboard-specific shortcuts
         switch ($key.Key) {
             ([System.ConsoleKey]::F5) {
-                $this.LoadAllData()
-                Write-Host "Dashboard refreshed!"
+                $this.ShowLoadingState()
+                $this.StartBackgroundDataLoad()
+                Write-Host "Dashboard refresh started!"
                 return $true
             }
             ([System.ConsoleKey]::R) {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'R' -or $key.KeyChar -eq 'r')) {
-                    $this.LoadAllData()
-                    Write-Host "Dashboard data reloaded!"
+                    $this.ShowLoadingState()
+                    $this.StartBackgroundDataLoad()
+                    Write-Host "Dashboard data reload started!"
                     return $true
                 }
             }
@@ -7857,38 +7999,11 @@ class DashboardScreen : Screen {
                     return $true
                 }
             }
-            ([System.ConsoleKey]::Tab) {
-                # Advanced focus cycling through all panes
-                $this.CycleFocus()
-                return $true
-            }
         }
         
-        # Let base Screen class handle other keys
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Pass to the main layout for complex routing
-        return $this.MainLayout.HandleInput($key)
+        return $false
     }
     
-    [void] CycleFocus() {
-        # Complex focus cycling through nested layouts
-        if ($this.ProjectList.IsFocused) {
-            $this.RecentActivity.Focus()
-        } elseif ($this.RecentActivity.IsFocused) {
-            $this.TaskList.Focus()
-        } elseif ($this.TaskList.IsFocused) {
-            $this.PriorityBreakdown.Focus()
-        } elseif ($this.PriorityBreakdown.IsFocused) {
-            $this.StatusChart.Focus()
-        } elseif ($this.StatusChart.IsFocused) {
-            $this.NewProjectBtn.Focus()
-        } else {
-            $this.ProjectList.Focus()  # Back to start
-        }
-    }
 }
 
 
@@ -8555,12 +8670,12 @@ class FileBrowserScreen : Screen {
     [void] OnInitialize() {
         # Create and configure the file tree
         $this.FileTree = [FastFileTree]::new()
-        if ($this.ServiceContainer) {
-            $this.FileTree.Initialize($this.ServiceContainer)
-        }
         $this.FileTree.ShowBorder = $true
         $this.FileTree.Title = "Files"
         $this.FileTree.ShowSize = $true
+        
+        # Add as child so it gets initialized properly
+        $this.AddChild($this.FileTree)
         
         # Start with current directory
         $this.FileTree.LoadDirectory((Get-Location).Path)
@@ -10341,8 +10456,60 @@ class ProjectsScreen : Screen {
         # Load projects
         $this.LoadProjects()
         
-        # Key bindings now handled by GetShortcutBindings() method
-        # Initial focus will be handled by FocusManager when screen is activated
+        # Register screen-specific shortcuts with ShortcutManager
+        $this.RegisterShortcuts()
+    }
+    
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { return }
+        
+        # Register screen-specific shortcuts
+        $screen = $this
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.new"
+            Name = "New Project"
+            Description = "Create a new project"
+            KeyChar = 'n'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.NewProject() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.edit"
+            Name = "Edit Project"
+            Description = "Edit the selected project"
+            KeyChar = 'e'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.EditProject() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.delete"
+            Name = "Delete Project"
+            Description = "Delete the selected project"
+            KeyChar = 'd'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.DeleteProject() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.refresh"
+            Name = "Refresh"
+            Description = "Refresh the project list"
+            Key = [System.ConsoleKey]::F5
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.LoadProjects() }.GetNewClosure()
+        })
     }
     
     
@@ -10706,18 +10873,6 @@ class SettingsScreen : Screen {
     # Handle screen-specific input
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         switch ($key.Key) {
-            ([System.ConsoleKey]::LeftArrow) { 
-                if ($this.SettingsGrid.IsFocused) {
-                    $this.CategoryList.Focus()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::RightArrow) { 
-                if ($this.CategoryList.IsFocused) {
-                    $this.SettingsGrid.Focus()
-                    return $true
-                }
-            }
             ([System.ConsoleKey]::Enter) { 
                 $this.EditSetting()
                 return $true
@@ -10734,10 +10889,6 @@ class SettingsScreen : Screen {
         return $false
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Let base class handle the input
-        return ([Screen]$this).HandleInput($key)
-    }
     
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
@@ -10918,14 +11069,6 @@ class SettingsScreen : Screen {
         }
     }
     
-    [void] FocusNext() {
-        if ($this.CategoryList.IsFocused) {
-            $this.SettingsGrid.Focus()
-        } else {
-            $this.CategoryList.Focus()
-        }
-        $this.Invalidate()
-    }
     
     hidden [string] FormatCategoryName([string]$name) {
         # Convert PascalCase to Title Case
@@ -10981,9 +11124,9 @@ class SettingsScreen : Screen {
 
 
 ####\Screens/SubtaskDialog.ps1
-# SubtaskDialog - Dialog for adding/editing subtasks
+# SubtaskDialog - Dialog for adding/editing subtasks using BaseDialog
 
-class SubtaskDialog : Screen {
+class SubtaskDialog : BaseDialog {
     [Task]$ParentTask = $null
     [Subtask]$Subtask = $null  # For editing existing subtasks
     [bool]$IsEditMode = $false
@@ -10999,146 +11142,127 @@ class SubtaskDialog : Screen {
     [TextBox]$PriorityTextBox
     [TextBox]$ProgressTextBox
     
-    # Buttons
-    [Button]$SaveButton
-    [Button]$CancelButton
-    
-    # Callbacks
-    [scriptblock]$OnSave = {}
-    [scriptblock]$OnCancel = {}
-    
-    SubtaskDialog() : base() {
-        $this.Title = "Add Subtask"
+    SubtaskDialog() : base("Add Subtask", 60, 24) {
+        $this.PrimaryButtonText = "Add Subtask"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    SubtaskDialog([Task]$parentTask) : base() {
+    SubtaskDialog([Task]$parentTask) : base("Add Subtask - $($parentTask.Title)", 60, 24) {
         $this.ParentTask = $parentTask
-        $this.Title = "Add Subtask - $($parentTask.Title)"
+        $this.PrimaryButtonText = "Add Subtask"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    SubtaskDialog([Task]$parentTask, [Subtask]$subtask) : base() {
+    SubtaskDialog([Task]$parentTask, [Subtask]$subtask) : base("Edit Subtask - $($subtask.Title)", 60, 24) {
         $this.ParentTask = $parentTask
         $this.Subtask = $subtask
         $this.IsEditMode = $true
-        $this.Title = "Edit Subtask - $($subtask.Title)"
+        $this.PrimaryButtonText = "Update Subtask"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    [void] OnInitialize() {
+    [void] InitializeContent() {
         # Create input fields
         $this.TitleTextBox = [TextBox]::new()
         $this.TitleTextBox.Title = "Title"
         $this.TitleTextBox.ShowBorder = $true
+        $this.TitleTextBox.TabIndex = 1
         
         if ($this.IsEditMode -and $this.Subtask.Title) {
             $this.TitleTextBox.Text = $this.Subtask.Title
         }
+        $this.AddContentControl($this.TitleTextBox)
         
         $this.DescriptionTextBox = [TextBox]::new()
         $this.DescriptionTextBox.Title = "Description"
         $this.DescriptionTextBox.ShowBorder = $true
         $this.DescriptionTextBox.IsMultiline = $true
+        $this.DescriptionTextBox.TabIndex = 2
         
         if ($this.IsEditMode -and $this.Subtask.Description) {
             $this.DescriptionTextBox.Text = $this.Subtask.Description
         }
+        $this.AddContentControl($this.DescriptionTextBox)
         
         $this.PriorityTextBox = [TextBox]::new()
         $this.PriorityTextBox.Title = "Priority (Low/Medium/High)"
         $this.PriorityTextBox.ShowBorder = $true
+        $this.PriorityTextBox.TabIndex = 3
         
         if ($this.IsEditMode) {
             $this.PriorityTextBox.Text = $this.Subtask.Priority.ToString()
         } else {
             $this.PriorityTextBox.Text = "Medium"
         }
+        $this.AddContentControl($this.PriorityTextBox)
         
         $this.ProgressTextBox = [TextBox]::new()
         $this.ProgressTextBox.Title = "Progress (0-100)"
         $this.ProgressTextBox.ShowBorder = $true
+        $this.ProgressTextBox.TabIndex = 4
         
         if ($this.IsEditMode) {
             $this.ProgressTextBox.Text = $this.Subtask.Progress.ToString()
         } else {
             $this.ProgressTextBox.Text = "0"
         }
+        $this.AddContentControl($this.ProgressTextBox)
         
         $this.EstimatedTimeTextBox = [TextBox]::new()
         $this.EstimatedTimeTextBox.Title = "Estimated Time (minutes)"
         $this.EstimatedTimeTextBox.ShowBorder = $true
+        $this.EstimatedTimeTextBox.TabIndex = 5
         
         if ($this.IsEditMode -and $this.Subtask.EstimatedMinutes -gt 0) {
             $this.EstimatedTimeTextBox.Text = $this.Subtask.EstimatedMinutes.ToString()
         }
+        $this.AddContentControl($this.EstimatedTimeTextBox)
         
         $this.ActualTimeTextBox = [TextBox]::new()
         $this.ActualTimeTextBox.Title = "Actual Time (minutes)"
         $this.ActualTimeTextBox.ShowBorder = $true
+        $this.ActualTimeTextBox.TabIndex = 6
         
         if ($this.IsEditMode -and $this.Subtask.ActualMinutes -gt 0) {
             $this.ActualTimeTextBox.Text = $this.Subtask.ActualMinutes.ToString()
         }
+        $this.AddContentControl($this.ActualTimeTextBox)
         
         $this.DueDateTextBox = [TextBox]::new()
         $this.DueDateTextBox.Title = "Due Date (MM/DD/YYYY, optional)"
         $this.DueDateTextBox.ShowBorder = $true
+        $this.DueDateTextBox.TabIndex = 7
         
         if ($this.IsEditMode -and $this.Subtask.DueDate -ne [DateTime]::MinValue) {
             $this.DueDateTextBox.Text = $this.Subtask.DueDate.ToString("MM/dd/yyyy")
         }
+        $this.AddContentControl($this.DueDateTextBox)
         
-        # Initialize components
-        if ($this.ServiceContainer) {
-            $this.TitleTextBox.Initialize($this.ServiceContainer)
-            $this.DescriptionTextBox.Initialize($this.ServiceContainer)
-            $this.PriorityTextBox.Initialize($this.ServiceContainer)
-            $this.ProgressTextBox.Initialize($this.ServiceContainer)
-            $this.EstimatedTimeTextBox.Initialize($this.ServiceContainer)
-            $this.ActualTimeTextBox.Initialize($this.ServiceContainer)
-            $this.DueDateTextBox.Initialize($this.ServiceContainer)
-        }
+        # Set custom handlers for BaseDialog
+        $dialog = $this
+        $this.OnPrimary = {
+            $dialog.HandleSave()
+        }.GetNewClosure()
         
-        # Create buttons
-        $saveText = if ($this.IsEditMode) { "Update Subtask" } else { "Add Subtask" }
-        $this.SaveButton = [Button]::new($saveText)
-        $this.SaveButton.IsDefault = $true
-        $this.SaveButton.OnClick = { $this.HandleSave() }
-        
-        $this.CancelButton = [Button]::new("Cancel")
-        $this.CancelButton.OnClick = { $this.HandleCancel() }
-        
-        if ($this.ServiceContainer) {
-            $this.SaveButton.Initialize($this.ServiceContainer)
-            $this.CancelButton.Initialize($this.ServiceContainer)
-        }
-        
-        # Add children
-        $this.AddChild($this.TitleTextBox)
-        $this.AddChild($this.DescriptionTextBox)
-        $this.AddChild($this.PriorityTextBox)
-        $this.AddChild($this.ProgressTextBox)
-        $this.AddChild($this.EstimatedTimeTextBox)
-        $this.AddChild($this.ActualTimeTextBox)
-        $this.AddChild($this.DueDateTextBox)
-        $this.AddChild($this.SaveButton)
-        $this.AddChild($this.CancelButton)
-        
-        # Set initial focus
-        $this.TitleTextBox.Focus()
+        $this.OnSecondary = {
+            if ($dialog.OnCancel) {
+                & $dialog.OnCancel
+            }
+            $dialog.CloseDialog()
+        }.GetNewClosure()
     }
     
-    [void] OnBoundsChanged() {
-        # Layout: Stack inputs vertically with buttons at bottom
-        $margin = 2
-        $buttonHeight = 3
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Custom layout: Stack inputs vertically
+        $padding = $this.DialogPadding
         $shortInputHeight = 3
         $tallInputHeight = 4
-        
-        $currentY = $this.Y + $margin
-        $inputWidth = $this.Width - ($margin * 2)
+        $currentY = $dialogY + $padding
+        $inputWidth = $this.DialogWidth - ($padding * 2)
         
         # Title input
         $this.TitleTextBox.SetBounds(
-            $this.X + $margin,
+            $dialogX + $padding,
             $currentY,
             $inputWidth,
             $shortInputHeight
@@ -11147,7 +11271,7 @@ class SubtaskDialog : Screen {
         
         # Description input (taller)
         $this.DescriptionTextBox.SetBounds(
-            $this.X + $margin,
+            $dialogX + $padding,
             $currentY,
             $inputWidth,
             $tallInputHeight
@@ -11157,14 +11281,14 @@ class SubtaskDialog : Screen {
         # Priority and Progress on same row
         $halfWidth = [int](($inputWidth - 2) / 2)
         $this.PriorityTextBox.SetBounds(
-            $this.X + $margin,
+            $dialogX + $padding,
             $currentY,
             $halfWidth,
             $shortInputHeight
         )
         
         $this.ProgressTextBox.SetBounds(
-            $this.X + $margin + $halfWidth + 2,
+            $dialogX + $padding + $halfWidth + 2,
             $currentY,
             $halfWidth,
             $shortInputHeight
@@ -11173,14 +11297,14 @@ class SubtaskDialog : Screen {
         
         # Estimated and Actual time on same row
         $this.EstimatedTimeTextBox.SetBounds(
-            $this.X + $margin,
+            $dialogX + $padding,
             $currentY,
             $halfWidth,
             $shortInputHeight
         )
         
         $this.ActualTimeTextBox.SetBounds(
-            $this.X + $margin + $halfWidth + 2,
+            $dialogX + $padding + $halfWidth + 2,
             $currentY,
             $halfWidth,
             $shortInputHeight
@@ -11189,32 +11313,10 @@ class SubtaskDialog : Screen {
         
         # Due date
         $this.DueDateTextBox.SetBounds(
-            $this.X + $margin,
+            $dialogX + $padding,
             $currentY,
             $inputWidth,
             $shortInputHeight
-        )
-        $currentY += $shortInputHeight + 2
-        
-        # Buttons at bottom
-        $buttonWidth = 15
-        $buttonSpacing = 4
-        $totalButtonWidth = ($buttonWidth * 2) + $buttonSpacing
-        $buttonStartX = $this.X + [int](($this.Width - $totalButtonWidth) / 2)
-        $buttonY = $this.Y + $this.Height - $buttonHeight - 1
-        
-        $this.SaveButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
-        
-        $this.CancelButton.SetBounds(
-            $buttonStartX + $buttonWidth + $buttonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
         )
     }
     
@@ -11233,12 +11335,9 @@ class SubtaskDialog : Screen {
         if ($this.OnSave) {
             & $this.OnSave $subtaskData
         }
-    }
-    
-    [void] HandleCancel() {
-        if ($this.OnCancel) {
-            & $this.OnCancel
-        }
+        
+        # Close dialog after successful save
+        $this.CloseDialog()
     }
     
     [string] ValidateInputs() {
@@ -11340,45 +11439,25 @@ class SubtaskDialog : Screen {
         return $subtaskData
     }
     
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::Enter) {
-                if ($keyInfo.Modifiers -band [ConsoleModifiers]::Control) {
-                    $this.HandleSave()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::Escape) {
-                $this.HandleCancel()
-                return $true
-            }
-            ([System.ConsoleKey]::Tab) {
-                # Handle tab navigation between fields
-                $focused = $this.FindFocused()
-                if ($focused -eq $this.TitleTextBox) {
-                    $this.DescriptionTextBox.Focus()
-                } elseif ($focused -eq $this.DescriptionTextBox) {
-                    $this.PriorityTextBox.Focus()
-                } elseif ($focused -eq $this.PriorityTextBox) {
-                    $this.ProgressTextBox.Focus()
-                } elseif ($focused -eq $this.ProgressTextBox) {
-                    $this.EstimatedTimeTextBox.Focus()
-                } elseif ($focused -eq $this.EstimatedTimeTextBox) {
-                    $this.ActualTimeTextBox.Focus()
-                } elseif ($focused -eq $this.ActualTimeTextBox) {
-                    $this.DueDateTextBox.Focus()
-                } elseif ($focused -eq $this.DueDateTextBox) {
-                    $this.SaveButton.Focus()
-                } else {
-                    $this.TitleTextBox.Focus()
-                }
-                return $true
-            }
+    # Override HandleScreenInput to add Ctrl+Enter shortcut
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Let base class handle standard dialog shortcuts first
+        if (([BaseDialog]$this).HandleScreenInput($key)) {
+            return $true
         }
         
-        # Let base class handle other input
+        # Add Ctrl+Enter shortcut for save
+        if ($key.Key -eq [System.ConsoleKey]::Enter -and ($key.Modifiers -band [ConsoleModifiers]::Control)) {
+            $this.HandleSave()
+            return $true
+        }
+        
         return $false
     }
+    
+    # Legacy callback support
+    [scriptblock]$OnSave = {}
+    [scriptblock]$OnCancel = {}
 }
 
 
@@ -11906,12 +11985,12 @@ class TaskScreen : Screen {
     
     # FocusNext method removed - Tab navigation now handled by FocusManager service
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)'")
+            $global:Logger.Debug("TaskScreen.HandleScreenInput: Key=$($key.Key) Char='$($key.KeyChar)'")
         }
         
-        # Handle screen-specific shortcuts FIRST (before passing to children)
+        # Handle screen-specific shortcuts
         switch ($key.Key) {
             ([System.ConsoleKey]::N) {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
@@ -11991,13 +12070,7 @@ class TaskScreen : Screen {
             }
         }
         
-        # Let base Screen class handle other keys (like Tab navigation)
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Finally, pass unhandled input to focused child
-        return ([Container]$this).HandleInput($key)
+        return $false
     }
     
     [string] OnRender() {
@@ -14016,6 +14089,311 @@ class ProjectService {
 }
 
 
+####\Services/ShortcutManager.ps1
+# ShortcutManager.ps1 - Centralized keyboard shortcut management service
+
+enum ShortcutScope {
+    Global      # Available everywhere
+    Screen      # Available in specific screen types
+    Context     # Available in specific contexts (e.g., when dialog is open)
+}
+
+class ShortcutDefinition {
+    [string]$Id
+    [string]$Name
+    [string]$Description
+    [System.ConsoleKey]$Key
+    [System.ConsoleModifiers]$Modifiers
+    [char]$KeyChar
+    [ShortcutScope]$Scope
+    [string]$ScreenType  # For Screen scope
+    [string]$Context     # For Context scope
+    [scriptblock]$Action
+    [bool]$Enabled = $true
+    [int]$Priority = 0   # Higher priority shortcuts are checked first
+    
+    ShortcutDefinition() {}
+    
+    [bool] Matches([System.ConsoleKeyInfo]$keyInfo) {
+        # Check if this shortcut matches the pressed key
+        if ($this.Key -ne [System.ConsoleKey]::None) {
+            if ($keyInfo.Key -ne $this.Key) {
+                return $false
+            }
+            if ($this.Modifiers -ne [System.ConsoleModifiers]::None) {
+                if (($keyInfo.Modifiers -band $this.Modifiers) -ne $this.Modifiers) {
+                    return $false
+                }
+            }
+            return $true
+        }
+        elseif ($this.KeyChar -ne [char]0) {
+            # Character-based shortcut
+            return $keyInfo.KeyChar -eq $this.KeyChar
+        }
+        return $false
+    }
+    
+    [string] GetDisplayText() {
+        $parts = @()
+        
+        if ($this.Modifiers -band [System.ConsoleModifiers]::Control) {
+            $parts += "Ctrl"
+        }
+        if ($this.Modifiers -band [System.ConsoleModifiers]::Alt) {
+            $parts += "Alt"
+        }
+        if ($this.Modifiers -band [System.ConsoleModifiers]::Shift) {
+            $parts += "Shift"
+        }
+        
+        if ($this.Key -ne [System.ConsoleKey]::None) {
+            $parts += $this.Key.ToString()
+        }
+        elseif ($this.KeyChar -ne [char]0) {
+            $parts += $this.KeyChar.ToString()
+        }
+        
+        return $parts -join "+"
+    }
+}
+
+class ShortcutManager {
+    hidden [System.Collections.Generic.List[ShortcutDefinition]]$Shortcuts
+    hidden [Logger]$Logger
+    hidden [EventBus]$EventBus
+    
+    ShortcutManager() {
+        $this.Shortcuts = [System.Collections.Generic.List[ShortcutDefinition]]::new()
+    }
+    
+    [void] Initialize([ServiceContainer]$container) {
+        $this.Logger = $container.GetService('Logger')
+        $this.EventBus = $container.GetService('EventBus')
+        
+        # Register default global shortcuts
+        $this.RegisterDefaultShortcuts()
+    }
+    
+    [void] RegisterDefaultShortcuts() {
+        # Global shortcuts
+        $this.RegisterShortcut(@{
+            Id = "global.quit"
+            Name = "Quit Application"
+            Description = "Exit the application"
+            Key = [System.ConsoleKey]::Q
+            Modifiers = [System.ConsoleModifiers]::Control
+            Scope = [ShortcutScope]::Global
+            Priority = 100
+            Action = {
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.RequestExit()
+                }
+            }
+        })
+        
+        $this.RegisterShortcut(@{
+            Id = "global.command_palette"
+            Name = "Command Palette"
+            Description = "Open the command palette"
+            KeyChar = ':'
+            Scope = [ShortcutScope]::Global
+            Priority = 90
+            Action = {
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.ShowCommandPalette()
+                }
+            }
+        })
+        
+        $this.RegisterShortcut(@{
+            Id = "global.command_palette_alt"
+            Name = "Command Palette (Alt)"
+            Description = "Open the command palette"
+            KeyChar = '/'
+            Scope = [ShortcutScope]::Global
+            Priority = 90
+            Action = {
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.ShowCommandPalette()
+                }
+            }
+        })
+    }
+    
+    [void] RegisterShortcut([hashtable]$definition) {
+        $shortcut = [ShortcutDefinition]::new()
+        
+        # Map hashtable properties to object
+        foreach ($key in $definition.Keys) {
+            if ($null -ne $shortcut.PSObject.Properties[$key]) {
+                $shortcut.$key = $definition[$key]
+            }
+        }
+        
+        # Validate required properties
+        if ([string]::IsNullOrEmpty($shortcut.Id)) {
+            throw "Shortcut ID is required"
+        }
+        if (-not $shortcut.Action) {
+            throw "Shortcut action is required"
+        }
+        
+        # Remove existing shortcut with same ID
+        $this.UnregisterShortcut($shortcut.Id)
+        
+        # Add new shortcut
+        $this.Shortcuts.Add($shortcut)
+        
+        # Sort by priority (descending)
+        $this.Shortcuts.Sort({ param($a, $b) $b.Priority.CompareTo($a.Priority) })
+        
+        if ($this.Logger) {
+            $this.Logger.Debug("Registered shortcut: $($shortcut.Id) - $($shortcut.GetDisplayText())")
+        }
+    }
+    
+    [void] UnregisterShortcut([string]$id) {
+        $existing = $this.Shortcuts | Where-Object { $_.Id -eq $id }
+        if ($existing) {
+            $this.Shortcuts.Remove($existing) | Out-Null
+        }
+    }
+    
+    [bool] HandleKeyPress([System.ConsoleKeyInfo]$keyInfo, [string]$currentScreen, [string]$currentContext) {
+        # Find matching shortcuts
+        $candidates = $this.Shortcuts | Where-Object {
+            $_.Enabled -and $_.Matches($keyInfo)
+        }
+        
+        # Filter by scope
+        $applicable = @()
+        foreach ($shortcut in $candidates) {
+            switch ($shortcut.Scope) {
+                ([ShortcutScope]::Global) {
+                    $applicable += $shortcut
+                }
+                ([ShortcutScope]::Screen) {
+                    if ($shortcut.ScreenType -eq $currentScreen -or 
+                        [string]::IsNullOrEmpty($shortcut.ScreenType)) {
+                        $applicable += $shortcut
+                    }
+                }
+                ([ShortcutScope]::Context) {
+                    if ($shortcut.Context -eq $currentContext -or
+                        [string]::IsNullOrEmpty($shortcut.Context)) {
+                        $applicable += $shortcut
+                    }
+                }
+            }
+        }
+        
+        # Execute the highest priority applicable shortcut
+        if ($applicable.Count -gt 0) {
+            $shortcut = $applicable[0]  # Already sorted by priority
+            
+            if ($this.Logger) {
+                $this.Logger.Debug("Executing shortcut: $($shortcut.Id)")
+            }
+            
+            # Publish event before execution
+            if ($this.EventBus) {
+                $this.EventBus.Publish('shortcut.executing', @{
+                    ShortcutId = $shortcut.Id
+                    Key = $keyInfo
+                })
+            }
+            
+            try {
+                # Execute the action
+                & $shortcut.Action
+                
+                # Publish success event
+                if ($this.EventBus) {
+                    $this.EventBus.Publish('shortcut.executed', @{
+                        ShortcutId = $shortcut.Id
+                        Key = $keyInfo
+                    })
+                }
+                
+                return $true
+            }
+            catch {
+                if ($this.Logger) {
+                    $this.Logger.Error("Error executing shortcut $($shortcut.Id): $_")
+                }
+                return $false
+            }
+        }
+        
+        return $false
+    }
+    
+    [ShortcutDefinition[]] GetShortcuts([ShortcutScope]$scope, [string]$screenType) {
+        return $this.Shortcuts | Where-Object {
+            $_.Scope -eq $scope -and
+            ($_.ScreenType -eq $screenType -or [string]::IsNullOrEmpty($_.ScreenType))
+        }
+    }
+    
+    [ShortcutDefinition[]] GetAllShortcuts() {
+        return $this.Shortcuts
+    }
+    
+    [hashtable] GetShortcutMap() {
+        # Returns a hashtable for easy display in UI
+        $map = @{}
+        
+        foreach ($shortcut in $this.Shortcuts) {
+            $key = $shortcut.GetDisplayText()
+            if (-not $map.ContainsKey($key)) {
+                $map[$key] = @()
+            }
+            $map[$key] += @{
+                Name = $shortcut.Name
+                Description = $shortcut.Description
+                Scope = $shortcut.Scope
+                ScreenType = $shortcut.ScreenType
+            }
+        }
+        
+        return $map
+    }
+    
+    [void] EnableShortcut([string]$id) {
+        $shortcut = $this.Shortcuts | Where-Object { $_.Id -eq $id }
+        if ($shortcut) {
+            $shortcut.Enabled = $true
+        }
+    }
+    
+    [void] DisableShortcut([string]$id) {
+        $shortcut = $this.Shortcuts | Where-Object { $_.Id -eq $id }
+        if ($shortcut) {
+            $shortcut.Enabled = $false
+        }
+    }
+    
+    [string] GetShortcutHelp([ShortcutScope]$scope = [ShortcutScope]::Global, [string]$screenType = "") {
+        $sb = [System.Text.StringBuilder]::new()
+        $shortcutList = $this.GetShortcuts($scope, $screenType)
+        
+        if ($shortcutList.Count -gt 0) {
+            $grouped = $shortcutList | Group-Object { $_.GetDisplayText() }
+            
+            foreach ($group in $grouped | Sort-Object Name) {
+                $sb.AppendLine("$($group.Name):")
+                foreach ($shortcut in $group.Group) {
+                    $sb.AppendLine("  - $($shortcut.Name): $($shortcut.Description)")
+                }
+            }
+        }
+        
+        return $sb.ToString()
+    }
+}
+
+
 ####\Services/StateManager.ps1
 # StateManager.ps1 - Fast, robust, PowerShell-native state management
 # Based on AxiomPhoenix patterns with PRAXIS optimizations
@@ -15564,7 +15942,7 @@ $loadOrder = @(
     "Base/BaseModel.ps1"
     
     # Services that depend on base classes
-    # (Removed FocusManager and ShortcutManager - using direct patterns instead)
+    "Services/ShortcutManager.ps1"
     
     # Models
     "Models/Project.ps1"
@@ -15670,6 +16048,11 @@ $global:ServiceContainer.Register("ThemeManager", $themeManager)
 $eventBus = [EventBus]::new()
 $eventBus.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("EventBus", $eventBus)
+
+# ShortcutManager
+$shortcutManager = [ShortcutManager]::new()
+$shortcutManager.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("ShortcutManager", $shortcutManager)
 if ($Debug) {
     Write-Host "  EventBus initialized" -ForegroundColor DarkGray
 }
@@ -15700,7 +16083,6 @@ $global:ServiceContainer.Register("ConfigurationService", $configService)
 $stateManager = [StateManager]::new()
 $stateManager.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("StateManager", $stateManager)
-$global:StateManager = $stateManager
 
 # Screen manager
 $screenManager = [ScreenManager]::new($global:ServiceContainer)
@@ -15746,13 +16128,835 @@ try {
 } finally {
     # Cleanup
     $global:Logger.Info("Shutting down PRAXIS")
-    if ($global:StateManager) {
-        $global:StateManager.Cleanup()
+    $stateManager = $global:ServiceContainer.GetService("StateManager")
+    if ($stateManager) {
+        $stateManager.Cleanup()
     }
     $global:Logger.Cleanup()
     $global:ServiceContainer.Cleanup()
     Write-Host "`nPRAXIS terminated." -ForegroundColor Cyan
 }
+
+
+####\test-dashboard-async-loading.ps1
+#!/usr/bin/env pwsh
+
+# Test for background data loading with progress indicators in DashboardScreen
+# This demonstrates how to implement non-blocking data loading
+
+. ./Start.ps1 -NoRun
+
+# Create an enhanced DashboardScreen with background loading
+class AsyncDashboardScreen : Screen {
+    # Main layout structure (same as original)
+    [HorizontalSplit]$MainLayout
+    [VerticalSplit]$RightLayout
+    [GridPanel]$ActionGrid
+    [HorizontalSplit]$TopRightLayout
+    [VerticalSplit]$MetricsLayout
+    
+    # Left pane components
+    [ListBox]$ProjectList
+    [ListBox]$RecentActivity
+    [VerticalSplit]$LeftLayout
+    
+    # Top-right pane components
+    [ListBox]$TaskList
+    [ListBox]$PriorityBreakdown
+    [ListBox]$StatusChart
+    [GridPanel]$MetricBoxes
+    
+    # Progress indicators for each section
+    [ProgressBar]$ProjectProgress
+    [ProgressBar]$TaskProgress
+    [ProgressBar]$ActivityProgress
+    [ProgressBar]$MetricsProgress
+    
+    # Loading overlays
+    [hashtable]$LoadingStates = @{
+        Projects = $false
+        Tasks = $false
+        Activity = $false
+        Metrics = $false
+    }
+    
+    # Services
+    [ProjectService]$ProjectService
+    [TaskService]$TaskService
+    [EventBus]$EventBus
+    [ThemeManager]$Theme
+    
+    # Data loading flags
+    hidden [bool]$_isLoading = $false
+    hidden [System.Collections.Generic.List[string]]$_loadingTasks
+    
+    AsyncDashboardScreen() : base() {
+        $this.Title = "PRAXIS Async Dashboard"
+        $this._loadingTasks = [System.Collections.Generic.List[string]]::new()
+    }
+    
+    [void] OnInitialize() {
+        Write-Host "Initializing async dashboard..."
+        
+        # Get services
+        $this.ProjectService = $global:ServiceContainer.GetService("ProjectService")
+        $this.TaskService = $global:ServiceContainer.GetService("TaskService")
+        $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+        $this.Theme = $global:ServiceContainer.GetService('ThemeManager')
+        
+        # Subscribe to data loading events
+        $this.SetupEventHandlers()
+        
+        # Build UI structure immediately
+        $this.BuildMasterLayout()
+        $this.BuildLeftPane()
+        $this.BuildRightPane()
+        
+        # Show initial empty state with loading indicators
+        $this.ShowLoadingState()
+        
+        # Start background data loading
+        $this.StartAsyncDataLoad()
+        
+        Write-Host "Dashboard UI ready, loading data in background..."
+    }
+    
+    [void] SetupEventHandlers() {
+        # Progress update events
+        $this.EventBus.Subscribe('dashboard.progress.projects', {
+            param($sender, $data)
+            if ($this.ProjectProgress) {
+                $this.ProjectProgress.SetProgress($data.Progress, $data.Status)
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.progress.tasks', {
+            param($sender, $data)
+            if ($this.TaskProgress) {
+                $this.TaskProgress.SetProgress($data.Progress, $data.Status)
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.progress.activity', {
+            param($sender, $data)
+            if ($this.ActivityProgress) {
+                $this.ActivityProgress.SetProgress($data.Progress, $data.Status)
+            }
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.progress.metrics', {
+            param($sender, $data)
+            if ($this.MetricsProgress) {
+                $this.MetricsProgress.SetProgress($data.Progress, $data.Status)
+            }
+        }.GetNewClosure())
+        
+        # Data loaded events
+        $this.EventBus.Subscribe('dashboard.data.projects', {
+            param($sender, $data)
+            $this.OnProjectsLoaded($data.Projects)
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.tasks', {
+            param($sender, $data)
+            $this.OnTasksLoaded($data.Tasks)
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.activity', {
+            param($sender, $data)
+            $this.OnActivityLoaded($data.Activities)
+        }.GetNewClosure())
+        
+        $this.EventBus.Subscribe('dashboard.data.metrics', {
+            param($sender, $data)
+            $this.OnMetricsLoaded($data.Metrics)
+        }.GetNewClosure())
+    }
+    
+    [void] BuildMasterLayout() {
+        # Same as original, but with progress bars
+        Write-Host "Building master layout structure..."
+        
+        # Main horizontal split
+        $this.MainLayout = [HorizontalSplit]::new()
+        $this.MainLayout.SetSplitRatio(40)
+        $this.MainLayout.ShowBorder = $false
+        $this.MainLayout.Initialize($global:ServiceContainer)
+        $this.AddChild($this.MainLayout)
+        
+        # Left side: Vertical split
+        $this.LeftLayout = [VerticalSplit]::new()
+        $this.LeftLayout.SetSplitRatio(65)
+        $this.LeftLayout.ShowBorder = $false
+        $this.LeftLayout.Initialize($global:ServiceContainer)
+        $this.MainLayout.SetLeftPane($this.LeftLayout)
+        
+        # Right side: Vertical split
+        $this.RightLayout = [VerticalSplit]::new()
+        $this.RightLayout.SetSplitRatio(75)
+        $this.RightLayout.ShowBorder = $false
+        $this.RightLayout.Initialize($global:ServiceContainer)
+        $this.MainLayout.SetRightPane($this.RightLayout)
+    }
+    
+    [void] BuildLeftPane() {
+        # Project List with progress bar overlay
+        $projectContainer = [VerticalSplit]::new()
+        $projectContainer.SetSplitRatio(85)  # 85% list, 15% progress
+        $projectContainer.ShowBorder = $false
+        $projectContainer.Initialize($global:ServiceContainer)
+        
+        $this.ProjectList = [ListBox]::new()
+        $this.ProjectList.Title = "📊 Project Overview"
+        $this.ProjectList.ShowBorder = $true
+        $this.ProjectList.Initialize($global:ServiceContainer)
+        $projectContainer.SetTopPane($this.ProjectList)
+        
+        $this.ProjectProgress = [ProgressBar]::new()
+        $this.ProjectProgress.Title = "Loading Projects..."
+        $this.ProjectProgress.ShowBorder = $false
+        $this.ProjectProgress.Height = 3
+        $this.ProjectProgress.Initialize($global:ServiceContainer)
+        $projectContainer.SetBottomPane($this.ProjectProgress)
+        
+        $this.LeftLayout.SetTopPane($projectContainer)
+        
+        # Recent Activity with progress bar
+        $activityContainer = [VerticalSplit]::new()
+        $activityContainer.SetSplitRatio(80)  # 80% list, 20% progress
+        $activityContainer.ShowBorder = $false
+        $activityContainer.Initialize($global:ServiceContainer)
+        
+        $this.RecentActivity = [ListBox]::new()
+        $this.RecentActivity.Title = "📈 Recent Activity"
+        $this.RecentActivity.ShowBorder = $true
+        $this.RecentActivity.Initialize($global:ServiceContainer)
+        $activityContainer.SetTopPane($this.RecentActivity)
+        
+        $this.ActivityProgress = [ProgressBar]::new()
+        $this.ActivityProgress.Title = "Loading Activity..."
+        $this.ActivityProgress.ShowBorder = $false
+        $this.ActivityProgress.Height = 3
+        $this.ActivityProgress.Initialize($global:ServiceContainer)
+        $activityContainer.SetBottomPane($this.ActivityProgress)
+        
+        $this.LeftLayout.SetBottomPane($activityContainer)
+    }
+    
+    [void] BuildRightPane() {
+        # Top-right: Metrics layout
+        $this.TopRightLayout = [HorizontalSplit]::new()
+        $this.TopRightLayout.SetSplitRatio(50)
+        $this.TopRightLayout.ShowBorder = $false
+        $this.TopRightLayout.Initialize($global:ServiceContainer)
+        
+        # Task metrics with progress
+        $taskContainer = [VerticalSplit]::new()
+        $taskContainer.SetSplitRatio(85)
+        $taskContainer.ShowBorder = $false
+        $taskContainer.Initialize($global:ServiceContainer)
+        
+        $this.MetricsLayout = [VerticalSplit]::new()
+        $this.MetricsLayout.SetSplitRatio(50)
+        $this.MetricsLayout.ShowBorder = $false
+        $this.MetricsLayout.Initialize($global:ServiceContainer)
+        
+        $this.TaskList = [ListBox]::new()
+        $this.TaskList.Title = "🎯 Active Tasks"
+        $this.TaskList.ShowBorder = $true
+        $this.TaskList.Initialize($global:ServiceContainer)
+        $this.MetricsLayout.SetTopPane($this.TaskList)
+        
+        $this.PriorityBreakdown = [ListBox]::new()
+        $this.PriorityBreakdown.Title = "📊 Priority Distribution"
+        $this.PriorityBreakdown.ShowBorder = $true
+        $this.PriorityBreakdown.Initialize($global:ServiceContainer)
+        $this.MetricsLayout.SetBottomPane($this.PriorityBreakdown)
+        
+        $taskContainer.SetTopPane($this.MetricsLayout)
+        
+        $this.TaskProgress = [ProgressBar]::new()
+        $this.TaskProgress.Title = "Loading Tasks..."
+        $this.TaskProgress.ShowBorder = $false
+        $this.TaskProgress.Height = 3
+        $this.TaskProgress.Initialize($global:ServiceContainer)
+        $taskContainer.SetBottomPane($this.TaskProgress)
+        
+        $this.TopRightLayout.SetLeftPane($taskContainer)
+        
+        # Status chart with progress
+        $statusContainer = [VerticalSplit]::new()
+        $statusContainer.SetSplitRatio(85)
+        $statusContainer.ShowBorder = $false
+        $statusContainer.Initialize($global:ServiceContainer)
+        
+        $this.StatusChart = [ListBox]::new()
+        $this.StatusChart.Title = "📈 Status Overview"
+        $this.StatusChart.ShowBorder = $true
+        $this.StatusChart.Initialize($global:ServiceContainer)
+        $statusContainer.SetTopPane($this.StatusChart)
+        
+        $this.MetricsProgress = [ProgressBar]::new()
+        $this.MetricsProgress.Title = "Calculating Metrics..."
+        $this.MetricsProgress.ShowBorder = $false
+        $this.MetricsProgress.Height = 3
+        $this.MetricsProgress.Initialize($global:ServiceContainer)
+        $statusContainer.SetBottomPane($this.MetricsProgress)
+        
+        $this.TopRightLayout.SetRightPane($statusContainer)
+        
+        $this.RightLayout.SetTopPane($this.TopRightLayout)
+        
+        # Action buttons (same as original)
+        $this.ActionGrid = [GridPanel]::new(4)
+        $this.ActionGrid.ShowBorder = $true
+        $this.ActionGrid.CellSpacing = 1
+        $this.ActionGrid.Initialize($global:ServiceContainer)
+        $this.CreateActionButtons()
+        $this.RightLayout.SetBottomPane($this.ActionGrid)
+    }
+    
+    [void] CreateActionButtons() {
+        # Create refresh button with async behavior
+        $this.RefreshBtn = [Button]::new("🔄 Refresh")
+        $dashboardRef = $this
+        $this.RefreshBtn.OnClick = { 
+            Write-Host "Starting async refresh..."
+            $dashboardRef.StartAsyncDataLoad()
+        }.GetNewClosure()
+        $this.RefreshBtn.Initialize($global:ServiceContainer)
+        $this.ActionGrid.AddChild($this.RefreshBtn)
+        
+        # Add other buttons...
+        $otherButtons = @(
+            [Button]::new("🆕 New Project"),
+            [Button]::new("📝 New Task"),
+            [Button]::new("📤 Export"),
+            [Button]::new("⚙️  Settings"),
+            [Button]::new("❓ Help"),
+            [Button]::new("📊 Reports"),
+            [Button]::new("📦 Archive")
+        )
+        
+        foreach ($btn in $otherButtons) {
+            $btn.Initialize($global:ServiceContainer)
+            $this.ActionGrid.AddChild($btn)
+        }
+    }
+    
+    [void] ShowLoadingState() {
+        # Show loading placeholders
+        $this.ProjectList.SetItems(@("⏳ Loading projects..."))
+        $this.TaskList.SetItems(@("⏳ Loading tasks..."))
+        $this.RecentActivity.SetItems(@("⏳ Loading activity..."))
+        $this.PriorityBreakdown.SetItems(@("⏳ Calculating..."))
+        $this.StatusChart.SetItems(@("⏳ Analyzing..."))
+        
+        # Initialize progress bars
+        $this.ProjectProgress.SetProgress(0, "Connecting to project service...")
+        $this.TaskProgress.SetProgress(0, "Connecting to task service...")
+        $this.ActivityProgress.SetProgress(0, "Loading recent activity...")
+        $this.MetricsProgress.SetProgress(0, "Preparing metrics...")
+    }
+    
+    [void] StartAsyncDataLoad() {
+        if ($this._isLoading) {
+            Write-Host "Data load already in progress"
+            return
+        }
+        
+        $this._isLoading = $true
+        $this.ShowLoadingState()
+        
+        # Simulate async loading with runspaces
+        $runspace = [runspacefactory]::CreateRunspace()
+        $runspace.Open()
+        $runspace.SessionStateProxy.SetVariable('EventBus', $this.EventBus)
+        $runspace.SessionStateProxy.SetVariable('ProjectService', $this.ProjectService)
+        $runspace.SessionStateProxy.SetVariable('TaskService', $this.TaskService)
+        
+        $powershell = [powershell]::Create()
+        $powershell.Runspace = $runspace
+        
+        $script = {
+            param($EventBus, $ProjectService, $TaskService)
+            
+            try {
+                # Load projects
+                $EventBus.Publish('dashboard.progress.projects', @{ Progress = 10; Status = "Fetching project list..." })
+                Start-Sleep -Milliseconds 500
+                
+                $projects = if ($ProjectService) {
+                    $ProjectService.GetAllProjects() | Where-Object { -not $_.Deleted }
+                } else {
+                    @(
+                        @{ Nickname = "PRAXIS Framework"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(30) }
+                        @{ Nickname = "Dashboard System"; ClosedDate = [DateTime]::MinValue; DateDue = [DateTime]::Now.AddDays(7) }
+                    )
+                }
+                
+                $EventBus.Publish('dashboard.progress.projects', @{ Progress = 50; Status = "Processing $($projects.Count) projects..." })
+                Start-Sleep -Milliseconds 300
+                
+                # Add computed fields
+                foreach ($project in $projects) {
+                    $project.DaysLeft = ($project.DateDue - [DateTime]::Now).Days
+                    Start-Sleep -Milliseconds 100
+                }
+                
+                $EventBus.Publish('dashboard.progress.projects', @{ Progress = 100; Status = "Projects loaded!" })
+                $EventBus.Publish('dashboard.data.projects', @{ Projects = $projects })
+                
+                # Load tasks
+                $EventBus.Publish('dashboard.progress.tasks', @{ Progress = 20; Status = "Querying task database..." })
+                Start-Sleep -Milliseconds 400
+                
+                $tasks = if ($TaskService) {
+                    $TaskService.GetAllTasks()
+                } else {
+                    @(
+                        @{ Title = "Implement async loading"; Priority = "High"; Status = "InProgress"; Progress = 75 }
+                        @{ Title = "Add progress indicators"; Priority = "High"; Status = "Done"; Progress = 100 }
+                        @{ Title = "Test performance"; Priority = "Medium"; Status = "Pending"; Progress = 0 }
+                    )
+                }
+                
+                $EventBus.Publish('dashboard.progress.tasks', @{ Progress = 60; Status = "Processing $($tasks.Count) tasks..." })
+                Start-Sleep -Milliseconds 300
+                
+                $EventBus.Publish('dashboard.progress.tasks', @{ Progress = 100; Status = "Tasks loaded!" })
+                $EventBus.Publish('dashboard.data.tasks', @{ Tasks = $tasks })
+                
+                # Load activity
+                $EventBus.Publish('dashboard.progress.activity', @{ Progress = 30; Status = "Fetching activity log..." })
+                Start-Sleep -Milliseconds 600
+                
+                $activities = @(
+                    @{ Type = "TaskCompleted"; Message = "Async loading implemented"; Time = "Just now" }
+                    @{ Type = "ProjectCreated"; Message = "Started performance project"; Time = "5 min ago" }
+                    @{ Type = "TaskCreated"; Message = "Added progress indicators"; Time = "1 hour ago" }
+                )
+                
+                $EventBus.Publish('dashboard.progress.activity', @{ Progress = 100; Status = "Activity loaded!" })
+                $EventBus.Publish('dashboard.data.activity', @{ Activities = $activities })
+                
+                # Calculate metrics
+                $EventBus.Publish('dashboard.progress.metrics', @{ Progress = 40; Status = "Analyzing data..." })
+                Start-Sleep -Milliseconds 800
+                
+                $metrics = @{
+                    PriorityStats = @("High: 3", "Medium: 2", "Low: 1")
+                    StatusData = @("Completion: 85%", "Active: 3", "Blocked: 0")
+                }
+                
+                $EventBus.Publish('dashboard.progress.metrics', @{ Progress = 100; Status = "Analysis complete!" })
+                $EventBus.Publish('dashboard.data.metrics', @{ Metrics = $metrics })
+                
+            } catch {
+                Write-Host "Error in async load: $_"
+            }
+        }
+        
+        $powershell.AddScript($script)
+        $powershell.AddArgument($this.EventBus)
+        $powershell.AddArgument($this.ProjectService)
+        $powershell.AddArgument($this.TaskService)
+        
+        # Start async execution
+        $handle = $powershell.BeginInvoke()
+        
+        # Store handle for cleanup
+        $this._loadingTasks.Add("main-load")
+    }
+    
+    [void] OnProjectsLoaded($projects) {
+        # Update project list with loaded data
+        $this.ProjectList.ItemRenderer = {
+            param($project)
+            $status = if ($project.ClosedDate -ne [DateTime]::MinValue) { "✅" } else { "🚧" }
+            $urgency = if ($project.DaysLeft -lt 0) { "🔥 OVERDUE" } 
+                      elseif ($project.DaysLeft -lt 7) { "⚠️  DUE SOON" } 
+                      else { "📅 $($project.DaysLeft) days" }
+            return "$status $($project.Nickname) - $urgency"
+        }
+        $this.ProjectList.SetItems($projects)
+        $this.ProjectProgress.SetProgress(100, "✅ Projects loaded")
+    }
+    
+    [void] OnTasksLoaded($tasks) {
+        # Update task list
+        $this.TaskList.ItemRenderer = {
+            param($task)
+            $priority = switch ($task.Priority) {
+                "High" { "🔴" }; "Medium" { "🟡" }; default { "🟢" }
+            }
+            $status = switch ($task.Status) {
+                "InProgress" { "⚡" }; "Done" { "✅" }; default { "📋" }
+            }
+            return "$priority $status $($task.Title) [$($task.Progress)%]"
+        }
+        $activeTasks = $tasks | Where-Object { $_.Status -ne "Done" }
+        $this.TaskList.SetItems($activeTasks)
+        $this.TaskProgress.SetProgress(100, "✅ Tasks loaded")
+        
+        # Update priority breakdown
+        $highCount = @($tasks | Where-Object { $_.Priority -eq 'High' }).Count
+        $medCount = @($tasks | Where-Object { $_.Priority -eq 'Medium' }).Count
+        $lowCount = @($tasks | Where-Object { $_.Priority -eq 'Low' }).Count
+        
+        $this.PriorityBreakdown.SetItems(@(
+            "🔴 High Priority: $highCount tasks",
+            "🟡 Medium Priority: $medCount tasks",
+            "🟢 Low Priority: $lowCount tasks"
+        ))
+    }
+    
+    [void] OnActivityLoaded($activities) {
+        $this.RecentActivity.ItemRenderer = {
+            param($activity)
+            $icon = switch ($activity.Type) {
+                "TaskCompleted" { "✅" }; "ProjectCreated" { "🆕" }; default { "📝" }
+            }
+            return "$icon $($activity.Message) - $($activity.Time)"
+        }
+        $this.RecentActivity.SetItems($activities)
+        $this.ActivityProgress.SetProgress(100, "✅ Activity loaded")
+    }
+    
+    [void] OnMetricsLoaded($metrics) {
+        $this.StatusChart.SetItems($metrics.StatusData)
+        $this.MetricsProgress.SetProgress(100, "✅ Analysis complete")
+        $this._isLoading = $false
+    }
+    
+    [void] OnBoundsChanged() {
+        if ($this.MainLayout) {
+            $this.MainLayout.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
+        }
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::F5) {
+                $this.StartAsyncDataLoad()
+                return $true
+            }
+            ([System.ConsoleKey]::Q) {
+                if (-not $key.Modifiers) {
+                    $this.Active = $false
+                    return $true
+                }
+            }
+        }
+        return ([Screen]$this).HandleInput($key)
+    }
+}
+
+# Create and run the test
+Write-Host "Starting async dashboard demo..." -ForegroundColor Cyan
+Write-Host "The dashboard will load immediately with progress indicators" -ForegroundColor Yellow
+Write-Host "Data will load in the background without blocking the UI" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Press F5 to refresh data, Q to quit" -ForegroundColor Green
+Write-Host ""
+
+# Initialize services
+$global:ServiceContainer = [ServiceContainer]::new()
+$vt = [VT100]::new()
+$global:ServiceContainer.RegisterService('VT100', $vt)
+
+$logger = [Logger]::new("$PSScriptRoot/_Logs/async-dashboard.log")
+$global:ServiceContainer.RegisterService('Logger', $logger)
+$global:Logger = $logger
+
+$theme = [ThemeManager]::new()
+$theme.LoadTheme('Dark')
+$global:ServiceContainer.RegisterService('ThemeManager', $theme)
+
+$eventBus = [EventBus]::new()
+$eventBus.Initialize($global:ServiceContainer)
+$global:ServiceContainer.RegisterService('EventBus', $eventBus)
+
+$projectService = [ProjectService]::new("$PSScriptRoot/_ProjectData/projects.json")
+$global:ServiceContainer.RegisterService('ProjectService', $projectService)
+
+$taskService = [TaskService]::new("$PSScriptRoot/_ProjectData/tasks.json")
+$global:ServiceContainer.RegisterService('TaskService', $taskService)
+
+# Create screen manager and run
+$screenManager = [ScreenManager]::new()
+$screenManager.Initialize($global:ServiceContainer)
+$global:ScreenManager = $screenManager
+
+$dashboard = [AsyncDashboardScreen]::new()
+$screenManager.Push($dashboard)
+$screenManager.Run()
+
+Write-Host "`nAsync dashboard demo completed!" -ForegroundColor Green
+
+
+####\test-dashboard-simple-async.ps1
+#!/usr/bin/env pwsh
+
+# Simple example of background loading with progress indicators
+# Uses timers to simulate async data loading without PowerShell jobs
+
+. ./Start.ps1 -NoRun
+
+# Enhanced DashboardScreen with simulated async loading
+class SimpleAsyncDashboardScreen : Screen {
+    # Layout components
+    [HorizontalSplit]$MainLayout
+    [VerticalSplit]$LeftLayout
+    [ListBox]$ProjectList
+    [ListBox]$TaskList
+    [ProgressBar]$LoadingProgress
+    
+    # Services
+    [EventBus]$EventBus
+    [ThemeManager]$Theme
+    
+    # Loading state
+    hidden [int]$_loadStep = 0
+    hidden [bool]$_isLoading = $false
+    hidden [hashtable]$_pendingData = @{}
+    
+    SimpleAsyncDashboardScreen() : base() {
+        $this.Title = "Simple Async Dashboard Demo"
+    }
+    
+    [void] OnInitialize() {
+        # Get services
+        $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+        $this.Theme = $global:ServiceContainer.GetService('ThemeManager')
+        
+        # Build UI
+        $this.BuildLayout()
+        
+        # Show initial loading state
+        $this.ShowLoadingState()
+        
+        # Start simulated async loading
+        $this.StartSimulatedAsyncLoad()
+    }
+    
+    [void] BuildLayout() {
+        # Main horizontal split
+        $this.MainLayout = [HorizontalSplit]::new()
+        $this.MainLayout.SetSplitRatio(50)
+        $this.MainLayout.ShowBorder = $false
+        $this.MainLayout.Initialize($global:ServiceContainer)
+        $this.AddChild($this.MainLayout)
+        
+        # Left side with progress bar
+        $this.LeftLayout = [VerticalSplit]::new()
+        $this.LeftLayout.SetSplitRatio(85)  # 85% list, 15% progress
+        $this.LeftLayout.ShowBorder = $false
+        $this.LeftLayout.Initialize($global:ServiceContainer)
+        
+        $this.ProjectList = [ListBox]::new()
+        $this.ProjectList.Title = "📊 Projects"
+        $this.ProjectList.ShowBorder = $true
+        $this.ProjectList.Initialize($global:ServiceContainer)
+        $this.LeftLayout.SetTopPane($this.ProjectList)
+        
+        $this.LoadingProgress = [ProgressBar]::new()
+        $this.LoadingProgress.Title = "Loading Data..."
+        $this.LoadingProgress.ShowBorder = $true
+        $this.LoadingProgress.Height = 5
+        $this.LoadingProgress.Initialize($global:ServiceContainer)
+        $this.LeftLayout.SetBottomPane($this.LoadingProgress)
+        
+        $this.MainLayout.SetLeftPane($this.LeftLayout)
+        
+        # Right side
+        $this.TaskList = [ListBox]::new()
+        $this.TaskList.Title = "🎯 Tasks"
+        $this.TaskList.ShowBorder = $true
+        $this.TaskList.Initialize($global:ServiceContainer)
+        $this.MainLayout.SetRightPane($this.TaskList)
+    }
+    
+    [void] ShowLoadingState() {
+        $this.ProjectList.SetItems(@(
+            "⏳ Loading projects...",
+            "",
+            "Please wait while we fetch",
+            "your project data..."
+        ))
+        
+        $this.TaskList.SetItems(@(
+            "⏳ Loading tasks...",
+            "",
+            "Task data will appear",
+            "here shortly..."
+        ))
+        
+        $this.LoadingProgress.SetProgress(0, "Initializing...")
+    }
+    
+    [void] StartSimulatedAsyncLoad() {
+        if ($this._isLoading) {
+            return
+        }
+        
+        $this._isLoading = $true
+        $this._loadStep = 0
+        
+        # Simulate loading steps with a timer
+        $timer = [System.Timers.Timer]::new(500)  # 500ms intervals
+        
+        $dashboardRef = $this
+        $timer.add_Elapsed({
+            $dashboardRef.ProcessLoadStep()
+        })
+        
+        $timer.AutoReset = $true
+        $timer.Enabled = $true
+        $timer.Start()
+        
+        # Store timer reference for cleanup
+        $this._pendingData['timer'] = $timer
+    }
+    
+    [void] ProcessLoadStep() {
+        $this._loadStep++
+        
+        switch ($this._loadStep) {
+            1 {
+                # Step 1: Connect to services
+                $this.LoadingProgress.SetProgress(10, "Connecting to services...")
+            }
+            2 {
+                # Step 2: Fetch project data
+                $this.LoadingProgress.SetProgress(25, "Fetching project data...")
+            }
+            3 {
+                # Step 3: Process projects
+                $this.LoadingProgress.SetProgress(40, "Processing projects...")
+                
+                # Simulate project data
+                $projects = @(
+                    "🚧 PRAXIS Framework - 📅 30 days",
+                    "🚧 Dashboard System - ⚠️  DUE SOON",
+                    "✅ Layout Components - 🔥 OVERDUE",
+                    "🚧 Testing Framework - 📈 45 days"
+                )
+                $this.ProjectList.SetItems($projects)
+            }
+            4 {
+                # Step 4: Fetch task data
+                $this.LoadingProgress.SetProgress(60, "Fetching task data...")
+            }
+            5 {
+                # Step 5: Process tasks
+                $this.LoadingProgress.SetProgress(80, "Processing tasks...")
+                
+                # Simulate task data
+                $tasks = @(
+                    "🔴 ⚡ Implement async loading [75%]",
+                    "🔴 📋 Fix layout bugs [0%]",
+                    "🟡 ⚡ Add visual styling [25%]",
+                    "🟡 🚫 Performance optimization [10%]",
+                    "🟢 📋 Write documentation [0%]"
+                )
+                $this.TaskList.SetItems($tasks)
+            }
+            6 {
+                # Step 6: Finalize
+                $this.LoadingProgress.SetProgress(100, "✅ Loading complete!")
+                
+                # Stop and clean up timer
+                if ($this._pendingData['timer']) {
+                    $this._pendingData['timer'].Stop()
+                    $this._pendingData['timer'].Dispose()
+                    $this._pendingData.Remove('timer')
+                }
+                
+                $this._isLoading = $false
+                
+                # Publish completion event
+                $this.EventBus.Publish('dashboard.load.complete', @{})
+            }
+        }
+        
+        # Force UI update
+        $this.Invalidate()
+    }
+    
+    [void] OnBoundsChanged() {
+        if ($this.MainLayout) {
+            $this.MainLayout.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
+        }
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::F5) {
+                if (-not $this._isLoading) {
+                    Write-Host "Refreshing dashboard..."
+                    $this.ShowLoadingState()
+                    $this.StartSimulatedAsyncLoad()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Q) {
+                # Clean up any active timers
+                if ($this._pendingData['timer']) {
+                    $this._pendingData['timer'].Stop()
+                    $this._pendingData['timer'].Dispose()
+                }
+                $this.Active = $false
+                return $true
+            }
+        }
+        return ([Screen]$this).HandleInput($key)
+    }
+}
+
+# Initialize and run
+Write-Host "Simple Async Dashboard Demo" -ForegroundColor Cyan
+Write-Host "============================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "This demo shows how background loading with progress indicators" -ForegroundColor Yellow
+Write-Host "allows the UI to appear immediately while data loads." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Notice how:" -ForegroundColor Green
+Write-Host "- The dashboard appears instantly with loading placeholders" -ForegroundColor Green
+Write-Host "- Progress bar shows real-time loading status" -ForegroundColor Green
+Write-Host "- Data appears progressively as it loads" -ForegroundColor Green
+Write-Host "- UI remains responsive during loading" -ForegroundColor Green
+Write-Host ""
+Write-Host "Press F5 to refresh, Q to quit" -ForegroundColor Cyan
+Write-Host ""
+
+# Initialize services
+$global:ServiceContainer = [ServiceContainer]::new()
+$vt = [VT100]::new()
+$global:ServiceContainer.RegisterService('VT100', $vt)
+
+$logger = [Logger]::new("$PSScriptRoot/_Logs/simple-async.log")
+$global:ServiceContainer.RegisterService('Logger', $logger)
+$global:Logger = $logger
+
+$theme = [ThemeManager]::new()
+$theme.LoadTheme('Dark')
+$global:ServiceContainer.RegisterService('ThemeManager', $theme)
+
+$eventBus = [EventBus]::new()
+$eventBus.Initialize($global:ServiceContainer)
+$global:ServiceContainer.RegisterService('EventBus', $eventBus)
+
+# Create and run the dashboard
+$screenManager = [ScreenManager]::new()
+$screenManager.Initialize($global:ServiceContainer)
+$global:ScreenManager = $screenManager
+
+$dashboard = [SimpleAsyncDashboardScreen]::new()
+$screenManager.Push($dashboard)
+$screenManager.Run()
+
+Write-Host "`nDemo completed!" -ForegroundColor Green
 
 
 ####\test-filebrowser-navigation.ps1
@@ -16001,5 +17205,180 @@ Write-Host "    - Tab, Enter, Backspace, Delete support" -ForegroundColor White
 Write-Host "    - Proper tab switching support" -ForegroundColor White
 
 Write-Host "`n✅ All components properly architected and integrated!" -ForegroundColor Green
+
+
+####\test-shortcut-manager.ps1
+#!/usr/bin/env pwsh
+# test-shortcut-manager.ps1 - Test the ShortcutManager service
+
+param(
+    [switch]$Debug
+)
+
+# Get the script directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Push-Location $scriptDir
+
+try {
+    # Source the main startup script to load all classes
+    . ./Start.ps1 -Debug:$Debug -NoLaunch
+    
+    Write-Host "`n=== Testing ShortcutManager ===" -ForegroundColor Cyan
+    
+    # Get the ShortcutManager
+    $shortcutManager = $global:ServiceContainer.GetService('ShortcutManager')
+    
+    if (-not $shortcutManager) {
+        Write-Host "ShortcutManager not found!" -ForegroundColor Red
+        return
+    }
+    
+    Write-Host "ShortcutManager loaded successfully" -ForegroundColor Green
+    
+    # Test 1: Register a screen-specific shortcut
+    Write-Host "`n--- Test 1: Register screen-specific shortcut ---" -ForegroundColor Yellow
+    $shortcutManager.RegisterShortcut(@{
+        Id = "projects.new"
+        Name = "New Project"
+        Description = "Create a new project"
+        KeyChar = 'n'
+        Scope = [ShortcutScope]::Screen
+        ScreenType = "ProjectsScreen"
+        Priority = 50
+        Action = {
+            Write-Host "New Project shortcut triggered!" -ForegroundColor Green
+        }
+    })
+    Write-Host "Registered 'n' key for ProjectsScreen" -ForegroundColor Green
+    
+    # Test 2: Register a context-specific shortcut
+    Write-Host "`n--- Test 2: Register context-specific shortcut ---" -ForegroundColor Yellow
+    $shortcutManager.RegisterShortcut(@{
+        Id = "dialog.confirm"
+        Name = "Confirm"
+        Description = "Confirm dialog action"
+        KeyChar = 'y'
+        Scope = [ShortcutScope]::Context
+        Context = "Dialog"
+        Priority = 60
+        Action = {
+            Write-Host "Dialog confirmed!" -ForegroundColor Green
+        }
+    })
+    Write-Host "Registered 'y' key for Dialog context" -ForegroundColor Green
+    
+    # Test 3: Display all registered shortcuts
+    Write-Host "`n--- Test 3: Display all shortcuts ---" -ForegroundColor Yellow
+    $allShortcuts = $shortcutManager.GetAllShortcuts()
+    foreach ($shortcut in $allShortcuts) {
+        Write-Host "  $($shortcut.GetDisplayText()) - $($shortcut.Name) [$($shortcut.Scope)]"
+    }
+    
+    # Test 4: Test key matching
+    Write-Host "`n--- Test 4: Test key matching ---" -ForegroundColor Yellow
+    $testKey = [System.ConsoleKeyInfo]::new('n', [System.ConsoleKey]::N, $false, $false, $false)
+    
+    Write-Host "Testing 'n' key in ProjectsScreen context:"
+    $handled = $shortcutManager.HandleKeyPress($testKey, "ProjectsScreen", "")
+    Write-Host "  Handled: $handled" -ForegroundColor $(if ($handled) { "Green" } else { "Red" })
+    
+    Write-Host "Testing 'n' key in TaskScreen context:"
+    $handled = $shortcutManager.HandleKeyPress($testKey, "TaskScreen", "")
+    Write-Host "  Handled: $handled" -ForegroundColor $(if ($handled) { "Green" } else { "Red" })
+    
+    # Test 5: Test shortcut help
+    Write-Host "`n--- Test 5: Shortcut help ---" -ForegroundColor Yellow
+    Write-Host "Global shortcuts:"
+    Write-Host $shortcutManager.GetShortcutHelp([ShortcutScope]::Global)
+    
+    # Test 6: Create a demo screen that uses ShortcutManager
+    Write-Host "`n--- Test 6: Demo screen with shortcuts ---" -ForegroundColor Yellow
+    
+    class DemoScreen : Screen {
+        DemoScreen() : base() {
+            $this.Title = "Demo Screen with Shortcuts"
+        }
+        
+        [void] OnInitialize() {
+            # Register screen-specific shortcuts
+            $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+            if ($shortcutManager) {
+                # Register F1 for help
+                $shortcutManager.RegisterShortcut(@{
+                    Id = "demo.help"
+                    Name = "Show Help"
+                    Description = "Display help information"
+                    Key = [System.ConsoleKey]::F1
+                    Scope = [ShortcutScope]::Screen
+                    ScreenType = "DemoScreen"
+                    Priority = 50
+                    Action = {
+                        Write-Host "`nHelp: This is a demo screen showing ShortcutManager integration" -ForegroundColor Cyan
+                    }
+                })
+                
+                # Register 'a' for action
+                $shortcutManager.RegisterShortcut(@{
+                    Id = "demo.action"
+                    Name = "Demo Action"
+                    Description = "Perform a demo action"
+                    KeyChar = 'a'
+                    Scope = [ShortcutScope]::Screen
+                    ScreenType = "DemoScreen"
+                    Priority = 50
+                    Action = {
+                        Write-Host "`nDemo action executed!" -ForegroundColor Green
+                    }
+                })
+            }
+        }
+        
+        [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+            # Screen-specific shortcuts are now handled by ShortcutManager in ScreenManager
+            # This method only needs to handle special cases
+            
+            if ($key.Key -eq [System.ConsoleKey]::Escape) {
+                $this.Active = $false
+                return $true
+            }
+            
+            return $false
+        }
+        
+        [string] OnRender() {
+            $sb = [System.Text.StringBuilder]::new()
+            
+            $sb.AppendLine()
+            $sb.AppendLine("  Demo Screen - ShortcutManager Integration")
+            $sb.AppendLine()
+            $sb.AppendLine("  Available shortcuts:")
+            $sb.AppendLine("    F1     - Show Help")
+            $sb.AppendLine("    a      - Demo Action")
+            $sb.AppendLine("    Ctrl+Q - Quit")
+            $sb.AppendLine("    Esc    - Exit this screen")
+            $sb.AppendLine()
+            $sb.AppendLine("  Try pressing the shortcuts!")
+            
+            return $sb.ToString()
+        }
+    }
+    
+    # Run the demo screen
+    Write-Host "Starting demo screen..." -ForegroundColor Green
+    Write-Host "Press any key to continue..." -ForegroundColor DarkGray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    
+    # Create and run the demo
+    $demoScreen = [DemoScreen]::new()
+    $screenManager = [ScreenManager]::new($global:ServiceContainer)
+    $global:ScreenManager = $screenManager
+    $screenManager.Push($demoScreen)
+    $screenManager.Run()
+    
+    Write-Host "`nDemo completed!" -ForegroundColor Green
+    
+} finally {
+    Pop-Location
+}
 
 
