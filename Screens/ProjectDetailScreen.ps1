@@ -126,6 +126,14 @@ class ProjectDetailScreen : Screen {
         $this.MainLayout.AddChild($this.TimeEntriesGrid)
     }
     
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        # Focus the time entries grid which is the main interactive component
+        if ($this.TimeEntriesGrid) {
+            $this.TimeEntriesGrid.Focus()
+        }
+    }
+    
     [void] OnBoundsChanged() {
         # DockPanel handles layout automatically
         if ($this.MainLayout) {

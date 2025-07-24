@@ -52,20 +52,21 @@ class TabContainer : Container {
         
         # Set as active if first tab
         if ($this.Tabs.Count -eq 1) {
-            # Force activation of first tab by temporarily setting ActiveTabIndex to -1
-            $oldIndex = $this.ActiveTabIndex
-            $this.ActiveTabIndex = -1
             $this.ActivateTab(0)
-            # If ActivateTab failed, restore the index
-            if ($this.ActiveTabIndex -eq -1) {
-                $this.ActiveTabIndex = $oldIndex
-            }
         } else {
             # Position but don't add to children yet
             $this.PositionContent($content, $false)
         }
         
         $this.Invalidate()
+    }
+    
+    # Get the currently active tab
+    [TabItem] GetActiveTab() {
+        if ($this.ActiveTabIndex -ge 0 -and $this.ActiveTabIndex -lt $this.Tabs.Count) {
+            return $this.Tabs[$this.ActiveTabIndex]
+        }
+        return $null
     }
     
     # Switch to a specific tab
@@ -257,13 +258,24 @@ class TabContainer : Container {
         $this._tabBarInvalid = $false
     }
     
-    # Handle keyboard input
+    # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Modifiers=$($key.Modifiers)")
         }
         
-        # Check TabContainer shortcuts FIRST before passing to children
+        # Route to active tab's content FIRST (parent-delegated model)
+        $activeTab = $this.GetActiveTab()
+        if ($activeTab -and $activeTab.Content) {
+            if ($global:Logger) {
+                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
+            }
+            if ($activeTab.Content.HandleInput($key)) {
+                return $true
+            }
+        }
+        
+        # Tab-switching shortcuts as FALLBACK only
         
         # Number keys for quick tab switching
         if ($key.KeyChar -ge '1' -and $key.KeyChar -le '9') {
@@ -299,17 +311,6 @@ class TabContainer : Container {
             }
         }
         
-        # Route to active tab's content if tab switching didn't handle it
-        $activeTab = $this.GetActiveTab()
-        if ($activeTab -and $activeTab.Content) {
-            if ($global:Logger) {
-                $global:Logger.Debug("TabContainer: Routing input to active tab content: $($activeTab.Content.GetType().Name)")
-            }
-            if ($activeTab.Content.HandleInput($key)) {
-                return $true
-            }
-        }
-        
         # No one handled it
         return $false
     }
@@ -328,14 +329,6 @@ class TabContainer : Container {
             if ($prev -lt 0) { $prev = $this.Tabs.Count - 1 }
             $this.ActivateTab($prev)
         }
-    }
-    
-    # Get active tab
-    [TabItem] GetActiveTab() {
-        if ($this.ActiveTabIndex -ge 0 -and $this.ActiveTabIndex -lt $this.Tabs.Count) {
-            return $this.Tabs[$this.ActiveTabIndex]
-        }
-        return $null
     }
 }
 

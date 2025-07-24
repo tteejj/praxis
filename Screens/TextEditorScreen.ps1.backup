@@ -1,5 +1,5 @@
-# TextEditorScreen - Multi-line text editor screen
-# Proper PRAXIS architecture implementation
+# TextEditorScreen - Multi-line text editor screen with mode-aware input
+# Escape toggles between text mode and command mode for tab switching
 
 class TextEditorScreen : Screen {
     # Text content and cursor state
@@ -11,30 +11,48 @@ class TextEditorScreen : Screen {
     [string]$FilePath = ""
     [bool]$Modified = $false
     [string]$StatusMessage = ""
+    [bool]$InTextMode = $true  # Start in text mode
+    
+    # Focusable child component for PRAXIS architecture
+    [Button]$TextAreaChild
     
     # Editor settings
     [int]$TabWidth = 4
     [bool]$ShowLineNumbers = $true
     [int]$LineNumberWidth = 5
     
-    # Mode system
-    [bool]$InTextMode = $true  # Start in text mode
-    
     TextEditorScreen() : base() {
         $this.Title = "Text Editor"
         $this.Lines = [System.Collections.ArrayList]::new()
         $this.Lines.Add("") | Out-Null
-        $this.IsFocusable = $true  # TextEditor itself is focusable
+        $this.InitializeChild()
     }
     
     TextEditorScreen([string]$filePath) : base() {
         $this.Title = "Text Editor"
         $this.FilePath = $filePath
         $this.Lines = [System.Collections.ArrayList]::new()
-        $this.IsFocusable = $true  # TextEditor itself is focusable
+        $this.InitializeChild()
+    }
+    
+    [void] InitializeChild() {
+        # Create simple Button child for focus handling (zero size)
+        $this.TextAreaChild = [Button]::new("")
+        $this.TextAreaChild.IsFocusable = $true
+        $this.TextAreaChild.SetBounds(0, 0, 0, 0)
+        $this.AddChild($this.TextAreaChild)
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("TextEditorScreen: Added Button child, Children.Count=$($this.Children.Count)")
+        }
     }
     
     [void] OnInitialize() {
+        # Initialize the child component
+        if ($this.TextAreaChild) {
+            $this.TextAreaChild.Initialize($this.ServiceContainer)
+        }
+        
         # Load file if specified
         if ($this.FilePath -and (Test-Path $this.FilePath)) {
             $this.LoadFile()
@@ -46,12 +64,14 @@ class TextEditorScreen : Screen {
         if ($this.FilePath) {
             $this.Title = "Text Editor - $([System.IO.Path]::GetFileName($this.FilePath))"
         }
-    }
-    
-    [void] OnActivated() {
-        ([Screen]$this).OnActivated()
-        # TextEditor itself is the focusable element
-        $this.Focus()
+        
+        # Focus the child so the screen has a focused element
+        if ($this.TextAreaChild) {
+            $this.TextAreaChild.Focus()
+            if ($global:Logger) {
+                $global:Logger.Debug("TextEditorScreen: Focused Button child, IsFocused=$($this.TextAreaChild.IsFocused)")
+            }
+        }
     }
     
     [void] LoadFile() {
@@ -140,37 +160,61 @@ class TextEditorScreen : Screen {
         }
     }
     
-    # Override HandleScreenInput for text editor controls
+    # Override the main HandleInput to intercept before child gets it
+    [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
+        if ($global:Logger) {
+            $global:Logger.Debug("TextEditorScreen.HandleInput: Key=$($keyInfo.Key) InTextMode=$($this.InTextMode)")
+        }
+        # ESCAPE: Toggle between text mode and command mode
+        if ($keyInfo.Key -eq [ConsoleKey]::Escape) {
+            if ($this.InTextMode) {
+                # Switch to command mode
+                $this.InTextMode = $false
+                $this.Invalidate()  # Update title bar
+                return $true  # Consume the escape
+            } else {
+                # In command mode, let escape exit the editor
+                $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+                if ($screenManager) {
+                    $screenManager.Pop() | Out-Null
+                }
+                return $true
+            }
+        }
+        
+        # In command mode, let all keys bubble up for tab switching
+        if (-not $this.InTextMode) {
+            if ($global:Logger) {
+                $global:Logger.Debug("TextEditorScreen: In command mode, Key=$($keyInfo.Key) Char='$($keyInfo.KeyChar)'")
+            }
+            # Any letter key switches back to text mode
+            if ($keyInfo.KeyChar -and [char]::IsLetter($keyInfo.KeyChar)) {
+                $this.InTextMode = $true
+                $this.Invalidate()
+                if ($global:Logger) {
+                    $global:Logger.Debug("TextEditorScreen: Switched to text mode for letter '$($keyInfo.KeyChar)'")
+                }
+                # Fall through to handle the character
+            } else {
+                if ($global:Logger) {
+                    $global:Logger.Debug("TextEditorScreen: Letting parent handle key '$($keyInfo.Key)' for tab switching")
+                }
+                return $false  # Let parent handle 1-6 for tab switching
+            }
+        }
+        
+        # In text mode, handle input normally via HandleScreenInput
+        return $this.HandleScreenInput($keyInfo)
+    }
+    
+    # Text editing input handling (only called in text mode)
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
         # Clear status message on input (except for certain messages)
         if ($this.StatusMessage -and -not $this.StatusMessage.StartsWith("Error") -and $this.StatusMessage -ne "SELECT_SAVE_LOCATION") {
             $this.StatusMessage = ""
         }
         
-        if ($global:Logger) {
-            $global:Logger.Debug("TextEditorScreen.HandleScreenInput: Key=$($keyInfo.Key) Char='$($keyInfo.KeyChar)' InTextMode=$($this.InTextMode)")
-        }
-        
-        # ESC toggles between text mode and command mode
-        if ($keyInfo.Key -eq [ConsoleKey]::Escape) {
-            $this.InTextMode = -not $this.InTextMode
-            $this.StatusMessage = if ($this.InTextMode) { "TEXT MODE" } else { "COMMAND MODE" }
-            if ($global:Logger) {
-                $global:Logger.Debug("TextEditorScreen: ESC pressed, InTextMode=$($this.InTextMode)")
-            }
-            $this.Invalidate()
-            return $true
-        }
-        
-        # In command mode, let number keys bubble up for tab switching
-        if (-not $this.InTextMode -and $keyInfo.KeyChar -ge '1' -and $keyInfo.KeyChar -le '9') {
-            if ($global:Logger) {
-                $global:Logger.Debug("TextEditorScreen: In command mode, not handling number key '$($keyInfo.KeyChar)'")
-            }
-            return $false  # Let parent handle tab switching
-        }
-        
-        # Handle control key combinations
+        # Handle control key combinations (work in both modes)
         if ($keyInfo.Modifiers -band [ConsoleModifiers]::Control) {
             switch ($keyInfo.Key) {
                 ([ConsoleKey]::S) { 
@@ -193,7 +237,7 @@ class TextEditorScreen : Screen {
             }
         }
         
-        # Handle regular keys
+        # Text mode - handle all text editing
         switch ($keyInfo.Key) {
             # Navigation
             ([ConsoleKey]::UpArrow) { $this.MoveCursor(0, -1); return $true }
@@ -219,17 +263,16 @@ class TextEditorScreen : Screen {
             ([ConsoleKey]::Tab) { $this.InsertTab(); return $true }
         }
         
-        # Insert printable characters only in text mode
-        if ($this.InTextMode -and $keyInfo.KeyChar -and [char]::IsControl($keyInfo.KeyChar) -eq $false) {
+        # Insert printable characters
+        if ($keyInfo.KeyChar -and [char]::IsControl($keyInfo.KeyChar) -eq $false) {
             $this.InsertChar($keyInfo.KeyChar)
             return $true
         }
         
-        # Let base class handle other input (like tab switching)
         return $false
     }
     
-    # Text editor specific methods
+    # Text editor specific methods (unchanged from original)
     [void] MoveCursor([int]$dx, [int]$dy) {
         $this.CursorY = [Math]::Max(0, [Math]::Min($this.Lines.Count - 1, $this.CursorY + $dy))
         
@@ -378,12 +421,16 @@ class TextEditorScreen : Screen {
             $sb.Append(" " * $this.Width)
         }
         
-        # Draw title
+        # Draw title with mode indicator
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($statusBg)
         $sb.Append($statusFg)
         $titleText = $this.Title
         if ($this.Modified) { $titleText += " *" }
+        # Add mode indicator
+        if (-not $this.InTextMode) {
+            $titleText += " [CMD]"
+        }
         $titleText = $titleText.PadRight($this.Width).Substring(0, $this.Width)
         $sb.Append($titleText)
         
@@ -414,8 +461,8 @@ class TextEditorScreen : Screen {
             }
         }
         
-        # Draw cursor if this screen is focused
-        if ($this.IsFocused) {
+        # Draw cursor (always visible in text mode)
+        if ($this.InTextMode) {
             $cursorScreenX = $contentStartX + ($this.CursorX - $this.ScrollOffsetX)
             $cursorScreenY = $contentStartY + ($this.CursorY - $this.ScrollOffsetY)
             
@@ -448,10 +495,14 @@ class TextEditorScreen : Screen {
         if ($this.StatusMessage) {
             $statusText = $this.StatusMessage
         } else {
-            $modeText = if ($this.InTextMode) { "[TEXT]" } else { "[COMMAND]" }
-            $statusText = "$modeText Line $($this.CursorY + 1), Col $($this.CursorX + 1)"
+            $statusText = "Line $($this.CursorY + 1), Col $($this.CursorX + 1)"
             if ($this.FilePath) {
                 $statusText += " | $([System.IO.Path]::GetFileName($this.FilePath))"
+            }
+            if (-not $this.InTextMode) {
+                $statusText += " | ESC:Exit 1-6:Tabs Letter:Edit"
+            } else {
+                $statusText += " | ESC:Commands"
             }
         }
         $statusText = $statusText.PadRight($this.Width).Substring(0, $this.Width)

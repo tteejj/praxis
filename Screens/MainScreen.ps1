@@ -41,9 +41,6 @@ class MainScreen : Screen {
         $taskScreen = [TaskScreen]::new()
         $this.TabContainer.AddTab("Tasks", $taskScreen)
         
-        $dashboardScreen = [DashboardScreen]::new()
-        $this.TabContainer.AddTab("Dashboard", $dashboardScreen)
-        
         $fileBrowserScreen = [FileBrowserScreen]::new()
         $this.TabContainer.AddTab("Files", $fileBrowserScreen)
         
@@ -104,12 +101,7 @@ class MainScreen : Screen {
                     return $true
                 }
             }
-            ([System.ConsoleKey]::Escape) {
-                if (-not $keyInfo.Modifiers) {
-                    $this.Active = $false  # Exit the main loop
-                    return $true
-                }
-            }
+            # Remove Escape handling - let child screens handle it
         }
         
         # Let TabContainer handle tab switching shortcuts (numbers, Ctrl+Tab, etc)

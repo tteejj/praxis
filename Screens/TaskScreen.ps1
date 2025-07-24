@@ -211,10 +211,15 @@ class TaskScreen : Screen {
         # Call base to manage focus scope and shortcuts
         ([Screen]$this).OnActivated()
         
-        # The base Screen.OnActivated() already pushes the focus scope
-        # and will automatically focus the first focusable element (TaskList)
+        # Explicitly focus the appropriate component
+        if ($this.TaskList -and $this.TaskList.Items.Count -gt 0) {
+            $this.TaskList.Focus()
+        } elseif ($this.FilterBox) {
+            $this.FilterBox.Focus()
+        }
+        
         if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.OnActivated: Screen activated with new focus system")
+            $global:Logger.Debug("TaskScreen.OnActivated: Screen activated and focused appropriate component")
         }
     }
     

@@ -169,14 +169,27 @@ class ShortcutManager {
     }
     
     [bool] HandleKeyPress([System.ConsoleKeyInfo]$keyInfo, [string]$currentScreen, [string]$currentContext) {
+        if ($this.Logger) {
+            $this.Logger.Debug("ShortcutManager.HandleKeyPress: Key=$($keyInfo.Key) Char='$($keyInfo.KeyChar)' Screen=$currentScreen Context=$currentContext")
+            $this.Logger.Debug("ShortcutManager: Total shortcuts registered: $($this.Shortcuts.Count)")
+        }
+        
         # Find matching shortcuts
         $candidates = $this.Shortcuts | Where-Object {
             $_.Enabled -and $_.Matches($keyInfo)
         }
         
+        if ($this.Logger -and $candidates.Count -gt 0) {
+            $this.Logger.Debug("ShortcutManager: Found $($candidates.Count) matching shortcuts")
+        }
+        
         # Filter by scope
         $applicable = @()
         foreach ($shortcut in $candidates) {
+            if ($this.Logger) {
+                $this.Logger.Debug("Checking shortcut: $($shortcut.Id) Scope=$($shortcut.Scope) ScreenType=$($shortcut.ScreenType)")
+            }
+            
             switch ($shortcut.Scope) {
                 ([ShortcutScope]::Global) {
                     $applicable += $shortcut
@@ -184,6 +197,9 @@ class ShortcutManager {
                 ([ShortcutScope]::Screen) {
                     if ($shortcut.ScreenType -eq $currentScreen -or 
                         [string]::IsNullOrEmpty($shortcut.ScreenType)) {
+                        if ($this.Logger) {
+                            $this.Logger.Debug("Screen shortcut matches: $($shortcut.Id)")
+                        }
                         $applicable += $shortcut
                     }
                 }

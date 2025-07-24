@@ -162,13 +162,29 @@ class ScreenManager {
                         
                         # 1. Check ShortcutManager for global shortcuts first
                         if ($this._shortcutManager) {
-                            $currentScreenType = if ($this._activeScreen) { $this._activeScreen.GetType().Name } else { "" }
+                            # Get the actual active screen (e.g., ProjectsScreen within MainScreen's TabContainer)
+                            $currentScreenType = ""
+                            if ($this._activeScreen) {
+                                if ($this._activeScreen.GetType().Name -eq "MainScreen" -and $this._activeScreen.TabContainer) {
+                                    $activeTab = $this._activeScreen.TabContainer.GetActiveTab()
+                                    if ($activeTab -and $activeTab.Content) {
+                                        $currentScreenType = $activeTab.Content.GetType().Name
+                                    }
+                                } else {
+                                    $currentScreenType = $this._activeScreen.GetType().Name
+                                }
+                            }
+                            
                             $currentContext = if ($this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) { "CommandPalette" } else { "" }
+                            
+                            if ($global:Logger) {
+                                $global:Logger.Debug("ShortcutManager.HandleKeyPress: Key=$($key.Key) Char='$($key.KeyChar)' ScreenType=$currentScreenType Context=$currentContext")
+                            }
                             
                             $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, $currentContext)
                             
-                            if ($handled -and $global:Logger) {
-                                $global:Logger.Debug("Key handled by ShortcutManager")
+                            if ($global:Logger) {
+                                $global:Logger.Debug("ShortcutManager handled=$handled")
                             }
                         }
                         

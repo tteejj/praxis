@@ -119,7 +119,12 @@ class ProjectsScreen : Screen {
     
     [void] RegisterShortcuts() {
         $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
-        if (-not $shortcutManager) { return }
+        if (-not $shortcutManager) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("ProjectsScreen: ShortcutManager not found in ServiceContainer")
+            }
+            return 
+        }
         
         # Register screen-specific shortcuts
         $screen = $this
@@ -167,6 +172,10 @@ class ProjectsScreen : Screen {
             Priority = 50
             Action = { $screen.LoadProjects() }.GetNewClosure()
         })
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.RegisterShortcuts: Registered shortcuts for 'n', 'e', 'd', etc.")
+        }
     }
     
     
@@ -329,8 +338,14 @@ class ProjectsScreen : Screen {
         # Capture references
         $screen = $this
         $project = $selected
-        $dialog.OnSave = {
-            param($projectData)
+        $dialog.OnPrimary = {
+            # Get the data from the dialog
+            $projectData = @{
+                FullProjectName = $dialog.NameBox.Text
+                Nickname = $dialog.NicknameBox.Text
+                Note = $dialog.NoteBox.Text
+                DateDue = $dialog.DueDateBox.Text
+            }
             
             # Update the project
             $project.FullProjectName = $projectData.FullProjectName
@@ -422,16 +437,26 @@ class ProjectsScreen : Screen {
     
     # Override HandleScreenInput instead of HandleInput to work with base Screen class
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.HandleScreenInput: Key=$($key.Key) Char='$($key.KeyChar)'")
+        }
+        
         # Screen-specific shortcuts - only called as fallback by base Screen class
         switch ($key.Key) {
             ([System.ConsoleKey]::N) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
+                if (-not $key.Modifiers) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ProjectsScreen: 'N' key pressed, calling NewProject")
+                    }
                     $this.NewProject()
                     return $true
                 }
             }
             ([System.ConsoleKey]::E) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'E' -or $key.KeyChar -eq 'e')) {
+                if (-not $key.Modifiers) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ProjectsScreen: 'E' key pressed, calling EditProject")
+                    }
                     $this.EditProject()
                     return $true
                 }

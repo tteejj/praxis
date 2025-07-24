@@ -76,36 +76,11 @@ class FileBrowserScreen : Screen {
         }
     }
     
-    # Override HandleScreenInput to add custom file browser shortcuts
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Handle custom file browser shortcuts
-        if ($keyInfo.KeyChar) {
-            switch ($keyInfo.KeyChar) {
-                'e' { 
-                    # Edit selected file
-                    $selected = $this.FileTree.GetSelectedNode()
-                    if ($selected -and -not $selected.IsDirectory) {
-                        $this.OpenFileInEditor($selected.FullPath)
-                        return $true
-                    }
-                }
-                'v' { 
-                    # View selected file (same as edit for now)
-                    $selected = $this.FileTree.GetSelectedNode()
-                    if ($selected -and -not $selected.IsDirectory) {
-                        $this.OpenFileInEditor($selected.FullPath)
-                        return $true
-                    }
-                }
-                'u' {
-                    # Go up one directory
-                    $this.FileTree.NavigateUp()
-                    return $true
-                }
-            }
+    # Override OnActivated to ensure FileTree gets focus
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        if ($this.FileTree) {
+            $this.FileTree.Focus()
         }
-        
-        # Let the base class handle other input (like tab switching)
-        return $false
     }
 }
