@@ -27,6 +27,7 @@ if (-not (Test-Path $dataDir)) {
 # Load order is critical for class inheritance
 $loadOrder = @(
     # Core modules first
+    "Core/StringCache.ps1"
     "Core/VT100.ps1"
     "Core/ServiceContainer.ps1"
     "Core/StringBuilderPool.ps1"
@@ -51,12 +52,14 @@ $loadOrder = @(
     "Models/Subtask.ps1"
     "Models/TimeEntry.ps1"
     "Models/TimeCode.ps1"
+    "Models/Command.ps1"
     
     # Services
     "Services/ProjectService.ps1"
     "Services/TaskService.ps1"
     "Services/SubtaskService.ps1"
     "Services/TimeTrackingService.ps1"
+    "Services/CommandService.ps1"
     "Services/ConfigurationService.ps1"
     "Services/StateManager.ps1"
     
@@ -96,6 +99,7 @@ $loadOrder = @(
     "Screens/SubtaskDialog.ps1",
     "Screens/TimeEntryDialog.ps1",
     "Screens/QuickTimeEntryDialog.ps1",
+    "Screens/CommandEditDialog.ps1",
     "Screens/EventBusMonitor.ps1",
     
     # Screens (after dialogs they depend on)
@@ -108,6 +112,7 @@ $loadOrder = @(
     "Screens/FileBrowserScreen.ps1",
     "Screens/TextEditorScreen.ps1",
     "Screens/TimeEntryScreen.ps1",
+    "Screens/CommandLibraryScreen.ps1",
     
     # CommandPalette (after screens it references)
     "Components/CommandPalette.ps1"
@@ -184,6 +189,10 @@ $global:ServiceContainer.Register("SubtaskService", $subtaskService)
 # Time tracking service
 $timeTrackingService = [TimeTrackingService]::new()
 $global:ServiceContainer.Register("TimeTrackingService", $timeTrackingService)
+
+# Command service
+$commandService = [CommandService]::new()
+$global:ServiceContainer.Register("CommandService", $commandService)
 
 # Configuration service
 $configService = [ConfigurationService]::new()

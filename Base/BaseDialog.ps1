@@ -235,8 +235,8 @@ class BaseDialog : Screen {
             $this.RenderTitle($sb)
         }
         
-        # Render children (content controls and buttons)
-        $sb.Append(([Container]$this).OnRender())
+        # Render children (content controls and buttons) only within dialog bounds
+        $this.RenderDialogChildren($sb)
         
         $sb.Append([VT]::Reset())
         $result = $sb.ToString()
@@ -250,7 +250,7 @@ class BaseDialog : Screen {
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo(0, $y))
             $sb.Append($overlayBg)
-            $sb.Append(" " * $this.Width)
+            $sb.Append([StringCache]::GetSpaces($this.Width))
         }
     }
     
@@ -267,13 +267,13 @@ class BaseDialog : Screen {
         for ($i = 0; $i -lt $h; $i++) {
             $sb.Append([VT]::MoveTo($x, $y + $i))
             $sb.Append($bgColor)
-            $sb.Append(" " * $w)
+            $sb.Append([StringCache]::GetSpaces($w))
         }
         
         # Draw border
         $sb.Append([VT]::MoveTo($x, $y))
         $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * ($w - 2)) + [VT]::TR())
+        $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($w - 2) + [VT]::TR())
         
         for ($i = 1; $i -lt $h - 1; $i++) {
             $sb.Append([VT]::MoveTo($x, $y + $i))
@@ -283,7 +283,7 @@ class BaseDialog : Screen {
         }
         
         $sb.Append([VT]::MoveTo($x, $y + $h - 1))
-        $sb.Append([VT]::BL() + ([VT]::H() * ($w - 2)) + [VT]::BR())
+        $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($w - 2) + [VT]::BR())
     }
     
     [void] RenderTitle([System.Text.StringBuilder]$sb) {
@@ -300,6 +300,15 @@ class BaseDialog : Screen {
             $sb.Append([VT]::MoveTo($titleX, $y))
             $sb.Append($titleColor)
             $sb.Append($titleText)
+        }
+    }
+    
+    [void] RenderDialogChildren([System.Text.StringBuilder]$sb) {
+        # Render all visible children - they should be positioned correctly by OnBoundsChanged
+        foreach ($child in $this.Children) {
+            if ($child.Visible) {
+                $sb.Append($child.Render())
+            }
         }
     }
 }

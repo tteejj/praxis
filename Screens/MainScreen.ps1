@@ -51,6 +51,9 @@ class MainScreen : Screen {
         $textEditorScreen = [TextEditorScreen]::new()
         $this.TabContainer.AddTab("Editor", $textEditorScreen)
         
+        $commandLibraryScreen = [CommandLibraryScreen]::new()
+        $this.TabContainer.AddTab("Commands", $commandLibraryScreen)
+        
         $settingsScreen = [SettingsScreen]::new()
         $this.TabContainer.AddTab("Settings", $settingsScreen)
         

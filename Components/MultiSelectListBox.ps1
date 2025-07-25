@@ -26,6 +26,7 @@ class MultiSelectListBox : UIElement {
     hidden [bool]$_allSelected = $false
     hidden [ThemeManager]$Theme
     hidden [string]$_cachedRender = ""
+    hidden [hashtable]$_colors = @{}
     
     MultiSelectListBox() : base() {
         $this.Items = [System.Collections.ArrayList]::new()
@@ -42,6 +43,17 @@ class MultiSelectListBox : UIElement {
     }
     
     [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+                'title' = $this.Theme.GetColor("title")
+                'selected' = $this.Theme.GetBgColor("selected")
+                'normal' = $this.Theme.GetColor("normal")
+                'checkbox' = $this.Theme.GetColor("checkbox")
+                'checkbox.selected' = $this.Theme.GetColor("checkbox.selected")
+                'border.focused' = $this.Theme.GetColor("border.focused")
+            }
+        }
         $this._cachedRender = ""
         $this.Invalidate()
     }
@@ -261,16 +273,16 @@ class MultiSelectListBox : UIElement {
     }
     
     [void] RebuildCache() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048  # MultiSelectListBox with items and checkboxes
         
-        # Colors
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-        $titleColor = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-        $selectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selected") } else { "" }
-        $normalColor = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
-        $checkboxColor = if ($this.Theme) { $this.Theme.GetColor("checkbox") } else { $normalColor }
-        $selectedCheckboxColor = if ($this.Theme) { $this.Theme.GetColor("checkbox.selected") } else { "`e[38;2;0;255;0m" }
-        $focusBorder = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { $borderColor }
+        # Colors from cache
+        $borderColor = $this._colors['border']
+        $titleColor = $this._colors['title']
+        $selectedBg = $this._colors['selected']
+        $normalColor = $this._colors['normal']
+        $checkboxColor = if ($this._colors['checkbox']) { $this._colors['checkbox'] } else { $normalColor }
+        $selectedCheckboxColor = if ($this._colors['checkbox.selected']) { $this._colors['checkbox.selected'] } else { "`e[38;2;0;255;0m" }
+        $focusBorder = if ($this._colors['border.focused']) { $this._colors['border.focused'] } else { $borderColor }
         
         $currentBorderColor = if ($this.IsFocused) { $focusBorder } else { $borderColor }
         
@@ -283,7 +295,7 @@ class MultiSelectListBox : UIElement {
             # Top border
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -393,7 +405,7 @@ class MultiSelectListBox : UIElement {
             $y = $contentY + $i
             $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $y))
             $sb.Append($normalColor)
-            $sb.Append(" ".PadRight($contentWidth))
+            $sb.Append([StringCache]::GetSpaces($contentWidth))
             
             if ($this.ShowBorder) {
                 $sb.Append([VT]::MoveTo($this.X, $y))
@@ -411,11 +423,12 @@ class MultiSelectListBox : UIElement {
             $bottomY = $this.Y + $this.Height - 1
             $sb.Append([VT]::MoveTo($this.X, $bottomY))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
         
         $sb.Append([VT]::Reset())
         $this._cachedRender = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
     }
     
     # Input handling

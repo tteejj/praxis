@@ -197,7 +197,7 @@ class FilePickerDialog : Screen {
     
     [string] OnRender() {
         # Draw dark overlay background
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048
         
         # Semi-transparent background overlay
         $overlayColor = if ($this.Theme) { $this.Theme.GetBgColor("dialog.overlay") } else { "`e[48;2;0;0;0m" }
@@ -205,7 +205,7 @@ class FilePickerDialog : Screen {
         for ($y = 0; $y -lt [Console]::WindowHeight; $y++) {
             $sb.Append([VT]::MoveTo(0, $y))
             $sb.Append($overlayColor)
-            $sb.Append(" " * [Console]::WindowWidth)
+            $sb.Append([StringCache]::GetSpaces([Console]::WindowWidth))
         }
         
         # Dialog border
@@ -219,7 +219,7 @@ class FilePickerDialog : Screen {
         for ($y = 0; $y -lt $this._dialogHeight; $y++) {
             $sb.Append([VT]::MoveTo([int]$centerX, [int]$centerY + $y))
             $sb.Append($bgColor)
-            $sb.Append(" " * $this._dialogWidth)
+            $sb.Append([StringCache]::GetSpaces($this._dialogWidth))
         }
         
         # Draw border
@@ -258,7 +258,9 @@ class FilePickerDialog : Screen {
             }
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

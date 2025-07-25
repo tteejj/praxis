@@ -15,6 +15,12 @@ class TextBox : UIElement {
     hidden [string]$_cachedRender = ""
     hidden [bool]$_needsRender = $true
     hidden [ThemeManager]$Theme
+    hidden [hashtable]$_colors = @{}
+    
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedVersionRender = ""
     
     TextBox() : base() {
         $this.IsFocusable = $true
@@ -26,9 +32,25 @@ class TextBox : UIElement {
         if ($this.ServiceContainer) {
             $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
             if ($this.Theme) {
-                $this.Theme.Subscribe({ $this._needsRender = $true; $this.Invalidate() })
+                $this.Theme.Subscribe({ $this.OnThemeChanged() })
+                $this.OnThemeChanged()
             }
         }
+    }
+    
+    [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'input.focused.border' = $this.Theme.GetColor("input.focused.border")
+                'input.border' = $this.Theme.GetColor("input.border")
+                'input.background' = $this.Theme.GetBgColor("input.background")
+                'input.foreground' = $this.Theme.GetColor("input.foreground")
+                'input.placeholder' = $this.Theme.GetColor("input.placeholder")
+            }
+        }
+        $this._dataVersion++  # Increment for theme change
+        $this._needsRender = $true
+        $this.Invalidate()
     }
     
     [string] OnRender() {
@@ -39,16 +61,14 @@ class TextBox : UIElement {
         $sb = Get-PooledStringBuilder 512  # TextBox typically needs moderate capacity
         
         # Colors based on focus state
-        $borderColor = if ($this.Theme -and $this.IsFocused) {
-            $this.Theme.GetColor("input.focused.border")
-        } elseif ($this.Theme) {
-            $this.Theme.GetColor("input.border")
+        $borderColor = if ($this.IsFocused) {
+            $this._colors['input.focused.border']
         } else {
-            ""
+            $this._colors['input.border']
         }
-        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor("input.background") } else { "" }
-        $fgColor = if ($this.Theme) { $this.Theme.GetColor("input.foreground") } else { "" }
-        $placeholderColor = if ($this.Theme) { $this.Theme.GetColor("input.placeholder") } else { "" }
+        $bgColor = $this._colors['input.background']
+        $fgColor = $this._colors['input.foreground']
+        $placeholderColor = $this._colors['input.placeholder']
         
         # Content area
         $contentY = $this.Y + 1
@@ -59,7 +79,7 @@ class TextBox : UIElement {
             # Top border
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($borderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
             
             # Middle line with content
             $sb.Append([VT]::MoveTo($this.X, $contentY))
@@ -67,7 +87,7 @@ class TextBox : UIElement {
             
             # Clear content area
             $sb.Append($bgColor)
-            $sb.Append(" " * $contentWidth)
+            $sb.Append([StringCache]::GetSpaces($contentWidth))
             
             # Right border
             $sb.Append([VT]::MoveTo($this.X + $this.Width - 1, $contentY))
@@ -76,12 +96,12 @@ class TextBox : UIElement {
             
             # Bottom border
             $sb.Append([VT]::MoveTo($this.X, $this.Y + 2))
-            $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         } else {
             # Just clear the content area
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($bgColor)
-            $sb.Append(" " * $this.Width)
+            $sb.Append([StringCache]::GetSpaces($this.Width))
             $contentY = $this.Y
             $contentStartX = $this.X
             $contentWidth = $this.Width
@@ -130,8 +150,9 @@ class TextBox : UIElement {
                     }
                     
                     $sb.Append($bgColor)  # Swap colors for cursor
-                    if ($this.Theme) {
-                        $sb.Append($this.Theme.GetBgColor("input.foreground"))
+                    if ($this._colors['input.foreground']) {
+                        # Create a background color from foreground color
+                        $sb.Append("`e[48;2;255;255;255m")  # White background for cursor
                     }
                     $sb.Append($charUnderCursor)
                 }
@@ -148,6 +169,7 @@ class TextBox : UIElement {
     
     [void] OnGotFocus() {
         $this.ShowCursor = $true
+        $this._dataVersion++  # Increment for focus change
         $this._needsRender = $true
         $this.Invalidate()
         if ($global:Logger) {
@@ -157,6 +179,7 @@ class TextBox : UIElement {
     
     [void] OnLostFocus() {
         $this.ShowCursor = $false
+        $this._dataVersion++  # Increment for focus change
         $this._needsRender = $true
         $this.Invalidate()
         if ($global:Logger) {
@@ -173,18 +196,22 @@ class TextBox : UIElement {
             ([System.ConsoleKey]::LeftArrow) {
                 if ($this.CursorPosition -gt 0) {
                     $this.CursorPosition--
+                    $this._dataVersion++  # Increment for cursor move
                 }
             }
             ([System.ConsoleKey]::RightArrow) {
                 if ($this.CursorPosition -lt $this.Text.Length) {
                     $this.CursorPosition++
+                    $this._dataVersion++  # Increment for cursor move
                 }
             }
             ([System.ConsoleKey]::Home) {
                 $this.CursorPosition = 0
+                $this._dataVersion++  # Increment for cursor move
             }
             ([System.ConsoleKey]::End) {
                 $this.CursorPosition = $this.Text.Length
+                $this._dataVersion++  # Increment for cursor move
             }
             ([System.ConsoleKey]::Backspace) {
                 if ($this.CursorPosition -gt 0) {
@@ -229,6 +256,11 @@ class TextBox : UIElement {
         }
         
             if ($handled) {
+                # Increment version if text was modified
+                if ($oldText -ne $this.Text) {
+                    $this._dataVersion++
+                }
+                
                 # Call OnChange if text was modified
                 if ($oldText -ne $this.Text -and $this.OnChange) {
                     try {
@@ -257,6 +289,7 @@ class TextBox : UIElement {
         if ($text.Length -le $this.MaxLength) {
             $this.Text = $text
             $this.CursorPosition = $text.Length
+            $this._dataVersion++  # Increment on text change
             $this._needsRender = $true
             $this.Invalidate()
         }

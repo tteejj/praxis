@@ -12,6 +12,21 @@ class TextEditorScreen : Screen {
     [bool]$Modified = $false
     [string]$StatusMessage = ""
     
+    # Undo system - line-based grouping
+    hidden [System.Collections.ArrayList]$_undoStates
+    hidden [int]$_maxUndoStates = 25
+    hidden [int]$_currentUndoIndex = -1
+    hidden [int]$_maxFileSizeForUndo = 100KB
+    hidden [bool]$_undoEnabled = $true
+    
+    # Auto-save on focus loss
+    [bool]$AutoSaveOnFocusLoss = $true
+    hidden [bool]$_lastFocusState = $true
+    
+    # PRAXIS service integration
+    hidden [object]$ThemeManager
+    hidden [object]$EventBus
+    
     # Editor settings
     [int]$TabWidth = 4
     [bool]$ShowLineNumbers = $true
@@ -25,6 +40,7 @@ class TextEditorScreen : Screen {
         $this.Lines = [System.Collections.ArrayList]::new()
         $this.Lines.Add("") | Out-Null
         $this.IsFocusable = $true  # TextEditor itself is focusable
+        $this.InitializeUndoSystem()
     }
     
     TextEditorScreen([string]$filePath) : base() {
@@ -32,9 +48,149 @@ class TextEditorScreen : Screen {
         $this.FilePath = $filePath
         $this.Lines = [System.Collections.ArrayList]::new()
         $this.IsFocusable = $true  # TextEditor itself is focusable
+        $this.InitializeUndoSystem()
+    }
+    
+    [void] InitializeUndoSystem() {
+        $this._undoStates = [System.Collections.ArrayList]::new()
+        # Save initial state
+        $this.SaveUndoState()
+    }
+    
+    [void] SaveUndoState() {
+        if (-not $this._undoEnabled) { return }
+        
+        # Check file size limit
+        $docSize = ($this.Lines | ForEach-Object { $_.Length } | Measure-Object -Sum).Sum
+        if ($docSize -gt $this._maxFileSizeForUndo) {
+            $this._undoEnabled = $false
+            $this.StatusMessage = "Undo disabled - file too large"
+            return
+        }
+        
+        $state = @{
+            Lines = $this.Lines.Clone()
+            CursorX = $this.CursorX
+            CursorY = $this.CursorY
+            ScrollOffsetX = $this.ScrollOffsetX
+            ScrollOffsetY = $this.ScrollOffsetY
+        }
+        
+        # Remove any redo states if we're not at the end
+        if ($this._currentUndoIndex -lt $this._undoStates.Count - 1) {
+            $removeCount = $this._undoStates.Count - $this._currentUndoIndex - 1
+            for ($i = 0; $i -lt $removeCount; $i++) {
+                $this._undoStates.RemoveAt($this._undoStates.Count - 1)
+            }
+        }
+        
+        $this._undoStates.Add($state) | Out-Null
+        $this._currentUndoIndex = $this._undoStates.Count - 1
+        
+        # Limit undo history
+        if ($this._undoStates.Count -gt $this._maxUndoStates) {
+            $this._undoStates.RemoveAt(0)
+            $this._currentUndoIndex--
+        }
+        
+        # Publish buffer state change event
+        if ($this.EventBus) {
+            try {
+                $this.EventBus.Publish('editor.buffer.state-saved', @{
+                    FilePath = $this.FilePath
+                    UndoStates = $this._undoStates.Count
+                    CurrentIndex = $this._currentUndoIndex
+                })
+            }
+            catch {
+                # Ignore event publishing errors to avoid disrupting editing
+            }
+        }
+    }
+    
+    [void] PerformUndo() {
+        if ($this._currentUndoIndex -le 0) { return }
+        
+        $this._currentUndoIndex--
+        $state = $this._undoStates[$this._currentUndoIndex]
+        
+        $this.Lines = $state.Lines.Clone()
+        $this.CursorX = $state.CursorX
+        $this.CursorY = $state.CursorY
+        $this.ScrollOffsetX = $state.ScrollOffsetX
+        $this.ScrollOffsetY = $state.ScrollOffsetY
+        
+        $this.Modified = $true
+        $this.Invalidate()
+    }
+    
+    [void] PerformRedo() {
+        if ($this._currentUndoIndex -ge $this._undoStates.Count - 1) { return }
+        
+        $this._currentUndoIndex++
+        $state = $this._undoStates[$this._currentUndoIndex]
+        
+        $this.Lines = $state.Lines.Clone()
+        $this.CursorX = $state.CursorX
+        $this.CursorY = $state.CursorY
+        $this.ScrollOffsetX = $state.ScrollOffsetX
+        $this.ScrollOffsetY = $state.ScrollOffsetY
+        
+        $this.Modified = $true
+        $this.Invalidate()
+    }
+    
+    [bool] ShouldSaveUndoForLine() {
+        # For line-based undo, save state when cursor moves to a different line
+        # or if this is the very first edit
+        if ($this._undoStates.Count -eq 0) { return $true }
+        
+        $lastState = $this._undoStates[$this._currentUndoIndex]
+        return ($lastState.CursorY -ne $this.CursorY)
+    }
+    
+    [void] OnApplicationFocusChanged([bool]$hasFocus) {
+        # Called by PRAXIS framework when window focus changes
+        if ($this._lastFocusState -and -not $hasFocus) {
+            # Lost focus - trigger auto-save if enabled and file is modified
+            if ($this.AutoSaveOnFocusLoss -and $this.Modified -and $this.FilePath) {
+                $this.AutoSave()
+            }
+        }
+        $this._lastFocusState = $hasFocus
+    }
+    
+    [void] AutoSave() {
+        try {
+            $content = $this.Lines -join "`n"
+            $autoSavePath = "$($this.FilePath).autosave"
+            Set-Content -Path $autoSavePath -Value $content -NoNewline -ErrorAction Stop
+            $this.StatusMessage = "Auto-saved on focus loss"
+            if ($global:Logger) {
+                $global:Logger.Debug("TextEditor: Auto-saved to $autoSavePath")
+            }
+        }
+        catch {
+            $this.StatusMessage = "Auto-save failed: $_"
+            if ($global:Logger) {
+                $global:Logger.Error("TextEditor: Auto-save failed: $_")
+            }
+        }
+        $this.Invalidate()
     }
     
     [void] OnInitialize() {
+        # Get PRAXIS services
+        try {
+            $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
+            $this.EventBus = $this.ServiceContainer.GetService('EventBus')
+        }
+        catch {
+            if ($global:Logger) {
+                $global:Logger.Warning("TextEditor: Could not get PRAXIS services: $_")
+            }
+        }
+        
         # Load file if specified
         if ($this.FilePath -and (Test-Path $this.FilePath)) {
             $this.LoadFile()
@@ -45,6 +201,18 @@ class TextEditorScreen : Screen {
         # Update title
         if ($this.FilePath) {
             $this.Title = "Text Editor - $([System.IO.Path]::GetFileName($this.FilePath))"
+        }
+        
+        # Subscribe to focus change events if EventBus is available
+        if ($this.EventBus) {
+            try {
+                $this.EventBus.Subscribe('application.focus.changed', $this.OnApplicationFocusChanged.GetNewClosure())
+            }
+            catch {
+                if ($global:Logger) {
+                    $global:Logger.Warning("TextEditor: Could not subscribe to focus events: $_")
+                }
+            }
         }
     }
     
@@ -69,6 +237,19 @@ class TextEditorScreen : Screen {
             }
             $this.Modified = $false
             $this.StatusMessage = "File loaded: $([System.IO.Path]::GetFileName($this.FilePath))"
+            
+            # Publish file loaded event
+            if ($this.EventBus) {
+                try {
+                    $this.EventBus.Publish('editor.file.loaded', @{
+                        FilePath = $this.FilePath
+                        LineCount = $this.Lines.Count
+                    })
+                }
+                catch {
+                    # Ignore event publishing errors
+                }
+            }
         }
         catch {
             $this.StatusMessage = "Error loading file: $_"
@@ -91,6 +272,19 @@ class TextEditorScreen : Screen {
             Set-Content -Path $this.FilePath -Value $content -NoNewline -ErrorAction Stop
             $this.Modified = $false
             $this.StatusMessage = "File saved: $([System.IO.Path]::GetFileName($this.FilePath))"
+            
+            # Publish file saved event
+            if ($this.EventBus) {
+                try {
+                    $this.EventBus.Publish('editor.file.saved', @{
+                        FilePath = $this.FilePath
+                        LineCount = $this.Lines.Count
+                    })
+                }
+                catch {
+                    # Ignore event publishing errors
+                }
+            }
         }
         catch {
             $this.StatusMessage = "Error saving file: $_"
@@ -181,6 +375,18 @@ class TextEditorScreen : Screen {
                     $this.OpenFileBrowser()
                     return $true 
                 }
+                ([ConsoleKey]::Z) {
+                    if ($keyInfo.Modifiers -band [ConsoleModifiers]::Shift) {
+                        $this.PerformRedo()
+                    } else {
+                        $this.PerformUndo()
+                    }
+                    return $true
+                }
+                ([ConsoleKey]::Y) {
+                    $this.PerformRedo()
+                    return $true
+                }
                 ([ConsoleKey]::Q) { 
                     if ($this.Modified) {
                         $this.StatusMessage = "Unsaved changes! Press Ctrl+Q again to quit"
@@ -248,6 +454,11 @@ class TextEditorScreen : Screen {
     }
     
     [void] InsertChar([char]$char) {
+        # Save undo state if this is the first edit on this line
+        if ($this.ShouldSaveUndoForLine()) {
+            $this.SaveUndoState()
+        }
+        
         $line = $this.Lines[$this.CursorY]
         $this.Lines[$this.CursorY] = $line.Insert($this.CursorX, $char)
         $this.CursorX++
@@ -257,6 +468,9 @@ class TextEditorScreen : Screen {
     }
     
     [void] InsertNewline() {
+        # Always save undo state before creating a new line
+        $this.SaveUndoState()
+        
         $line = $this.Lines[$this.CursorY]
         $before = if ($this.CursorX -gt 0) { $line.Substring(0, $this.CursorX) } else { "" }
         $after = if ($this.CursorX -lt $line.Length) { $line.Substring($this.CursorX) } else { "" }
@@ -273,11 +487,17 @@ class TextEditorScreen : Screen {
     
     [void] Backspace() {
         if ($this.CursorX -gt 0) {
+            # Save undo state if this is first edit on this line
+            if ($this.ShouldSaveUndoForLine()) {
+                $this.SaveUndoState()
+            }
             # Delete character before cursor
             $line = $this.Lines[$this.CursorY]
             $this.Lines[$this.CursorY] = $line.Remove($this.CursorX - 1, 1)
             $this.CursorX--
         } elseif ($this.CursorY -gt 0) {
+            # Always save undo state before joining lines
+            $this.SaveUndoState()
             # Join with previous line
             $prevLine = $this.Lines[$this.CursorY - 1]
             $currentLine = $this.Lines[$this.CursorY]
@@ -296,9 +516,15 @@ class TextEditorScreen : Screen {
         $line = $this.Lines[$this.CursorY]
         
         if ($this.CursorX -lt $line.Length) {
+            # Save undo state if this is first edit on this line
+            if ($this.ShouldSaveUndoForLine()) {
+                $this.SaveUndoState()
+            }
             # Delete character at cursor
             $this.Lines[$this.CursorY] = $line.Remove($this.CursorX, 1)
         } elseif ($this.CursorY -lt $this.Lines.Count - 1) {
+            # Always save undo state before joining lines
+            $this.SaveUndoState()
             # Join with next line
             $nextLine = $this.Lines[$this.CursorY + 1]
             $this.Lines[$this.CursorY] = $line + $nextLine
@@ -375,7 +601,7 @@ class TextEditorScreen : Screen {
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))
             $sb.Append($bgColor)
-            $sb.Append(" " * $this.Width)
+            $sb.Append([StringCache]::GetSpaces($this.Width))
         }
         
         # Draw title

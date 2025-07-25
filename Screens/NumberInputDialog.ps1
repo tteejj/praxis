@@ -154,14 +154,14 @@ class NumberInputDialog : Screen {
     hidden [hashtable]$_dialogBounds
     
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048
         
         # First, clear the entire screen with a dark overlay
         $overlayBg = [VT]::RGBBG(16, 16, 16)  # Dark gray overlay
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo(0, $y))
             $sb.Append($overlayBg)
-            $sb.Append(" " * $this.Width)
+            $sb.Append([StringCache]::GetSpaces($this.Width))
         }
         
         if ($this._dialogBounds) {
@@ -179,7 +179,7 @@ class NumberInputDialog : Screen {
             for ($i = 0; $i -lt $h; $i++) {
                 $sb.Append([VT]::MoveTo($x, $y + $i))
                 $sb.Append($bgColor)
-                $sb.Append(" " * $w)
+                $sb.Append([StringCache]::GetSpaces($w))
             }
             
             # Draw border
@@ -242,7 +242,10 @@ class NumberInputDialog : Screen {
         }
         
         $sb.Append([VT]::Reset())
-        return $sb.ToString()
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [void] FocusNext() {

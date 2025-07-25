@@ -10,6 +10,12 @@ class TabContainer : Container {
     hidden [hashtable]$_tabCache = @{}
     hidden [string]$_cachedTabBar = ""
     hidden [bool]$_tabBarInvalid = $true
+    hidden [hashtable]$_colors = @{}
+    
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedVersionRender = ""
     
     TabContainer() : base() {
         $this.Tabs = [System.Collections.Generic.List[TabItem]]::new()
@@ -22,6 +28,16 @@ class TabContainer : Container {
     }
     
     [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'tab.background' = $this.Theme.GetBgColor("tab.background")
+                'tab.active.background' = $this.Theme.GetBgColor("tab.active.background")
+                'tab.active.foreground' = $this.Theme.GetColor("tab.active.foreground")
+                'tab.active.accent' = $this.Theme.GetColor("tab.active.accent")
+                'tab.foreground' = $this.Theme.GetColor("tab.foreground")
+                'border' = $this.Theme.GetColor("border")
+            }
+        }
         $this._tabBarInvalid = $true
         $this.Invalidate()
         
@@ -48,6 +64,7 @@ class TabContainer : Container {
         }
         
         $this.Tabs.Add($tab)
+        $this._dataVersion++  # Increment on tab change
         $this._tabBarInvalid = $true
         
         # Set as active if first tab
@@ -74,6 +91,8 @@ class TabContainer : Container {
         
         # Don't switch if already on this tab
         if ($index -eq $this.ActiveTabIndex) { return }
+        
+        $this._dataVersion++  # Increment on tab activation change
         
         if ($global:Logger) {
             $global:Logger.Debug("TabContainer.ActivateTab: Switching from tab $($this.ActiveTabIndex) to tab $index")
@@ -195,8 +214,8 @@ class TabContainer : Container {
         
         # Tab bar background
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
-        $sb.Append($this.Theme.GetBgColor("tab.background"))
-        $sb.Append(" " * $this.Width)
+        $sb.Append($this._colors['tab.background'])
+        $sb.Append([StringCache]::GetSpaces($this.Width))
         
         # Draw tabs
         $x = $this.X + 1
@@ -222,18 +241,18 @@ class TabContainer : Container {
             # Tab styling
             if ($i -eq $this.ActiveTabIndex) {
                 # Active tab
-                $sb.Append($this.Theme.GetBgColor("tab.active.background"))
-                $sb.Append($this.Theme.GetColor("tab.active.foreground"))
+                $sb.Append($this._colors['tab.active.background'])
+                $sb.Append($this._colors['tab.active.foreground'])
                 $sb.Append(" $title ")
                 
                 # Bottom accent line
                 $sb.Append([VT]::MoveTo($x, $this.Y + 1))
-                $sb.Append($this.Theme.GetColor("tab.active.accent"))
-                $sb.Append("─" * ($tabWidth - 2))
+                $sb.Append($this._colors['tab.active.accent'])
+                $sb.Append([StringCache]::GetHorizontalLine($tabWidth - 2))
             } else {
                 # Inactive tab
-                $sb.Append($this.Theme.GetBgColor("tab.background"))
-                $sb.Append($this.Theme.GetColor("tab.foreground"))
+                $sb.Append($this._colors['tab.background'])
+                $sb.Append($this._colors['tab.foreground'])
                 $sb.Append(" $title ")
             }
             
@@ -243,8 +262,8 @@ class TabContainer : Container {
         # Reset and draw separator line
         $sb.Append([VT]::Reset())
         $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
-        $sb.Append($this.Theme.GetColor("border"))
-        $sb.Append("─" * $this.Width)
+        $sb.Append($this._colors['border'])
+        $sb.Append([StringCache]::GetHorizontalLine($this.Width))
         $sb.Append([VT]::Reset())
         
         $this._cachedTabBar = $sb.ToString()

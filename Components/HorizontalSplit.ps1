@@ -15,9 +15,29 @@ class HorizontalSplit : Container {
     hidden [bool]$_layoutInvalid = $true
     hidden [int]$_lastWidth = 0
     hidden [int]$_lastSplitRatio = 0
+    hidden [hashtable]$_colors = @{}
+    hidden [ThemeManager]$Theme
     
     HorizontalSplit() : base() {
         $this.DrawBackground = $false
+    }
+    
+    [void] OnInitialize() {
+        ([Container]$this).OnInitialize()
+        $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
+        }
+    }
+    
+    [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+            }
+        }
+        $this.Invalidate()
     }
     
     [void] SetLeftPane([UIElement]$pane) {
@@ -108,7 +128,7 @@ class HorizontalSplit : Container {
         
         # Optional: render split border
         if ($this.ShowBorder -and $this._cachedLeftWidth -gt 0) {
-            $borderColor = $this.Theme.GetColor("border")
+            $borderColor = $this._colors['border']
             for ($y = 0; $y -lt $this.Height; $y++) {
                 $sb.Append([VT]::MoveTo($this._cachedRightX - 1, $this.Y + $y))
                 $sb.Append($borderColor)

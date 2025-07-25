@@ -81,12 +81,12 @@ class Measure {
         
         $padding = $width - $textWidth
         switch ($align) {
-            "Left" { return $text + (" " * $padding) }
-            "Right" { return (" " * $padding) + $text }
+            "Left" { return $text + [StringCache]::GetSpaces($padding) }
+            "Right" { return [StringCache]::GetSpaces($padding) + $text }
             "Center" { 
                 $left = [int]($padding / 2)
                 $right = $padding - $left
-                return (" " * $left) + $text + (" " * $right)
+                return [StringCache]::GetSpaces($left) + $text + [StringCache]::GetSpaces($right)
             }
         }
         return $text

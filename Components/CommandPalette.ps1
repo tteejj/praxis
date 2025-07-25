@@ -14,6 +14,12 @@ class CommandPalette : Container {
     hidden [int]$PaletteWidth = 60
     hidden [int]$PaletteHeight = 20
     hidden [int]$MaxResults = 15
+    hidden [hashtable]$_colors = @{}
+    
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedVersionRender = ""
     
     CommandPalette() : base() {
         $this.AllCommands = [System.Collections.ArrayList]::new()
@@ -59,11 +65,26 @@ class CommandPalette : Container {
         
         # Set palette background if theme is available
         if ($this.Theme) {
-            $this.SetBackgroundColor($this.Theme.GetBgColor("menu.background"))
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
         }
         
         # Load default commands
         $this.LoadDefaultCommands()
+    }
+    
+    [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'menu.background' = $this.Theme.GetBgColor("menu.background")
+                'border.focused' = $this.Theme.GetColor("border.focused")
+                'accent' = $this.Theme.GetColor("accent")
+                'foreground' = $this.Theme.GetColor("foreground")
+                'disabled' = $this.Theme.GetColor("disabled")
+            }
+            $this.SetBackgroundColor($this._colors['menu.background'])
+        }
+        $this.Invalidate()
     }
     
     [void] LoadDefaultCommands() {
@@ -455,17 +476,17 @@ class CommandPalette : Container {
         $sb.Append(([Container]$this).OnRender())
         
         # Draw border
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { "" }
+        $borderColor = $this._colors['border.focused']
         
         # Top border with title
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * 2))
-        $accentColor = if ($this.Theme) { $this.Theme.GetColor("accent") } else { "" }
+        $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal(2))
+        $accentColor = $this._colors['accent']
         $sb.Append($accentColor)
         $sb.Append(" Command Palette ")
         $sb.Append($borderColor)
-        $sb.Append([VT]::H() * ($this.Width - 19) + [VT]::TR())
+        $sb.Append([StringCache]::GetVTHorizontal($this.Width - 19) + [VT]::TR())
         
         # Sides
         for ($y = 1; $y -lt $this.Height - 1; $y++) {
@@ -477,11 +498,11 @@ class CommandPalette : Container {
         
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
-        $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+        $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         
         # Search box
         $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 2))
-        $foregroundColor = if ($this.Theme) { $this.Theme.GetColor("foreground") } else { "" }
+        $foregroundColor = $this._colors['foreground']
         $sb.Append($foregroundColor)
         $sb.Append("Search: ")
         $sb.Append($accentColor)
@@ -491,11 +512,11 @@ class CommandPalette : Container {
         # Separator
         $sb.Append([VT]::MoveTo($this.X + 1, $this.Y + 3))
         $sb.Append($borderColor)
-        $sb.Append([VT]::H() * ($this.Width - 2))
+        $sb.Append([StringCache]::GetVTHorizontal($this.Width - 2))
         
         # Help text
         $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + $this.Height - 2))
-        $disabledColor = if ($this.Theme) { $this.Theme.GetColor("disabled") } else { "" }
+        $disabledColor = $this._colors['disabled']
         $sb.Append($disabledColor)
         $sb.Append("[Enter] Select  [Esc] Cancel")
         

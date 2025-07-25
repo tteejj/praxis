@@ -236,7 +236,7 @@ class ExcelImportScreen : Screen {
     }
     
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Render base screen first
         $null = $sb.Append(([Screen]$this).OnRender())
@@ -250,6 +250,8 @@ class ExcelImportScreen : Screen {
         $null = $sb.Append($this.StatusMessage)
         $null = $sb.Append($this.VT.Reset)
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
 }

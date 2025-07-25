@@ -193,6 +193,26 @@ Simplified after input system refactor:
    - **IMPACT**: Violates basic UI expectations - focused elements should always get input priority
    - **SOLUTION**: Reverse HandleInput priority in screens to check focused children BEFORE screen shortcuts
    - **✅ FIXED (2025-07-23)**: Applied corrected input flow to ProjectsScreen, BaseDialog, and ConfirmationDialog
+
+2. **🎨 THEME STANDARDIZATION** (2025-07-25)
+   - **ISSUE**: Inconsistent theme key usage across components
+   - **SYMPTOMS**: 
+     - Some components use "title" while others use "dialog.title" or "accent" for titles
+     - Missing theme keys like "title", "normal", "selected" caused rendering issues
+     - Components cache theme colors differently, some not updating on theme change
+   - **SPECIFIC PROBLEMS**:
+     - CommandPalette uses "accent" for title instead of standardized "title" key
+     - ListBox selection overflow - highlight extends beyond text to empty space
+     - Theme change events not consistently refreshing all component caches
+     - No standardized fallback pattern when theme keys are missing
+   - **✅ PARTIAL FIX (2025-07-25)**: 
+     - Added missing keys to both default and matrix themes
+     - Fixed list highlight overflow by clearing empty lines with background color
+   - **TODO**:
+     - Standardize all components to use consistent theme keys
+     - Document theme key conventions in developer guide
+     - Add theme validation to catch missing keys at runtime
+     - Implement consistent cache invalidation on theme change
    
 3. **🎯 PARENT-DELEGATED FOCUS MODEL** (2025-07-23)
    - **REVOLUTIONARY CHANGE**: Complete redesign of focus/input architecture
@@ -220,22 +240,22 @@ Simplified after input system refactor:
      - ✅ Initial focus set properly on screen activation
      - ✅ No more focus-related crashes or context loss
 
-2. **Direct Global Service Access**
+3. **Direct Global Service Access**
    - Using $global:ServiceContainer directly
    - Should use proper injection patterns
    - Will improve with StateManager implementation
 
-3. ~~**Manual Focus Management**~~ ✅ **RESOLVED (2025-07-22)**
+4. ~~**Manual Focus Management**~~ ✅ **RESOLVED (2025-07-22)**
    - ~~Each screen manually handles Tab navigation~~
    - ~~Should be centralized in a FocusManager~~
    - **Now handled by shared Screen.FocusNext() method - simple and reliable**
 
-4. ~~**Command Registration**~~ ✅ **RESOLVED (2025-07-22)**
+5. ~~**Command Registration**~~ ✅ **RESOLVED (2025-07-22)**
    - ~~Commands are manually added in CommandPalette initialization~~
    - ~~Should allow dynamic registration from screens/components~~
    - **EventBus now supports dynamic command registration via `[CommandRegistration]::RegisterCommand()`**
 
-5. **Model Property Inconsistencies**
+6. **Model Property Inconsistencies**
    - Task has UpdatedAt, Project has none
    - Should standardize timestamp properties across models
    - Consider base class for common properties

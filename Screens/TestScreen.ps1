@@ -42,7 +42,7 @@ class TestScreen : Screen {
     }
     
     [void] RebuildContent() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 512
         
         # Calculate absolute positions
         $absoluteCenterY = $this.Y + [int]($this.Height / 2)
@@ -79,6 +79,7 @@ class TestScreen : Screen {
         $sb.Append([VT]::Reset())
         
         $this._cachedContent = $sb.ToString()
+        Return-PooledStringBuilder $sb
     }
     
     [string] OnRender() {

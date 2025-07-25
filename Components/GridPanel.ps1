@@ -17,9 +17,29 @@ class GridPanel : Container {
     hidden [int]$_lastHeight = 0
     hidden [int]$_lastColumns = 0
     hidden [int]$_lastChildCount = 0
+    hidden [hashtable]$_colors = @{}
+    hidden [ThemeManager]$Theme
     
     GridPanel() : base() {
         $this.DrawBackground = $false
+    }
+    
+    [void] OnInitialize() {
+        ([Container]$this).OnInitialize()
+        $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
+        }
+    }
+    
+    [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+            }
+        }
+        $this.Invalidate()
     }
     
     GridPanel([int]$columns) : base() {
@@ -129,7 +149,7 @@ class GridPanel : Container {
         
         # Optional: render grid borders
         if ($this.ShowBorder -and $this._cachedCellWidth -gt 0) {
-            $borderColor = $this.Theme.GetColor("border")
+            $borderColor = $this._colors['border']
             $sb.Append($borderColor)
             
             # Draw grid lines (simplified - just basic grid)
@@ -153,7 +173,7 @@ class GridPanel : Container {
             for ($row = 1; $row -lt $actualRows; $row++) {
                 $lineY = $this.Y + ($row * ($this._cachedCellHeight + $this.CellSpacing)) - 1
                 $sb.Append([VT]::MoveTo($this.X, $lineY))
-                $sb.Append("─" * $this.Width)
+                $sb.Append([StringCache]::GetHorizontalLine($this.Width))
             }
             
             $sb.Append([VT]::Reset())

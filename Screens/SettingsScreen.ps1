@@ -302,7 +302,7 @@ class SettingsScreen : Screen {
     }
     
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Render base
         $sb.Append(([Container]$this).OnRender())
@@ -311,13 +311,16 @@ class SettingsScreen : Screen {
         $statusY = $this.Y + $this.Height - 1
         $sb.Append([VT]::MoveTo($this.X, $statusY))
         $sb.Append($this.Theme.GetColor("border"))
-        $sb.Append("─" * $this.Width)
+        $sb.Append([StringCache]::GetHorizontalLine($this.Width))
         
         $sb.Append([VT]::MoveTo($this.X + 1, $statusY))
         $sb.Append($this.Theme.GetColor("disabled"))
         $sb.Append(" [Tab]Navigate [Enter/E]Edit [R]Reset Category [Shift+R]Reset All [S]Save")
         
         $sb.Append([VT]::Reset())
-        return $sb.ToString()
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
 }

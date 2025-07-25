@@ -71,6 +71,12 @@ class TreeView : UIElement {
     
     hidden [ThemeManager]$Theme
     hidden [string]$_cachedRender = ""
+    hidden [hashtable]$_colors = @{}
+    
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedVersionRender = ""
     
     TreeView() : base() {
         $this.Nodes = [System.Collections.ArrayList]::new()
@@ -88,6 +94,15 @@ class TreeView : UIElement {
     }
     
     [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+                'title' = $this.Theme.GetColor("title")
+                'selected' = $this.Theme.GetBgColor("selected")
+                'normal' = $this.Theme.GetColor("normal")
+                'border.focused' = $this.Theme.GetColor("border.focused")
+            }
+        }
         $this._cachedRender = ""
         $this.Invalidate()
     }
@@ -102,6 +117,7 @@ class TreeView : UIElement {
         $node = [TreeNode]::new($displayText)
         $node.Level = 0
         $this.Nodes.Add($node) | Out-Null
+        $this._dataVersion++  # Increment on data change
         $this.RebuildFlatView()
         return $node
     }
@@ -110,6 +126,7 @@ class TreeView : UIElement {
         $node = [TreeNode]::new($displayText, $data)
         $node.Level = 0
         $this.Nodes.Add($node) | Out-Null
+        $this._dataVersion++  # Increment on data change
         $this.RebuildFlatView()
         return $node
     }
@@ -119,6 +136,7 @@ class TreeView : UIElement {
         $this._flatView.Clear()
         $this.SelectedIndex = 0
         $this.ScrollOffset = 0
+        $this._dataVersion++  # Increment on data change
         $this.Invalidate()
     }
     
@@ -239,14 +257,14 @@ class TreeView : UIElement {
     }
     
     [void] RebuildCache() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 4096  # TreeView can have many nodes
         
-        # Colors
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-        $titleColor = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-        $selectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selected") } else { "" }
-        $normalColor = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
-        $focusBorder = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { $borderColor }
+        # Colors from cache
+        $borderColor = $this._colors['border']
+        $titleColor = $this._colors['title']
+        $selectedBg = $this._colors['selected']
+        $normalColor = $this._colors['normal']
+        $focusBorder = if ($this._colors['border.focused']) { $this._colors['border.focused'] } else { $borderColor }
         
         $currentBorderColor = if ($this.IsFocused) { $focusBorder } else { $borderColor }
         
@@ -259,7 +277,7 @@ class TreeView : UIElement {
             # Top border
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -306,7 +324,7 @@ class TreeView : UIElement {
             $line = ""
             
             # Indentation
-            $line += " " * ($node.Level * $this.IndentSize)
+            $line += [StringCache]::GetSpaces($node.Level * $this.IndentSize)
             
             # Tree icon
             if ($node.HasChildren()) {
@@ -339,7 +357,7 @@ class TreeView : UIElement {
             $y = $contentY + $i
             $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $y))
             $sb.Append($normalColor)
-            $sb.Append(" ".PadRight($contentWidth))
+            $sb.Append([StringCache]::GetSpaces($contentWidth))
             
             if ($this.ShowBorder) {
                 $sb.Append([VT]::MoveTo($this.X, $y))
@@ -357,11 +375,12 @@ class TreeView : UIElement {
             $bottomY = $this.Y + $this.Height - 1
             $sb.Append([VT]::MoveTo($this.X, $bottomY))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
         
         $sb.Append([VT]::Reset())
         $this._cachedRender = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

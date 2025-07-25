@@ -9,6 +9,11 @@ class Button : UIElement {
     hidden [string]$_cachedRender = ""
     hidden [ThemeManager]$Theme
     
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedVersionRender = ""
+    
     # Cached theme colors
     hidden [hashtable]$_colors = @{}
     
@@ -57,6 +62,15 @@ class Button : UIElement {
         ([UIElement]$this).Invalidate()
     }
     
+    # Method to properly track text changes
+    [void] SetText([string]$text) {
+        if ($this.Text -ne $text) {
+            $this.Text = $text
+            $this._dataVersion++  # Increment on text change
+            $this.Invalidate()
+        }
+    }
+    
     [string] OnRender() {
         if ([string]::IsNullOrEmpty($this._cachedRender)) {
             $this.RebuildCache()
@@ -102,7 +116,7 @@ class Button : UIElement {
         $sb.Append($borderColor)
         $borderWidth = [Math]::Max(0, $this.Width - 2)
         if ($borderWidth -gt 0) {
-            $sb.Append([VT]::TL() + ([VT]::H() * $borderWidth) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($borderWidth) + [VT]::TR())
         } else {
             $sb.Append([VT]::TL() + [VT]::TR())
         }
@@ -121,7 +135,7 @@ class Button : UIElement {
                 $sb.Append($bgColor)
                 $textStartOffset = [Math]::Max(0, ($this.Width - $this.Text.Length) / 2) - 1
                 if ($textStartOffset -gt 0) {
-                    $sb.Append(" " * [int]$textStartOffset)
+                    $sb.Append([StringCache]::GetSpaces([int]$textStartOffset))
                 }
                 
                 # Draw text
@@ -132,14 +146,14 @@ class Button : UIElement {
                 $sb.Append($bgColor)
                 $remainingSpace = $this.Width - 2 - [int]$textStartOffset - $this.Text.Length
                 if ($remainingSpace -gt 0) {
-                    $sb.Append(" " * $remainingSpace)
+                    $sb.Append([StringCache]::GetSpaces($remainingSpace))
                 }
             } else {
                 # Non-text lines - just fill with background
                 $sb.Append($bgColor)
                 $paddingWidth = [Math]::Max(0, $this.Width - 2)
                 if ($paddingWidth -gt 0) {
-                    $sb.Append(" " * $paddingWidth)
+                    $sb.Append([StringCache]::GetSpaces($paddingWidth))
                 }
             }
             
@@ -153,7 +167,7 @@ class Button : UIElement {
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
         if ($borderWidth -gt 0) {
-            $sb.Append([VT]::BL() + ([VT]::H() * $borderWidth) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($borderWidth) + [VT]::BR())
         } else {
             $sb.Append([VT]::BL() + [VT]::BR())
         }

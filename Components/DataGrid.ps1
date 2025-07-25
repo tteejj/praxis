@@ -13,11 +13,17 @@ class DataGrid : UIElement {
     [scriptblock]$OnSelectionChanged = {}
     
     hidden [ThemeManager]$Theme
+    hidden [hashtable]$_colors = @{}
     hidden [hashtable]$_columnWidths = @{}
     hidden [string]$_cachedHeader = ""
     hidden [string]$_cachedSeparator = ""
+    hidden [string[]]$_cachedHeaders = @()        # Pre-built header strings
+    hidden [int[]]$_cachedColumnWidths = @()      # Pre-calculated widths
+    hidden [string]$_cachedBorders = ""           # Pre-built border strings
     hidden [bool]$_layoutCacheValid = $false
     hidden [int]$_lastWidth = 0
+    hidden [int]$_dataVersion = 0                 # Version-based change detection
+    hidden [int]$_lastRenderedVersion = -1
     
     DataGrid() : base() {
         $this.Items = [System.Collections.ArrayList]::new()
@@ -33,6 +39,18 @@ class DataGrid : UIElement {
     }
     
     [void] OnThemeChanged() {
+        # Cache all colors used by DataGrid
+        $this._colors['border'] = $this.Theme.GetColor('border')
+        $this._colors['border.focused'] = $this.Theme.GetColor('border.focused')
+        $this._colors['accent'] = $this.Theme.GetColor('accent')
+        $this._colors['header.foreground'] = $this.Theme.GetColor('header.foreground')
+        $this._colors['header.background'] = $this.Theme.GetBgColor('header.background')
+        $this._colors['background'] = $this.Theme.GetBgColor('background')
+        $this._colors['foreground'] = $this.Theme.GetColor('foreground')
+        $this._colors['selection'] = $this.Theme.GetBgColor('selection')
+        $this._colors['scrollbar'] = $this.Theme.GetColor('scrollbar')
+        
+        $this._dataVersion++  # Increment for theme change
         $this._layoutCacheValid = $false
         $this.Invalidate()
     }
@@ -41,6 +59,7 @@ class DataGrid : UIElement {
     [void] SetColumns([hashtable[]]$columns) {
         $this.Columns = $columns
         $this._layoutCacheValid = $false
+        $this._dataVersion++  # Increment on any data change
         $this.Invalidate()
     }
     
@@ -54,6 +73,7 @@ class DataGrid : UIElement {
         }
         $this.SelectedIndex = if ($this.Items.Count -gt 0) { 0 } else { -1 }
         $this.ScrollOffset = 0
+        $this._dataVersion++  # Increment on any data change
         $this.Invalidate()
     }
     
@@ -158,7 +178,7 @@ class DataGrid : UIElement {
         
         # Fill remaining space
         if ($x -lt $contentWidth) {
-            $sb.Append(" " * ($contentWidth - $x))
+            $sb.Append([StringCache]::GetSpaces($contentWidth - $x))
         }
         
         $this._cachedHeader = $sb.ToString()
@@ -183,7 +203,7 @@ class DataGrid : UIElement {
             }
             
             if ($width -gt 0) {
-                $sb.Append("─" * $width)
+                $sb.Append([StringCache]::GetHorizontalLine($width))
                 $x += $width
                 
                 # Add intersection after column (except last)
@@ -198,7 +218,7 @@ class DataGrid : UIElement {
         
         # Fill remaining space
         if ($x -lt $contentWidth) {
-            $sb.Append("─" * ($contentWidth - $x))
+            $sb.Append([StringCache]::GetHorizontalLine($contentWidth - $x))
         }
         
         $this._cachedSeparator = $sb.ToString()
@@ -250,9 +270,9 @@ class DataGrid : UIElement {
         # Draw border if enabled
         if ($this.ShowBorder -and $this.Theme) {
             $borderColor = if ($this.IsFocused) { 
-                $this.Theme.GetColor("border.focused") 
+                $this._colors['border.focused'] 
             } else { 
-                $this.Theme.GetColor("border") 
+                $this._colors['border'] 
             }
             
             # Top border with title
@@ -261,25 +281,25 @@ class DataGrid : UIElement {
             $sb.Append([VT]::TL())
             
             if ($this.Title) {
-                $titleText = " $($this.Title) "
+                $titleText = " " + $this.Title + " "  # Avoid string interpolation overhead
                 $titleLen = $titleText.Length
                 $borderLen = $this.Width - 2
                 $leftPad = [int](($borderLen - $titleLen) / 2)
                 
                 if ($leftPad -gt 0) {
-                    $sb.Append([VT]::H() * $leftPad)
+                    $sb.Append([StringCache]::GetVTHorizontal($leftPad))
                 }
-                $sb.Append($this.Theme.GetColor("accent"))
+                $sb.Append($this._colors['accent'])
                 $sb.Append($titleText)
                 $sb.Append($borderColor)
                 $remainingBorder = [Math]::Max(0, $borderLen - $leftPad - $titleLen)
                 if ($remainingBorder -gt 0) {
-                    $sb.Append([VT]::H() * $remainingBorder)
+                    $sb.Append([StringCache]::GetVTHorizontal($remainingBorder))
                 }
             } else {
                 $topBorderWidth = [Math]::Max(0, $this.Width - 2)
                 if ($topBorderWidth -gt 0) {
-                    $sb.Append([VT]::H() * $topBorderWidth)
+                    $sb.Append([StringCache]::GetVTHorizontal($topBorderWidth))
                 }
             }
             
@@ -298,7 +318,7 @@ class DataGrid : UIElement {
             $sb.Append([VT]::BL())
             $bottomBorderWidth = [Math]::Max(0, $this.Width - 2)
             if ($bottomBorderWidth -gt 0) {
-                $sb.Append([VT]::H() * $bottomBorderWidth)
+                $sb.Append([StringCache]::GetVTHorizontal($bottomBorderWidth))
             }
             $sb.Append([VT]::BR())
             $sb.Append([VT]::Reset())
@@ -313,11 +333,11 @@ class DataGrid : UIElement {
         $this.CalculateColumnWidths($contentWidth)
         
         # Clear content area
-        $bgColor = $this.Theme.GetBgColor("background")
+        $bgColor = $this._colors['background']
         for ($y = 0; $y -lt $contentHeight; $y++) {
             $sb.Append([VT]::MoveTo($contentX, $contentY + $y))
             $sb.Append($bgColor)
-            $sb.Append(" " * $contentWidth)
+            $sb.Append([StringCache]::GetSpaces($contentWidth))
         }
         
         $currentY = $contentY
@@ -330,8 +350,8 @@ class DataGrid : UIElement {
             
             # Render header
             $sb.Append([VT]::MoveTo($contentX, $currentY))
-            $sb.Append($this.Theme.GetBgColor("header.background"))
-            $sb.Append($this.Theme.GetColor("header.foreground"))
+            $sb.Append($this._colors['header.background'])
+            $sb.Append($this._colors['header.foreground'])
             $sb.Append($this._cachedHeader)
             $sb.Append([VT]::Reset())
             $currentY++
@@ -340,7 +360,7 @@ class DataGrid : UIElement {
             if ($this.ShowGridLines) {
                 $this.BuildCachedSeparator($contentWidth)
                 $sb.Append([VT]::MoveTo($contentX, $currentY))
-                $sb.Append($this.Theme.GetColor("border"))
+                $sb.Append($this._colors['border'])
                 $sb.Append($this._cachedSeparator)
                 $sb.Append([VT]::Reset())
                 $currentY++
@@ -350,14 +370,18 @@ class DataGrid : UIElement {
             $contentHeight = $this.Height - 2 - ($currentY - $contentY)
         }
         
-        # Calculate visible rows (accounting for separators)
+        # Calculate visible rows (accounting for separators) - optimization: only render visible rows
         $rowHeight = if ($this.ShowGridLines) { 2 } else { 1 }
         $maxVisibleRows = [Math]::Floor($contentHeight / $rowHeight)
-        $visibleRows = [Math]::Min($maxVisibleRows, $this.Items.Count - $this.ScrollOffset)
         
-        # Render data rows
+        # Optimization: Skip off-screen rows entirely - zero overhead bounds checking
+        $startRow = $this.ScrollOffset
+        $endRow = [Math]::Min($startRow + $maxVisibleRows, $this.Items.Count)
+        $visibleRows = $endRow - $startRow
+        
+        # Render data rows (only visible ones)
         for ($i = 0; $i -lt $visibleRows; $i++) {
-            $itemIndex = $this.ScrollOffset + $i
+            $itemIndex = $startRow + $i
             if ($itemIndex -ge $this.Items.Count) { break }
             
             $item = $this.Items[$itemIndex]
@@ -368,11 +392,11 @@ class DataGrid : UIElement {
             $sb.Append([VT]::MoveTo($contentX, $rowY))
             
             if ($isSelected) {
-                $sb.Append($this.Theme.GetBgColor("selection"))
-                $sb.Append($this.Theme.GetColor("foreground"))
+                $sb.Append($this._colors['selection'])
+                $sb.Append($this._colors['foreground'])
             } else {
-                $sb.Append($this.Theme.GetBgColor("background"))
-                $sb.Append($this.Theme.GetColor("foreground"))
+                $sb.Append($this._colors['background'])
+                $sb.Append($this._colors['foreground'])
             }
             
             # Render columns
@@ -416,9 +440,9 @@ class DataGrid : UIElement {
                             # Keep selection colors for separator
                             $sb.Append("│")
                         } else {
-                            $sb.Append($this.Theme.GetColor("border"))
+                            $sb.Append($this._colors['border'])
                             $sb.Append("│")
-                            $sb.Append($this.Theme.GetColor("foreground"))
+                            $sb.Append($this._colors['foreground'])
                         }
                         $x++
                     }
@@ -429,13 +453,13 @@ class DataGrid : UIElement {
             
             # Fill remaining row space
             if ($x -lt $contentWidth) {
-                $sb.Append(" " * ($contentWidth - $x))
+                $sb.Append([StringCache]::GetSpaces($contentWidth - $x))
             }
             
             # Render row separator (except after last visible row)
             if ($this.ShowGridLines -and $i -lt $visibleRows - 1) {
                 $sb.Append([VT]::MoveTo($contentX, $rowY + 1))
-                $sb.Append($this.Theme.GetColor("border"))
+                $sb.Append($this._colors['border'])
                 
                 $x = 0
                 for ($j = 0; $j -lt $this.Columns.Count; $j++) {
@@ -447,7 +471,7 @@ class DataGrid : UIElement {
                     }
                     
                     if ($width -gt 0) {
-                        $sb.Append("─" * $width)
+                        $sb.Append([StringCache]::GetHorizontalLine($width))
                         $x += $width
                         
                         # Add intersection
@@ -462,7 +486,7 @@ class DataGrid : UIElement {
                 
                 # Fill remaining separator
                 if ($x -lt $contentWidth) {
-                    $sb.Append("─" * ($contentWidth - $x))
+                    $sb.Append([StringCache]::GetHorizontalLine($contentWidth - $x))
                 }
                 $sb.Append([VT]::Reset())
             }
@@ -475,7 +499,7 @@ class DataGrid : UIElement {
             $scrollThumbSize = [Math]::Max(1, [int]($scrollBarHeight * $maxVisibleRows / $this.Items.Count))
             $scrollThumbPos = [int]($this.ScrollOffset * ($scrollBarHeight - $scrollThumbSize) / ($this.Items.Count - $maxVisibleRows))
             
-            $sb.Append($this.Theme.GetColor("scrollbar"))
+            $sb.Append($this._colors['scrollbar'])
             for ($i = 0; $i -lt $scrollBarHeight; $i++) {
                 $sb.Append([VT]::MoveTo($scrollBarX, $dataStartY + $i))
                 if ($i -ge $scrollThumbPos -and $i -lt ($scrollThumbPos + $scrollThumbSize)) {
@@ -552,10 +576,12 @@ class DataGrid : UIElement {
     }
     
     [void] OnGotFocus() {
+        $this._dataVersion++  # Increment for focus change
         $this.Invalidate()
     }
     
     [void] OnLostFocus() {
+        $this._dataVersion++  # Increment for focus change
         $this.Invalidate()
     }
     

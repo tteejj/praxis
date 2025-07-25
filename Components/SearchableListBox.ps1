@@ -31,6 +31,7 @@ class SearchableListBox : UIElement {
     hidden [bool]$_searchMode = $false
     hidden [int]$_lastFilteredCount = -1
     hidden [System.Collections.Generic.HashSet[string]]$_highlightCache
+    hidden [hashtable]$_colors = @{}
     
     SearchableListBox() : base() {
         $this.Items = [System.Collections.ArrayList]::new()
@@ -49,6 +50,17 @@ class SearchableListBox : UIElement {
     }
     
     [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+                'title' = $this.Theme.GetColor("title")
+                'selected' = $this.Theme.GetBgColor("selected")
+                'normal' = $this.Theme.GetColor("normal")
+                'search' = $this.Theme.GetColor("search")
+                'highlight' = $this.Theme.GetColor("highlight")
+                'border.focused' = $this.Theme.GetColor("border.focused")
+            }
+        }
         $this._cachedRender = ""
         $this.Invalidate()
     }
@@ -146,9 +158,10 @@ class SearchableListBox : UIElement {
                 $this._filteredItems.Add($item) | Out-Null
             }
         } else {
-            # Apply filtering
+            # Apply filtering - optimize by pre-calculating normalized query
+            $normalizedQuery = if ($this.CaseSensitive) { $this.SearchQuery } else { $this.SearchQuery.ToLower() }
             foreach ($item in $this.Items) {
-                if ($this.MatchesSearch($item, $this.SearchQuery)) {
+                if ($this.MatchesSearchOptimized($item, $this.SearchQuery, $normalizedQuery)) {
                     $this._filteredItems.Add($item) | Out-Null
                 }
             }
@@ -158,6 +171,42 @@ class SearchableListBox : UIElement {
         $this.EnsureSelectionValid()
     }
     
+    # Optimized version that avoids repeated ToLower() calls
+    [bool] MatchesSearchOptimized($item, [string]$query, [string]$normalizedQuery) {
+        # Custom filter takes precedence
+        if ($this.SearchFilter) {
+            try {
+                return & $this.SearchFilter $item $query
+            } catch {
+                # Fall back to default behavior on error
+            }
+        }
+        
+        # Get searchable text from item
+        $searchText = $this.GetSearchableText($item)
+        
+        if ([string]::IsNullOrEmpty($searchText)) {
+            return $false
+        }
+        
+        # Apply case sensitivity using pre-normalized query
+        if (-not $this.CaseSensitive) {
+            $searchText = $searchText.ToLower()
+            $query = $normalizedQuery  # Use pre-normalized query
+        }
+        
+        # Apply search logic
+        if ($this.UseRegex) {
+            try {
+                return $searchText -match $query
+            } catch {
+                return $false
+            }
+        } else {
+            return $searchText.Contains($query)
+        }
+    }
+
     [bool] MatchesSearch($item, [string]$query) {
         # Custom filter takes precedence
         if ($this.SearchFilter) {
@@ -265,16 +314,16 @@ class SearchableListBox : UIElement {
     }
     
     [void] RebuildCache() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048  # SearchableListBox with search box and items
         
-        # Colors
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-        $titleColor = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-        $selectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selected") } else { "" }
-        $normalColor = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
-        $searchColor = if ($this.Theme) { $this.Theme.GetColor("search") } else { $normalColor }
-        $highlightColor = if ($this.Theme) { $this.Theme.GetColor("highlight") } else { "`e[38;2;255;255;0m" }
-        $focusBorder = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { $borderColor }
+        # Colors from cache
+        $borderColor = $this._colors['border']
+        $titleColor = $this._colors['title']
+        $selectedBg = $this._colors['selected']
+        $normalColor = $this._colors['normal']
+        $searchColor = if ($this._colors['search']) { $this._colors['search'] } else { $normalColor }
+        $highlightColor = if ($this._colors['highlight']) { $this._colors['highlight'] } else { "`e[38;2;255;255;0m" }
+        $focusBorder = if ($this._colors['border.focused']) { $this._colors['border.focused'] } else { $borderColor }
         
         $currentBorderColor = if ($this.IsFocused) { $focusBorder } else { $borderColor }
         
@@ -287,7 +336,7 @@ class SearchableListBox : UIElement {
             # Top border
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -338,7 +387,7 @@ class SearchableListBox : UIElement {
             # Search box separator
             $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $contentY))
             $sb.Append($borderColor)
-            $sb.Append([VT]::H() * $contentWidth)
+            $sb.Append([StringCache]::GetVTHorizontal($contentWidth))
             $contentY++
             $contentHeight--
             
@@ -419,7 +468,7 @@ class SearchableListBox : UIElement {
             $y = $contentY + $i
             $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $y))
             $sb.Append($normalColor)
-            $sb.Append(" ".PadRight($contentWidth))
+            $sb.Append([StringCache]::GetSpaces($contentWidth))
             
             if ($this.ShowBorder) {
                 $sb.Append([VT]::MoveTo($this.X, $y))
@@ -437,11 +486,12 @@ class SearchableListBox : UIElement {
             $bottomY = $this.Y + $this.Height - 1
             $sb.Append([VT]::MoveTo($this.X, $bottomY))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
         
         $sb.Append([VT]::Reset())
         $this._cachedRender = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
     }
     
     [string] HighlightSearchTerms([string]$text, [string]$highlightColor, [string]$normalColor) {

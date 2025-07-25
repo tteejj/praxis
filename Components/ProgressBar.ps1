@@ -20,6 +20,12 @@ class ProgressBar : UIElement {
     hidden [string]$_cachedRender = ""
     hidden [int]$_lastValue = -1      # For change detection
     hidden [string]$_lastStatusText = ""
+    hidden [hashtable]$_colors = @{}  # Cached color ANSI sequences
+    
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedVersionRender = ""
     
     ProgressBar() : base() {
         $this.Height = 5  # Default height (border + bar + percentage + status + border)
@@ -35,16 +41,25 @@ class ProgressBar : UIElement {
     }
     
     [void] OnThemeChanged() {
-        # Set theme colors
+        # Cache theme colors
         if ($this.Theme) {
+            # Cache all color ANSI sequences
+            $this._colors["progress.active"] = $this.Theme.GetColor("progress.active")
+            $this._colors["progress.complete"] = $this.Theme.GetColor("progress.complete")
+            $this._colors["progress.text"] = $this.Theme.GetColor("progress.text")
+            $this._colors["border"] = $this.Theme.GetColor("border")
+            $this._colors["title"] = $this.Theme.GetColor("title")
+            $this._colors["normal"] = $this.Theme.GetColor("normal")
+            
+            # Set default colors if not already set
             if ([string]::IsNullOrEmpty($this.ProgressColor)) {
-                $this.ProgressColor = $this.Theme.GetColor("progress.active")
+                $this.ProgressColor = $this._colors["progress.active"]
             }
             if ([string]::IsNullOrEmpty($this.CompleteColor)) {
-                $this.CompleteColor = $this.Theme.GetColor("progress.complete")
+                $this.CompleteColor = $this._colors["progress.complete"]
             }
             if ([string]::IsNullOrEmpty($this.TextColor)) {
-                $this.TextColor = $this.Theme.GetColor("progress.text")
+                $this.TextColor = $this._colors["progress.text"]
             }
         }
         
@@ -71,6 +86,7 @@ class ProgressBar : UIElement {
         if ($this.Value -ne $this._lastValue -or $this.StatusText -ne $this._lastStatusText) {
             $this._lastValue = $this.Value
             $this._lastStatusText = $this.StatusText
+            $this._dataVersion++  # Increment on progress change
             $this.Invalidate()
         }
     }
@@ -95,12 +111,12 @@ class ProgressBar : UIElement {
     }
     
     [void] RebuildCache() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 512  # ProgressBar is relatively simple
         
-        # Colors
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-        $titleColor = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-        $normalColor = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
+        # Colors from cache
+        $borderColor = if ($this._colors.ContainsKey("border")) { $this._colors["border"] } else { "" }
+        $titleColor = if ($this._colors.ContainsKey("title")) { $this._colors["title"] } else { "" }
+        $normalColor = if ($this._colors.ContainsKey("normal")) { $this._colors["normal"] } else { "" }
         
         # Determine progress color based on completion
         $currentProgressColor = if ($this.IsComplete()) { 
@@ -118,7 +134,7 @@ class ProgressBar : UIElement {
             # Top border
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($borderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -154,13 +170,13 @@ class ProgressBar : UIElement {
         # Filled portion
         if ($filledWidth -gt 0) {
             $sb.Append($currentProgressColor)
-            $sb.Append([string]$this.FilledChar * $filledWidth)
+            $sb.Append([StringCache]::GetRepeatedChar($this.FilledChar, $filledWidth))
         }
         
         # Empty portion  
         if ($emptyWidth -gt 0) {
             $sb.Append($normalColor)
-            $sb.Append([string]$this.EmptyChar * $emptyWidth)
+            $sb.Append([StringCache]::GetRepeatedChar($this.EmptyChar, $emptyWidth))
         }
         
         $contentY++
@@ -212,11 +228,12 @@ class ProgressBar : UIElement {
             # Bottom border
             $sb.Append([VT]::MoveTo($this.X, $contentY))
             $sb.Append($borderColor)
-            $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
         
         $sb.Append([VT]::Reset())
         $this._cachedRender = $sb.ToString()
+        Return-PooledStringBuilder $sb  # Return to pool for reuse
     }
     
     # Animation helper method (for future use)

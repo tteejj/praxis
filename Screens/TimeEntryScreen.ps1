@@ -46,6 +46,9 @@ class TimeEntryScreen : Screen {
         $this.TimeGrid.ShowBorder = $true
         $this.TimeGrid.ShowGridLines = $true
         
+        # Initialize the TimeGrid with ServiceContainer to get theme
+        $this.TimeGrid.Initialize($this.ServiceContainer)
+        
         # Define columns for time entry grid
         $columns = @(
             @{ Name = "Name"; Header = "Name"; Width = 30; Getter = { param($item) $item.Name } }
@@ -69,6 +72,7 @@ class TimeEntryScreen : Screen {
             $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(-7)
             $screen.RefreshGrid()
         }.GetNewClosure()
+        $this.PrevWeekButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.PrevWeekButton)
         
         $this.CurrentWeekButton = [Button]::new("Current Week")
@@ -76,6 +80,7 @@ class TimeEntryScreen : Screen {
             $screen.CurrentWeekFriday = $screen.TimeService.GetCurrentWeekFriday()
             $screen.RefreshGrid()
         }.GetNewClosure()
+        $this.CurrentWeekButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.CurrentWeekButton)
         
         $this.NextWeekButton = [Button]::new("Next Week >")
@@ -83,11 +88,13 @@ class TimeEntryScreen : Screen {
             $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(7)
             $screen.RefreshGrid()
         }.GetNewClosure()
+        $this.NextWeekButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.NextWeekButton)
         
         $this.QuickEntryButton = [Button]::new("Quick Entry (Q)")
         $this.QuickEntryButton.IsDefault = $true
         $this.QuickEntryButton.OnClick = { $screen.ShowQuickEntry() }.GetNewClosure()
+        $this.QuickEntryButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.QuickEntryButton)
         
         # Load initial data
@@ -112,8 +119,8 @@ class TimeEntryScreen : Screen {
         # Calculate layout
         $gridHeight = $this.Height - $this.ButtonHeight - 1
         
-        # Position grid
-        $this.TimeGrid.SetBounds($this.X, $this.Y, $this.Width, $gridHeight)
+        # Position grid - use relative positioning within the screen bounds
+        $this.TimeGrid.SetBounds(0, 0, $this.Width, $gridHeight)
         
         # Position buttons at bottom
         $buttonY = $this.Y + $this.Height - $this.ButtonHeight - 1
@@ -164,6 +171,9 @@ class TimeEntryScreen : Screen {
         
         if ($global:Logger) {
             $global:Logger.Debug("TimeEntryScreen.RefreshGrid: Got $($entries.Count) entries")
+            if ($entries.Count -gt 0) {
+                $global:Logger.Debug("TimeEntryScreen.RefreshGrid: First entry: Name=$($entries[0].Name) ID2=$($entries[0].ID2)")
+            }
         }
         
         # Sort by: Projects first (by name), then non-projects (by ID2)
@@ -173,30 +183,79 @@ class TimeEntryScreen : Screen {
             @{Expression = {$_.ID2}}
         )
         
-        # Clear and repopulate grid
-        $this.TimeGrid.Items.Clear()
-        foreach ($entry in $sorted) {
-            $this.TimeGrid.Items.Add($entry)
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.RefreshGrid: TimeGrid exists: $($this.TimeGrid -ne $null)")
+            $global:Logger.Debug("TimeEntryScreen.RefreshGrid: TimeGrid bounds: ($($this.TimeGrid.X),$($this.TimeGrid.Y),$($this.TimeGrid.Width),$($this.TimeGrid.Height))")
+        }
+        
+        # Clear and repopulate grid using proper DataGrid method
+        $this.TimeGrid.SetItems($sorted)
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.RefreshGrid: After SetItems, TimeGrid.Items.Count = $($this.TimeGrid.Items.Count)")
         }
         
         $this.TimeGrid.Invalidate()
         $this.Invalidate()
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.RefreshGrid: Refresh complete, invalidated grid and screen")
+        }
     }
     
     [void] ShowQuickEntry() {
-        # Create quick entry dialog
-        $dialog = [QuickTimeEntryDialog]::new($this.CurrentWeekFriday)
-        $screen = $this
-        $dialog.OnSave = {
-            param($timeEntry)
-            # Save the entry
-            $screen.TimeService.UpdateTimeEntry($timeEntry)
-            $screen.RefreshGrid()
-        }.GetNewClosure()
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: Starting quick entry")
+        }
         
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
+        try {
+            # Create quick entry dialog
+            if ($global:Logger) {
+                $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: CurrentWeekFriday = $($this.CurrentWeekFriday)")
+                $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: QuickTimeEntryDialog type exists: $([QuickTimeEntryDialog] -as [type] -ne $null)")
+            }
+            
+            # Try explicit casting
+            $weekFriday = [DateTime]$this.CurrentWeekFriday
+            if ($global:Logger) {
+                $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: weekFriday type = $($weekFriday.GetType().Name), value = $weekFriday")
+            }
+            
+            # Try workaround - create via Invoke-Expression or reflection
+            if ($global:Logger) {
+                $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: Attempting workaround creation")
+            }
+            
+            # Workaround attempt
+            $dialog = New-Object QuickTimeEntryDialog -ArgumentList $weekFriday
+            
+            # Initialize dialog with ServiceContainer for theme
+            $dialog.Initialize($this.ServiceContainer)
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: Dialog created successfully")
+            }
+            
+            $screen = $this
+            $dialog.OnSave = {
+                param($timeEntry)
+                # Save the entry
+                $screen.TimeService.UpdateTimeEntry($timeEntry)
+                $screen.RefreshGrid()
+            }.GetNewClosure()
+            
+            # Show dialog
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+                if ($global:Logger) {
+                    $global:Logger.Debug("TimeEntryScreen.ShowQuickEntry: Dialog pushed to ScreenManager")
+                }
+            }
+        }
+        catch {
+            if ($global:Logger) {
+                $global:Logger.Error("TimeEntryScreen.ShowQuickEntry: Error creating dialog: $_")
+            }
         }
     }
     
@@ -204,8 +263,9 @@ class TimeEntryScreen : Screen {
         $selected = $this.TimeGrid.GetSelectedItem()
         if (-not $selected) { return }
         
-        # Create edit dialog
-        $dialog = [TimeEntryDialog]::new($this.CurrentWeekFriday, $selected.ID2)
+        # Create edit dialog - TimeEntryDialog expects a Project parameter, not DateTime and ID2
+        # For now, use the parameterless constructor
+        $dialog = [TimeEntryDialog]::new()
         $dialog.OnSave = {
             $this.RefreshGrid()
         }.GetNewClosure()
@@ -217,7 +277,17 @@ class TimeEntryScreen : Screen {
     }
     
     [string] OnRender() {
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.OnRender: Starting render, Children.Count = $($this.Children.Count)")
+            $global:Logger.Debug("TimeEntryScreen.OnRender: TimeGrid exists = $($this.TimeGrid -ne $null)")
+            if ($this.TimeGrid) {
+                $global:Logger.Debug("TimeEntryScreen.OnRender: TimeGrid.Items.Count = $($this.TimeGrid.Items.Count)")
+                $global:Logger.Debug("TimeEntryScreen.OnRender: TimeGrid bounds = ($($this.TimeGrid.X),$($this.TimeGrid.Y),$($this.TimeGrid.Width),$($this.TimeGrid.Height))")
+            }
+        }
+        
         $result = ([Screen]$this).OnRender()
+        
         if ($global:Logger) {
             $global:Logger.Debug("TimeEntryScreen.OnRender: Rendered content length = $($result.Length)")
         }
@@ -230,17 +300,7 @@ class TimeEntryScreen : Screen {
             $screen = $this
             
             # Q - Quick entry
-            $quickAction = {
-                # Use $using:screen to properly capture the screen reference
-                $currentScreen = $using:screen
-                if ($currentScreen) {
-                    $currentScreen.ShowQuickEntry()
-                } else {
-                    if ($global:Logger) {
-                        $global:Logger.Error("TimeEntryScreen: Quick entry action - screen reference is null")
-                    }
-                }
-            }.GetNewClosure()
+            $quickAction = { $screen.ShowQuickEntry() }.GetNewClosure()
             
             $shortcutManager.RegisterShortcut(@{
                 Id = "time.quick"
@@ -305,6 +365,9 @@ class TimeEntryScreen : Screen {
         # Handle screen-specific keys
         switch ($key.Key) {
             ([ConsoleKey]::Q) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("TimeEntryScreen.HandleInput: Q key detected, calling ShowQuickEntry()")
+                }
                 $this.ShowQuickEntry()
                 return $true
             }

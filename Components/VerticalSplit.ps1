@@ -15,9 +15,29 @@ class VerticalSplit : Container {
     hidden [bool]$_layoutInvalid = $true
     hidden [int]$_lastHeight = 0
     hidden [int]$_lastSplitRatio = 0
+    hidden [hashtable]$_colors = @{}
+    hidden [ThemeManager]$Theme
     
     VerticalSplit() : base() {
         $this.DrawBackground = $false
+    }
+    
+    [void] OnInitialize() {
+        ([Container]$this).OnInitialize()
+        $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
+        }
+    }
+    
+    [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+            }
+        }
+        $this.Invalidate()
     }
     
     [void] SetTopPane([UIElement]$pane) {
@@ -108,10 +128,10 @@ class VerticalSplit : Container {
         
         # Optional: render split border
         if ($this.ShowBorder -and $this._cachedTopHeight -gt 0) {
-            $borderColor = $this.Theme.GetColor("border")
+            $borderColor = $this._colors['border']
             $sb.Append([VT]::MoveTo($this.X, $this._cachedBottomY - 1))
             $sb.Append($borderColor)
-            $sb.Append("─" * $this.Width)
+            $sb.Append([StringCache]::GetHorizontalLine($this.Width))
             $sb.Append([VT]::Reset())
         }
         

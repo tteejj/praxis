@@ -20,6 +20,14 @@ class ListBox : UIElement {
     hidden [bool]$_itemsCacheInvalid = $true
     hidden [ThemeManager]$Theme
     
+    # Version-based change detection
+    hidden [int]$_dataVersion = 0
+    hidden [int]$_lastRenderedVersion = -1
+    hidden [string]$_cachedRender = ""
+    
+    # Cached theme colors
+    hidden [hashtable]$_colors = @{}
+    
     ListBox() : base() {
         $this.Items = [System.Collections.ArrayList]::new()
         $this.IsFocusable = $true
@@ -32,6 +40,22 @@ class ListBox : UIElement {
     }
     
     [void] OnThemeChanged() {
+        # Cache colors on theme change
+        if ($this.Theme) {
+            $this._colors = @{
+                "accent" = $this.Theme.GetColor("accent")
+                "foreground" = $this.Theme.GetColor("foreground")
+                "selection.bg" = $this.Theme.GetBgColor("selection")
+                "selection.fg" = $this.Theme.GetColor("menu.selected.foreground")
+                "border" = $this.Theme.GetColor("border")
+                "border.focused" = $this.Theme.GetColor("border.focused")
+                "scrollbar" = $this.Theme.GetColor("scrollbar")
+                "scrollbar.thumb" = $this.Theme.GetColor("scrollbar.thumb")
+                "disabled" = $this.Theme.GetColor("disabled")
+                "background" = $this.Theme.GetBgColor("background")
+            }
+        }
+        $this._dataVersion++  # Increment for theme change
         $this._itemsCacheInvalid = $true
         $this.Invalidate()
     }
@@ -42,6 +66,7 @@ class ListBox : UIElement {
         $this.Items.AddRange($items)
         $this.SelectedIndex = 0
         $this.ScrollOffset = 0
+        $this._dataVersion++  # Increment on any data change
         $this._itemsCacheInvalid = $true
         $this.Invalidate()
         
@@ -75,6 +100,7 @@ class ListBox : UIElement {
             $oldIndex = $this.SelectedIndex
             $this.SelectedIndex = $index
             $this.EnsureVisible($index)
+            $this._dataVersion++  # Increment on selection change
             $this._itemsCacheInvalid = $true
             $this.Invalidate()
             
@@ -137,13 +163,13 @@ class ListBox : UIElement {
         # Draw title if present
         if ($this.Title) {
             $sb.Append([VT]::MoveTo($contentX, $contentY))
-            $sb.Append($this.Theme.GetColor("accent"))
+            $sb.Append($this._colors["accent"])
             $titleText = $this.Title
             if ($titleText.Length -gt $contentWidth) {
                 $titleText = $titleText.Substring(0, $contentWidth - 3) + "..."
             }
             $sb.Append($titleText)
-            $sb.Append($this.Theme.GetColor("foreground"))
+            $sb.Append($this._colors["foreground"])
             $contentY++
         }
         
@@ -165,10 +191,10 @@ class ListBox : UIElement {
             # Selection highlighting
             if ($i -eq $this.SelectedIndex) {
                 if ($this.IsFocused) {
-                    $sb.Append($this.Theme.GetBgColor("selection"))
-                    $sb.Append($this.Theme.GetColor("menu.selected.foreground"))
+                    $sb.Append($this._colors["selection.bg"])
+                    $sb.Append($this._colors["selection.fg"])
                 } else {
-                    $sb.Append($this.Theme.GetColor("disabled"))
+                    $sb.Append($this._colors["disabled"])
                 }
                 $sb.Append("> ")
             } else {
@@ -181,12 +207,27 @@ class ListBox : UIElement {
             if ($i -eq $this.SelectedIndex) {
                 $remainingSpace = $contentWidth - $text.Length - 2
                 if ($remainingSpace -gt 0) {
-                    $sb.Append(" " * $remainingSpace)
+                    $sb.Append([StringCache]::GetSpaces($remainingSpace))
                 }
                 $sb.Append([VT]::Reset())
             }
             
             $itemY++
+        }
+        
+        # Clear any remaining empty lines in the visible area
+        $remainingLines = $this.VisibleItems - ($endIndex - $this.ScrollOffset)
+        if ($remainingLines -gt 0) {
+            $bgColor = $this._colors["background"]
+            $clearLine = [StringCache]::GetSpaces($contentWidth)
+            
+            for ($i = 0; $i -lt $remainingLines; $i++) {
+                $sb.Append([VT]::MoveTo($contentX, $itemY))
+                $sb.Append($bgColor)
+                $sb.Append($clearLine)
+                $sb.Append([VT]::Reset())
+                $itemY++
+            }
         }
         
         # Draw scrollbar if enabled and needed
@@ -202,15 +243,15 @@ class ListBox : UIElement {
     
     [void] DrawBorder([System.Text.StringBuilder]$sb) {
         $borderColor = if ($this.IsFocused) { 
-            $this.Theme.GetColor("border.focused") 
+            $this._colors["border.focused"] 
         } else { 
-            $this.Theme.GetColor("border") 
+            $this._colors["border"] 
         }
         
         # Top border
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+        $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
         
         # Side borders
         for ($y = 1; $y -lt $this.Height - 1; $y++) {
@@ -222,7 +263,7 @@ class ListBox : UIElement {
         
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
-        $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+        $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         $sb.Append([VT]::Reset())
     }
     
@@ -245,10 +286,10 @@ class ListBox : UIElement {
             $sb.Append([VT]::MoveTo($scrollbarX, $y))
             
             if ($y -ge $thumbPos -and $y -lt $thumbPos + $thumbSize) {
-                $sb.Append($this.Theme.GetColor("accent"))
+                $sb.Append($this._colors["accent"])
                 $sb.Append("█")
             } else {
-                $sb.Append($this.Theme.GetColor("border"))
+                $sb.Append($this._colors["border"])
                 $sb.Append("│")
             }
         }
@@ -303,11 +344,13 @@ class ListBox : UIElement {
     
     # Focus handling
     [void] OnGotFocus() {
+        $this._dataVersion++  # Increment for focus change
         $this._itemsCacheInvalid = $true
         $this.Invalidate()
     }
     
     [void] OnLostFocus() {
+        $this._dataVersion++  # Increment for focus change
         $this._itemsCacheInvalid = $true
         $this.Invalidate()
     }

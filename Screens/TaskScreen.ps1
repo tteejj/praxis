@@ -669,7 +669,7 @@ class TaskScreen : Screen {
     }
     
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Render base (background and children)
         $sb.Append(([Container]$this).OnRender())
@@ -678,7 +678,7 @@ class TaskScreen : Screen {
         $statusY = $this.Y + $this.Height - $this.StatusBarHeight
         $sb.Append([VT]::MoveTo($this.X, $statusY))
         $sb.Append($this.Theme.GetColor("border"))
-        $sb.Append("─" * $this.Width)
+        $sb.Append([StringCache]::GetHorizontalLine($this.Width))
         
         # Status text
         $sb.Append([VT]::MoveTo($this.X + 1, $statusY + 1))
@@ -702,6 +702,9 @@ class TaskScreen : Screen {
         $sb.Append("S: P=Pending W=Working D=Done X=Cancel")
         
         $sb.Append([VT]::Reset())
-        return $sb.ToString()
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
 }

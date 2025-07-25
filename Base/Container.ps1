@@ -45,7 +45,7 @@ class Container : UIElement {
         }
         
         $sb = Get-PooledStringBuilder ($this.Width * $this.Height * 2)
-        $line = " " * $this.Width
+        $line = [StringCache]::GetSpaces($this.Width)
         
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))

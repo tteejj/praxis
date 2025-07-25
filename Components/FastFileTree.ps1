@@ -136,6 +136,7 @@ class FastFileTree : UIElement {
     hidden [ThemeManager]$Theme
     hidden [int]$_lastSelectedIndex = -1
     hidden [System.Collections.Generic.HashSet[string]]$_expandedPaths
+    hidden [hashtable]$_colors = @{}
     
     FastFileTree() : base() {
         $this._flatView = [System.Collections.ArrayList]::new()
@@ -164,6 +165,19 @@ class FastFileTree : UIElement {
     }
     
     [void] OnThemeChanged() {
+        if ($this.Theme) {
+            $this._colors = @{
+                'border' = $this.Theme.GetColor("border")
+                'title' = $this.Theme.GetColor("title")
+                'selection' = $this.Theme.GetBgColor("selection")
+                'normal' = $this.Theme.GetColor("normal")
+                'directory' = $this.Theme.GetColor("directory")
+                'file' = $this.Theme.GetColor("file")
+                'border.focused' = $this.Theme.GetColor("border.focused")
+                'foreground' = $this.Theme.GetColor("foreground")
+                'background' = $this.Theme.GetBgColor("background")
+            }
+        }
         $this.Invalidate()
     }
     
@@ -392,14 +406,14 @@ class FastFileTree : UIElement {
             $sb = [System.Text.StringBuilder]::new(4096)
         }
         
-        # Colors
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
-        $titleColor = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-        $selectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selection") } else { "" }
-        $normalColor = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
-        $directoryColor = if ($this.Theme) { $this.Theme.GetColor("directory") } else { $normalColor }
-        $fileColor = if ($this.Theme) { $this.Theme.GetColor("file") } else { $normalColor }
-        $focusBorder = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { $borderColor }
+        # Colors from cache
+        $borderColor = $this._colors['border']
+        $titleColor = $this._colors['title']
+        $selectedBg = $this._colors['selection']
+        $normalColor = $this._colors['normal']
+        $directoryColor = if ($this._colors['directory']) { $this._colors['directory'] } else { $normalColor }
+        $fileColor = if ($this._colors['file']) { $this._colors['file'] } else { $normalColor }
+        $focusBorder = if ($this._colors['border.focused']) { $this._colors['border.focused'] } else { $borderColor }
         
         $currentBorderColor = if ($this.IsFocused) { $focusBorder } else { $borderColor }
         
@@ -417,7 +431,7 @@ class FastFileTree : UIElement {
             # Top border - safe to render since we validated Width >= 3
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($this.Width - 2)) + [VT]::TR())
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -470,7 +484,7 @@ class FastFileTree : UIElement {
                 $line = ""
                 
                 # Indentation
-                $line += " " * ($node.Level * $this.IndentSize)
+                $line += [StringCache]::GetSpaces($node.Level * $this.IndentSize)
                 
                 # Expand/collapse icon for directories
                 if ($node.IsDirectory -and $node.HasChildren) {
@@ -501,11 +515,11 @@ class FastFileTree : UIElement {
                 if ($i -eq $this.SelectedIndex) {
                     # Selected item - use selection colors
                     $sb.Append($selectedBg)
-                    $foregroundColor = if ($this.Theme) { $this.Theme.GetColor("foreground") } else { "" }
+                    $foregroundColor = $this._colors['foreground']
                     $sb.Append($foregroundColor)
                 } else {
                     # Normal item - directory or file color with normal background
-                    $normalBg = if ($this.Theme) { $this.Theme.GetBgColor("background") } else { "" }
+                    $normalBg = $this._colors['background']
                     $sb.Append($normalBg)
                     $color = if ($node.IsDirectory) { $directoryColor } else { $fileColor }
                     $sb.Append($color)
@@ -531,7 +545,7 @@ class FastFileTree : UIElement {
             if ($contentWidth -gt 0) {
                 $sb.Append([VT]::MoveTo($this.X + ($effectiveShowBorder ? 1 : 0), $y))
                 $sb.Append($normalColor)
-                $sb.Append(" ".PadRight($contentWidth))
+                $sb.Append([StringCache]::GetSpaces($contentWidth))
             }
             
             if ($effectiveShowBorder) {
@@ -550,7 +564,7 @@ class FastFileTree : UIElement {
             $bottomY = $this.Y + $this.Height - 1
             $sb.Append([VT]::MoveTo($this.X, $bottomY))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::BL() + ([VT]::H() * ($this.Width - 2)) + [VT]::BR())
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
         
         $sb.Append([VT]::Reset())
