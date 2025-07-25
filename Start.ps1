@@ -49,11 +49,14 @@ $loadOrder = @(
     "Models/Project.ps1"
     "Models/Task.ps1"
     "Models/Subtask.ps1"
+    "Models/TimeEntry.ps1"
+    "Models/TimeCode.ps1"
     
     # Services
     "Services/ProjectService.ps1"
     "Services/TaskService.ps1"
     "Services/SubtaskService.ps1"
+    "Services/TimeTrackingService.ps1"
     "Services/ConfigurationService.ps1"
     "Services/StateManager.ps1"
     
@@ -92,6 +95,7 @@ $loadOrder = @(
     "Screens/EditTaskDialog.ps1",
     "Screens/SubtaskDialog.ps1",
     "Screens/TimeEntryDialog.ps1",
+    "Screens/QuickTimeEntryDialog.ps1",
     "Screens/EventBusMonitor.ps1",
     
     # Screens (after dialogs they depend on)
@@ -103,6 +107,7 @@ $loadOrder = @(
     "Screens/SettingsScreen.ps1",
     "Screens/FileBrowserScreen.ps1",
     "Screens/TextEditorScreen.ps1",
+    "Screens/TimeEntryScreen.ps1",
     
     # CommandPalette (after screens it references)
     "Components/CommandPalette.ps1"
@@ -176,10 +181,22 @@ $global:ServiceContainer.Register("TaskService", $taskService)
 # Subtask service
 $subtaskService = [SubtaskService]::new()
 $global:ServiceContainer.Register("SubtaskService", $subtaskService)
+# Time tracking service
+$timeTrackingService = [TimeTrackingService]::new()
+$global:ServiceContainer.Register("TimeTrackingService", $timeTrackingService)
 
 # Configuration service
 $configService = [ConfigurationService]::new()
 $global:ServiceContainer.Register("ConfigurationService", $configService)
+
+# Apply theme from configuration
+$currentTheme = $configService.Get("Theme.CurrentTheme", "matrix")
+if ($themeManager._themes.ContainsKey($currentTheme)) {
+    $themeManager.SetTheme($currentTheme)
+} else {
+    # Fallback to matrix theme if configured theme doesn't exist
+    $themeManager.SetTheme("matrix")
+}
 
 # State manager - high-performance centralized state
 $stateManager = [StateManager]::new()

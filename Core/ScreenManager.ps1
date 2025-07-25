@@ -15,6 +15,9 @@ class ScreenManager {
     hidden [int]$_frameCount = 0
     hidden [double]$_lastFPS = 0
     
+    # Double buffering
+    hidden [string]$_lastContent = ""
+    
     ScreenManager([ServiceContainer]$services) {
         $this._screenStack = [System.Collections.Generic.Stack[Screen]]::new()
         $this._services = $services
@@ -39,13 +42,23 @@ class ScreenManager {
         try {
             # Initialize and activate new screen
             $screen.Initialize($this._services)
-            $screen.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
+            
+            # Ensure we have valid console dimensions
+            $width = [Math]::Max([Console]::WindowWidth, 80)
+            $height = [Math]::Max([Console]::WindowHeight, 24)
+            $screen.SetBounds(0, 0, $width, $height)
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("ScreenManager.Push: Set screen bounds to (0,0,$width,$height)")
+            }
             
             $this._screenStack.Push($screen)
             $this._activeScreen = $screen
             $this._activeScreen.Active = $true
             $this._activeScreen.OnActivated()
             
+            # Clear last content to force redraw on screen change
+            $this._lastContent = ""
             $this._needsRender = $true
             
             if ($global:Logger) {
@@ -99,6 +112,8 @@ class ScreenManager {
             $this._activeScreen = $null
         }
         
+        # Clear last content to force redraw
+        $this._lastContent = ""
         $this._needsRender = $true
         return $popped
     }
@@ -133,10 +148,36 @@ class ScreenManager {
             $global:Logger.Flush()
         }
         
+        # Track window size
+        $lastWidth = [Console]::WindowWidth
+        $lastHeight = [Console]::WindowHeight
+        
+        # Set needsRender to true to ensure first frame renders
+        $this._needsRender = $true
+        
         try {
             while ($this._activeScreen -and $this._activeScreen.Active -and -not $this._exitRequested) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("ScreenManager: In main loop iteration")
+                if ($global:Logger -and $this._frameCount % 100 -eq 0) {
+                    $global:Logger.Debug("ScreenManager: In main loop iteration, activeScreen = " + $(if ($this._activeScreen) { $this._activeScreen.GetType().Name } else { "null" }))
+                    $global:Logger.Debug("ScreenManager: needsRender = $($this._needsRender), frameCount = $($this._frameCount)")
+                }
+                
+                # Check for window resize
+                $currentWidth = [Console]::WindowWidth
+                $currentHeight = [Console]::WindowHeight
+                if ($currentWidth -ne $lastWidth -or $currentHeight -ne $lastHeight) {
+                    $lastWidth = $currentWidth
+                    $lastHeight = $currentHeight
+                    
+                    # Update screen bounds
+                    if ($this._activeScreen) {
+                        $this._activeScreen.SetBounds(0, 0, $currentWidth, $currentHeight)
+                        $this._needsRender = $true
+                        
+                        if ($global:Logger) {
+                            $global:Logger.Debug("ScreenManager: Window resized to ${currentWidth}x${currentHeight}")
+                        }
+                    }
                 }
                 
                 # Handle terminal resize
@@ -311,10 +352,19 @@ class ScreenManager {
     hidden [void] Render() {
         $this._renderTimer.Restart()
         
+        if ($global:Logger) {
+            $global:Logger.Debug("ScreenManager.Render: Starting render")
+        }
+        
         # Get rendered content
         $content = $this._activeScreen.Render()
         
-        # Write to console in one shot
+        if ($global:Logger) {
+            $global:Logger.Debug("ScreenManager.Render: Content length = $($content.Length)")
+        }
+        
+        # Always write to console
+        [Console]::CursorVisible = $false
         [Console]::SetCursorPosition(0, 0)
         [Console]::Write($content)
         
@@ -341,6 +391,7 @@ class ScreenManager {
         
         # Clear and force full redraw
         [Console]::Clear()
+        $this._lastContent = ""  # Force full redraw on next render
         $this._needsRender = $true
     }
     

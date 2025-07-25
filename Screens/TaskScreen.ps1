@@ -50,7 +50,7 @@ class TaskScreen : Screen {
             $screen = $this
             
             # Subscribe to task created events
-            $this.EventSubscriptions['TaskCreated'] = $this.EventBus.Subscribe([EventNames]::TaskCreated, {
+            $this.EventSubscriptions['TaskCreated'] = $this.EventBus.Subscribe('task.created', {
                 param($sender, $eventData)
                 $screen.LoadTasks()
                 # Select the new task if provided
@@ -65,7 +65,7 @@ class TaskScreen : Screen {
             }.GetNewClosure())
             
             # Subscribe to command events for this screen
-            $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe([EventNames]::CommandExecuted, {
+            $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe('command.executed', {
                 param($sender, $eventData)
                 if ($global:Logger) {
                     $global:Logger.Debug("TaskScreen: Received CommandExecuted event - Command: $($eventData.Command), Target: $($eventData.Target)")
@@ -85,13 +85,13 @@ class TaskScreen : Screen {
             }.GetNewClosure())
             
             # Subscribe to task updated events
-            $this.EventSubscriptions['TaskUpdated'] = $this.EventBus.Subscribe([EventNames]::TaskUpdated, {
+            $this.EventSubscriptions['TaskUpdated'] = $this.EventBus.Subscribe('task.updated', {
                 param($sender, $eventData)
                 $screen.LoadTasks()
             }.GetNewClosure())
             
             # Subscribe to task deleted events
-            $this.EventSubscriptions['TaskDeleted'] = $this.EventBus.Subscribe([EventNames]::TaskDeleted, {
+            $this.EventSubscriptions['TaskDeleted'] = $this.EventBus.Subscribe('task.deleted', {
                 param($sender, $eventData)
                 $screen.LoadTasks()
             }.GetNewClosure())

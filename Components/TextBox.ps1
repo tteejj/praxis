@@ -22,9 +22,9 @@ class TextBox : UIElement {
         $this.Height = 3  # Border + content + border
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        if ($services) {
-            $this.Theme = $services.GetService("ThemeManager")
+    [void] OnInitialize() {
+        if ($this.ServiceContainer) {
+            $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
             if ($this.Theme) {
                 $this.Theme.Subscribe({ $this._needsRender = $true; $this.Invalidate() })
             }

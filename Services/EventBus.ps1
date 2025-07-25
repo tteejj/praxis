@@ -29,6 +29,10 @@ class EventBus {
     # Returns a subscription ID that can be used to unsubscribe
     [string] Subscribe([string]$eventName, [scriptblock]$handler) {
         if ([string]::IsNullOrWhiteSpace($eventName)) {
+            if ($global:Logger) {
+                $global:Logger.Error("EventBus.Subscribe: Event name is null or empty")
+                $global:Logger.Error("Stack trace: " + [System.Environment]::StackTrace)
+            }
             throw [ArgumentException]::new("Event name cannot be null or empty")
         }
         if (-not $handler) {

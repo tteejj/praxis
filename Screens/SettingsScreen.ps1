@@ -163,6 +163,36 @@ class SettingsScreen : Screen {
         # Create appropriate dialog based on type
         $dialog = $null
         
+        # Special handling for theme selection
+        if ($path -eq "Theme.CurrentTheme") {
+            # Cycle through available themes
+            $availableThemes = $this.ConfigService.Get("Theme.AvailableThemes", @("default", "matrix"))
+            $currentIndex = $availableThemes.IndexOf($currentValue)
+            $nextIndex = ($currentIndex + 1) % $availableThemes.Count
+            $newValue = $availableThemes[$nextIndex]
+            
+            $this.ConfigService.Set($path, $newValue)
+            
+            # Apply theme immediately
+            $themeManager = $global:ServiceContainer.GetService("ThemeManager")
+            if ($themeManager) {
+                $themeManager.SetTheme($newValue)
+            }
+            
+            # Publish config changed event
+            if ($this.EventBus) {
+                $this.EventBus.Publish([EventNames]::ConfigChanged, @{
+                    Path = $path
+                    OldValue = $currentValue
+                    NewValue = $newValue
+                    Category = $this.CurrentCategory
+                })
+            }
+            
+            $this.LoadCategorySettings()
+            return
+        }
+        
         switch ($selected.Type) {
             "Boolean" {
                 # Simple toggle

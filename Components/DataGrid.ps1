@@ -24,10 +24,12 @@ class DataGrid : UIElement {
         $this.IsFocusable = $true
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        $this.Theme = $services.GetService("ThemeManager")
-        $this.Theme.Subscribe({ $this.OnThemeChanged() })
-        $this.OnThemeChanged()
+    [void] OnInitialize() {
+        $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
+        }
     }
     
     [void] OnThemeChanged() {
@@ -232,6 +234,11 @@ class DataGrid : UIElement {
     }
     
     [string] OnRender() {
+        # Return empty if Theme is not initialized
+        if (-not $this.Theme) {
+            return ""
+        }
+        
         $sb = Get-PooledStringBuilder 4096  # Larger size for grid with separators
         
         # Calculate content area
@@ -241,7 +248,7 @@ class DataGrid : UIElement {
         $contentHeight = $this.Height - 2
         
         # Draw border if enabled
-        if ($this.ShowBorder) {
+        if ($this.ShowBorder -and $this.Theme) {
             $borderColor = if ($this.IsFocused) { 
                 $this.Theme.GetColor("border.focused") 
             } else { 

@@ -42,7 +42,10 @@ class Screen : Container {
     
     # Theme change handler
     [void] OnThemeChanged() {
-        $this.SetBackgroundColor($this.Theme.GetColor("background"))
+        # Use background color for screen background
+        $bgColor = $this.Theme.GetBgColor("background")
+        $this.SetBackgroundColor($bgColor)
+        $this.InvalidateBackground()
         $this.Invalidate()
     }
     

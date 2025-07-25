@@ -69,7 +69,7 @@ class ThemeManager {
             # UI elements
             "border" = @(0, 100, 0)               # Dark green borders
             "border.focused" = @(0, 255, 0)       # Bright green when focused
-            "selection" = @(0, 50, 0)             # Very dark green selection
+            "selection" = @(0, 100, 0)            # Dark green selection - more visible
             "disabled" = @(0, 128, 0)             # Medium green for disabled
             
             # Component specific
@@ -125,7 +125,7 @@ class ThemeManager {
         
         # Notify via EventBus if available
         if ($this.EventBus) {
-            $this.EventBus.Publish([EventNames]::ThemeChanged, @{
+            $this.EventBus.Publish('app.themeChanged', @{
                 OldTheme = $oldTheme
                 NewTheme = $name
                 ThemeManager = $this
@@ -215,17 +215,9 @@ class ThemeManager {
     
     # Subscribe to theme changes (legacy method - use EventBus instead)
     [void] Subscribe([scriptblock]$callback) {
-        # If EventBus is available, use it instead
-        if ($this.EventBus) {
-            # Wrap the callback to match EventBus signature
-            $this.EventBus.Subscribe([EventNames]::ThemeChanged, {
-                param($sender, $eventData)
-                & $callback
-            })
-        } else {
-            # Fall back to legacy listeners
-            $this._listeners.Add($callback)
-        }
+        # Always use legacy listeners for now to avoid initialization order issues
+        # EventBus subscription happens too early
+        $this._listeners.Add($callback)
     }
     
     # Notify all listeners of theme change (legacy method)

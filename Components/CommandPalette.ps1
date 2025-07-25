@@ -37,17 +37,14 @@ class CommandPalette : Container {
         $this.AddChild($this.ResultsList)
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        # Call base initialization
-        ([Container]$this).Initialize($services)
-        
+    [void] OnInitialize() {
         # Get services
-        $this.EventBus = $services.GetService('EventBus')
-        $this.Theme = $services.GetService('ThemeManager')
+        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
+        $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
         
         # Subscribe to command registration events
         if ($this.EventBus) {
-            $this.EventBus.Subscribe([EventNames]::CommandRegistered, {
+            $this.EventBus.Subscribe('command.registered', {
                 param($sender, $eventData)
                 if ($eventData.Name -and $eventData.Description -and $eventData.Action) {
                     $this.AddCommand($eventData.Name, $eventData.Description, $eventData.Action)
@@ -57,7 +54,7 @@ class CommandPalette : Container {
         
         # Initialize child components
         if ($this.ResultsList) {
-            $this.ResultsList.Initialize($services)
+            $this.ResultsList.Initialize($this.ServiceContainer)
         }
         
         # Set palette background if theme is available
@@ -218,6 +215,70 @@ class CommandPalette : Container {
             }
         }.GetNewClosure())
         
+        $this.AddCommand("time entry", "Go to time entry screen", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Time entry command executed")
+            }
+            # Switch to time tab (tab index 2)
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 2 })
+            }
+        }.GetNewClosure())
+        
+        $this.AddCommand("quick time entry", "Quick time entry for today", {
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandPalette: Quick time entry command executed")
+            }
+            
+            # Switch to time tab first
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 2 })
+            }
+            
+            # Get current week Friday for time entry
+            $timeService = $global:ServiceContainer.GetService("TimeTrackingService")
+            $currentWeekFriday = if ($timeService) { 
+                $timeService.GetCurrentWeekFriday() 
+            } else { 
+                # Fallback to current week's Friday
+                $today = [DateTime]::Today
+                $daysUntilFriday = ([int][DayOfWeek]::Friday - [int]$today.DayOfWeek + 7) % 7
+                if ($daysUntilFriday -eq 0 -and $today.DayOfWeek -ne [DayOfWeek]::Friday) {
+                    $daysUntilFriday = 7
+                }
+                $today.AddDays($daysUntilFriday)
+            }
+            
+            # Create and show quick time entry dialog
+            $dialog = [QuickTimeEntryDialog]::new($currentWeekFriday)
+            $dialog.OnSave = {
+                param($timeEntry)
+                if ($global:Logger) {
+                    $global:Logger.Info("Creating time entry: $($timeEntry.Hours) hours for project $($timeEntry.ProjectId)")
+                }
+                # Create time entry via service
+                $timeService = $global:ServiceContainer.GetService("TimeTrackingService")
+                if ($timeService) {
+                    $timeService.AddTimeEntry($timeEntry)
+                    
+                    # Publish time entry created event
+                    $eventBus = $global:ServiceContainer.GetService('EventBus')
+                    if ($eventBus) {
+                        $eventBus.Publish([EventNames]::TimeEntryUpdated, @{ TimeEntry = $timeEntry })
+                    }
+                }
+                # Close dialog
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }.GetNewClosure()
+            
+            # Push dialog to screen manager
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }.GetNewClosure())
+        
         $this.AddCommand("search", "Search in files", {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Search command executed")
@@ -229,7 +290,7 @@ class CommandPalette : Container {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Files command executed")
             }
-            # Switch to files tab (tab index 3 - Projects, Tasks, Dashboard, Files)
+            # Switch to files tab (tab index 3 - Projects, Tasks, Time, Files)
             if ($palette.EventBus) {
                 $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 3 })
             }
@@ -239,7 +300,7 @@ class CommandPalette : Container {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Text editor command executed")
             }
-            # Switch to editor tab (tab index 4 - Projects, Tasks, Dashboard, Files, Editor)
+            # Switch to editor tab (tab index 4 - Projects, Tasks, Time, Files, Editor)
             if ($palette.EventBus) {
                 $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 4 })
             }
@@ -259,7 +320,7 @@ class CommandPalette : Container {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Settings command executed")
             }
-            # Switch to settings tab (tab index 5 - Projects, Tasks, Dashboard, Files, Editor, Settings)
+            # Switch to settings tab (tab index 5 - Projects, Tasks, Time, Files, Editor, Settings)
             if ($palette.EventBus) {
                 $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 5 })
             }

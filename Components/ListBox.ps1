@@ -25,8 +25,8 @@ class ListBox : UIElement {
         $this.IsFocusable = $true
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        $this.Theme = $services.GetService("ThemeManager")
+    [void] OnInitialize() {
+        $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
         $this.Theme.Subscribe({ $this.OnThemeChanged() })
         $this.OnThemeChanged()
     }

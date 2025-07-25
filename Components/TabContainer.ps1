@@ -15,8 +15,8 @@ class TabContainer : Container {
         $this.Tabs = [System.Collections.Generic.List[TabItem]]::new()
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        $this.Theme = $services.GetService("ThemeManager")
+    [void] OnInitialize() {
+        $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
         $this.Theme.Subscribe({ $this.OnThemeChanged() })
         $this.OnThemeChanged()
     }
@@ -43,8 +43,8 @@ class TabContainer : Container {
         # Initialize the content if it's a Screen
         if ($content -is [Screen] -and $global:ServiceContainer) {
             $content.Initialize($global:ServiceContainer)
-            # Tab content shouldn't draw their own background
-            $content.DrawBackground = $false
+            # Tab content should draw their own background
+            $content.DrawBackground = $true
         }
         
         $this.Tabs.Add($tab)
@@ -105,10 +105,13 @@ class TabContainer : Container {
             $this.PositionContent($newTab.Content, $true)
             $this.AddChild($newTab.Content)
             if ($newTab.Content -is [Screen]) {
-                # Ensure tab content doesn't draw its own background
-                $newTab.Content.DrawBackground = $false
+                # Tab content should draw its own background to clear old content
+                $newTab.Content.DrawBackground = $true
+                $newTab.Content.SetBackgroundColor([VT]::Reset())
                 $newTab.Content.OnActivated()
             }
+            # Force the new content to invalidate
+            $newTab.Content.Invalidate()
             if ($global:Logger) {
                 $global:Logger.Debug("TabContainer: New content bounds: X=$($newTab.Content.X) Y=$($newTab.Content.Y) W=$($newTab.Content.Width) H=$($newTab.Content.Height)")
             }
@@ -125,6 +128,11 @@ class TabContainer : Container {
         # Force parent to redraw completely to clear any artifacts
         if ($this.Parent) {
             $this.Parent.Invalidate()
+        }
+        
+        # Request screen manager to render
+        if ($global:ScreenManager) {
+            $global:ScreenManager.RequestRender()
         }
         
         # Force a render request
@@ -171,15 +179,15 @@ class TabContainer : Container {
         }
         $sb.Append($this._cachedTabBar)
         
-        # Don't clear content area - let the screen handle its own background
-        # This was overwriting buttons that are rendered by child screens
-        
         # Render active content (base class handles children)
         $baseRender = ([Container]$this).OnRender()
         $sb.Append($baseRender)
         
-        if ($global:Logger -and $baseRender.Length -eq 0) {
-            $global:Logger.Warning("TabContainer: Base render returned empty string")
+        if ($global:Logger) {
+            $global:Logger.Debug("TabContainer.OnRender: Children.Count = $($this.Children.Count), baseRender.Length = $($baseRender.Length)")
+            if ($this.Children.Count -gt 0) {
+                $global:Logger.Debug("TabContainer.OnRender: First child type = $($this.Children[0].GetType().Name)")
+            }
         }
         
         return $sb.ToString()

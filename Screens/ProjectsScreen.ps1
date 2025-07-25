@@ -29,7 +29,7 @@ class ProjectsScreen : Screen {
             $screen = $this
             
             # Subscribe to project created events with explicit closure
-            $this.EventSubscriptions['ProjectCreated'] = $this.EventBus.Subscribe([EventNames]::ProjectCreated, {
+            $this.EventSubscriptions['ProjectCreated'] = $this.EventBus.Subscribe('project.created', {
                 param($sender, $eventData)
                 $screen.RefreshProjects()
                 # Select the new project if provided
@@ -44,7 +44,7 @@ class ProjectsScreen : Screen {
             }.GetNewClosure())
             
             # Subscribe to command events for this screen
-            $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe([EventNames]::CommandExecuted, {
+            $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe('command.executed', {
                 param($sender, $eventData)
                 if ($eventData.Target -eq 'ProjectsScreen') {
                     switch ($eventData.Command) {
@@ -55,13 +55,13 @@ class ProjectsScreen : Screen {
             }.GetNewClosure())
             
             # Subscribe to project updated events
-            $this.EventSubscriptions['ProjectUpdated'] = $this.EventBus.Subscribe([EventNames]::ProjectUpdated, {
+            $this.EventSubscriptions['ProjectUpdated'] = $this.EventBus.Subscribe('project.updated', {
                 param($sender, $eventData)
                 $screen.RefreshProjects()
             }.GetNewClosure())
             
             # Subscribe to project deleted events
-            $this.EventSubscriptions['ProjectDeleted'] = $this.EventBus.Subscribe([EventNames]::ProjectDeleted, {
+            $this.EventSubscriptions['ProjectDeleted'] = $this.EventBus.Subscribe('project.deleted', {
                 param($sender, $eventData)
                 $screen.RefreshProjects()
             }.GetNewClosure())

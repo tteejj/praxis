@@ -14,9 +14,10 @@ class MainScreen : Screen {
         # Get EventBus
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
         
-        # Subscribe to tab change events
+        # Subscribe to tab change events  
         if ($this.EventBus) {
-            $this.TabChangedSubscription = $this.EventBus.Subscribe([EventNames]::TabChanged, {
+            # Use string directly to avoid potential class loading issues
+            $this.TabChangedSubscription = $this.EventBus.Subscribe('navigation.tabChanged', {
                 param($sender, $eventData)
                 if ($eventData.TabIndex -ne $null -and $this.TabContainer) {
                     $this.TabContainer.ActivateTab($eventData.TabIndex)
@@ -40,6 +41,9 @@ class MainScreen : Screen {
         
         $taskScreen = [TaskScreen]::new()
         $this.TabContainer.AddTab("Tasks", $taskScreen)
+        
+        $timeEntryScreen = [TimeEntryScreen]::new()
+        $this.TabContainer.AddTab("Time", $timeEntryScreen)
         
         $fileBrowserScreen = [FileBrowserScreen]::new()
         $this.TabContainer.AddTab("Files", $fileBrowserScreen)

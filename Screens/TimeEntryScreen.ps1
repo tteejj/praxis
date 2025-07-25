@@ -34,7 +34,7 @@ class TimeEntryScreen : Screen {
             $screen = $this
             
             # Subscribe to time entry updates
-            $this.EventSubscriptions['TimeEntryUpdated'] = $this.EventBus.Subscribe([EventNames]::TimeEntryUpdated, {
+            $this.EventSubscriptions['TimeEntryUpdated'] = $this.EventBus.Subscribe('timeentry.updated', {
                 param($sender, $eventData)
                 $screen.RefreshGrid()
             }.GetNewClosure())
@@ -93,19 +93,6 @@ class TimeEntryScreen : Screen {
         
         # Load initial data
         $this.RefreshGrid()
-        
-        # Key bindings
-        $this.AddKeyBinding([ConsoleKey]::Q, { $this.ShowQuickEntry() })
-        $this.AddKeyBinding([ConsoleKey]::LeftArrow, { 
-            $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(-7)
-            $this.RefreshGrid()
-        })
-        $this.AddKeyBinding([ConsoleKey]::RightArrow, { 
-            $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(7)
-            $this.RefreshGrid()
-        })
-        $this.AddKeyBinding([ConsoleKey]::Enter, { $this.EditSelectedEntry() })
-        $this.AddKeyBinding([ConsoleKey]::E, { $this.EditSelectedEntry() })
     }
     
     [void] OnBoundsChanged() {
@@ -139,6 +126,45 @@ class TimeEntryScreen : Screen {
         if ($this.TimeGrid) {
             $this.TimeGrid.Focus()
         }
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # Let base handle first (for child components)
+        if (([Screen]$this).HandleInput($key)) {
+            return $true
+        }
+        
+        # Handle screen-specific keys
+        switch ($key.Key) {
+            ([ConsoleKey]::Q) {
+                $this.ShowQuickEntry()
+                return $true
+            }
+            ([ConsoleKey]::LeftArrow) {
+                if ($key.Modifiers -eq [ConsoleModifiers]::None) {
+                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(-7)
+                    $this.RefreshGrid()
+                    return $true
+                }
+            }
+            ([ConsoleKey]::RightArrow) {
+                if ($key.Modifiers -eq [ConsoleModifiers]::None) {
+                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(7)
+                    $this.RefreshGrid()
+                    return $true
+                }
+            }
+            ([ConsoleKey]::Enter) {
+                $this.EditSelectedEntry()
+                return $true
+            }
+            ([ConsoleKey]::E) {
+                $this.EditSelectedEntry()
+                return $true
+            }
+        }
+        
+        return $false
     }
     
     [string] GetWeekTitle() {
@@ -259,21 +285,28 @@ class TimeEntryScreen : Screen {
         
         # Render status bar at bottom
         $statusY = $this.Y + $this.Height - 1
-        $null = $sb.Append($this.VT.MoveTo($this.X, $statusY))
-        $null = $sb.Append($this.ThemeManager.GetCached('StatusBar'))
+        $null = $sb.Append([VT]::MoveTo($this.X, $statusY))
+        
+        # Get theme manager
+        $theme = $this.ServiceContainer.GetService("ThemeManager")
+        if ($theme) {
+            $null = $sb.Append($theme.GetColor('border'))
+        }
         $null = $sb.Append(' ' * $this.Width)  # Clear line
         
         # Show week totals
         $weekTotal = 0
-        $entries = $this.TimeService.GetWeekEntries($this.CurrentWeekFriday.ToString("yyyyMMdd"))
-        foreach ($entry in $entries) {
-            $weekTotal += $entry.Total
+        if ($this.TimeService) {
+            $entries = $this.TimeService.GetWeekEntries($this.CurrentWeekFriday.ToString("yyyyMMdd"))
+            foreach ($entry in $entries) {
+                $weekTotal += $entry.Total
+            }
         }
         
         $statusText = "Week Total: $($weekTotal.ToString('F1')) hours | Q: Quick Entry | E: Edit | ←/→: Navigate Weeks"
-        $null = $sb.Append($this.VT.MoveTo($this.X + 2, $statusY))
+        $null = $sb.Append([VT]::MoveTo($this.X + 2, $statusY))
         $null = $sb.Append($statusText)
-        $null = $sb.Append($this.VT.Reset)
+        $null = $sb.Append([VT]::Reset())
         
         return $sb.ToString()
     }

@@ -20,12 +20,32 @@ class ConfigurationService {
     
     hidden [void] InitializeDefaults() {
         $this.Defaults = @{
-            Theme = "default"
+            Theme = @{
+                CurrentTheme = "matrix"  # Changed to matrix as requested
+                AvailableThemes = @("default", "matrix", "custom")
+                CustomColors = @{
+                    background = @(0, 0, 0)
+                    foreground = @(0, 255, 0)
+                    accent = @(0, 200, 0)
+                    border = @(0, 100, 0)
+                }
+            }
             Editor = @{
                 TabSize = 4
                 WordWrap = $false
                 ShowLineNumbers = $true
                 HighlightCurrentLine = $true
+                AutoSaveInterval = 0  # 0 = disabled, otherwise minutes
+                SyntaxHighlighting = $true
+            }
+            FileBrowser = @{
+                DefaultPath = (Get-Location).Path
+                ShowHiddenFiles = $false
+                IgnoredExtensions = @(".tmp", ".cache", ".log")
+                SortBy = "Name"  # Name, Date, Size
+                SortDescending = $false
+                ShowFileSize = $true
+                ShowModifiedDate = $false
             }
             UI = @{
                 AnimationsEnabled = $true

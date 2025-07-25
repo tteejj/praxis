@@ -23,10 +23,12 @@ class Button : UIElement {
         }
     }
     
-    [void] Initialize([ServiceContainer]$services) {
-        $this.Theme = $services.GetService("ThemeManager")
-        $this.Theme.Subscribe({ $this.OnThemeChanged() })
-        $this.OnThemeChanged()
+    [void] OnInitialize() {
+        $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
+        if ($this.Theme) {
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
+        }
         $this.Invalidate()  # Force initial render
     }
     
@@ -51,6 +53,12 @@ class Button : UIElement {
         # Debug logging
         if ($global:Logger) {
             $global:Logger.Debug("Button.RebuildCache: Text='$($this.Text)' Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
+        }
+        
+        # Return early if Theme is not initialized
+        if (-not $this.Theme) {
+            $this._cachedRender = ""
+            return
         }
         
         $sb = Get-PooledStringBuilder 512  # Button rendering typically needs small capacity
