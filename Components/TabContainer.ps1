@@ -101,6 +101,7 @@ class TabContainer : Container {
             if ($global:Logger) {
                 $global:Logger.Debug("TabContainer: Adding new tab content: $($newTab.Title)")
                 $global:Logger.Debug("TabContainer: Content type: $($newTab.Content.GetType().Name)")
+                $global:Logger.Debug("TabContainer: Container bounds: X=$($this.X) Y=$($this.Y) W=$($this.Width) H=$($this.Height)")
             }
             $this.PositionContent($newTab.Content, $true)
             $this.AddChild($newTab.Content)
@@ -129,26 +130,19 @@ class TabContainer : Container {
         if ($this.Parent) {
             $this.Parent.Invalidate()
         }
-        
-        # Request screen manager to render
-        if ($global:ScreenManager) {
-            $global:ScreenManager.RequestRender()
-        }
-        
-        # Force a render request
-        if ($global:ScreenManager) {
-            $global:ScreenManager.RequestRender()
-        }
     }
     
     # Position content below tab bar
     hidden [void] PositionContent([UIElement]$content, [bool]$isActive) {
-        $content.SetBounds(
-            $this.X,
-            $this.Y + $this.TabBarHeight,
-            $this.Width,
-            $this.Height - $this.TabBarHeight
-        )
+        # Only set bounds if we have valid dimensions
+        if ($this.Width -gt 0 -and $this.Height -gt $this.TabBarHeight) {
+            $content.SetBounds(
+                $this.X,
+                $this.Y + $this.TabBarHeight,
+                $this.Width,
+                $this.Height - $this.TabBarHeight
+            )
+        }
     }
     
     # Layout management
@@ -257,9 +251,7 @@ class TabContainer : Container {
     
     # Handle keyboard input
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("TabContainer.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Modifiers=$($key.Modifiers)")
-        }
+        # Debug logging removed for performance
         
         # Check TabContainer shortcuts FIRST before passing to children
         

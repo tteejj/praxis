@@ -68,7 +68,7 @@ Write-Host "   ✓ DataGrid created with $($columns.Count) columns"
 # Test 6: Quick Time Entry Dialog
 Write-Host "`n6. Testing QuickTimeEntryDialog:" -ForegroundColor Yellow
 . "$PSScriptRoot/Screens/QuickTimeEntryDialog.ps1"
-$dialog = [QuickTimeEntryDialog]::new()
+$dialog = [QuickTimeEntryDialog]::new([DateTime]::Now)
 Write-Host "   ✓ QuickTimeEntryDialog created successfully"
 
 # Test 7: Fiscal Year Calculation

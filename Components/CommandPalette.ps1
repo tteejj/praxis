@@ -357,7 +357,7 @@ class CommandPalette : Container {
             }
             # TODO: Implement theme switching
         }.GetNewClosure())
-        $this.AddCommand("quit", "Exit application", {
+        $this.AddCommand("quit", "Exit application (Ctrl+Q)", {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Quit command executed")
             }

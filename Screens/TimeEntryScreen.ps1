@@ -1,9 +1,9 @@
-# TimeEntryScreen - Weekly time entry grid with quick entry
+# TimeEntryScreen.ps1 - Time entry screen based on working ProjectsScreen
 
 class TimeEntryScreen : Screen {
     [DataGrid]$TimeGrid
     [Button]$PrevWeekButton
-    [Button]$NextWeekButton
+    [Button]$NextWeekButton  
     [Button]$CurrentWeekButton
     [Button]$QuickEntryButton
     [DateTime]$CurrentWeekFriday
@@ -14,7 +14,7 @@ class TimeEntryScreen : Screen {
     
     # Layout
     hidden [int]$ButtonHeight = 3
-    hidden [int]$StatusBarHeight = 1
+    hidden [int]$ButtonSpacing = 2
     
     TimeEntryScreen() : base() {
         $this.Title = "Time Entry"
@@ -40,16 +40,15 @@ class TimeEntryScreen : Screen {
             }.GetNewClosure())
         }
         
-        # Create time grid
+        # Create DataGrid with columns
         $this.TimeGrid = [DataGrid]::new()
-        $this.TimeGrid.ShowHeader = $true
-        $this.TimeGrid.ShowBorder = $true
         $this.TimeGrid.Title = $this.GetWeekTitle()
-        $this.TimeGrid.IsFocusable = $true
+        $this.TimeGrid.ShowBorder = $true
+        $this.TimeGrid.ShowGridLines = $true
         
-        # Set up columns: Name | ID1 | ID2 | Mon | Tue | Wed | Thu | Fri | Total
+        # Define columns for time entry grid
         $columns = @(
-            @{ Name = "Name"; Header = "Name"; Width = 20; Getter = { param($item) $item.Name } }
+            @{ Name = "Name"; Header = "Name"; Width = 30; Getter = { param($item) $item.Name } }
             @{ Name = "ID1"; Header = "ID1"; Width = 10; Getter = { param($item) $item.ID1 } }
             @{ Name = "ID2"; Header = "ID2"; Width = 15; Getter = { param($item) $item.ID2 } }
             @{ Name = "Monday"; Header = "Mon"; Width = 6; Getter = { param($item) if ($item.Monday -gt 0) { $item.Monday.ToString("F1") } else { "" } } }
@@ -93,38 +92,195 @@ class TimeEntryScreen : Screen {
         
         # Load initial data
         $this.RefreshGrid()
+        
+        # Focus the grid
+        if ($this.TimeGrid.Items.Count -gt 0) {
+            $this.TimeGrid.Focus()
+        }
+        
+        # Register shortcuts
+        $this.RegisterShortcuts()
     }
     
     [void] OnBoundsChanged() {
         if (-not $this.TimeGrid) { return }
         
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
+        }
+        
         # Calculate layout
-        $gridHeight = $this.Height - $this.ButtonHeight - $this.StatusBarHeight - 1
+        $gridHeight = $this.Height - $this.ButtonHeight - 1
         
         # Position grid
         $this.TimeGrid.SetBounds($this.X, $this.Y, $this.Width, $gridHeight)
         
         # Position buttons at bottom
-        $buttonY = $this.Y + $this.Height - $this.ButtonHeight - $this.StatusBarHeight
-        $buttonWidth = 14
-        $totalButtonWidth = ($buttonWidth * 4) + 3  # 4 buttons with spacing
+        $buttonY = $this.Y + $this.Height - $this.ButtonHeight - 1
+        $buttonWidth = 16
+        $totalButtonWidth = ($buttonWidth * 4) + ($this.ButtonSpacing * 3)
         
         # Center buttons
-        $buttonStartX = $this.X + [Math]::Floor(($this.Width - $totalButtonWidth) / 2)
+        $buttonX = $this.X + [Math]::Floor(($this.Width - $totalButtonWidth) / 2)
         
-        $this.PrevWeekButton.SetBounds($buttonStartX, $buttonY, $buttonWidth, $this.ButtonHeight)
-        $this.CurrentWeekButton.SetBounds($buttonStartX + $buttonWidth + 1, $buttonY, $buttonWidth, $this.ButtonHeight)
-        $this.NextWeekButton.SetBounds($buttonStartX + ($buttonWidth + 1) * 2, $buttonY, $buttonWidth, $this.ButtonHeight)
-        $this.QuickEntryButton.SetBounds($buttonStartX + ($buttonWidth + 1) * 3, $buttonY, $buttonWidth, $this.ButtonHeight)
+        $this.PrevWeekButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
+        $buttonX += $buttonWidth + $this.ButtonSpacing
+        
+        $this.CurrentWeekButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
+        $buttonX += $buttonWidth + $this.ButtonSpacing
+        
+        $this.NextWeekButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
+        $buttonX += $buttonWidth + $this.ButtonSpacing
+        
+        $this.QuickEntryButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
     }
     
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
         
-        # Refresh data and focus grid
+        # Refresh data when activated
         $this.RefreshGrid()
         if ($this.TimeGrid) {
             $this.TimeGrid.Focus()
+        }
+    }
+    
+    [string] GetWeekTitle() {
+        $monday = $this.CurrentWeekFriday.AddDays(-4)
+        return "Time Entry - Week of $($monday.ToString('MM/dd/yyyy')) to $($this.CurrentWeekFriday.ToString('MM/dd/yyyy'))"
+    }
+    
+    [void] RefreshGrid() {
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.RefreshGrid: Starting refresh for week $($this.CurrentWeekFriday.ToString('yyyyMMdd'))")
+        }
+        
+        # Update title
+        $this.TimeGrid.Title = $this.GetWeekTitle()
+        
+        # Get entries for current week
+        $weekString = $this.CurrentWeekFriday.ToString("yyyyMMdd")
+        $entries = $this.TimeService.GetWeekEntries($weekString)
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.RefreshGrid: Got $($entries.Count) entries")
+        }
+        
+        # Sort by: Projects first (by name), then non-projects (by ID2)
+        $sorted = $entries | Sort-Object @(
+            @{Expression = {if ($_.ID1 -eq "Internal") {1} else {0}}},
+            @{Expression = {$_.Name}},
+            @{Expression = {$_.ID2}}
+        )
+        
+        # Clear and repopulate grid
+        $this.TimeGrid.Items.Clear()
+        foreach ($entry in $sorted) {
+            $this.TimeGrid.Items.Add($entry)
+        }
+        
+        $this.TimeGrid.Invalidate()
+        $this.Invalidate()
+    }
+    
+    [void] ShowQuickEntry() {
+        # Create quick entry dialog
+        $dialog = [QuickTimeEntryDialog]::new($this.CurrentWeekFriday)
+        $screen = $this
+        $dialog.OnSave = {
+            param($timeEntry)
+            # Save the entry
+            $screen.TimeService.UpdateTimeEntry($timeEntry)
+            $screen.RefreshGrid()
+        }.GetNewClosure()
+        
+        # Show dialog
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    [void] EditSelectedEntry() {
+        $selected = $this.TimeGrid.GetSelectedItem()
+        if (-not $selected) { return }
+        
+        # Create edit dialog
+        $dialog = [TimeEntryDialog]::new($this.CurrentWeekFriday, $selected.ID2)
+        $dialog.OnSave = {
+            $this.RefreshGrid()
+        }.GetNewClosure()
+        
+        # Show dialog
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    [string] OnRender() {
+        $result = ([Screen]$this).OnRender()
+        if ($global:Logger) {
+            $global:Logger.Debug("TimeEntryScreen.OnRender: Rendered content length = $($result.Length)")
+        }
+        return $result
+    }
+    
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if ($shortcutManager) {
+            $screen = $this
+            
+            # Q - Quick entry
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.quick"
+                Name = "Quick Entry"
+                Description = "Quick time entry"
+                KeyChar = 'q'
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = { $screen.ShowQuickEntry() }.GetNewClosure()
+            })
+            
+            # E - Edit entry
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.edit"
+                Name = "Edit Entry"
+                Description = "Edit time entry"
+                KeyChar = 'e'
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = { $screen.EditSelectedEntry() }.GetNewClosure()
+            })
+            
+            # Left/Right arrows for week navigation
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.prevweek"
+                Name = "Previous Week"
+                Description = "Navigate to previous week"
+                Key = [System.ConsoleKey]::LeftArrow
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = {
+                    $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(-7)
+                    $screen.RefreshGrid()
+                }.GetNewClosure()
+            })
+            
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.nextweek"
+                Name = "Next Week"
+                Description = "Navigate to next week"
+                Key = [System.ConsoleKey]::RightArrow
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = {
+                    $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(7)
+                    $screen.RefreshGrid()
+                }.GetNewClosure()
+            })
         }
     }
     
@@ -138,6 +294,10 @@ class TimeEntryScreen : Screen {
         switch ($key.Key) {
             ([ConsoleKey]::Q) {
                 $this.ShowQuickEntry()
+                return $true
+            }
+            ([ConsoleKey]::E) {
+                $this.EditSelectedEntry()
                 return $true
             }
             ([ConsoleKey]::LeftArrow) {
@@ -158,162 +318,8 @@ class TimeEntryScreen : Screen {
                 $this.EditSelectedEntry()
                 return $true
             }
-            ([ConsoleKey]::E) {
-                $this.EditSelectedEntry()
-                return $true
-            }
         }
         
-        return $false
-    }
-    
-    [string] GetWeekTitle() {
-        $monday = $this.CurrentWeekFriday.AddDays(-4)
-        return "Time Entry - Week of $($monday.ToString('MM/dd/yyyy')) to $($this.CurrentWeekFriday.ToString('MM/dd/yyyy'))"
-    }
-    
-    [void] RefreshGrid() {
-        # Update title
-        $this.TimeGrid.Title = $this.GetWeekTitle()
-        
-        # Get entries for current week
-        $weekString = $this.CurrentWeekFriday.ToString("yyyyMMdd")
-        $entries = $this.TimeService.GetWeekEntries($weekString)
-        
-        # Sort by: Projects first (by name), then non-projects (by ID2)
-        $sorted = $entries | Sort-Object -Property @(
-            @{Expression = { $_.IsProjectEntry() }; Descending = $true},
-            @{Expression = { $_.Name }},
-            @{Expression = { $_.ID2 }}
-        )
-        
-        $this.TimeGrid.SetItems($sorted)
-        $this.Invalidate()
-    }
-    
-    [void] ShowQuickEntry() {
-        # Create quick entry dialog
-        $dialog = [QuickTimeEntryDialog]::new($this.CurrentWeekFriday)
-        
-        $screen = $this  # Capture reference for closure
-        $dialog.OnSave = {
-            param($timeData)
-            
-            # Add/update time entry
-            $entry = $screen.TimeService.GetOrCreateTimeEntry($timeData.WeekEndingFriday, $timeData.ID2)
-            
-            # Update the specific day's hours
-            switch ($timeData.DayOfWeek) {
-                Monday { $entry.Monday = $timeData.Hours }
-                Tuesday { $entry.Tuesday = $timeData.Hours }
-                Wednesday { $entry.Wednesday = $timeData.Hours }
-                Thursday { $entry.Thursday = $timeData.Hours }
-                Friday { $entry.Friday = $timeData.Hours }
-            }
-            
-            # Save through service
-            $screen.TimeService.UpdateTimeEntry($entry)
-            
-            # Close dialog
-            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
-            if ($screenManager) {
-                $screenManager.Pop()
-            }
-        }.GetNewClosure()
-        
-        $dialog.OnCancel = {
-            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
-            if ($screenManager) {
-                $screenManager.Pop()
-            }
-        }.GetNewClosure()
-        
-        # Show dialog
-        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
-        if ($screenManager) {
-            $screenManager.Push($dialog)
-        }
-    }
-    
-    [void] EditSelectedEntry() {
-        $selected = $this.TimeGrid.GetSelectedItem()
-        if (-not $selected) { return }
-        
-        # Create edit dialog for the selected entry
-        $dialog = [QuickTimeEntryDialog]::new($this.CurrentWeekFriday, $selected)
-        
-        $screen = $this  # Capture reference for closure
-        $dialog.OnSave = {
-            param($timeData)
-            
-            # Update all days for this entry
-            $selected.Monday = $timeData.Monday
-            $selected.Tuesday = $timeData.Tuesday
-            $selected.Wednesday = $timeData.Wednesday
-            $selected.Thursday = $timeData.Thursday
-            $selected.Friday = $timeData.Friday
-            
-            # Save through service
-            $screen.TimeService.UpdateTimeEntry($selected)
-            
-            # Close dialog
-            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
-            if ($screenManager) {
-                $screenManager.Pop()
-            }
-        }.GetNewClosure()
-        
-        $dialog.OnCancel = {
-            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
-            if ($screenManager) {
-                $screenManager.Pop()
-            }
-        }.GetNewClosure()
-        
-        # Show dialog
-        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
-        if ($screenManager) {
-            $screenManager.Push($dialog)
-        }
-    }
-    
-    [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
-        
-        # Render base screen first
-        $null = $sb.Append(([Screen]$this).OnRender())
-        
-        # Render status bar at bottom
-        $statusY = $this.Y + $this.Height - 1
-        $null = $sb.Append([VT]::MoveTo($this.X, $statusY))
-        
-        # Get theme manager
-        $theme = $this.ServiceContainer.GetService("ThemeManager")
-        if ($theme) {
-            $null = $sb.Append($theme.GetColor('border'))
-        }
-        $null = $sb.Append(' ' * $this.Width)  # Clear line
-        
-        # Show week totals
-        $weekTotal = 0
-        if ($this.TimeService) {
-            $entries = $this.TimeService.GetWeekEntries($this.CurrentWeekFriday.ToString("yyyyMMdd"))
-            foreach ($entry in $entries) {
-                $weekTotal += $entry.Total
-            }
-        }
-        
-        $statusText = "Week Total: $($weekTotal.ToString('F1')) hours | Q: Quick Entry | E: Edit | ←/→: Navigate Weeks"
-        $null = $sb.Append([VT]::MoveTo($this.X + 2, $statusY))
-        $null = $sb.Append($statusText)
-        $null = $sb.Append([VT]::Reset())
-        
-        return $sb.ToString()
-    }
-    
-    # Handle special keys
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Let base class handle registered key bindings
         return $false
     }
 }

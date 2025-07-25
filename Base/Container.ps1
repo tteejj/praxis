@@ -13,7 +13,7 @@ class Container : UIElement {
     
     # Efficient child rendering with string builder
     [string] OnRender() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Draw background if enabled
         if ($this.DrawBackground -and $this._cachedBackground) {
@@ -27,7 +27,9 @@ class Container : UIElement {
             }
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     # Pre-compute background
@@ -42,7 +44,7 @@ class Container : UIElement {
             return 
         }
         
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder ($this.Width * $this.Height * 2)
         $line = " " * $this.Width
         
         for ($y = 0; $y -lt $this.Height; $y++) {
@@ -58,6 +60,7 @@ class Container : UIElement {
         }
         
         $this._cachedBackground = $sb.ToString()
+        Return-PooledStringBuilder $sb
     }
     
     [void] OnBoundsChanged() {
@@ -111,9 +114,7 @@ class Container : UIElement {
     # Route input to focused child
     # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("Container.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Type=$($this.GetType().Name)")
-        }
+        # Debug logging removed for performance
         
         # Simple rule: Let focused child handle first
         $focused = $this.FindFocusedChild()

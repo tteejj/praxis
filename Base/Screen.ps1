@@ -56,9 +56,7 @@ class Screen : Container {
     
     # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
-        if ($global:Logger) {
-            $global:Logger.Debug("Screen.HandleInput: Key=$($keyInfo.Key) Type=$($this.GetType().Name)")
-        }
+        # Debug logging removed for performance
         
         # 1. Let focused child handle first (components get priority)
         $handled = ([Container]$this).HandleInput($keyInfo)

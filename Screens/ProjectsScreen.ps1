@@ -2,17 +2,12 @@
 
 class ProjectsScreen : Screen {
     [DataGrid]$ProjectGrid
-    [Button]$NewButton
-    [Button]$ViewButton
-    [Button]$EditButton
-    [Button]$DeleteButton
+    # Buttons removed - using keyboard shortcuts only
     [ProjectService]$ProjectService
     [EventBus]$EventBus
     hidden [hashtable]$EventSubscriptions = @{}
     
-    # Layout
-    hidden [int]$ButtonHeight = 3
-    hidden [int]$ButtonSpacing = 2
+    # Layout - buttons removed
     
     ProjectsScreen() : base() {
         $this.Title = "Projects"
@@ -131,34 +126,11 @@ class ProjectsScreen : Screen {
         $this.ProjectGrid.Initialize($global:ServiceContainer)
         $this.AddChild($this.ProjectGrid)
         
-        # Create buttons
-        $screen = $this  # Capture reference for closures
-        
-        $this.NewButton = [Button]::new("New Project")
-        $this.NewButton.IsDefault = $true
-        $this.NewButton.OnClick = { 
-            if ($global:Logger) {
-                $global:Logger.Debug("New Project button clicked")
-            }
-            $screen.NewProject() 
-        }.GetNewClosure()
-        $this.NewButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.NewButton)
-        
-        $this.ViewButton = [Button]::new("View Details")
-        $this.ViewButton.OnClick = { $screen.ViewProjectDetails() }.GetNewClosure()
-        $this.ViewButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.ViewButton)
-        
-        $this.EditButton = [Button]::new("Edit")
-        $this.EditButton.OnClick = { $screen.EditProject() }.GetNewClosure()
-        $this.EditButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.EditButton)
-        
-        $this.DeleteButton = [Button]::new("Delete")
-        $this.DeleteButton.OnClick = { $screen.DeleteProject() }.GetNewClosure()
-        $this.DeleteButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.DeleteButton)
+        # Buttons removed - use keyboard shortcuts instead
+        # n - New Project
+        # e - Edit Project
+        # d - Delete Project
+        # Enter - View Details
         
         # Load projects
         $this.LoadProjects()
@@ -243,14 +215,11 @@ class ProjectsScreen : Screen {
             if ($global:Logger) {
                 $projectGridNull = ($this.ProjectGrid -eq $null)
                 $itemsCount = if ($this.ProjectGrid -and $this.ProjectGrid.Items) { $this.ProjectGrid.Items.Count } else { 0 }
-                $newButtonNull = ($this.NewButton -eq $null)
-                $global:Logger.Debug("ProjectsScreen focus check: ProjectGrid=$(!$projectGridNull), Items=$itemsCount, NewButton=$(!$newButtonNull)")
+                $global:Logger.Debug("ProjectsScreen focus check: ProjectGrid=$(!$projectGridNull), Items=$itemsCount")
             }
             
-            if ($this.ProjectGrid -and $this.ProjectGrid.Items -and $this.ProjectGrid.Items.Count -gt 0) {
+            if ($this.ProjectGrid) {
                 $this.ProjectGrid.Focus()
-            } elseif ($this.NewButton) {
-                $this.NewButton.Focus()
             } else {
                 if ($global:Logger) {
                     $global:Logger.Debug("ProjectsScreen: No focusable element found!")
@@ -270,60 +239,12 @@ class ProjectsScreen : Screen {
             $global:Logger.Debug("ProjectsScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
         }
         
-        # Layout: Grid takes most space, buttons at bottom
-        $buttonAreaHeight = $this.ButtonHeight + 2
-        $gridHeight = $this.Height - $buttonAreaHeight
-        
-        # Project grid
+        # Grid takes full space now that buttons are removed
         $this.ProjectGrid.SetBounds(
             $this.X, 
             $this.Y,
             $this.Width,
-            $gridHeight
-        )
-        
-        # Buttons (horizontally arranged) - now 4 buttons
-        $maxButtonWidth = 20  # Reduced button width to fit 4 buttons
-        $totalButtonWidth = ($maxButtonWidth * 4) + ($this.ButtonSpacing * 3)
-        
-        # Center buttons if screen is wide enough
-        if ($this.Width -gt $totalButtonWidth) {
-            $buttonStartX = $this.X + [int](($this.Width - $totalButtonWidth) / 2)
-            $buttonWidth = $maxButtonWidth
-        } else {
-            $buttonStartX = $this.X
-            $buttonWidth = [int](($this.Width - ($this.ButtonSpacing * 3)) / 4)
-        }
-        
-        # Position buttons at bottom of screen bounds
-        $buttonY = $this.Y + $this.Height - $this.ButtonHeight - 1
-        
-        $this.NewButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $this.ButtonHeight
-        )
-        
-        $this.ViewButton.SetBounds(
-            $buttonStartX + $buttonWidth + $this.ButtonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $this.ButtonHeight
-        )
-        
-        $this.EditButton.SetBounds(
-            $buttonStartX + ($buttonWidth + $this.ButtonSpacing) * 2,
-            $buttonY,
-            $buttonWidth,
-            $this.ButtonHeight
-        )
-        
-        $this.DeleteButton.SetBounds(
-            $buttonStartX + ($buttonWidth + $this.ButtonSpacing) * 3,
-            $buttonY,
-            $buttonWidth,
-            $this.ButtonHeight
+            $this.Height
         )
     }
     

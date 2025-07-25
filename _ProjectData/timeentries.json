@@ -1,0 +1,31 @@
+{
+    "TimeEntries": [
+        {
+            "Id": "TE-19991231-TEST",
+            "WeekEndingFriday": "19991231",
+            "Name": "Test Entry",
+            "ID1": "Internal",
+            "ID2": "TEST",
+            "Monday": 1.0,
+            "Tuesday": 0,
+            "Wednesday": 0,
+            "Thursday": 0,
+            "Friday": 0,
+            "Total": 1.0,
+            "FiscalYear": "1999-2000",
+            "CreatedAt": "1999-12-31T12:00:00",
+            "UpdatedAt": "1999-12-31T12:00:00"
+        }
+    ],
+    "TimeCodes": [
+        {
+            "ID2": "TEST",
+            "Name": "Test Code",
+            "ID1": "Internal",
+            "Description": "Test time code",
+            "IsActive": true,
+            "CreatedAt": "1999-12-31T12:00:00"
+        }
+    ],
+    "LastUpdated": "2025-07-25 01:15:00"
+}

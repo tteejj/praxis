@@ -63,6 +63,11 @@ class MainScreen : Screen {
         $this.CommandPalette.Initialize($global:ServiceContainer)
         $this.AddChild($this.CommandPalette)
         
+        # Ensure bounds are set if we already have them
+        if ($this.Width -gt 0 -and $this.Height -gt 0) {
+            $this.OnBoundsChanged()
+        }
+        
         # Key bindings now handled by GetShortcutBindings() method
     }
     
@@ -105,7 +110,9 @@ class MainScreen : Screen {
         # Global shortcuts
         switch ($keyInfo.Key) {
             ([System.ConsoleKey]::Q) {
-                if (-not $keyInfo.Modifiers) {
+                # Only handle Q for quit if Ctrl is pressed
+                # This prevents conflict with child screens using 'q'
+                if ($keyInfo.Modifiers -eq [System.ConsoleModifiers]::Control) {
                     $this.Active = $false  # Exit the main loop
                     return $true
                 }

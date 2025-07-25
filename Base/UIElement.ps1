@@ -74,12 +74,13 @@ class UIElement {
         # Pre-compute clear sequence for this element's area
         if ($this.Width -gt 0 -and $this.Height -gt 0) {
             $clearLine = " " * $this.Width
-            $clearSeq = [System.Text.StringBuilder]::new()
+            $clearSeq = Get-PooledStringBuilder ($this.Height * ($this.Width + 10))
             for ($i = 0; $i -lt $this.Height; $i++) {
                 $clearSeq.Append([VT]::MoveTo($this.X, $this.Y + $i))
                 $clearSeq.Append($clearLine)
             }
             $this._cachedClear = $clearSeq.ToString()
+            Return-PooledStringBuilder $clearSeq
         } else {
             $this._cachedClear = ""
         }

@@ -50,10 +50,7 @@ class Button : UIElement {
     }
     
     [void] RebuildCache() {
-        # Debug logging
-        if ($global:Logger) {
-            $global:Logger.Debug("Button.RebuildCache: Text='$($this.Text)' Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
-        }
+        # Debug logging removed for performance
         
         # Return early if Theme is not initialized
         if (-not $this.Theme) {
@@ -82,9 +79,7 @@ class Button : UIElement {
         $textX = $this.X + [Math]::Max(1, [int](($this.Width - $this.Text.Length) / 2))
         $textY = $this.Y + 1  # For height=3, text should be on the middle line
         
-        if ($global:Logger -and $this.Text -eq "New Project") {
-            $global:Logger.Debug("Button text position: textX=$textX, textY=$textY for button at ($($this.X),$($this.Y)) with height $($this.Height)")
-        }
+        # Debug logging removed for performance
         
         # Draw button box
         # Top border
@@ -99,9 +94,7 @@ class Button : UIElement {
         
         # Middle lines
         for ($y = $this.Y + 1; $y -lt $this.Y + $this.Height - 1; $y++) {
-            if ($global:Logger -and $this.Text -eq "New Project") {
-                $global:Logger.Debug("Button middle line: y=$y, textY=$textY, Text='$($this.Text)'")
-            }
+            # Debug logging removed for performance
             
             $sb.Append([VT]::MoveTo($this.X, $y))
             $sb.Append($borderColor)
