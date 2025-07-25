@@ -35,6 +35,20 @@ class DockPanel : Container {
         $this.InvalidateLayout()
     }
     
+    [void] SetChildHeight([UIElement]$child, [int]$height) {
+        # Add custom property to track fixed height
+        $child | Add-Member -MemberType NoteProperty -Name "FixedHeight" -Value $height -Force
+        $child.Height = $height
+        $this.InvalidateLayout()
+    }
+    
+    [void] SetChildWidth([UIElement]$child, [int]$width) {
+        # Add custom property to track fixed width
+        $child | Add-Member -MemberType NoteProperty -Name "FixedWidth" -Value $width -Force
+        $child.Width = $width
+        $this.InvalidateLayout()
+    }
+    
     [DockPosition] GetChildDock([UIElement]$child) {
         if ($child.PSObject.Properties["DockPosition"]) {
             return $child.DockPosition
@@ -105,30 +119,34 @@ class DockPanel : Container {
         
         # Top docked children
         foreach ($child in $topChildren) {
-            $child.SetBounds($availableX, $availableY, $availableWidth, $child.Height)
-            $availableY += $child.Height + $this.DockSpacing
-            $availableHeight -= $child.Height + $this.DockSpacing
+            $childHeight = if ($child.PSObject.Properties["FixedHeight"]) { $child.FixedHeight } else { $child.Height }
+            $child.SetBounds($availableX, $availableY, $availableWidth, $childHeight)
+            $availableY += $childHeight + $this.DockSpacing
+            $availableHeight -= $childHeight + $this.DockSpacing
         }
         
         # Bottom docked children
         foreach ($child in $bottomChildren) {
-            $childY = $availableY + $availableHeight - $child.Height
-            $child.SetBounds($availableX, $childY, $availableWidth, $child.Height)
-            $availableHeight -= $child.Height + $this.DockSpacing
+            $childHeight = if ($child.PSObject.Properties["FixedHeight"]) { $child.FixedHeight } else { $child.Height }
+            $childY = $availableY + $availableHeight - $childHeight
+            $child.SetBounds($availableX, $childY, $availableWidth, $childHeight)
+            $availableHeight -= $childHeight + $this.DockSpacing
         }
         
         # Left docked children  
         foreach ($child in $leftChildren) {
-            $child.SetBounds($availableX, $availableY, $child.Width, $availableHeight)
-            $availableX += $child.Width + $this.DockSpacing
-            $availableWidth -= $child.Width + $this.DockSpacing
+            $childWidth = if ($child.PSObject.Properties["FixedWidth"]) { $child.FixedWidth } else { $child.Width }
+            $child.SetBounds($availableX, $availableY, $childWidth, $availableHeight)
+            $availableX += $childWidth + $this.DockSpacing
+            $availableWidth -= $childWidth + $this.DockSpacing
         }
         
         # Right docked children
         foreach ($child in $rightChildren) {
-            $childX = $availableX + $availableWidth - $child.Width
-            $child.SetBounds($childX, $availableY, $child.Width, $availableHeight)
-            $availableWidth -= $child.Width + $this.DockSpacing
+            $childWidth = if ($child.PSObject.Properties["FixedWidth"]) { $child.FixedWidth } else { $child.Width }
+            $childX = $availableX + $availableWidth - $childWidth
+            $child.SetBounds($childX, $availableY, $childWidth, $availableHeight)
+            $availableWidth -= $childWidth + $this.DockSpacing
         }
         
         # Fill remaining space with fill child (if LastChildFill is enabled and we have one)

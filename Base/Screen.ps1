@@ -17,11 +17,13 @@ class Screen : Container {
     
     # Initialize with services
     [void] Initialize([ServiceContainer]$services) {
-        $this.ServiceContainer = $services
+        # Call base initialization
+        ([UIElement]$this).Initialize($services)
+        
+        # Screen-specific initialization
         $this.Theme = $services.GetService("ThemeManager")
         $this.Theme.Subscribe({ $this.OnThemeChanged() })
         $this.OnThemeChanged()
-        $this.OnInitialize()
     }
     
     # Helper method for service access with error handling

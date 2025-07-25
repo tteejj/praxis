@@ -55,7 +55,52 @@ class ThemeManager {
         }
         
         $this.RegisterTheme("default", $defaultTheme)
-        $this.SetTheme("default")
+        
+        # Define matrix theme - black background with green text
+        $matrixTheme = @{
+            # Base colors
+            "background" = @(0, 0, 0)             # Pure black background
+            "foreground" = @(0, 255, 0)           # Bright green text
+            "accent" = @(0, 200, 0)               # Darker green accent
+            "success" = @(0, 255, 0)              # Bright green
+            "warning" = @(255, 255, 0)            # Yellow
+            "error" = @(255, 0, 0)                # Red
+            
+            # UI elements
+            "border" = @(0, 100, 0)               # Dark green borders
+            "border.focused" = @(0, 255, 0)       # Bright green when focused
+            "selection" = @(0, 50, 0)             # Very dark green selection
+            "disabled" = @(0, 128, 0)             # Medium green for disabled
+            
+            # Component specific
+            "button.background" = @(0, 20, 0)
+            "button.foreground" = @(0, 255, 0)
+            "button.focused.background" = @(0, 100, 0)
+            "button.focused.foreground" = @(0, 255, 0)
+            
+            "input.background" = @(0, 10, 0)
+            "input.foreground" = @(0, 255, 0)
+            "input.focused.border" = @(0, 255, 0)
+            
+            "menu.background" = @(0, 0, 0)
+            "menu.foreground" = @(0, 200, 0)
+            "menu.selected.background" = @(0, 80, 0)
+            "menu.selected.foreground" = @(0, 255, 0)
+            
+            "tab.background" = @(0, 30, 0)
+            "tab.foreground" = @(0, 150, 0)
+            "tab.active.background" = @(0, 0, 0)
+            "tab.active.foreground" = @(0, 255, 0)
+            "tab.active.accent" = @(0, 255, 0)
+            
+            # Dialog colors
+            "dialog.background" = @(0, 0, 0)
+            "dialog.border" = @(0, 150, 0)
+            "dialog.title" = @(0, 255, 0)
+        }
+        
+        $this.RegisterTheme("matrix", $matrixTheme)
+        $this.SetTheme("matrix")
     }
     
     # Register a new theme

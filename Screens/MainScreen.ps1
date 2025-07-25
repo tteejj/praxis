@@ -82,11 +82,16 @@ class MainScreen : Screen {
             $this.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
         }
         
-        # Focus on the active tab's content
+        # Activate the active tab's content screen
         if ($this.TabContainer) {
             $activeTab = $this.TabContainer.GetActiveTab()
             if ($activeTab -and $activeTab.Content) {
-                $activeTab.Content.Focus()
+                # Screens are not focusable - call OnActivated instead
+                if ($activeTab.Content -is [Screen]) {
+                    $activeTab.Content.OnActivated()
+                } else {
+                    $activeTab.Content.Focus()
+                }
             }
         }
     }

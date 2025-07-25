@@ -395,7 +395,7 @@ class FastFileTree : UIElement {
         # Colors
         $borderColor = if ($this.Theme) { $this.Theme.GetColor("border") } else { "" }
         $titleColor = if ($this.Theme) { $this.Theme.GetColor("title") } else { "" }
-        $selectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selected") } else { "" }
+        $selectedBg = if ($this.Theme) { $this.Theme.GetBgColor("selection") } else { "" }
         $normalColor = if ($this.Theme) { $this.Theme.GetColor("normal") } else { "" }
         $directoryColor = if ($this.Theme) { $this.Theme.GetColor("directory") } else { $normalColor }
         $fileColor = if ($this.Theme) { $this.Theme.GetColor("file") } else { $normalColor }
@@ -495,13 +495,18 @@ class FastFileTree : UIElement {
                 
                 # Pad and truncate to fit
                 $line = $line.PadRight($contentWidth).Substring(0, $contentWidth)
-                $sb.Append($line)
                 
-                # Apply appropriate color
+                # Apply appropriate color and render line
                 $sb.Append([VT]::MoveTo($this.X + ($effectiveShowBorder ? 1 : 0), $y))
                 if ($i -eq $this.SelectedIndex) {
+                    # Selected item - use selection colors
                     $sb.Append($selectedBg)
+                    $foregroundColor = if ($this.Theme) { $this.Theme.GetColor("foreground") } else { "" }
+                    $sb.Append($foregroundColor)
                 } else {
+                    # Normal item - directory or file color with normal background
+                    $normalBg = if ($this.Theme) { $this.Theme.GetBgColor("background") } else { "" }
+                    $sb.Append($normalBg)
                     $color = if ($node.IsDirectory) { $directoryColor } else { $fileColor }
                     $sb.Append($color)
                 }

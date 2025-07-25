@@ -149,18 +149,32 @@ class ExcelImportService {
         # Create new project with imported data
         $project = [Project]::new()
         
-        # Map critical fields
+        # Map basic fields
+        $project.FullProjectName = $ImportedData.TPName
+        $project.Nickname = $ImportedData.TPName  # Can be changed later
         $project.ID2 = $ImportedData.CASCase  # CAS Case# is the ID2
-        $project.Name = $ImportedData.TPName
         $project.ClientID = $ImportedData.TPNum
         $project.Status = 'Active'
-        $project.CreatedDate = [DateTime]::Now
         
         # Map audit information
         $project.AuditType = $ImportedData.AuditType
+        $project.AuditProgram = $ImportedData.AuditProgram
+        $project.AuditCase = $ImportedData.AuditCase
         $project.AuditStartDate = $ImportedData.AuditStartDate
         $project.AuditPeriodFrom = $ImportedData.AuditPeriodFrom
         $project.AuditPeriodTo = $ImportedData.AuditPeriodTo
+        
+        # Map additional audit periods
+        $project.AuditPeriod1Start = $ImportedData.AuditPeriod1Start
+        $project.AuditPeriod1End = $ImportedData.AuditPeriod1End
+        $project.AuditPeriod2Start = $ImportedData.AuditPeriod2Start
+        $project.AuditPeriod2End = $ImportedData.AuditPeriod2End
+        $project.AuditPeriod3Start = $ImportedData.AuditPeriod3Start
+        $project.AuditPeriod3End = $ImportedData.AuditPeriod3End
+        $project.AuditPeriod4Start = $ImportedData.AuditPeriod4Start
+        $project.AuditPeriod4End = $ImportedData.AuditPeriod4End
+        $project.AuditPeriod5Start = $ImportedData.AuditPeriod5Start
+        $project.AuditPeriod5End = $ImportedData.AuditPeriod5End
         
         # Map address information
         $project.Address = $ImportedData.Address
@@ -168,6 +182,7 @@ class ExcelImportService {
         $project.Province = $ImportedData.Province
         $project.PostalCode = $ImportedData.PostalCode
         $project.Country = $ImportedData.Country
+        $project.ShipToAddress = $ImportedData.ShipToAddress
         
         # Map auditor information
         $project.AuditorName = $ImportedData.AuditorName
@@ -175,61 +190,30 @@ class ExcelImportService {
         $project.AuditorTL = $ImportedData.AuditorTL
         $project.AuditorTLPhone = $ImportedData.AuditorTLPhone
         
-        # Map contacts
-        $project.Contacts = @()
-        if ($ImportedData.Contact1Name) {
-            $project.Contacts += @{
-                Name = $ImportedData.Contact1Name
-                Phone = $ImportedData.Contact1Phone
-                Extension = $ImportedData.Contact1Ext
-                Address = $ImportedData.Contact1Address
-                Title = $ImportedData.Contact1Title
-            }
-        }
-        if ($ImportedData.Contact2Name) {
-            $project.Contacts += @{
-                Name = $ImportedData.Contact2Name
-                Phone = $ImportedData.Contact2Phone
-                Extension = $ImportedData.Contact2Ext
-                Address = $ImportedData.Contact2Address
-                Title = $ImportedData.Contact2Title
-            }
-        }
+        # Map contact information directly to project fields
+        $project.Contact1Name = $ImportedData.Contact1Name
+        $project.Contact1Phone = $ImportedData.Contact1Phone
+        $project.Contact1Ext = $ImportedData.Contact1Ext
+        $project.Contact1Address = $ImportedData.Contact1Address
+        $project.Contact1Title = $ImportedData.Contact1Title
+        $project.Contact2Name = $ImportedData.Contact2Name
+        $project.Contact2Phone = $ImportedData.Contact2Phone
+        $project.Contact2Ext = $ImportedData.Contact2Ext
+        $project.Contact2Address = $ImportedData.Contact2Address
+        $project.Contact2Title = $ImportedData.Contact2Title
         
         # Map software information
-        $project.AccountingSoftware = @()
-        if ($ImportedData.AccountingSoftware1) {
-            $project.AccountingSoftware += @{
-                Name = $ImportedData.AccountingSoftware1
-                Other = $ImportedData.AccountingSoftware1Other
-                Type = $ImportedData.AccountingSoftware1Type
-            }
-        }
-        if ($ImportedData.AccountingSoftware2) {
-            $project.AccountingSoftware += @{
-                Name = $ImportedData.AccountingSoftware2
-                Other = $ImportedData.AccountingSoftware2Other
-                Type = $ImportedData.AccountingSoftware2Type
-            }
-        }
+        $project.AccountingSoftware1 = $ImportedData.AccountingSoftware1
+        $project.AccountingSoftware1Other = $ImportedData.AccountingSoftware1Other
+        $project.AccountingSoftware1Type = $ImportedData.AccountingSoftware1Type
+        $project.AccountingSoftware2 = $ImportedData.AccountingSoftware2
+        $project.AccountingSoftware2Other = $ImportedData.AccountingSoftware2Other
+        $project.AccountingSoftware2Type = $ImportedData.AccountingSoftware2Type
         
         # Map additional fields
-        $project.Comments = $ImportedData.Comments
+        $project.RequestDate = $ImportedData.RequestDate
         $project.FXInfo = $ImportedData.FXInfo
-        $project.ShipToAddress = $ImportedData.ShipToAddress
-        
-        # Map audit periods
-        $project.AuditPeriods = @()
-        for ($i = 1; $i -le 5; $i++) {
-            $startKey = "AuditPeriod${i}Start"
-            $endKey = "AuditPeriod${i}End"
-            if ($ImportedData[$startKey] -or $ImportedData[$endKey]) {
-                $project.AuditPeriods += @{
-                    Start = $ImportedData[$startKey]
-                    End = $ImportedData[$endKey]
-                }
-            }
-        }
+        $project.Comments = $ImportedData.Comments
         
         return $project
     }

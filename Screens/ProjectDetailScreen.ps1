@@ -68,8 +68,9 @@ class ProjectDetailScreen : Screen {
         $this.ProjectInfoPanel.Title = "Project Information"
         $this.ProjectInfoPanel.IsFocusable = $false  # Read-only display
         
-        # Dock to top
+        # Dock to top with a specific height
         $this.MainLayout.SetChildDock($this.ProjectInfoPanel, [DockPosition]::Top)
+        $this.MainLayout.SetChildHeight($this.ProjectInfoPanel, 35)  # Allow plenty of space for all fields
         $this.MainLayout.AddChild($this.ProjectInfoPanel)
     }
     
@@ -93,8 +94,9 @@ class ProjectDetailScreen : Screen {
         )
         $this.WeeklySummaryGrid.SetColumns($columns)
         
-        # Dock to top (after project info)
+        # Dock to top (after project info) with a specific height
         $this.MainLayout.SetChildDock($this.WeeklySummaryGrid, [DockPosition]::Top)
+        $this.MainLayout.SetChildHeight($this.WeeklySummaryGrid, 8)  # Weekly summary doesn't need much space
         $this.MainLayout.AddChild($this.WeeklySummaryGrid)
     }
     
@@ -199,51 +201,214 @@ class ProjectDetailScreen : Screen {
             return
         }
         
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectDetailScreen.PopulateProjectInfo: Project type = $($this.Project.GetType().Name)")
+            $global:Logger.Debug("ProjectDetailScreen.PopulateProjectInfo: AuditType = '$($this.Project.AuditType)'")
+            $global:Logger.Debug("ProjectDetailScreen.PopulateProjectInfo: ClientID = '$($this.Project.ClientID)'")
+        }
+        
         $infoItems = [System.Collections.ArrayList]::new()
         
-        # Basic project information
+        # === BASIC PROJECT INFORMATION ===
+        $infoItems.Add("=== PROJECT IDENTIFICATION ===") | Out-Null
         $infoItems.Add("Nickname: $($this.Project.Nickname)") | Out-Null
         $infoItems.Add("Full Name: $($this.Project.FullProjectName)") | Out-Null
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectDetailScreen: Showing $($infoItems.Count) items so far")
+        }
         
         # IDs
         if ($this.Project.ID1) {
             $infoItems.Add("Client Code (ID1): $($this.Project.ID1)") | Out-Null
         }
         if ($this.Project.ID2) {
-            $infoItems.Add("Engagement Code (ID2): $($this.Project.ID2)") | Out-Null
+            $infoItems.Add("CAS Case# (ID2): $($this.Project.ID2)") | Out-Null
+        }
+        if ($this.Project.ClientID) {
+            $infoItems.Add("Client ID: $($this.Project.ClientID)") | Out-Null
         }
         
-        $infoItems.Add("") | Out-Null  # Separator
+        # === AUDIT INFORMATION ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== AUDIT INFORMATION ===") | Out-Null
+        if ($this.Project.AuditType) {
+            $infoItems.Add("Audit Type: $($this.Project.AuditType)") | Out-Null
+        }
+        if ($this.Project.AuditProgram) {
+            $infoItems.Add("Audit Program: $($this.Project.AuditProgram)") | Out-Null
+        }
+        if ($this.Project.AuditCase) {
+            $infoItems.Add("Audit Case: $($this.Project.AuditCase)") | Out-Null
+        }
         
-        # Dates
+        # Audit Dates
+        if ($this.Project.AuditStartDate -and $this.Project.AuditStartDate -ne [DateTime]::MinValue) {
+            $infoItems.Add("Audit Start Date: $($this.FormatDate($this.Project.AuditStartDate))") | Out-Null
+        }
+        if ($this.Project.AuditPeriodFrom -and $this.Project.AuditPeriodFrom -ne [DateTime]::MinValue) {
+            $infoItems.Add("Audit Period From: $($this.FormatDate($this.Project.AuditPeriodFrom))") | Out-Null
+        }
+        if ($this.Project.AuditPeriodTo -and $this.Project.AuditPeriodTo -ne [DateTime]::MinValue) {
+            $infoItems.Add("Audit Period To: $($this.FormatDate($this.Project.AuditPeriodTo))") | Out-Null
+        }
+        
+        # Additional Audit Periods
+        $hasAuditPeriods = $false
+        for ($i = 1; $i -le 5; $i++) {
+            $startProp = "AuditPeriod${i}Start"
+            $endProp = "AuditPeriod${i}End"
+            if ($this.Project.$startProp -ne [DateTime]::MinValue -or $this.Project.$endProp -ne [DateTime]::MinValue) {
+                if (-not $hasAuditPeriods) {
+                    $infoItems.Add("Additional Audit Periods:") | Out-Null
+                    $hasAuditPeriods = $true
+                }
+                $start = if ($this.Project.$startProp -ne [DateTime]::MinValue) { $this.FormatDate($this.Project.$startProp) } else { "N/A" }
+                $end = if ($this.Project.$endProp -ne [DateTime]::MinValue) { $this.FormatDate($this.Project.$endProp) } else { "N/A" }
+                $infoItems.Add("  Period ${i}: $start to $end") | Out-Null
+            }
+        }
+        
+        # === PROJECT DATES ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== PROJECT DATES ===") | Out-Null
+        if ($this.Project.RequestDate -and $this.Project.RequestDate -ne [DateTime]::MinValue) {
+            $infoItems.Add("Data Requested: $($this.FormatDate($this.Project.RequestDate))") | Out-Null
+        }
         if ($this.Project.DateAssigned) {
-            $assignedDate = $this.FormatDate($this.Project.DateAssigned)
-            $infoItems.Add("Date Assigned: $assignedDate") | Out-Null
+            $infoItems.Add("Date Assigned: $($this.FormatDate($this.Project.DateAssigned))") | Out-Null
         }
-        
+        if ($this.Project.BFDate -and $this.Project.BFDate -ne [DateTime]::MinValue) {
+            $infoItems.Add("BF Date: $($this.FormatDate($this.Project.BFDate))") | Out-Null
+        }
         if ($this.Project.DateDue) {
-            $dueDate = $this.FormatDate($this.Project.DateDue)
-            $infoItems.Add("Due Date: $dueDate") | Out-Null
+            $infoItems.Add("Due Date: $($this.FormatDate($this.Project.DateDue))") | Out-Null
         }
-        
         if ($this.Project.ClosedDate -and $this.Project.ClosedDate -ne [DateTime]::MinValue) {
-            $closedDate = $this.FormatDate($this.Project.ClosedDate)
-            $infoItems.Add("Completed: $closedDate") | Out-Null
+            $infoItems.Add("Completed: $($this.FormatDate($this.Project.ClosedDate))") | Out-Null
         }
         
-        $infoItems.Add("") | Out-Null  # Separator
+        # === CLIENT LOCATION ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== CLIENT LOCATION ===") | Out-Null
+        if ($this.Project.Address) {
+            $infoItems.Add("Address: $($this.Project.Address)") | Out-Null
+        }
+        if ($this.Project.City -or $this.Project.Province -or $this.Project.PostalCode) {
+            $location = @()
+            if ($this.Project.City) { $location += $this.Project.City }
+            if ($this.Project.Province) { $location += $this.Project.Province }
+            if ($this.Project.PostalCode) { $location += $this.Project.PostalCode }
+            $infoItems.Add("City/Prov/Postal: $($location -join ', ')") | Out-Null
+        }
+        if ($this.Project.Country) {
+            $infoItems.Add("Country: $($this.Project.Country)") | Out-Null
+        }
+        if ($this.Project.ShipToAddress) {
+            $infoItems.Add("Ship To Address: $($this.Project.ShipToAddress)") | Out-Null
+        }
         
-        # Status and totals
+        # === AUDITOR INFORMATION ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== AUDITOR INFORMATION ===") | Out-Null
+        if ($this.Project.AuditorName) {
+            $infoItems.Add("Auditor: $($this.Project.AuditorName)") | Out-Null
+        }
+        if ($this.Project.AuditorPhone) {
+            $infoItems.Add("Auditor Phone: $($this.Project.AuditorPhone)") | Out-Null
+        }
+        if ($this.Project.AuditorTL) {
+            $infoItems.Add("Team Lead: $($this.Project.AuditorTL)") | Out-Null
+        }
+        if ($this.Project.AuditorTLPhone) {
+            $infoItems.Add("Team Lead Phone: $($this.Project.AuditorTLPhone)") | Out-Null
+        }
+        
+        # === CONTACT INFORMATION ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== CONTACT INFORMATION ===") | Out-Null
+        # Contact 1
+        if ($this.Project.Contact1Name) {
+            $infoItems.Add("Contact 1:") | Out-Null
+            $infoItems.Add("  Name: $($this.Project.Contact1Name)") | Out-Null
+            if ($this.Project.Contact1Title) { $infoItems.Add("  Title: $($this.Project.Contact1Title)") | Out-Null }
+            if ($this.Project.Contact1Phone) { 
+                $phone = $this.Project.Contact1Phone
+                if ($this.Project.Contact1Ext) { $phone += " x$($this.Project.Contact1Ext)" }
+                $infoItems.Add("  Phone: $phone") | Out-Null 
+            }
+            if ($this.Project.Contact1Address) { $infoItems.Add("  Address: $($this.Project.Contact1Address)") | Out-Null }
+        }
+        # Contact 2
+        if ($this.Project.Contact2Name) {
+            $infoItems.Add("Contact 2:") | Out-Null
+            $infoItems.Add("  Name: $($this.Project.Contact2Name)") | Out-Null
+            if ($this.Project.Contact2Title) { $infoItems.Add("  Title: $($this.Project.Contact2Title)") | Out-Null }
+            if ($this.Project.Contact2Phone) { 
+                $phone = $this.Project.Contact2Phone
+                if ($this.Project.Contact2Ext) { $phone += " x$($this.Project.Contact2Ext)" }
+                $infoItems.Add("  Phone: $phone") | Out-Null 
+            }
+            if ($this.Project.Contact2Address) { $infoItems.Add("  Address: $($this.Project.Contact2Address)") | Out-Null }
+        }
+        
+        # === SYSTEM INFORMATION ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== SYSTEM INFORMATION ===") | Out-Null
+        if ($this.Project.AccountingSoftware1) {
+            $sw1 = $this.Project.AccountingSoftware1
+            if ($this.Project.AccountingSoftware1Other) { $sw1 += " ($($this.Project.AccountingSoftware1Other))" }
+            if ($this.Project.AccountingSoftware1Type) { $sw1 += " - $($this.Project.AccountingSoftware1Type)" }
+            $infoItems.Add("Accounting Software 1: $sw1") | Out-Null
+        }
+        if ($this.Project.AccountingSoftware2) {
+            $sw2 = $this.Project.AccountingSoftware2
+            if ($this.Project.AccountingSoftware2Other) { $sw2 += " ($($this.Project.AccountingSoftware2Other))" }
+            if ($this.Project.AccountingSoftware2Type) { $sw2 += " - $($this.Project.AccountingSoftware2Type)" }
+            $infoItems.Add("Accounting Software 2: $sw2") | Out-Null
+        }
+        
+        # === STATUS AND TOTALS ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== STATUS AND HOURS ===") | Out-Null
         $status = if ($this.Project.Status) { $this.Project.Status } else { "Active" }
         $infoItems.Add("Status: $status") | Out-Null
         
-        $totalHours = $this.CalculateTotalHours()
-        $infoItems.Add("Total Hours: $($totalHours.ToString('F2'))") | Out-Null
+        # Show cumulative hours from Excel import
+        if ($this.Project.CumulativeHrs -gt 0) {
+            $infoItems.Add("Cumulative Hours (from import): $($this.Project.CumulativeHrs.ToString('F2'))") | Out-Null
+        }
         
-        if ($this.Project.Note) {
-            $infoItems.Add("") | Out-Null  # Separator
-            $infoItems.Add("Notes:") | Out-Null
-            $infoItems.Add("  $($this.Project.Note)") | Out-Null
+        $totalHours = $this.CalculateTotalHours()
+        $infoItems.Add("Total Hours (tracked): $($totalHours.ToString('F2'))") | Out-Null
+        
+        # === FILE PATHS ===
+        $infoItems.Add("") | Out-Null
+        $infoItems.Add("=== FILE PATHS ===") | Out-Null
+        if ($this.Project.CAAPath) {
+            $infoItems.Add("CAA Path: $($this.Project.CAAPath)") | Out-Null
+        }
+        if ($this.Project.RequestPath) {
+            $infoItems.Add("Request Path: $($this.Project.RequestPath)") | Out-Null
+        }
+        if ($this.Project.T2020Path) {
+            $infoItems.Add("T2020 Path: $($this.Project.T2020Path)") | Out-Null
+        }
+        
+        # === ADDITIONAL INFORMATION ===
+        if ($this.Project.FXInfo -or $this.Project.Comments -or $this.Project.Note) {
+            $infoItems.Add("") | Out-Null
+            $infoItems.Add("=== ADDITIONAL INFORMATION ===") | Out-Null
+            
+            if ($this.Project.FXInfo) {
+                $infoItems.Add("FX Info: $($this.Project.FXInfo)") | Out-Null
+            }
+            if ($this.Project.Comments) {
+                $infoItems.Add("Comments: $($this.Project.Comments)") | Out-Null
+            }
+            if ($this.Project.Note) {
+                $infoItems.Add("Notes: $($this.Project.Note)") | Out-Null
+            }
         }
         
         $this.ProjectInfoPanel.SetItems($infoItems)
@@ -558,6 +723,14 @@ class ProjectDetailScreen : Screen {
                     return $true
                 }
             }
+        }
+        
+        # Handle ESC to go back
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Escape) {
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
+            return $true
         }
         
         # Let base class handle other input (like tab switching and navigation)

@@ -2,7 +2,7 @@
 # Proper PRAXIS architecture implementation
 
 class FileBrowserScreen : Screen {
-    [FastFileTree]$FileTree
+    [RangerFileTree]$FileTree
     [scriptblock]$FileSelectedCallback = $null  # Callback for file selection
     
     FileBrowserScreen() : base() {
@@ -10,33 +10,24 @@ class FileBrowserScreen : Screen {
     }
     
     [void] OnInitialize() {
-        # Create and configure the file tree
-        $this.FileTree = [FastFileTree]::new()
-        $this.FileTree.ShowBorder = $true
-        $this.FileTree.Title = "Files"
-        $this.FileTree.ShowSize = $true
+        # Create and configure the ranger-style file tree
+        $this.FileTree = [RangerFileTree]::new()
+        $this.FileTree.CurrentPath = (Get-Location).Path
         
-        # Add as child so it gets initialized properly
-        $this.AddChild($this.FileTree)
-        
-        # Start with current directory
-        $this.FileTree.LoadDirectory((Get-Location).Path)
+        # Initialize the FileTree with the service container
+        $this.FileTree.Initialize($this.ServiceContainer)
         
         # Set up event handlers
         $screen = $this  # Capture reference for closures
         
         $this.FileTree.OnFileSelected = {
-            param($filePath)
+            param($node)
             if ($screen.FileSelectedCallback) {
-                & $screen.FileSelectedCallback $filePath
+                & $screen.FileSelectedCallback $node.FullPath
             } else {
                 # Default behavior: open text editor for files
-                $screen.OpenFileInEditor($filePath)
+                $screen.OpenFileInEditor($node.FullPath)
             }
-        }.GetNewClosure()
-        
-        $this.FileTree.OnSelectionChanged = {
-            # Could add status bar updates here if needed
         }.GetNewClosure()
         
         # Add the file tree as a child component

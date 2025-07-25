@@ -1,18 +1,18 @@
-# TaskScreen.ps1 - Task management screen
+# TaskScreen.ps1 - Task management screen using DataGrid
 
 class TaskScreen : Screen {
-    [ListBox]$TaskList
-    [TextBox]$FilterBox
+    [DataGrid]$TaskGrid
     [TaskService]$TaskService
     [SubtaskService]$SubtaskService
+    [ProjectService]$ProjectService
     [hashtable]$StatusColors
     [hashtable]$PriorityColors
     [EventBus]$EventBus
     hidden [hashtable]$EventSubscriptions = @{}
     hidden [bool]$ShowSubtasks = $true
+    hidden [hashtable]$ProjectCache = @{}
     
     # Layout settings
-    hidden [int]$FilterHeight = 3
     hidden [int]$StatusBarHeight = 2
     
     TaskScreen() : base() {
@@ -41,6 +41,7 @@ class TaskScreen : Screen {
             }
         }
         
+        $this.ProjectService = $this.GetService("ProjectService")
         $this.EventBus = $this.GetService('EventBus')
         
         # Subscribe to events
@@ -54,9 +55,9 @@ class TaskScreen : Screen {
                 $screen.LoadTasks()
                 # Select the new task if provided
                 if ($eventData.Task) {
-                    for ($i = 0; $i -lt $screen.TaskList.Items.Count; $i++) {
-                        if ($screen.TaskList.Items[$i].Id -eq $eventData.Task.Id) {
-                            $screen.TaskList.SelectIndex($i)
+                    for ($i = 0; $i -lt $screen.TaskGrid.Items.Count; $i++) {
+                        if ($screen.TaskGrid.Items[$i].Id -eq $eventData.Task.Id) {
+                            $screen.TaskGrid.SelectIndex($i)
                             break
                         }
                     }
@@ -110,100 +111,146 @@ class TaskScreen : Screen {
             [TaskPriority]::High = "error"
         }
         
-        # Create filter box
-        $this.FilterBox = [TextBox]::new()
-        $this.FilterBox.Placeholder = "Filter tasks... (type to search)"
-        $this.FilterBox.ShowBorder = $true
-        $taskScreen = $this
-        $this.FilterBox.OnChange = {
-            param($text)
-            $taskScreen.ApplyFilter()
-        }.GetNewClosure()
-        $this.FilterBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.FilterBox)
+        # Create DataGrid with columns
+        $this.TaskGrid = [DataGrid]::new()
+        $this.TaskGrid.Title = "Tasks"
+        $this.TaskGrid.ShowBorder = $true
+        $this.TaskGrid.ShowGridLines = $true
         
-        # Create task list
-        $this.TaskList = [ListBox]::new()
-        $this.TaskList.Title = "Tasks"
-        $this.TaskList.ShowBorder = $true
-        
-        # Capture screen reference for ItemRenderer closure
+        # Define columns
         $screen = $this
-        $this.TaskList.ItemRenderer = {
-            param($item)
-            
-            # Check if this is a task or subtask
-            if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
-                # This is a subtask
-                $subtask = $item
-                $status = $subtask.GetStatusDisplay()
-                $priority = $subtask.GetPriorityDisplay()
-                
-                # Build subtask display with indentation
-                $display = "    └ $status $priority $($subtask.Title)"
-                
-                # Add duration if available
-                $duration = $subtask.GetDurationDisplay()
-                if ($duration) {
-                    $display += " [$duration]"
-                }
-                
-                # Add due date indicator if applicable
-                if ($subtask.DueDate -ne [DateTime]::MinValue) {
-                    $days = $subtask.GetDaysUntilDue()
-                    if ($subtask.IsOverdue()) {
-                        $display += " [OVERDUE]"
-                    } elseif ($days -le 3 -and $days -ge 0) {
-                        $display += " [Due in $days days]"
+        $columns = @(
+            @{
+                Name = "Status"
+                Header = "S"
+                Width = 1
+                Getter = {
+                    param($item)
+                    if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                        # Subtask - no status shown in grid (shown in title instead)
+                        return " "
+                    }
+                    switch ($item.Status) {
+                        ([TaskStatus]::Pending) { return "P" }
+                        ([TaskStatus]::InProgress) { return "W" }
+                        ([TaskStatus]::Completed) { return "D" }
+                        ([TaskStatus]::Cancelled) { return "X" }
+                        default { return "?" }
                     }
                 }
-                
-                return $display
-            } else {
-                # This is a main task
-                $task = $item
-                $status = $task.GetStatusDisplay()
-                $priority = $task.GetPriorityDisplay()
-                
-                # Build task display string
-                $display = "$status $priority $($task.Title)"
-                
-                # Add subtask count if any (with null check)
-                if ($screen.SubtaskService) {
-                    $subtaskStats = $screen.SubtaskService.GetTaskStatistics($task.Id)
-                    if ($subtaskStats.Total -gt 0) {
-                        $completed = $subtaskStats.Completed
-                        $total = $subtaskStats.Total
-                        $display += " [$completed/$total subtasks]"
+            },
+            @{
+                Name = "Priority"
+                Header = "P"
+                Width = 1
+                Getter = {
+                    param($item)
+                    if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                        # Subtask - no priority shown in grid
+                        return " "
+                    }
+                    switch ($item.Priority) {
+                        ([TaskPriority]::High) { return "H" }
+                        ([TaskPriority]::Medium) { return "M" }
+                        ([TaskPriority]::Low) { return "L" }
+                        default { return " " }
                     }
                 }
-                
-                # Add due date indicator if applicable
-                if ($task.DueDate -ne [DateTime]::MinValue) {
-                    $days = $task.GetDaysUntilDue()
-                    if ($task.IsOverdue()) {
-                        $display += " [OVERDUE]"
-                    } elseif ($days -le 3 -and $days -ge 0) {
-                        $display += " [Due in $days days]"
+            },
+            @{
+                Name = "Title"
+                Header = "Task"
+                Width = 0  # Flexible width
+                Getter = {
+                    param($item)
+                    if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                        # Subtask - show indented with status
+                        $status = switch ($item.Status) {
+                            ([TaskStatus]::Pending) { "[ ]" }
+                            ([TaskStatus]::InProgress) { "[~]" }
+                            ([TaskStatus]::Completed) { "[✓]" }
+                            ([TaskStatus]::Cancelled) { "[✗]" }
+                            default { "[?]" }
+                        }
+                        return "  └ $status $($item.Title)"
+                    } else {
+                        # Main task - include subtask count if any
+                        $title = $item.Title
+                        if ($screen.SubtaskService) {
+                            $stats = $screen.SubtaskService.GetTaskStatistics($item.Id)
+                            if ($stats.Total -gt 0) {
+                                $title += " [$($stats.Completed)/$($stats.Total)]"
+                            }
+                        }
+                        return $title
                     }
                 }
-                
-                # Add progress if in progress
-                if ($task.Status -eq [TaskStatus]::InProgress -and $task.Progress -gt 0) {
-                    $display += " ($($task.Progress)%)"
+            },
+            @{
+                Name = "Project"
+                Header = "Project"
+                Width = 15
+                Getter = {
+                    param($item)
+                    if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                        # Subtask - no project shown
+                        return ""
+                    }
+                    if ($item.ProjectId -and $screen.ProjectService) {
+                        # Cache project lookups for performance
+                        if (-not $screen.ProjectCache.ContainsKey($item.ProjectId)) {
+                            $project = $screen.ProjectService.GetProject($item.ProjectId)
+                            if ($project) {
+                                $screen.ProjectCache[$item.ProjectId] = $project.FullProjectName
+                            } else {
+                                $screen.ProjectCache[$item.ProjectId] = ""
+                            }
+                        }
+                        return $screen.ProjectCache[$item.ProjectId]
+                    }
+                    return ""
                 }
-                
-                return $display
+            },
+            @{
+                Name = "DueDate"
+                Header = "Due"
+                Width = 10
+                Getter = {
+                    param($item)
+                    if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                        # Subtask - no due date in grid
+                        return ""
+                    }
+                    if ($item.DueDate -ne [DateTime]::MinValue) {
+                        return $item.DueDate.ToString("yyyy-MM-dd")
+                    }
+                    return ""
+                }
+            },
+            @{
+                Name = "Tags"
+                Header = "Tags"
+                Width = 15
+                Getter = {
+                    param($item)
+                    if ($item.PSObject.Properties.Name -contains 'ParentTaskId') {
+                        # Subtask - no tags shown
+                        return ""
+                    }
+                    if ($item.Tags -and $item.Tags.Count -gt 0) {
+                        return ($item.Tags -join ",")
+                    }
+                    return ""
+                }
             }
-        }.GetNewClosure()
-        $this.TaskList.Initialize($global:ServiceContainer)
-        $this.AddChild($this.TaskList)
+        )
+        
+        $this.TaskGrid.SetColumns($columns)
+        $this.TaskGrid.Initialize($global:ServiceContainer)
+        $this.AddChild($this.TaskGrid)
         
         # Load tasks
         $this.LoadTasks()
-        
-        # Initial focus will be handled by FocusManager when screen is activated
-        # Remove explicit Focus() call as it will be handled by OnActivated()
     }
     
     
@@ -211,41 +258,34 @@ class TaskScreen : Screen {
         # Call base to manage focus scope and shortcuts
         ([Screen]$this).OnActivated()
         
-        # Explicitly focus the appropriate component
-        if ($this.TaskList -and $this.TaskList.Items.Count -gt 0) {
-            $this.TaskList.Focus()
-        } elseif ($this.FilterBox) {
-            $this.FilterBox.Focus()
+        # Focus the grid
+        if ($this.TaskGrid -and $this.TaskGrid.Items.Count -gt 0) {
+            $this.TaskGrid.Focus()
         }
         
         if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.OnActivated: Screen activated and focused appropriate component")
+            $global:Logger.Debug("TaskScreen.OnActivated: Screen activated and focused grid")
         }
     }
     
     [void] OnBoundsChanged() {
-        # Layout: Filter at top, tasks in middle, status at bottom
-        $contentHeight = $this.Height - $this.FilterHeight - $this.StatusBarHeight
+        # Layout: Grid takes all space except status bar
+        $gridHeight = $this.Height - $this.StatusBarHeight
         
-        # Filter box
-        $this.FilterBox.SetBounds(
+        # Task grid
+        $this.TaskGrid.SetBounds(
             $this.X,
             $this.Y,
             $this.Width,
-            $this.FilterHeight
-        )
-        
-        # Task list
-        $this.TaskList.SetBounds(
-            $this.X,
-            $this.Y + $this.FilterHeight,
-            $this.Width,
-            $contentHeight
+            $gridHeight
         )
     }
     
     [void] LoadTasks() {
         $tasks = $this.TaskService.GetAllTasks()
+        
+        # Clear project cache for fresh lookups
+        $this.ProjectCache.Clear()
         
         # Filter out deleted tasks
         $activeTasks = $tasks | Where-Object { -not $_.Deleted }
@@ -270,36 +310,10 @@ class TaskScreen : Screen {
                 }
             }
             
-            $this.TaskList.SetItems($combinedItems)
+            $this.TaskGrid.SetItems($combinedItems)
         } else {
-            $this.TaskList.SetItems($sorted)
+            $this.TaskGrid.SetItems($sorted)
         }
-    }
-    
-    [void] ApplyFilter() {
-        $filterText = $this.FilterBox.Text.ToLower()
-        
-        if ([string]::IsNullOrWhiteSpace($filterText)) {
-            $this.LoadTasks()
-            return
-        }
-        
-        $tasks = $this.TaskService.GetAllTasks()
-        $filtered = $tasks | Where-Object {
-            -not $_.Deleted -and (
-                $_.Title.ToLower().Contains($filterText) -or
-                $_.Description.ToLower().Contains($filterText) -or
-                $_.Tags -contains $filterText
-            )
-        }
-        
-        # Sort filtered results
-        $sorted = $filtered | Sort-Object -Property `
-            @{Expression = {$_.Priority}; Descending = $true},
-            @{Expression = {$_.Status}; Ascending = $true},
-            @{Expression = {if ($_.DueDate -eq [DateTime]::MinValue) { [DateTime]::MaxValue } else { $_.DueDate }}; Ascending = $true}
-        
-        $this.TaskList.SetItems($sorted)
     }
     
     [void] NewTask() {
@@ -318,23 +332,17 @@ class TaskScreen : Screen {
                 $screen.LoadTasks()
                 
                 # Select the new task
-                for ($i = 0; $i -lt $screen.TaskList.Items.Count; $i++) {
-                    if ($screen.TaskList.Items[$i].Id -eq $task.Id) {
-                        $screen.TaskList.SelectIndex($i)
+                for ($i = 0; $i -lt $screen.TaskGrid.Items.Count; $i++) {
+                    if ($screen.TaskGrid.Items[$i].Id -eq $task.Id) {
+                        $screen.TaskGrid.SelectIndex($i)
                         break
                     }
                 }
                 
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
+                # Don't call Pop() - BaseDialog handles that
             }.GetNewClosure()
             
-            $dialog.OnCancel = {
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }
+            # Don't need OnCancel - BaseDialog handles ESC by default
         }
         
         if ($global:ScreenManager) {
@@ -343,8 +351,15 @@ class TaskScreen : Screen {
     }
     
     [void] EditTask() {
-        $selected = $this.TaskList.GetSelectedItem()
+        $selected = $this.TaskGrid.GetSelectedItem()
         if (-not $selected) { return }
+        
+        # Check if it's a subtask or main task
+        if ($selected.PSObject.Properties.Name -contains 'ParentTaskId') {
+            # Edit subtask
+            $this.EditSubtask($selected)
+            return
+        }
         
         # Create edit task dialog
         $dialog = [EditTaskDialog]::new($selected)
@@ -373,16 +388,20 @@ class TaskScreen : Screen {
                 $screen.LoadTasks()
             }
             
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            # EditTaskDialog is not a BaseDialog, so we need to Pop manually
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
         }.GetNewClosure()
         
+        # EditTaskDialog is not a BaseDialog, so we need to handle cancel
         $dialog.OnCancel = {
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
+            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
+            if ($screenManager) {
+                $screenManager.Pop()
             }
-        }
+        }.GetNewClosure()
         
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
@@ -390,36 +409,43 @@ class TaskScreen : Screen {
     }
     
     [void] DeleteTask() {
-        $selected = $this.TaskList.GetSelectedItem()
+        $selected = $this.TaskGrid.GetSelectedItem()
         if (-not $selected) { return }
         
+        # Check if it's a subtask or main task
+        $isSubtask = $selected.PSObject.Properties.Name -contains 'ParentTaskId'
+        $message = if ($isSubtask) {
+            "Are you sure you want to delete this subtask?`n`n$($selected.Title)"
+        } else {
+            "Are you sure you want to delete this task?`n`n$($selected.Title)"
+        }
+        
         # Show confirmation dialog
-        $message = "Are you sure you want to delete this task?`n`n$($selected.Title)"
         $dialog = [ConfirmationDialog]::new($message)
         # Capture references
         $screen = $this
-        $taskId = $selected.Id
+        $itemId = $selected.Id
         $dialog.OnConfirm = {
-            $screen.TaskService.DeleteTask($taskId)
+            if ($isSubtask) {
+                # Delete subtask
+                $screen.SubtaskService.DeleteSubtask($itemId)
+            } else {
+                # Delete task (and all its subtasks)
+                $screen.TaskService.DeleteTask($itemId)
+            }
             
             # Publish task deleted event
             if ($screen.EventBus) {
-                $screen.EventBus.Publish([EventNames]::TaskDeleted, @{ TaskId = $taskId })
+                $screen.EventBus.Publish([EventNames]::TaskDeleted, @{ TaskId = $itemId })
             } else {
                 # Fallback if EventBus not available
                 $screen.LoadTasks()
             }
             
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
+            # Don't call Pop() - BaseDialog handles that
         }.GetNewClosure()
         
-        $dialog.OnCancel = {
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        }
+        # Don't need OnCancel - BaseDialog handles ESC by default
         
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
@@ -427,7 +453,7 @@ class TaskScreen : Screen {
     }
     
     [void] CycleStatus() {
-        $selected = $this.TaskList.GetSelectedItem()
+        $selected = $this.TaskGrid.GetSelectedItem()
         if (-not $selected) { return }
         
         # Cycle through status values
@@ -438,7 +464,15 @@ class TaskScreen : Screen {
             ([TaskStatus]::Cancelled) { [TaskStatus]::Pending }
         }
         
-        $this.TaskService.UpdateTaskStatus($selected.Id, $newStatus)
+        if ($selected.PSObject.Properties.Name -contains 'ParentTaskId') {
+            # Update subtask
+            $selected.Status = $newStatus
+            $selected.UpdatedAt = [DateTime]::Now
+            $this.SubtaskService.SaveSubtask($selected)
+        } else {
+            # Update task
+            $this.TaskService.UpdateTaskStatus($selected.Id, $newStatus)
+        }
         
         # Publish task status changed event
         if ($this.EventBus) {
@@ -454,7 +488,7 @@ class TaskScreen : Screen {
     }
     
     [void] AddSubtask() {
-        $selected = $this.TaskList.GetSelectedItem()
+        $selected = $this.TaskGrid.GetSelectedItem()
         if (-not $selected -or -not $this.SubtaskService) { return }
         
         # Find the parent task (if selected item is a subtask, get its parent)
@@ -492,18 +526,10 @@ class TaskScreen : Screen {
             $screen.SubtaskService.CreateSubtask($properties)
             $screen.LoadTasks()
             
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
+            # Don't call Pop() - BaseDialog handles that
         }.GetNewClosure()
         
-        $dialog.OnCancel = {
-            # Close dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        }
+        # Don't need OnCancel - BaseDialog handles ESC by default
         
         # Show dialog
         if ($global:ScreenManager) {
@@ -516,15 +542,57 @@ class TaskScreen : Screen {
         $this.LoadTasks()
     }
     
+    [void] EditSubtask([PSCustomObject]$subtask) {
+        if (-not $subtask -or -not $this.SubtaskService) { return }
+        
+        # Get parent task for context
+        $parentTask = $this.TaskService.GetTask($subtask.ParentTaskId)
+        if (-not $parentTask) { return }
+        
+        # Create subtask dialog for editing
+        $dialog = [SubtaskDialog]::new($parentTask, $subtask)
+        
+        # Set up callback for when subtask is updated
+        $screen = $this  # Capture reference for closure
+        $dialog.OnSave = {
+            param($subtaskData)
+            
+            # Update the existing subtask
+            $subtask.Title = $subtaskData.Title
+            $subtask.Description = $subtaskData.Description
+            $subtask.Status = $subtaskData.Status
+            $subtask.Priority = $subtaskData.Priority
+            $subtask.Progress = $subtaskData.Progress
+            $subtask.EstimatedMinutes = $subtaskData.EstimatedMinutes
+            $subtask.ActualMinutes = $subtaskData.ActualMinutes
+            $subtask.DueDate = $subtaskData.DueDate
+            $subtask.UpdatedAt = [DateTime]::Now
+            
+            # Save through service
+            $screen.SubtaskService.SaveSubtask($subtask)
+            $screen.LoadTasks()
+            
+            # Don't call Pop() - BaseDialog handles that
+        }.GetNewClosure()
+        
+        # Don't need OnCancel - BaseDialog handles ESC by default
+        
+        # Show dialog
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
     [void] CyclePriority() {
-        $selected = $this.TaskList.GetSelectedItem()
+        $selected = $this.TaskGrid.GetSelectedItem()
         if (-not $selected) { return }
+        
+        # Don't cycle priority for subtasks in this view
+        if ($selected.PSObject.Properties.Name -contains 'ParentTaskId') { return }
         
         $this.TaskService.CyclePriority($selected.Id)
         $this.LoadTasks()
     }
-    
-    # FocusNext method removed - Tab navigation now handled by FocusManager service
     
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         if ($global:Logger) {
@@ -581,12 +649,6 @@ class TaskScreen : Screen {
                     return $true
                 }
             }
-            ([System.ConsoleKey]::F) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'F' -or $key.KeyChar -eq 'f')) {
-                    $this.FilterBox.Focus()
-                    return $true
-                }
-            }
             ([System.ConsoleKey]::A) {
                 if ($key.Modifiers -band [ConsoleModifiers]::Shift -and ($key.KeyChar -eq 'A')) {
                     # Shift+A to add subtask
@@ -598,14 +660,6 @@ class TaskScreen : Screen {
                 if (-not $key.Modifiers -and ($key.KeyChar -eq 'T' -or $key.KeyChar -eq 't')) {
                     # Toggle subtask view
                     $this.ToggleSubtaskView()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::Escape) {
-                if ($this.FilterBox.IsFocused -and $this.FilterBox.Text) {
-                    $this.FilterBox.Clear()
-                    $this.ApplyFilter()
-                    $this.TaskList.Focus()
                     return $true
                 }
             }
@@ -630,18 +684,22 @@ class TaskScreen : Screen {
         $sb.Append([VT]::MoveTo($this.X + 1, $statusY + 1))
         $sb.Append($this.Theme.GetColor("disabled"))
         
-        # Show focus indicator
-        $focused = $this.FindFocused()
-        $focusInfo = if ($focused -eq $this.FilterBox) { "[FILTER]" } elseif ($focused -eq $this.TaskList) { "[LIST]" } else { "[NONE]" }
-        
-        $selected = $this.TaskList.GetSelectedItem()
+        $selected = $this.TaskGrid.GetSelectedItem()
         if ($selected) {
             # Show task details in status bar
-            $sb.Append("$focusInfo Task: $($selected.Title) | Status: $($selected.Status) | Priority: $($selected.Priority)")
+            $isSubtask = $selected.PSObject.Properties.Name -contains 'ParentTaskId'
+            $type = if ($isSubtask) { "Subtask" } else { "Task" }
+            $status = $selected.Status.ToString()
+            $priority = $selected.Priority.ToString()
+            $sb.Append("${type}: $($selected.Title) | Status: $status | Priority: $priority")
         } else {
-            # Show help text
-            $sb.Append("$focusInfo [N]ew [E]dit [D]elete [S]tatus [P]riority [/]Filter [Tab]Navigate")
+            # Show help text with letter-based shortcuts
+            $sb.Append("[N]ew [E]dit [D]elete [S]tatus [P]riority [A+Shift]Subtask [T]oggle [Tab]Navigate")
         }
+        
+        # Add legend for status/priority letters
+        $sb.Append([VT]::MoveTo($this.X + $this.Width - 35, $statusY + 1))
+        $sb.Append("S: P=Pending W=Working D=Done X=Cancel")
         
         $sb.Append([VT]::Reset())
         return $sb.ToString()

@@ -18,6 +18,9 @@ class UIElement {
     [UIElement]$Parent = $null
     [System.Collections.Generic.List[UIElement]]$Children
     
+    # Service container for dependency injection
+    hidden [ServiceContainer]$ServiceContainer
+    
     # Caching for maximum speed
     hidden [string]$_renderCache = ""
     hidden [bool]$_cacheInvalid = $true
@@ -184,6 +187,15 @@ class UIElement {
     # Override for focus behavior
     [void] OnGotFocus() {}
     [void] OnLostFocus() {}
+    
+    # Initialize with service container
+    [void] Initialize([ServiceContainer]$services) {
+        $this.ServiceContainer = $services
+        $this.OnInitialize()
+    }
+    
+    # Override for custom initialization
+    [void] OnInitialize() {}
     
     # Input handling
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

@@ -1,5 +1,5 @@
-# DataGrid.ps1 - Fast data grid component for tabular display
-# Simplified from AxiomPhoenix with focus on performance
+# DataGrid.ps1 - Fast data grid component for tabular display with full grid lines
+# Optimized for performance with caching and pooled string builders
 
 class DataGrid : UIElement {
     [System.Collections.ArrayList]$Items
@@ -8,12 +8,16 @@ class DataGrid : UIElement {
     [int]$ScrollOffset = 0
     [bool]$ShowHeader = $true
     [bool]$ShowBorder = $true
+    [bool]$ShowGridLines = $true  # New property for grid lines
     [string]$Title = ""
     [scriptblock]$OnSelectionChanged = {}
     
     hidden [ThemeManager]$Theme
-    hidden [hashtable]$_headerCache = @{}
-    hidden [bool]$_headerCacheValid = $false
+    hidden [hashtable]$_columnWidths = @{}
+    hidden [string]$_cachedHeader = ""
+    hidden [string]$_cachedSeparator = ""
+    hidden [bool]$_layoutCacheValid = $false
+    hidden [int]$_lastWidth = 0
     
     DataGrid() : base() {
         $this.Items = [System.Collections.ArrayList]::new()
@@ -27,14 +31,14 @@ class DataGrid : UIElement {
     }
     
     [void] OnThemeChanged() {
-        $this._headerCacheValid = $false
+        $this._layoutCacheValid = $false
         $this.Invalidate()
     }
     
     # Set the columns for the grid
     [void] SetColumns([hashtable[]]$columns) {
         $this.Columns = $columns
-        $this._headerCacheValid = $false
+        $this._layoutCacheValid = $false
         $this.Invalidate()
     }
     
@@ -74,12 +78,144 @@ class DataGrid : UIElement {
         }
     }
     
+    # Calculate column widths with auto-sizing
+    hidden [void] CalculateColumnWidths([int]$availableWidth) {
+        if ($this._layoutCacheValid -and $this._lastWidth -eq $availableWidth) {
+            return
+        }
+        
+        $this._columnWidths.Clear()
+        $totalFixed = 0
+        $flexCount = 0
+        
+        # First pass: calculate fixed widths and count flex columns
+        foreach ($col in $this.Columns) {
+            if ($col.Width -and $col.Width -gt 0) {
+                $this._columnWidths[$col.Name] = $col.Width
+                $totalFixed += $col.Width
+            } else {
+                $flexCount++
+            }
+        }
+        
+        # Add space for separators if grid lines are shown
+        if ($this.ShowGridLines -and $this.Columns.Count -gt 1) {
+            $totalFixed += ($this.Columns.Count - 1)  # Vertical separators
+        }
+        
+        # Second pass: distribute remaining width to flex columns
+        if ($flexCount -gt 0 -and $availableWidth -gt $totalFixed) {
+            $flexWidth = [Math]::Floor(($availableWidth - $totalFixed) / $flexCount)
+            foreach ($col in $this.Columns) {
+                if (-not $col.Width -or $col.Width -eq 0) {
+                    $this._columnWidths[$col.Name] = [Math]::Max(5, $flexWidth)  # Min width of 5
+                }
+            }
+        }
+        
+        $this._lastWidth = $availableWidth
+        $this._layoutCacheValid = $true
+    }
+    
+    # Build cached header string
+    hidden [void] BuildCachedHeader([int]$contentWidth) {
+        if ($this._layoutCacheValid -and $this._cachedHeader) {
+            return
+        }
+        
+        $sb = Get-PooledStringBuilder 256
+        $x = 0
+        
+        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
+            $col = $this.Columns[$i]
+            $width = $this._columnWidths[$col.Name]
+            
+            if ($x + $width -gt $contentWidth) {
+                $width = $contentWidth - $x
+            }
+            
+            if ($width -gt 0) {
+                $header = if ($col.Header) { $col.Header } else { $col.Name }
+                $text = if ($header.Length -gt $width) {
+                    $header.Substring(0, $width - 1) + "…"
+                } else {
+                    $header.PadRight($width)
+                }
+                $sb.Append($text)
+                $x += $width
+                
+                # Add separator after column (except last)
+                if ($this.ShowGridLines -and $i -lt $this.Columns.Count - 1 -and $x -lt $contentWidth) {
+                    $sb.Append("│")
+                    $x++
+                }
+            }
+            
+            if ($x -ge $contentWidth) { break }
+        }
+        
+        # Fill remaining space
+        if ($x -lt $contentWidth) {
+            $sb.Append(" " * ($contentWidth - $x))
+        }
+        
+        $this._cachedHeader = $sb.ToString()
+        Return-PooledStringBuilder $sb
+    }
+    
+    # Build cached separator line
+    hidden [void] BuildCachedSeparator([int]$contentWidth) {
+        if ($this._layoutCacheValid -and $this._cachedSeparator) {
+            return
+        }
+        
+        $sb = Get-PooledStringBuilder 256
+        $x = 0
+        
+        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
+            $col = $this.Columns[$i]
+            $width = $this._columnWidths[$col.Name]
+            
+            if ($x + $width -gt $contentWidth) {
+                $width = $contentWidth - $x
+            }
+            
+            if ($width -gt 0) {
+                $sb.Append("─" * $width)
+                $x += $width
+                
+                # Add intersection after column (except last)
+                if ($this.ShowGridLines -and $i -lt $this.Columns.Count - 1 -and $x -lt $contentWidth) {
+                    $sb.Append("┼")
+                    $x++
+                }
+            }
+            
+            if ($x -ge $contentWidth) { break }
+        }
+        
+        # Fill remaining space
+        if ($x -lt $contentWidth) {
+            $sb.Append("─" * ($contentWidth - $x))
+        }
+        
+        $this._cachedSeparator = $sb.ToString()
+        Return-PooledStringBuilder $sb
+    }
+    
     # Ensure selected item is visible
     hidden [void] EnsureVisible() {
         if ($this.Items.Count -eq 0) { return }
         
         $contentHeight = $this.Height - 2  # Account for borders
-        if ($this.ShowHeader) { $contentHeight-- }
+        if ($this.ShowHeader) { 
+            $contentHeight -= 2  # Header + separator line
+        }
+        
+        # Account for row separators
+        if ($this.ShowGridLines) {
+            $contentHeight = [Math]::Floor($contentHeight / 2)  # Each row takes 2 lines with separator
+        }
         
         # Scroll up if selected is above visible area
         if ($this.SelectedIndex -lt $this.ScrollOffset) {
@@ -96,7 +232,7 @@ class DataGrid : UIElement {
     }
     
     [string] OnRender() {
-        $sb = Get-PooledStringBuilder 2048  # DataGrid can render many rows and columns
+        $sb = Get-PooledStringBuilder 4096  # Larger size for grid with separators
         
         # Calculate content area
         $contentX = $this.X + 1
@@ -166,6 +302,9 @@ class DataGrid : UIElement {
             $contentHeight = $this.Height
         }
         
+        # Calculate column widths
+        $this.CalculateColumnWidths($contentWidth)
+        
         # Clear content area
         $bgColor = $this.Theme.GetBgColor("background")
         for ($y = 0; $y -lt $contentHeight; $y++) {
@@ -175,74 +314,66 @@ class DataGrid : UIElement {
         }
         
         $currentY = $contentY
+        $dataStartY = $currentY
         
         # Render header if enabled
         if ($this.ShowHeader -and $this.Columns.Count -gt 0) {
+            # Build cached header
+            $this.BuildCachedHeader($contentWidth)
+            
+            # Render header
             $sb.Append([VT]::MoveTo($contentX, $currentY))
             $sb.Append($this.Theme.GetBgColor("header.background"))
             $sb.Append($this.Theme.GetColor("header.foreground"))
-            
-            $x = 0
-            foreach ($col in $this.Columns) {
-                $header = if ($col.Header) { $col.Header } else { $col.Name }
-                $width = if ($col.Width) { $col.Width } else { 10 }
-                
-                # Ensure we don't overflow
-                if ($x + $width -gt $contentWidth) {
-                    $width = $contentWidth - $x
-                }
-                
-                if ($width -gt 0) {
-                    $text = if ($header.Length -gt $width) {
-                        $header.Substring(0, $width - 1) + "…"
-                    } else {
-                        $header.PadRight($width)
-                    }
-                    $sb.Append($text)
-                    $x += $width
-                }
-                
-                if ($x -ge $contentWidth) { break }
-            }
-            
-            # Fill remaining header space
-            if ($x -lt $contentWidth) {
-                $remaining = [Math]::Max(0, $contentWidth - $x)
-                if ($remaining -gt 0) {
-                    $sb.Append(" " * $remaining)
-                }
-            }
-            
+            $sb.Append($this._cachedHeader)
             $sb.Append([VT]::Reset())
             $currentY++
-            $contentHeight--
+            
+            # Render header separator line
+            if ($this.ShowGridLines) {
+                $this.BuildCachedSeparator($contentWidth)
+                $sb.Append([VT]::MoveTo($contentX, $currentY))
+                $sb.Append($this.Theme.GetColor("border"))
+                $sb.Append($this._cachedSeparator)
+                $sb.Append([VT]::Reset())
+                $currentY++
+            }
+            
+            $dataStartY = $currentY
+            $contentHeight = $this.Height - 2 - ($currentY - $contentY)
         }
         
-        # Render data rows
-        $visibleRows = [Math]::Min($contentHeight, $this.Items.Count - $this.ScrollOffset)
+        # Calculate visible rows (accounting for separators)
+        $rowHeight = if ($this.ShowGridLines) { 2 } else { 1 }
+        $maxVisibleRows = [Math]::Floor($contentHeight / $rowHeight)
+        $visibleRows = [Math]::Min($maxVisibleRows, $this.Items.Count - $this.ScrollOffset)
         
+        # Render data rows
         for ($i = 0; $i -lt $visibleRows; $i++) {
             $itemIndex = $this.ScrollOffset + $i
             if ($itemIndex -ge $this.Items.Count) { break }
             
             $item = $this.Items[$itemIndex]
             $isSelected = ($itemIndex -eq $this.SelectedIndex)
+            $rowY = $currentY + ($i * $rowHeight)
             
-            $sb.Append([VT]::MoveTo($contentX, $currentY + $i))
+            # Render data row
+            $sb.Append([VT]::MoveTo($contentX, $rowY))
             
             if ($isSelected) {
-                $sb.Append($this.Theme.GetBgColor("selection.background"))
-                $sb.Append($this.Theme.GetColor("selection.foreground"))
+                $sb.Append($this.Theme.GetBgColor("selection"))
+                $sb.Append($this.Theme.GetColor("foreground"))
             } else {
+                $sb.Append($this.Theme.GetBgColor("background"))
                 $sb.Append($this.Theme.GetColor("foreground"))
             }
             
             # Render columns
             $x = 0
-            foreach ($col in $this.Columns) {
-                $width = if ($col.Width) { $col.Width } else { 10 }
+            for ($j = 0; $j -lt $this.Columns.Count; $j++) {
+                $col = $this.Columns[$j]
+                $width = $this._columnWidths[$col.Name]
                 
-                # Ensure we don't overflow
                 if ($x + $width -gt $contentWidth) {
                     $width = $contentWidth - $x
                 }
@@ -271,6 +402,19 @@ class DataGrid : UIElement {
                     
                     $sb.Append($text)
                     $x += $width
+                    
+                    # Add vertical separator after column (except last)
+                    if ($this.ShowGridLines -and $j -lt $this.Columns.Count - 1 -and $x -lt $contentWidth) {
+                        if ($isSelected) {
+                            # Keep selection colors for separator
+                            $sb.Append("│")
+                        } else {
+                            $sb.Append($this.Theme.GetColor("border"))
+                            $sb.Append("│")
+                            $sb.Append($this.Theme.GetColor("foreground"))
+                        }
+                        $x++
+                    }
                 }
                 
                 if ($x -ge $contentWidth) { break }
@@ -278,30 +422,55 @@ class DataGrid : UIElement {
             
             # Fill remaining row space
             if ($x -lt $contentWidth) {
-                $remaining = [Math]::Max(0, $contentWidth - $x)
-                if ($remaining -gt 0) {
-                    $sb.Append(" " * $remaining)
+                $sb.Append(" " * ($contentWidth - $x))
+            }
+            
+            # Render row separator (except after last visible row)
+            if ($this.ShowGridLines -and $i -lt $visibleRows - 1) {
+                $sb.Append([VT]::MoveTo($contentX, $rowY + 1))
+                $sb.Append($this.Theme.GetColor("border"))
+                
+                $x = 0
+                for ($j = 0; $j -lt $this.Columns.Count; $j++) {
+                    $col = $this.Columns[$j]
+                    $width = $this._columnWidths[$col.Name]
+                    
+                    if ($x + $width -gt $contentWidth) {
+                        $width = $contentWidth - $x
+                    }
+                    
+                    if ($width -gt 0) {
+                        $sb.Append("─" * $width)
+                        $x += $width
+                        
+                        # Add intersection
+                        if ($j -lt $this.Columns.Count - 1 -and $x -lt $contentWidth) {
+                            $sb.Append("┼")
+                            $x++
+                        }
+                    }
+                    
+                    if ($x -ge $contentWidth) { break }
                 }
+                
+                # Fill remaining separator
+                if ($x -lt $contentWidth) {
+                    $sb.Append("─" * ($contentWidth - $x))
+                }
+                $sb.Append([VT]::Reset())
             }
         }
         
-        # Clear remaining rows
-        for ($i = $visibleRows; $i -lt $contentHeight; $i++) {
-            $sb.Append([VT]::MoveTo($contentX, $currentY + $i))
-            $sb.Append($this.Theme.GetColor("background"))
-            $sb.Append(" " * $contentWidth)
-        }
-        
         # Show scroll indicator
-        if ($this.Items.Count -gt $contentHeight) {
+        if ($this.Items.Count -gt $maxVisibleRows) {
             $scrollBarX = $this.X + $this.Width - 1
             $scrollBarHeight = $contentHeight
-            $scrollThumbSize = [Math]::Max(1, [int]($scrollBarHeight * $contentHeight / $this.Items.Count))
-            $scrollThumbPos = [int]($this.ScrollOffset * ($scrollBarHeight - $scrollThumbSize) / ($this.Items.Count - $contentHeight))
+            $scrollThumbSize = [Math]::Max(1, [int]($scrollBarHeight * $maxVisibleRows / $this.Items.Count))
+            $scrollThumbPos = [int]($this.ScrollOffset * ($scrollBarHeight - $scrollThumbSize) / ($this.Items.Count - $maxVisibleRows))
             
             $sb.Append($this.Theme.GetColor("scrollbar"))
             for ($i = 0; $i -lt $scrollBarHeight; $i++) {
-                $sb.Append([VT]::MoveTo($scrollBarX, $currentY + $i))
+                $sb.Append([VT]::MoveTo($scrollBarX, $dataStartY + $i))
                 if ($i -ge $scrollThumbPos -and $i -lt ($scrollThumbPos + $scrollThumbSize)) {
                     $sb.Append("█")
                 } else {
@@ -338,15 +507,15 @@ class DataGrid : UIElement {
                 }
             }
             ([System.ConsoleKey]::PageUp) {
-                $pageSize = $this.Height - 2
-                if ($this.ShowHeader) { $pageSize-- }
+                $rowHeight = if ($this.ShowGridLines) { 2 } else { 1 }
+                $pageSize = [Math]::Floor(($this.Height - 2 - (if ($this.ShowHeader) { 2 } else { 0 })) / $rowHeight)
                 $this.SelectedIndex = [Math]::Max(0, $this.SelectedIndex - $pageSize)
                 $this.EnsureVisible()
                 $handled = $true
             }
             ([System.ConsoleKey]::PageDown) {
-                $pageSize = $this.Height - 2
-                if ($this.ShowHeader) { $pageSize-- }
+                $rowHeight = if ($this.ShowGridLines) { 2 } else { 1 }
+                $pageSize = [Math]::Floor(($this.Height - 2 - (if ($this.ShowHeader) { 2 } else { 0 })) / $rowHeight)
                 $this.SelectedIndex = [Math]::Min($this.Items.Count - 1, $this.SelectedIndex + $pageSize)
                 $this.EnsureVisible()
                 $handled = $true
@@ -381,5 +550,13 @@ class DataGrid : UIElement {
     
     [void] OnLostFocus() {
         $this.Invalidate()
+    }
+    
+    [void] OnBoundsChanged() {
+        # Invalidate layout cache when bounds change
+        if ($this.Width -ne $this._lastWidth) {
+            $this._layoutCacheValid = $false
+        }
+        ([UIElement]$this).OnBoundsChanged()
     }
 }

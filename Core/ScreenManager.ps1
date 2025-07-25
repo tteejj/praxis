@@ -64,15 +64,37 @@ class ScreenManager {
     [Screen] Pop() {
         if ($this._screenStack.Count -eq 0) { return $null }
         
+        if ($global:Logger) {
+            $global:Logger.Debug("ScreenManager.Pop: Stack count before pop = $($this._screenStack.Count)")
+        }
+        
         $popped = $this._screenStack.Pop()
-        $popped.Active = $false
-        $popped.OnDeactivated()
+        if ($popped) {
+            $popped.Active = $false
+            $popped.OnDeactivated()
+        }
         
         # Activate previous screen if any
         if ($this._screenStack.Count -gt 0) {
             $this._activeScreen = $this._screenStack.Peek()
-            $this._activeScreen.Active = $true
-            $this._activeScreen.OnActivated()
+            if ($this._activeScreen) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("ScreenManager.Pop: Activating previous screen: $($this._activeScreen.GetType().Name)")
+                }
+                try {
+                    $this._activeScreen.Active = $true
+                    $this._activeScreen.OnActivated()
+                } catch {
+                    if ($global:Logger) {
+                        $global:Logger.Error("ScreenManager.Pop: Error activating previous screen - $_")
+                        $global:Logger.Error("Stack trace: $($_.ScriptStackTrace)")
+                    }
+                }
+            } else {
+                if ($global:Logger) {
+                    $global:Logger.Error("ScreenManager.Pop: Previous screen is null!")
+                }
+            }
         } else {
             $this._activeScreen = $null
         }

@@ -1,7 +1,7 @@
-# ProjectsScreen.ps1 - Project management screen using fast components
+# ProjectsScreen.ps1 - Project management screen using DataGrid component
 
 class ProjectsScreen : Screen {
-    [ListBox]$ProjectList
+    [DataGrid]$ProjectGrid
     [Button]$NewButton
     [Button]$ViewButton
     [Button]$EditButton
@@ -34,9 +34,9 @@ class ProjectsScreen : Screen {
                 $screen.RefreshProjects()
                 # Select the new project if provided
                 if ($eventData.Project) {
-                    for ($i = 0; $i -lt $screen.ProjectList.Items.Count; $i++) {
-                        if ($screen.ProjectList.Items[$i].Id -eq $eventData.Project.Id) {
-                            $screen.ProjectList.SelectIndex($i)
+                    for ($i = 0; $i -lt $screen.ProjectGrid.Items.Count; $i++) {
+                        if ($screen.ProjectGrid.Items[$i].Id -eq $eventData.Project.Id) {
+                            $screen.ProjectGrid.SelectIndex($i)
                             break
                         }
                     }
@@ -67,19 +67,69 @@ class ProjectsScreen : Screen {
             }.GetNewClosure())
         }
         
-        # Create components
-        $this.ProjectList = [ListBox]::new()
-        $this.ProjectList.Title = "Projects"
-        $this.ProjectList.ShowBorder = $true
-        $this.ProjectList.ItemRenderer = {
-            param($project)
-            $status = if ($project.ClosedDate -ne [DateTime]::MinValue) { "[✓]" } else { "[ ]" }
-            $daysLeft = ($project.DateDue - [DateTime]::Now).Days
-            $dueStatus = if ($daysLeft -lt 0) { "OVERDUE" } elseif ($daysLeft -lt 7) { "DUE SOON" } else { "$daysLeft days" }
-            return "$status $($project.Nickname) - $dueStatus"
-        }
-        $this.ProjectList.Initialize($global:ServiceContainer)
-        $this.AddChild($this.ProjectList)
+        # Create DataGrid with columns
+        $this.ProjectGrid = [DataGrid]::new()
+        $this.ProjectGrid.Title = "Projects"
+        $this.ProjectGrid.ShowBorder = $true
+        $this.ProjectGrid.ShowGridLines = $true
+        
+        # Define columns with proper formatting
+        $columns = @(
+            @{
+                Name = "Status"
+                Header = "Sts"
+                Width = 3
+                Getter = {
+                    param($project)
+                    if ($project.ClosedDate -ne [DateTime]::MinValue) { "[✓]" } else { "[ ]" }
+                }
+            },
+            @{
+                Name = "FullProjectName"
+                Header = "Project Name"
+                Width = 0  # Flexible width - will auto-size
+            },
+            @{
+                Name = "ID1"
+                Header = "ID1"
+                Width = 5
+            },
+            @{
+                Name = "ID2"
+                Header = "ID2"
+                Width = 9
+            },
+            @{
+                Name = "DateAssigned"
+                Header = "Assigned"
+                Width = 10
+                Formatter = {
+                    param($value)
+                    if ($value -is [DateTime] -and $value -ne [DateTime]::MinValue) {
+                        $value.ToString("yyyy-MM-dd")
+                    } else {
+                        "          "
+                    }
+                }
+            },
+            @{
+                Name = "DateDue"
+                Header = "Due"
+                Width = 10
+                Formatter = {
+                    param($value)
+                    if ($value -is [DateTime] -and $value -ne [DateTime]::MinValue) {
+                        $value.ToString("yyyy-MM-dd")
+                    } else {
+                        "          "
+                    }
+                }
+            }
+        )
+        
+        $this.ProjectGrid.SetColumns($columns)
+        $this.ProjectGrid.Initialize($global:ServiceContainer)
+        $this.AddChild($this.ProjectGrid)
         
         # Create buttons
         $screen = $this  # Capture reference for closures
@@ -187,18 +237,29 @@ class ProjectsScreen : Screen {
             $global:Logger.Debug("ProjectsScreen.OnActivated: Screen activated with new focus system")
         }
         
-        # Focus the list if it has items, otherwise the New button
-        if ($global:Logger) {
-            $global:Logger.Debug("ProjectsScreen focus check: ProjectList=$($this.ProjectList -ne $null), Items=$($this.ProjectList.Items.Count), NewButton=$($this.NewButton -ne $null)")
-        }
-        
-        if ($this.ProjectList -and $this.ProjectList.Items.Count -gt 0) {
-            $this.ProjectList.Focus()
-        } elseif ($this.NewButton) {
-            $this.NewButton.Focus()
-        } else {
+        # Add defensive null checks
+        try {
+            # Focus the grid if it has items, otherwise the New button
             if ($global:Logger) {
-                $global:Logger.Debug("ProjectsScreen: No focusable element found!")
+                $projectGridNull = ($this.ProjectGrid -eq $null)
+                $itemsCount = if ($this.ProjectGrid -and $this.ProjectGrid.Items) { $this.ProjectGrid.Items.Count } else { 0 }
+                $newButtonNull = ($this.NewButton -eq $null)
+                $global:Logger.Debug("ProjectsScreen focus check: ProjectGrid=$(!$projectGridNull), Items=$itemsCount, NewButton=$(!$newButtonNull)")
+            }
+            
+            if ($this.ProjectGrid -and $this.ProjectGrid.Items -and $this.ProjectGrid.Items.Count -gt 0) {
+                $this.ProjectGrid.Focus()
+            } elseif ($this.NewButton) {
+                $this.NewButton.Focus()
+            } else {
+                if ($global:Logger) {
+                    $global:Logger.Debug("ProjectsScreen: No focusable element found!")
+                }
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("ProjectsScreen.OnActivated: Error during focus - $_")
+                $global:Logger.Error("Stack trace: $($_.ScriptStackTrace)")
             }
         }
     }
@@ -209,16 +270,16 @@ class ProjectsScreen : Screen {
             $global:Logger.Debug("ProjectsScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
         }
         
-        # Layout: List takes most space, buttons at bottom
+        # Layout: Grid takes most space, buttons at bottom
         $buttonAreaHeight = $this.ButtonHeight + 2
-        $listHeight = $this.Height - $buttonAreaHeight
+        $gridHeight = $this.Height - $buttonAreaHeight
         
-        # Project list
-        $this.ProjectList.SetBounds(
+        # Project grid
+        $this.ProjectGrid.SetBounds(
             $this.X, 
             $this.Y,
             $this.Width,
-            $listHeight
+            $gridHeight
         )
         
         # Buttons (horizontally arranged) - now 4 buttons
@@ -275,7 +336,7 @@ class ProjectsScreen : Screen {
         # Sort by due date
         $sorted = $activeProjects | Sort-Object DateDue
         
-        $this.ProjectList.SetItems($sorted)
+        $this.ProjectGrid.SetItems($sorted)
     }
     
     [void] RefreshProjects() {
@@ -305,23 +366,17 @@ class ProjectsScreen : Screen {
                 $screen.LoadProjects()
                 
                 # Select the new project
-                for ($i = 0; $i -lt $screen.ProjectList.Items.Count; $i++) {
-                    if ($screen.ProjectList.Items[$i].Id -eq $project.Id) {
-                        $screen.ProjectList.SelectIndex($i)
+                for ($i = 0; $i -lt $screen.ProjectGrid.Items.Count; $i++) {
+                    if ($screen.ProjectGrid.Items[$i].Id -eq $project.Id) {
+                        $screen.ProjectGrid.SelectIndex($i)
                         break
                     }
                 }
                 
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
+                # Don't call Pop() - BaseDialog handles that
             }.GetNewClosure()
             
-            $dialog.OnCancel = {
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }
+            # Don't need OnCancel - BaseDialog handles ESC by default
         }
         
         if ($global:ScreenManager) {
@@ -330,7 +385,7 @@ class ProjectsScreen : Screen {
     }
     
     [void] EditProject() {
-        $selected = $this.ProjectList.GetSelectedItem()
+        $selected = $this.ProjectGrid.GetSelectedItem()
         if (-not $selected) { return }
         
         # Create edit project dialog
@@ -364,16 +419,10 @@ class ProjectsScreen : Screen {
                 $screen.LoadProjects()
             }
             
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
+            # Don't call Pop() - BaseDialog handles that
         }.GetNewClosure()
         
-        $dialog.OnCancel = {
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        }
+        # Don't need OnCancel - BaseDialog handles ESC by default
         
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
@@ -381,10 +430,10 @@ class ProjectsScreen : Screen {
     }
     
     [void] DeleteProject() {
-        $selected = $this.ProjectList.GetSelectedItem()
+        $selected = $this.ProjectGrid.GetSelectedItem()
         if ($selected) {
             # Show confirmation dialog
-            $message = "Are you sure you want to delete project '$($selected.Nickname)'?"
+            $message = "Are you sure you want to delete project '$($selected.FullProjectName)'?"
             $dialog = [ConfirmationDialog]::new($message)
             
             $screen = $this
@@ -401,16 +450,10 @@ class ProjectsScreen : Screen {
                     $screen.LoadProjects()
                 }
                 
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
+                # Don't call Pop() - BaseDialog handles that
             }.GetNewClosure()
             
-            $dialog.OnCancel = {
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }
+            # Don't need OnCancel - BaseDialog handles ESC by default
             
             if ($global:ScreenManager) {
                 $global:ScreenManager.Push($dialog)
@@ -422,7 +465,7 @@ class ProjectsScreen : Screen {
         if ($global:Logger) {
             $global:Logger.Debug("ProjectsScreen.ViewProjectDetails() called")
         }
-        $selected = $this.ProjectList.GetSelectedItem()
+        $selected = $this.ProjectGrid.GetSelectedItem()
         if ($selected) {
             # Create and show project detail screen
             $detailScreen = [ProjectDetailScreen]::new($selected)

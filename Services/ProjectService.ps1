@@ -44,6 +44,78 @@ class ProjectService {
                         if ($projData.ClosedDate -and $projData.ClosedDate -ne "0001-01-01T00:00:00") { 
                             $project.ClosedDate = [DateTime]::Parse($projData.ClosedDate) 
                         }
+                        
+                        # Load all the new fields
+                        $project.Status = $projData.Status ?? "Active"
+                        $project.ClientID = $projData.ClientID ?? ""
+                        
+                        # Audit fields
+                        $project.AuditType = $projData.AuditType ?? ""
+                        $project.AuditProgram = $projData.AuditProgram ?? ""
+                        $project.AuditCase = $projData.AuditCase ?? ""
+                        if ($projData.AuditStartDate -and $projData.AuditStartDate -ne "0001-01-01T00:00:00") {
+                            $project.AuditStartDate = [DateTime]::Parse($projData.AuditStartDate)
+                        }
+                        if ($projData.AuditPeriodFrom -and $projData.AuditPeriodFrom -ne "0001-01-01T00:00:00") {
+                            $project.AuditPeriodFrom = [DateTime]::Parse($projData.AuditPeriodFrom)
+                        }
+                        if ($projData.AuditPeriodTo -and $projData.AuditPeriodTo -ne "0001-01-01T00:00:00") {
+                            $project.AuditPeriodTo = [DateTime]::Parse($projData.AuditPeriodTo)
+                        }
+                        
+                        # Additional audit periods
+                        for ($i = 1; $i -le 5; $i++) {
+                            $startProp = "AuditPeriod${i}Start"
+                            $endProp = "AuditPeriod${i}End"
+                            if ($projData.$startProp -and $projData.$startProp -ne "0001-01-01T00:00:00") {
+                                $project.$startProp = [DateTime]::Parse($projData.$startProp)
+                            }
+                            if ($projData.$endProp -and $projData.$endProp -ne "0001-01-01T00:00:00") {
+                                $project.$endProp = [DateTime]::Parse($projData.$endProp)
+                            }
+                        }
+                        
+                        # Address fields
+                        $project.Address = $projData.Address ?? ""
+                        $project.City = $projData.City ?? ""
+                        $project.Province = $projData.Province ?? ""
+                        $project.PostalCode = $projData.PostalCode ?? ""
+                        $project.Country = $projData.Country ?? ""
+                        $project.ShipToAddress = $projData.ShipToAddress ?? ""
+                        
+                        # Auditor fields
+                        $project.AuditorName = $projData.AuditorName ?? ""
+                        $project.AuditorPhone = $projData.AuditorPhone ?? ""
+                        $project.AuditorTL = $projData.AuditorTL ?? ""
+                        $project.AuditorTLPhone = $projData.AuditorTLPhone ?? ""
+                        
+                        # Contact fields
+                        $project.Contact1Name = $projData.Contact1Name ?? ""
+                        $project.Contact1Phone = $projData.Contact1Phone ?? ""
+                        $project.Contact1Ext = $projData.Contact1Ext ?? ""
+                        $project.Contact1Address = $projData.Contact1Address ?? ""
+                        $project.Contact1Title = $projData.Contact1Title ?? ""
+                        $project.Contact2Name = $projData.Contact2Name ?? ""
+                        $project.Contact2Phone = $projData.Contact2Phone ?? ""
+                        $project.Contact2Ext = $projData.Contact2Ext ?? ""
+                        $project.Contact2Address = $projData.Contact2Address ?? ""
+                        $project.Contact2Title = $projData.Contact2Title ?? ""
+                        
+                        # Software fields
+                        $project.AccountingSoftware1 = $projData.AccountingSoftware1 ?? ""
+                        $project.AccountingSoftware1Other = $projData.AccountingSoftware1Other ?? ""
+                        $project.AccountingSoftware1Type = $projData.AccountingSoftware1Type ?? ""
+                        $project.AccountingSoftware2 = $projData.AccountingSoftware2 ?? ""
+                        $project.AccountingSoftware2Other = $projData.AccountingSoftware2Other ?? ""
+                        $project.AccountingSoftware2Type = $projData.AccountingSoftware2Type ?? ""
+                        
+                        # Other fields
+                        if ($projData.RequestDate -and $projData.RequestDate -ne "0001-01-01T00:00:00") {
+                            $project.RequestDate = [DateTime]::Parse($projData.RequestDate)
+                        }
+                        $project.FXInfo = $projData.FXInfo ?? ""
+                        $project.Comments = $projData.Comments ?? ""
+                        
                         $project.Deleted = $projData.Deleted ?? $false
                     } else {
                         # Legacy format

@@ -171,18 +171,8 @@ class TabContainer : Container {
         }
         $sb.Append($this._cachedTabBar)
         
-        # Clear content area below tab bar
-        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor("background") } else { "" }
-        $contentY = $this.Y + $this.TabBarHeight
-        $contentHeight = $this.Height - $this.TabBarHeight
-        $clearLine = " " * $this.Width
-        
-        for ($y = 0; $y -lt $contentHeight; $y++) {
-            $sb.Append([VT]::MoveTo($this.X, $contentY + $y))
-            if ($bgColor) { $sb.Append($bgColor) }
-            $sb.Append($clearLine)
-        }
-        if ($bgColor) { $sb.Append([VT]::Reset()) }
+        # Don't clear content area - let the screen handle its own background
+        # This was overwriting buttons that are rendered by child screens
         
         # Render active content (base class handles children)
         $baseRender = ([Container]$this).OnRender()

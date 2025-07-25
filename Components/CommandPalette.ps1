@@ -8,6 +8,7 @@ class CommandPalette : Container {
     [scriptblock]$OnCommandSelected = {}
     [bool]$IsVisible = $false
     [EventBus]$EventBus
+    [ThemeManager]$Theme
     
     # Layout
     hidden [int]$PaletteWidth = 60
@@ -40,8 +41,9 @@ class CommandPalette : Container {
         # Call base initialization
         ([Container]$this).Initialize($services)
         
-        # Get EventBus
+        # Get services
         $this.EventBus = $services.GetService('EventBus')
+        $this.Theme = $services.GetService('ThemeManager')
         
         # Subscribe to command registration events
         if ($this.EventBus) {
@@ -107,12 +109,7 @@ class CommandPalette : Container {
                 }
             }.GetNewClosure()
             
-            $dialog.OnCancel = {
-                # Close dialog
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }.GetNewClosure()
+            # Don't set OnCancel - BaseDialog handles ESC and closing automatically
             
             # Push dialog to screen manager
             if ($global:ScreenManager) {
@@ -153,12 +150,7 @@ class CommandPalette : Container {
                 }
             }.GetNewClosure()
             
-            $dialog.OnCancel = {
-                # Close dialog
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }.GetNewClosure()
+            # Don't set OnCancel - BaseDialog handles ESC and closing automatically
             
             # Push dialog to screen manager
             if ($global:ScreenManager) {
@@ -402,13 +394,14 @@ class CommandPalette : Container {
         $sb.Append(([Container]$this).OnRender())
         
         # Draw border
-        $borderColor = $this.Theme.GetColor("border.focused")
+        $borderColor = if ($this.Theme) { $this.Theme.GetColor("border.focused") } else { "" }
         
         # Top border with title
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($borderColor)
         $sb.Append([VT]::TL() + ([VT]::H() * 2))
-        $sb.Append($this.Theme.GetColor("accent"))
+        $accentColor = if ($this.Theme) { $this.Theme.GetColor("accent") } else { "" }
+        $sb.Append($accentColor)
         $sb.Append(" Command Palette ")
         $sb.Append($borderColor)
         $sb.Append([VT]::H() * ($this.Width - 19) + [VT]::TR())
@@ -427,9 +420,10 @@ class CommandPalette : Container {
         
         # Search box
         $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 2))
-        $sb.Append($this.Theme.GetColor("foreground"))
+        $foregroundColor = if ($this.Theme) { $this.Theme.GetColor("foreground") } else { "" }
+        $sb.Append($foregroundColor)
         $sb.Append("Search: ")
-        $sb.Append($this.Theme.GetColor("accent"))
+        $sb.Append($accentColor)
         $sb.Append($this.SearchText)
         $sb.Append("_")
         
@@ -440,7 +434,8 @@ class CommandPalette : Container {
         
         # Help text
         $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + $this.Height - 2))
-        $sb.Append($this.Theme.GetColor("disabled"))
+        $disabledColor = if ($this.Theme) { $this.Theme.GetColor("disabled") } else { "" }
+        $sb.Append($disabledColor)
         $sb.Append("[Enter] Select  [Esc] Cancel")
         
         $sb.Append([VT]::Reset())

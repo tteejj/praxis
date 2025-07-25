@@ -11,18 +11,6 @@ class Container : UIElement {
     Container() : base() {
     }
     
-    # Initialize method for containers that need it
-    [void] Initialize([ServiceContainer]$services) {
-        # Get theme service if available
-        try {
-            $this.Theme = $services.GetService("ThemeManager")
-        } catch {
-            # Theme not available yet, ignore
-        }
-        
-        # Derived classes can override for additional initialization
-    }
-    
     # Efficient child rendering with string builder
     [string] OnRender() {
         $sb = [System.Text.StringBuilder]::new()

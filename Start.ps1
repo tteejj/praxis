@@ -65,6 +65,7 @@ $loadOrder = @(
     "Components/TreeView.ps1"
     "Components/ProgressBar.ps1"
     "Components/FastFileTree.ps1"
+    "Components/RangerFileTree.ps1"
     "Components/SearchableListBox.ps1"
     "Components/MultiSelectListBox.ps1"
     "Components/TabContainer.ps1"

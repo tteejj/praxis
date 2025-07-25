@@ -27,7 +27,7 @@ class SubtaskDialog : BaseDialog {
         $this.SecondaryButtonText = "Cancel"
     }
     
-    SubtaskDialog([Task]$parentTask, [Subtask]$subtask) : base("Edit Subtask - $($subtask.Title)", 60, 24) {
+    SubtaskDialog([Task]$parentTask, $subtask) : base("Edit Subtask", 60, 24) {
         $this.ParentTask = $parentTask
         $this.Subtask = $subtask
         $this.IsEditMode = $true
@@ -42,7 +42,7 @@ class SubtaskDialog : BaseDialog {
         $this.TitleTextBox.ShowBorder = $true
         $this.TitleTextBox.TabIndex = 1
         
-        if ($this.IsEditMode -and $this.Subtask.Title) {
+        if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Title']) {
             $this.TitleTextBox.Text = $this.Subtask.Title
         }
         $this.AddContentControl($this.TitleTextBox)
@@ -53,7 +53,7 @@ class SubtaskDialog : BaseDialog {
         $this.DescriptionTextBox.IsMultiline = $true
         $this.DescriptionTextBox.TabIndex = 2
         
-        if ($this.IsEditMode -and $this.Subtask.Description) {
+        if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Description']) {
             $this.DescriptionTextBox.Text = $this.Subtask.Description
         }
         $this.AddContentControl($this.DescriptionTextBox)
@@ -63,7 +63,7 @@ class SubtaskDialog : BaseDialog {
         $this.PriorityTextBox.ShowBorder = $true
         $this.PriorityTextBox.TabIndex = 3
         
-        if ($this.IsEditMode) {
+        if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.Priority) {
             $this.PriorityTextBox.Text = $this.Subtask.Priority.ToString()
         } else {
             $this.PriorityTextBox.Text = "Medium"
@@ -75,8 +75,9 @@ class SubtaskDialog : BaseDialog {
         $this.ProgressTextBox.ShowBorder = $true
         $this.ProgressTextBox.TabIndex = 4
         
-        if ($this.IsEditMode) {
-            $this.ProgressTextBox.Text = $this.Subtask.Progress.ToString()
+        if ($this.IsEditMode -and $this.Subtask) {
+            $progress = if ($this.Subtask.PSObject.Properties['Progress']) { $this.Subtask.Progress } else { 0 }
+            $this.ProgressTextBox.Text = $progress.ToString()
         } else {
             $this.ProgressTextBox.Text = "0"
         }
@@ -87,8 +88,11 @@ class SubtaskDialog : BaseDialog {
         $this.EstimatedTimeTextBox.ShowBorder = $true
         $this.EstimatedTimeTextBox.TabIndex = 5
         
-        if ($this.IsEditMode -and $this.Subtask.EstimatedMinutes -gt 0) {
-            $this.EstimatedTimeTextBox.Text = $this.Subtask.EstimatedMinutes.ToString()
+        if ($this.IsEditMode -and $this.Subtask) {
+            $estimated = if ($this.Subtask.PSObject.Properties['EstimatedMinutes']) { $this.Subtask.EstimatedMinutes } else { 0 }
+            if ($estimated -gt 0) {
+                $this.EstimatedTimeTextBox.Text = $estimated.ToString()
+            }
         }
         $this.AddContentControl($this.EstimatedTimeTextBox)
         
@@ -97,8 +101,11 @@ class SubtaskDialog : BaseDialog {
         $this.ActualTimeTextBox.ShowBorder = $true
         $this.ActualTimeTextBox.TabIndex = 6
         
-        if ($this.IsEditMode -and $this.Subtask.ActualMinutes -gt 0) {
-            $this.ActualTimeTextBox.Text = $this.Subtask.ActualMinutes.ToString()
+        if ($this.IsEditMode -and $this.Subtask) {
+            $actual = if ($this.Subtask.PSObject.Properties['ActualMinutes']) { $this.Subtask.ActualMinutes } else { 0 }
+            if ($actual -gt 0) {
+                $this.ActualTimeTextBox.Text = $actual.ToString()
+            }
         }
         $this.AddContentControl($this.ActualTimeTextBox)
         
@@ -107,8 +114,11 @@ class SubtaskDialog : BaseDialog {
         $this.DueDateTextBox.ShowBorder = $true
         $this.DueDateTextBox.TabIndex = 7
         
-        if ($this.IsEditMode -and $this.Subtask.DueDate -ne [DateTime]::MinValue) {
-            $this.DueDateTextBox.Text = $this.Subtask.DueDate.ToString("MM/dd/yyyy")
+        if ($this.IsEditMode -and $this.Subtask) {
+            $dueDate = if ($this.Subtask.PSObject.Properties['DueDate']) { $this.Subtask.DueDate } else { [DateTime]::MinValue }
+            if ($dueDate -ne [DateTime]::MinValue) {
+                $this.DueDateTextBox.Text = $dueDate.ToString("MM/dd/yyyy")
+            }
         }
         $this.AddContentControl($this.DueDateTextBox)
         
@@ -298,10 +308,19 @@ class SubtaskDialog : BaseDialog {
         
         # Create subtask data object
         $subtaskData = [PSCustomObject]@{
-            Id = if ($this.IsEditMode) { $this.Subtask.Id } else { [guid]::NewGuid().ToString() }
+            Id = if ($this.IsEditMode -and $this.Subtask) { 
+                if ($this.Subtask.PSObject.Properties['Id']) { $this.Subtask.Id } else { [guid]::NewGuid().ToString() }
+            } else { 
+                [guid]::NewGuid().ToString() 
+            }
             ParentTaskId = $this.ParentTask.Id
             Title = $title
             Description = $description
+            Status = if ($this.IsEditMode -and $this.Subtask) { 
+                if ($this.Subtask.PSObject.Properties['Status']) { $this.Subtask.Status } else { [TaskStatus]::Pending }
+            } else { 
+                [TaskStatus]::Pending 
+            }
             Priority = $priority
             Progress = $progress
             EstimatedMinutes = $estimated

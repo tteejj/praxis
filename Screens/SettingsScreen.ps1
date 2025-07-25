@@ -205,16 +205,10 @@ class SettingsScreen : Screen {
         $dialog.OnConfirm = {
             $this.ConfigService.ResetSection($this.CurrentCategory)
             $this.LoadCategorySettings()
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
+            # Don't call Pop() - BaseDialog handles that
         }.GetNewClosure()
         
-        $dialog.OnCancel = {
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        }
+        # Don't need OnCancel - BaseDialog handles ESC by default
         
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
@@ -228,16 +222,10 @@ class SettingsScreen : Screen {
         $dialog.OnConfirm = {
             $this.ConfigService.Reset()
             $this.LoadCategories()
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
+            # Don't call Pop() - BaseDialog handles that
         }.GetNewClosure()
         
-        $dialog.OnCancel = {
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        }
+        # Don't need OnCancel - BaseDialog handles ESC by default
         
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
