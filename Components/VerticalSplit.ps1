@@ -95,7 +95,7 @@ class VerticalSplit : Container {
         $this.UpdateLayout()
         
         # Use fast string-based rendering
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Render children
         if ($this.TopPane -and $this.TopPane.Visible) {
@@ -115,7 +115,9 @@ class VerticalSplit : Container {
             $sb.Append([VT]::Reset())
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

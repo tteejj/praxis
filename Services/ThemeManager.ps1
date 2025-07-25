@@ -32,6 +32,11 @@ class ThemeManager {
             "selection" = @(60, 60, 60)         # Selection background
             "disabled" = @(128, 128, 128)       # Gray
             
+            # Generic component colors (for backward compatibility)
+            "title" = @(0, 150, 255)              # Blue titles
+            "normal" = @(204, 204, 204)           # Normal text
+            "selected" = @(60, 60, 60)            # Alias for selection
+            
             # Component specific
             "button.background" = @(48, 48, 48)
             "button.foreground" = @(204, 204, 204)
@@ -72,6 +77,11 @@ class ThemeManager {
             "selection" = @(0, 100, 0)            # Dark green selection - more visible
             "disabled" = @(0, 128, 0)             # Medium green for disabled
             
+            # Generic component colors (for backward compatibility)
+            "title" = @(0, 255, 0)                # Bright green for titles
+            "normal" = @(0, 200, 0)               # Normal text (slightly dimmer green)
+            "selected" = @(0, 100, 0)             # Alias for selection
+            
             # Component specific
             "button.background" = @(0, 20, 0)
             "button.foreground" = @(0, 255, 0)
@@ -97,6 +107,10 @@ class ThemeManager {
             "dialog.background" = @(0, 0, 0)
             "dialog.border" = @(0, 150, 0)
             "dialog.title" = @(0, 255, 0)
+            
+            # File browser specific
+            "directory" = @(0, 255, 0)            # Bright green for directories
+            "file" = @(0, 200, 0)                 # Slightly dimmer for files
         }
         
         $this.RegisterTheme("matrix", $matrixTheme)

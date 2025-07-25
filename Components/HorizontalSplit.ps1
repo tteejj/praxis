@@ -95,7 +95,7 @@ class HorizontalSplit : Container {
         $this.UpdateLayout()
         
         # Use fast string-based rendering
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Render children
         if ($this.LeftPane -and $this.LeftPane.Visible) {
@@ -117,7 +117,9 @@ class HorizontalSplit : Container {
             $sb.Append([VT]::Reset())
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

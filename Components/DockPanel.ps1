@@ -177,7 +177,7 @@ class DockPanel : Container {
         $this.UpdateLayout()
         
         # Use fast string-based rendering - render all visible children
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048
         
         foreach ($child in $this.Children) {
             if ($child.Visible) {
@@ -185,7 +185,9 @@ class DockPanel : Container {
             }
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

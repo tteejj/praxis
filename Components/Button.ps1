@@ -9,6 +9,9 @@ class Button : UIElement {
     hidden [string]$_cachedRender = ""
     hidden [ThemeManager]$Theme
     
+    # Cached theme colors
+    hidden [hashtable]$_colors = @{}
+    
     Button() : base() {
         $this.IsFocusable = $true
         $this.Height = 3  # Default button height
@@ -33,6 +36,18 @@ class Button : UIElement {
     }
     
     [void] OnThemeChanged() {
+        # Cache colors on theme change
+        if ($this.Theme) {
+            $this._colors = @{
+                "button.background" = $this.Theme.GetBgColor("button.background")
+                "button.foreground" = $this.Theme.GetColor("button.foreground")
+                "button.focused.background" = $this.Theme.GetBgColor("button.focused.background")
+                "button.focused.foreground" = $this.Theme.GetColor("button.focused.foreground")
+                "border" = $this.Theme.GetColor("border")
+                "border.focused" = $this.Theme.GetColor("border.focused")
+                "accent" = $this.Theme.GetColor("accent")
+            }
+        }
         $this._cachedRender = ""
         $this.Invalidate()
     }
@@ -66,13 +81,13 @@ class Button : UIElement {
         $borderColor = ""
         
         if ($this.IsFocused) {
-            $bgColor = $this.Theme.GetBgColor("button.focused.background")
-            $fgColor = $this.Theme.GetColor("button.focused.foreground")
-            $borderColor = $this.Theme.GetColor("border.focused")
+            $bgColor = $this._colors["button.focused.background"]
+            $fgColor = $this._colors["button.focused.foreground"]
+            $borderColor = $this._colors["border.focused"]
         } else {
-            $bgColor = $this.Theme.GetBgColor("button.background")
-            $fgColor = $this.Theme.GetColor("button.foreground")
-            $borderColor = $this.Theme.GetColor("border")
+            $bgColor = $this._colors["button.background"]
+            $fgColor = $this._colors["button.foreground"]
+            $borderColor = $this._colors["border"]
         }
         
         # Calculate text position (centered)
@@ -146,7 +161,7 @@ class Button : UIElement {
         # Add default indicator if needed
         if ($this.IsDefault) {
             $sb.Append([VT]::MoveTo($this.X + 1, $this.Y))
-            $sb.Append($this.Theme.GetColor("accent"))
+            $sb.Append($this._colors["accent"])
             $sb.Append("*")
         }
         

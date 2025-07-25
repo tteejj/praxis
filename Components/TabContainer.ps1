@@ -165,7 +165,7 @@ class TabContainer : Container {
             $global:Logger.Debug("TabContainer.OnRender: tabBarInvalid=$($this._tabBarInvalid), Children.Count=$($this.Children.Count)")
         }
         
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048
         
         # Render tab bar
         if ($this._tabBarInvalid) {
@@ -184,12 +184,14 @@ class TabContainer : Container {
             }
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     # Build the tab bar
     hidden [void] RebuildTabBar() {
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Tab bar background
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
@@ -246,6 +248,7 @@ class TabContainer : Container {
         $sb.Append([VT]::Reset())
         
         $this._cachedTabBar = $sb.ToString()
+        Return-PooledStringBuilder $sb
         $this._tabBarInvalid = $false
     }
     

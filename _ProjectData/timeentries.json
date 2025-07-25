@@ -1,31 +1,79 @@
 {
-    "TimeEntries": [
-        {
-            "Id": "TE-19991231-TEST",
-            "WeekEndingFriday": "19991231",
-            "Name": "Test Entry",
-            "ID1": "Internal",
-            "ID2": "TEST",
-            "Monday": 1.0,
-            "Tuesday": 0,
-            "Wednesday": 0,
-            "Thursday": 0,
-            "Friday": 0,
-            "Total": 1.0,
-            "FiscalYear": "1999-2000",
-            "CreatedAt": "1999-12-31T12:00:00",
-            "UpdatedAt": "1999-12-31T12:00:00"
-        }
-    ],
-    "TimeCodes": [
-        {
-            "ID2": "TEST",
-            "Name": "Test Code",
-            "ID1": "Internal",
-            "Description": "Test time code",
-            "IsActive": true,
-            "CreatedAt": "1999-12-31T12:00:00"
-        }
-    ],
-    "LastUpdated": "2025-07-25 01:15:00"
+  "TimeEntries": [
+    {
+      "Id": "TE-20250725-ADMIN",
+      "WeekEndingFriday": "20250725",
+      "Name": "Administration",
+      "ID1": "Internal",
+      "ID2": "ADMIN",
+      "Monday": 2.5,
+      "Tuesday": 3.0,
+      "Wednesday": 2.0,
+      "Thursday": 1.5,
+      "Friday": 1.0,
+      "Total": 10.0,
+      "FiscalYear": "2025-2026",
+      "CreatedAt": "2025-07-25T06:00:00",
+      "UpdatedAt": "2025-07-25T06:00:00"
+    },
+    {
+      "Id": "TE-20250725-TRAIN",
+      "WeekEndingFriday": "20250725",
+      "Name": "Training",
+      "ID1": "Internal",
+      "ID2": "TRAIN",
+      "Monday": 1.0,
+      "Tuesday": 1.5,
+      "Wednesday": 2.0,
+      "Thursday": 1.0,
+      "Friday": 0.5,
+      "Total": 6.0,
+      "FiscalYear": "2025-2026",
+      "CreatedAt": "2025-07-25T06:00:00",
+      "UpdatedAt": "2025-07-25T06:00:00"
+    },
+    {
+      "Id": "TE-20250725-MEET",
+      "WeekEndingFriday": "20250725",
+      "Name": "Meetings",
+      "ID1": "Internal",
+      "ID2": "MEET",
+      "Monday": 0.5,
+      "Tuesday": 1.0,
+      "Wednesday": 0.5,
+      "Thursday": 2.0,
+      "Friday": 1.0,
+      "Total": 5.0,
+      "FiscalYear": "2025-2026",
+      "CreatedAt": "2025-07-25T06:00:00",
+      "UpdatedAt": "2025-07-25T06:00:00"
+    }
+  ],
+  "TimeCodes": [
+    {
+      "ID2": "ADMIN",
+      "Name": "Administration",
+      "ID1": "Internal",
+      "Description": "Administrative tasks",
+      "IsActive": true,
+      "CreatedAt": "2025-07-25T06:00:00"
+    },
+    {
+      "ID2": "TRAIN",
+      "Name": "Training",
+      "ID1": "Internal",
+      "Description": "Training and learning",
+      "IsActive": true,
+      "CreatedAt": "2025-07-25T06:00:00"
+    },
+    {
+      "ID2": "MEET",
+      "Name": "Meetings",
+      "ID1": "Internal",
+      "Description": "Team meetings",
+      "IsActive": true,
+      "CreatedAt": "2025-07-25T06:00:00"
+    }
+  ],
+  "LastUpdated": "2025-07-25 06:00:00"
 }

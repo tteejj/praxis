@@ -230,6 +230,18 @@ class TimeEntryScreen : Screen {
             $screen = $this
             
             # Q - Quick entry
+            $quickAction = {
+                # Use $using:screen to properly capture the screen reference
+                $currentScreen = $using:screen
+                if ($currentScreen) {
+                    $currentScreen.ShowQuickEntry()
+                } else {
+                    if ($global:Logger) {
+                        $global:Logger.Error("TimeEntryScreen: Quick entry action - screen reference is null")
+                    }
+                }
+            }.GetNewClosure()
+            
             $shortcutManager.RegisterShortcut(@{
                 Id = "time.quick"
                 Name = "Quick Entry"
@@ -238,7 +250,7 @@ class TimeEntryScreen : Screen {
                 Scope = [ShortcutScope]::Screen
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
-                Action = { $screen.ShowQuickEntry() }.GetNewClosure()
+                Action = $quickAction
             })
             
             # E - Edit entry

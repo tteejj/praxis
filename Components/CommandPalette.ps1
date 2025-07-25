@@ -449,7 +449,7 @@ class CommandPalette : Container {
     [string] OnRender() {
         if (-not $this.IsVisible) { return "" }
         
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 1024
         
         # Draw background first
         $sb.Append(([Container]$this).OnRender())
@@ -501,7 +501,9 @@ class CommandPalette : Container {
         
         $sb.Append([VT]::Reset())
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

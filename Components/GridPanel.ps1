@@ -118,7 +118,7 @@ class GridPanel : Container {
         $this.UpdateLayout()
         
         # Use fast string-based rendering
-        $sb = [System.Text.StringBuilder]::new()
+        $sb = Get-PooledStringBuilder 2048
         
         # Render all visible children
         foreach ($child in $this.Children) {
@@ -159,7 +159,9 @@ class GridPanel : Container {
             $sb.Append([VT]::Reset())
         }
         
-        return $sb.ToString()
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
