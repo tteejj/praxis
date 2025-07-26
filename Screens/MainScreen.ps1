@@ -48,11 +48,14 @@ class MainScreen : Screen {
         $fileBrowserScreen = [FileBrowserScreen]::new()
         $this.TabContainer.AddTab("Files", $fileBrowserScreen)
         
-        $textEditorScreen = [TextEditorScreen]::new()
+        $textEditorScreen = [TextEditorScreenNew]::new()
         $this.TabContainer.AddTab("Editor", $textEditorScreen)
         
         $commandLibraryScreen = [CommandLibraryScreen]::new()
         $this.TabContainer.AddTab("Commands", $commandLibraryScreen)
+        
+        $macroFactoryScreen = [VisualMacroFactoryScreen]::new()
+        $this.TabContainer.AddTab("Macro Factory", $macroFactoryScreen)
         
         $settingsScreen = [SettingsScreen]::new()
         $this.TabContainer.AddTab("Settings", $settingsScreen)

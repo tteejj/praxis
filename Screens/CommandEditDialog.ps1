@@ -7,16 +7,12 @@ class CommandEditDialog : BaseDialog {
     [TextBox]$TagsBox
     [TextBox]$GroupBox
     [TextBox]$CommandBox
-    [Button]$SaveButton
-    [Button]$CancelButton
     [Command]$Command
     [CommandService]$CommandService
     [scriptblock]$OnSave
     
-    CommandEditDialog() : base() {
-        $this.Title = "Command Editor"
-        $this.Width = 80
-        $this.Height = 25
+    CommandEditDialog() : base("Command Editor", 80, 25) {
+        # Constructor uses BaseDialog(title, width, height)
     }
     
     [void] OnInitialize() {
@@ -28,7 +24,7 @@ class CommandEditDialog : BaseDialog {
         # Calculate positions
         $labelWidth = 12
         $fieldX = $labelWidth + 3
-        $fieldWidth = $this.Width - $fieldX - 3
+        $fieldWidth = $this.DialogWidth - $fieldX - 3
         $currentY = 3
         
         # Title field
@@ -81,24 +77,14 @@ class CommandEditDialog : BaseDialog {
         $this.AddChild($this.CommandBox)
         $currentY += 4
         
-        # Buttons
-        $buttonY = $this.Height - 5
-        $this.SaveButton = [Button]::new("Save")
-        $this.SaveButton.X = $this.Width - 20
-        $this.SaveButton.Y = $buttonY
-        $this.SaveButton.Width = 8
-        $this.SaveButton.OnClick = { $this.SaveCommand() }
-        $this.AddChild($this.SaveButton)
-        
-        $this.CancelButton = [Button]::new("Cancel")
-        $this.CancelButton.X = $this.Width - 10
-        $this.CancelButton.Y = $buttonY
-        $this.CancelButton.Width = 8
-        $this.CancelButton.OnClick = { $this.Cancel() }
-        $this.AddChild($this.CancelButton)
+        # Configure BaseDialog buttons
+        $this.PrimaryButtonText = "Save"
+        $this.SecondaryButtonText = "Cancel"
+        $this.OnPrimary = { $this.SaveCommand() }
+        $this.OnSecondary = { $this.Cancel() }
         
         # Set initial focus
-        $this.SetFocus($this.TitleBox)
+        $this.TitleBox.Focus()
     }
     
     [void] CreateLabel([string]$text, [int]$x, [int]$y) {

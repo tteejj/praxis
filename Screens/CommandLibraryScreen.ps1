@@ -3,12 +3,9 @@
 
 class CommandLibraryScreen : Screen {
     [SearchableListBox]$CommandList
-    [TextBox]$SearchBox
-    [Button]$AddButton
-    [Button]$EditButton
-    [Button]$DeleteButton
-    [Button]$HelpButton
     [CommandService]$CommandService
+    [EventBus]$EventBus
+    hidden [hashtable]$EventSubscriptions = @{}
     
     CommandLibraryScreen() : base() {
         $this.Title = "Command Library"
@@ -16,38 +13,21 @@ class CommandLibraryScreen : Screen {
     }
     
     [void] OnInitialize() {
-        ([Screen]$this).OnInitialize()
-        
         # Get services
         $this.CommandService = $this.ServiceContainer.GetService("CommandService")
+        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
         
-        # Create search box
-        $this.SearchBox = [TextBox]::new()
-        $this.SearchBox.X = 2
-        $this.SearchBox.Y = 2
-        $this.SearchBox.Width = $this.Width - 20
-        $this.SearchBox.Height = 3
-        $this.SearchBox.Placeholder = "Search commands... (t:tag d:desc g:group +and |or)"
-        $this.SearchBox.OnChange = { $this.FilterCommands() }
-        $this.AddChild($this.SearchBox)
-        
-        # Create help button  
-        $this.HelpButton = [Button]::new("?")
-        $this.HelpButton.X = $this.Width - 15
-        $this.HelpButton.Y = 2
-        $this.HelpButton.Width = 5
-        $this.HelpButton.Height = 3
-        $this.HelpButton.OnClick = { $this.ShowSearchHelp() }
-        $this.AddChild($this.HelpButton)
-        
-        # Create command list
+        # Create command list using SearchableListBox
         $this.CommandList = [SearchableListBox]::new()
-        $this.CommandList.X = 2
-        $this.CommandList.Y = 6
-        $this.CommandList.Width = $this.Width - 4
-        $this.CommandList.Height = $this.Height - 12
-        $this.CommandList.ShowBorder = $true
         $this.CommandList.Title = "Commands"
+        $this.CommandList.ShowBorder = $true
+        $this.CommandList.SearchPrompt = "Search commands... (t:tag d:desc g:group +and |or)"
+        
+        # Set custom search filter for advanced syntax
+        $this.CommandList.SearchFilter = {
+            param($command, $query)
+            return $this.CommandService.SearchCommands($query) -contains $command
+        }.GetNewClosure()
         
         # Custom renderer for commands
         $this.CommandList.ItemRenderer = {
@@ -64,70 +44,24 @@ class CommandLibraryScreen : Screen {
             return $displayText
         }
         
-        # Custom detail renderer
-        $this.CommandList.DetailRenderer = {
-            param($command)
-            if (-not $command) { return "" }
-            
-            $details = @()
-            
-            if (-not [string]::IsNullOrWhiteSpace($command.Description)) {
-                $details += $command.Description
-            }
-            
-            if ($command.Tags -and $command.Tags.Count -gt 0) {
-                $details += "Tags: $($command.Tags -join ', ')"
-            }
-            
-            # Show command text (truncated if too long)
-            $commandText = $command.CommandText
-            if ($commandText.Length -gt 100) {
-                $commandText = $commandText.Substring(0, 97) + "..."
-            }
-            $details += "Command: $commandText"
-            
-            return ($details -join " | ")
-        }
-        
-        # Handle selection/copy
+        # Handle selection changes
         $this.CommandList.OnSelectionChanged = {
-            $this.UpdateButtons()
+            # Could update UI state here if needed
         }
         
+        $this.CommandList.Initialize($this.ServiceContainer)
         $this.AddChild($this.CommandList)
-        
-        # Create action buttons
-        $buttonY = $this.Height - 5
-        $buttonSpacing = 12
-        $startX = 2
-        
-        $this.AddButton = [Button]::new("Add")
-        $this.AddButton.X = $startX
-        $this.AddButton.Y = $buttonY
-        $this.AddButton.Width = 8
-        $this.AddButton.OnClick = { $this.AddCommand() }
-        $this.AddChild($this.AddButton)
-        
-        $this.EditButton = [Button]::new("Edit")
-        $this.EditButton.X = $startX + $buttonSpacing
-        $this.EditButton.Y = $buttonY
-        $this.EditButton.Width = 8
-        $this.EditButton.OnClick = { $this.EditCommand() }
-        $this.AddChild($this.EditButton)
-        
-        $this.DeleteButton = [Button]::new("Delete")
-        $this.DeleteButton.X = $startX + ($buttonSpacing * 2)
-        $this.DeleteButton.Y = $buttonY
-        $this.DeleteButton.Width = 8
-        $this.DeleteButton.OnClick = { $this.DeleteCommand() }
-        $this.AddChild($this.DeleteButton)
         
         # Load commands
         $this.LoadCommands()
-        $this.UpdateButtons()
         
-        # Set initial focus
-        $this.SetFocus($this.SearchBox)
+        # Register shortcuts
+        $this.RegisterShortcuts()
+        
+        # Set initial focus to command list
+        if ($this.CommandList) {
+            $this.CommandList.Focus()
+        }
     }
     
     [void] LoadCommands() {
@@ -136,26 +70,75 @@ class CommandLibraryScreen : Screen {
     }
     
     [void] FilterCommands() {
-        $query = $this.SearchBox.Text
-        $filteredCommands = $this.CommandService.SearchCommands($query)
-        $this.CommandList.SetItems($filteredCommands)
-        $this.UpdateButtons()
+        # Apply any active search filter
+        # SearchableListBox handles its own filtering, so this is just for refresh
+        $this.CommandList.Invalidate()
     }
     
-    [void] UpdateButtons() {
-        $hasSelection = $this.CommandList.GetSelectedItem() -ne $null
-        # Buttons stay the same text, but could be disabled/enabled based on selection
-        # For now, just keep them always enabled
-    }
-    
-    [void] AddCommand() {
-        try {
-            $screen = $this.ScreenManager.GetScreen("CommandEditDialog")
-            if (-not $screen) {
-                $screen = [CommandEditDialog]::new()
-                $screen.Initialize($this.ServiceContainer)
-                $this.ScreenManager.RegisterScreen("CommandEditDialog", $screen)
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("CommandLibraryScreen: ShortcutManager not found in ServiceContainer")
             }
+            return 
+        }
+        
+        # Register screen-specific shortcuts
+        $screen = $this
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "commands.new"
+            Name = "New Command"
+            Description = "Create a new command"
+            KeyChar = 'n'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "CommandLibraryScreen"
+            Priority = 50
+            Action = { $screen.NewCommand() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "commands.edit"
+            Name = "Edit Command"
+            Description = "Edit the selected command"
+            KeyChar = 'e'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "CommandLibraryScreen"
+            Priority = 50
+            Action = { $screen.EditCommand() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "commands.delete"
+            Name = "Delete Command"
+            Description = "Delete the selected command"
+            KeyChar = 'd'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "CommandLibraryScreen"
+            Priority = 50
+            Action = { $screen.DeleteCommand() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "commands.copy"
+            Name = "Copy Command"
+            Description = "Copy selected command to clipboard"
+            Key = [System.ConsoleKey]::Enter
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "CommandLibraryScreen"
+            Priority = 50
+            Action = { $screen.CopySelectedCommand() }.GetNewClosure()
+        })
+    }
+    
+    [void] NewCommand() {
+        if ($global:Logger) {
+            $global:Logger.Info("CommandLibraryScreen.NewCommand: Called via shortcut")
+        }
+        try {
+            $screen = [CommandEditDialog]::new()
+            $screen.Initialize($this.ServiceContainer)
             
             $screen.SetCommand($null)  # New command
             $screen.OnSave = {
@@ -164,25 +147,29 @@ class CommandLibraryScreen : Screen {
                 $this.FilterCommands()
             }
             
-            $this.ScreenManager.PushScreen($screen)
+            $global:ScreenManager.Push($screen)
         } catch {
             if ($global:Logger) {
-                $global:Logger.Error("CommandLibraryScreen.AddCommand: $($_.Exception.Message)")
+                $global:Logger.Error("CommandLibraryScreen.NewCommand: $($_.Exception.Message)")
             }
         }
     }
     
     [void] EditCommand() {
+        if ($global:Logger) {
+            $global:Logger.Info("CommandLibraryScreen.EditCommand: Called via shortcut")
+        }
         $selectedCommand = $this.CommandList.GetSelectedItem()
-        if (-not $selectedCommand) { return }
+        if (-not $selectedCommand) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("CommandLibraryScreen.EditCommand: No command selected")
+            }
+            return 
+        }
         
         try {
-            $screen = $this.ScreenManager.GetScreen("CommandEditDialog")
-            if (-not $screen) {
-                $screen = [CommandEditDialog]::new()
-                $screen.Initialize($this.ServiceContainer)
-                $this.ScreenManager.RegisterScreen("CommandEditDialog", $screen)
-            }
+            $screen = [CommandEditDialog]::new()
+            $screen.Initialize($this.ServiceContainer)
             
             $screen.SetCommand($selectedCommand)
             $screen.OnSave = {
@@ -191,7 +178,7 @@ class CommandLibraryScreen : Screen {
                 $this.FilterCommands()
             }
             
-            $this.ScreenManager.PushScreen($screen)
+            $global:ScreenManager.Push($screen)
         } catch {
             if ($global:Logger) {
                 $global:Logger.Error("CommandLibraryScreen.EditCommand: $($_.Exception.Message)")
@@ -200,8 +187,16 @@ class CommandLibraryScreen : Screen {
     }
     
     [void] DeleteCommand() {
+        if ($global:Logger) {
+            $global:Logger.Info("CommandLibraryScreen.DeleteCommand: Called via shortcut")
+        }
         $selectedCommand = $this.CommandList.GetSelectedItem()
-        if (-not $selectedCommand) { return }
+        if (-not $selectedCommand) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("CommandLibraryScreen.DeleteCommand: No command selected")
+            }
+            return 
+        }
         
         try {
             # Show confirmation dialog
@@ -215,7 +210,7 @@ class CommandLibraryScreen : Screen {
                 $this.FilterCommands()
             }
             
-            $this.ScreenManager.PushScreen($confirmScreen)
+            $global:ScreenManager.Push($confirmScreen)
         } catch {
             if ($global:Logger) {
                 $global:Logger.Error("CommandLibraryScreen.DeleteCommand: $($_.Exception.Message)")
@@ -245,109 +240,48 @@ class CommandLibraryScreen : Screen {
         }
     }
     
-    [void] ShowSearchHelp() {
-        $helpText = @"
-Search Syntax Help:
-
-Basic Search:
-  git status          - Search titles (default)
-
-Specific Fields:
-  t:powershell        - Search tags only
-  d:database          - Search descriptions only  
-  g:scripts           - Search groups only
-
-OR Logic (|):
-  t:git|powershell    - Tags: git OR powershell
-  d:query|select      - Description: query OR select
-
-AND Logic (+):
-  +t:git +d:status    - Tags: git AND description: status
-  +g:scripts +t:ps    - Group: scripts AND tags: ps
-
-Mixed:
-  +g:database t:sql|mysql  - Group: database AND (tags: sql OR mysql)
-
-Examples:
-  git                 - Find commands with 'git' in title
-  t:powershell        - Find commands tagged 'powershell'
-  +g:database +t:sql  - Find database commands tagged 'sql'
-  d:backup|restore    - Find commands with 'backup' or 'restore' in description
-"@
+    # Search help removed - SearchableListBox should handle this
+    
+    # HandleInput removed - using ShortcutManager instead
+    
+    [void] OnBoundsChanged() {
+        if ($this.Width -le 0 -or $this.Height -le 0) { return }
         
-        # Show help dialog (could create a simple text dialog)
-        try {
-            $helpScreen = [TextInputDialog]::new()
-            $helpScreen.Initialize($this.ServiceContainer)
-            $helpScreen.SetTitle("Search Syntax Help")
-            $helpScreen.SetText($helpText)
-            $helpScreen.ReadOnly = $true
-            
-            $this.ScreenManager.PushScreen($helpScreen)
-        } catch {
-            if ($global:Logger) {
-                $global:Logger.Error("CommandLibraryScreen.ShowSearchHelp: $($_.Exception.Message)")
-            }
+        # CommandLibraryScreen has a single CommandList that takes the full area
+        if ($this.CommandList) {
+            $this.CommandList.SetBounds(0, 0, $this.Width, $this.Height)
         }
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Handle Enter to copy selected command
-        if ($key.Key -eq [System.ConsoleKey]::Enter) {
-            if ($this.CommandList.IsFocused) {
-                $this.CopySelectedCommand()
-                return $true
-            }
+    [void] OnActivated() {
+        # Set focus when screen becomes active
+        if ($this.CommandList) {
+            $this.CommandList.Focus()
         }
-        
-        # Handle Ctrl+C to copy
-        if ($key.Key -eq [System.ConsoleKey]::C -and $key.Modifiers -band [System.ConsoleModifiers]::Control) {
-            $this.CopySelectedCommand()
-            return $true
+    }
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Route to ShortcutManager for screen-specific shortcuts
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if ($shortcutManager) {
+            return $shortcutManager.HandleKeyPress($keyInfo, $this.GetType().Name, "")
         }
-        
-        # Handle F1 for help
-        if ($key.Key -eq [System.ConsoleKey]::F1) {
-            $this.ShowSearchHelp()
-            return $true
-        }
-        
-        # Handle Ctrl+N for new command
-        if ($key.Key -eq [System.ConsoleKey]::N -and $key.Modifiers -band [System.ConsoleModifiers]::Control) {
-            $this.AddCommand()
-            return $true
-        }
-        
-        # Handle Delete key
-        if ($key.Key -eq [System.ConsoleKey]::Delete) {
-            if ($this.CommandList.IsFocused) {
-                $this.DeleteCommand()
-                return $true
-            }
-        }
-        
-        # Handle F2 for edit
-        if ($key.Key -eq [System.ConsoleKey]::F2) {
-            $this.EditCommand()
-            return $true
-        }
-        
-        return ([Screen]$this).HandleInput($key)
+        return $false
     }
     
     [string] GetHelpText() {
         return @"
 Command Library Help:
 
-Enter/Ctrl+C  - Copy selected command to clipboard
-Ctrl+N        - Add new command
-F2            - Edit selected command  
-Delete        - Delete selected command
-F1            - Show search syntax help
+Enter         - Copy selected command to clipboard
+n             - Add new command
+e             - Edit selected command  
+d             - Delete selected command
 Escape        - Return to main menu
 Tab           - Navigate between elements
 
-Search supports advanced syntax - press '?' for details.
+Search supports advanced syntax:
+  t:tag d:desc g:group +and |or
 "@
     }
 }

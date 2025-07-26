@@ -24,6 +24,7 @@ class BaseDialog : Screen {
     # Internal state
     hidden [hashtable]$_dialogBounds = @{}
     hidden [System.Collections.ArrayList]$_contentControls
+    hidden [bool]$_initialized = $false
     [EventBus]$EventBus
     
     BaseDialog([string]$title) : base() {
@@ -41,6 +42,12 @@ class BaseDialog : Screen {
     }
     
     [void] OnInitialize() {
+        # Prevent double initialization
+        if ($this._initialized) {
+            return
+        }
+        $this._initialized = $true
+        
         # Get EventBus
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
         

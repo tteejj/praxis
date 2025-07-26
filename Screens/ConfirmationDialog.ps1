@@ -5,6 +5,13 @@ class ConfirmationDialog : BaseDialog {
     [string]$ConfirmText = "Yes"
     [string]$CancelText = "No"
     
+    ConfirmationDialog() : base("Confirm") {
+        $this.Message = "Are you sure?"
+        # Set button texts before initialization
+        $this.PrimaryButtonText = $this.ConfirmText
+        $this.SecondaryButtonText = $this.CancelText
+    }
+    
     ConfirmationDialog([string]$message) : base("Confirm") {
         $this.Message = $message
         # Set button texts before initialization

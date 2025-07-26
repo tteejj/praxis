@@ -21,7 +21,12 @@ class CommandService {
                 $this.Commands.Clear()
                 
                 foreach ($commandData in $jsonContent) {
-                    $command = [Command]::FromHashtable($commandData)
+                    # Convert PSCustomObject to hashtable
+                    $hashtable = @{}
+                    $commandData.PSObject.Properties | ForEach-Object {
+                        $hashtable[$_.Name] = $_.Value
+                    }
+                    $command = [Command]::FromHashtable($hashtable)
                     $this.Commands.Add($command) | Out-Null
                 }
                 
@@ -32,11 +37,63 @@ class CommandService {
                 if ($this.Logger) {
                     $this.Logger.Info("No existing commands file found, starting with empty library")
                 }
+                # Add some default IDEA commands
+                $this.CreateDefaultCommands()
             }
         } catch {
             if ($this.Logger) {
                 $this.Logger.Error("Failed to load commands: $($_.Exception.Message)")
             }
+        }
+    }
+    
+    # Create default IDEA commands for new installations
+    [void] CreateDefaultCommands() {
+        # Add some common IDEA@ functions and commands
+        $defaultCommands = @(
+            @{
+                Title = "@CurrentDate_YYYYMMDD"
+                Description = "Returns current date in YYYYMMDD format"
+                Tags = @("function", "date", "idea")
+                Group = "Built-in Functions"
+                CommandText = "@CurrentDate_YYYYMMDD"
+            },
+            @{
+                Title = "@PromptForField"
+                Description = "Prompts user to select a field from the current database"
+                Tags = @("function", "field", "input", "idea")
+                Group = "Built-in Functions"
+                CommandText = "@PromptForField(`"Select field:`")"
+            },
+            @{
+                Title = "Open Database"
+                Description = "Opens a database file in IDEA"
+                Tags = @("database", "open", "idea")
+                Group = "Database Operations"
+                CommandText = "Set db = Client.OpenDatabase(`"database.IMD`")"
+            },
+            @{
+                Title = "Summarize by Field"
+                Description = "Creates a summarization by specified field"
+                Tags = @("summarize", "group", "analysis", "idea")
+                Group = "Analysis"
+                CommandText = "Set task = db.Summarization`nTask.AddFieldToSummarize `"FIELD_NAME`"`nTask.OutputDBName = `"Summary_Output`"`ndbName = task.Run()"
+            },
+            @{
+                Title = "Export to Excel"
+                Description = "Exports current database to Excel format"
+                Tags = @("export", "excel", "output", "idea")
+                Group = "Export"
+                CommandText = "Set task = db.ExportToExcel`nTask.OutputFile = `"output.xlsx`"`nTask.Run()"
+            }
+        )
+        
+        foreach ($cmdData in $defaultCommands) {
+            $command = $this.AddCommand($cmdData.Title, $cmdData.Description, $cmdData.Tags, $cmdData.Group, $cmdData.CommandText)
+        }
+        
+        if ($this.Logger) {
+            $this.Logger.Info("Created $($defaultCommands.Count) default IDEA commands")
         }
     }
     

@@ -57,6 +57,25 @@ class ThemeManager {
             "tab.active.background" = @(24, 24, 24)
             "tab.active.foreground" = @(255, 255, 255)
             "tab.active.accent" = @(0, 150, 255)
+            
+            # DataGrid specific colors
+            "header.background" = @(48, 48, 48)
+            "header.foreground" = @(0, 150, 255)
+            "scrollbar" = @(68, 68, 68)
+            "scrollbar.thumb" = @(128, 128, 128)
+            
+            # Additional component colors
+            "checkbox" = @(0, 150, 255)
+            "checkbox.selected" = @(0, 200, 255)
+            "search" = @(255, 195, 0)
+            "highlight" = @(255, 255, 0)
+            "directory" = @(0, 150, 255)
+            "file" = @(204, 204, 204)
+            "input.border" = @(68, 68, 68)
+            "input.placeholder" = @(128, 128, 128)
+            "progress.active" = @(0, 150, 255)
+            "progress.complete" = @(0, 200, 83)
+            "progress.text" = @(204, 204, 204)
         }
         
         $this.RegisterTheme("default", $defaultTheme)
@@ -103,14 +122,29 @@ class ThemeManager {
             "tab.active.foreground" = @(0, 255, 0)
             "tab.active.accent" = @(0, 255, 0)
             
+            # DataGrid specific colors
+            "header.background" = @(0, 30, 0)
+            "header.foreground" = @(0, 255, 0)
+            "scrollbar" = @(0, 100, 0)
+            "scrollbar.thumb" = @(0, 150, 0)
+            
+            # Additional component colors
+            "checkbox" = @(0, 255, 0)
+            "checkbox.selected" = @(0, 255, 100)
+            "search" = @(255, 255, 0)
+            "highlight" = @(255, 255, 0)
+            "directory" = @(0, 255, 0)
+            "file" = @(0, 200, 0)
+            "input.border" = @(0, 100, 0)
+            "input.placeholder" = @(0, 128, 0)
+            "progress.active" = @(0, 255, 0)
+            "progress.complete" = @(0, 255, 0)
+            "progress.text" = @(0, 200, 0)
+            
             # Dialog colors
             "dialog.background" = @(0, 0, 0)
             "dialog.border" = @(0, 150, 0)
             "dialog.title" = @(0, 255, 0)
-            
-            # File browser specific
-            "directory" = @(0, 255, 0)            # Bright green for directories
-            "file" = @(0, 200, 0)                 # Slightly dimmer for files
         }
         
         $this.RegisterTheme("matrix", $matrixTheme)

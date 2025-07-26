@@ -14,6 +14,7 @@ class SearchableListBox : UIElement {
     [bool]$UseRegex = $false
     [scriptblock]$ItemRenderer = $null
     [scriptblock]$OnSelectionChanged = {}
+    [scriptblock]$OnItemActivated = {}
     
     # Search configuration
     [int]$MinSearchLength = 0  # Start filtering immediately
@@ -23,7 +24,8 @@ class SearchableListBox : UIElement {
     # Visual settings
     [string]$SearchPrompt = "Search: "
     [string]$NoResultsText = "No items found"
-    [char]$SearchIcon = [char]0x1F50D  # 🔍
+    [string]$SearchIcon = "🔍"  # Search icon
+    [char[]]$ExcludedSearchKeys = @('n', 'e', 'd')  # Keys that should not trigger search mode
     
     hidden [ThemeManager]$Theme
     hidden [string]$_cachedRender = ""
@@ -56,6 +58,7 @@ class SearchableListBox : UIElement {
                 'title' = $this.Theme.GetColor("title")
                 'selected' = $this.Theme.GetBgColor("selected")
                 'normal' = $this.Theme.GetColor("normal")
+                'background' = $this.Theme.GetBgColor("background")
                 'search' = $this.Theme.GetColor("search")
                 'highlight' = $this.Theme.GetColor("highlight")
                 'border.focused' = $this.Theme.GetColor("border.focused")
@@ -321,6 +324,7 @@ class SearchableListBox : UIElement {
         $titleColor = $this._colors['title']
         $selectedBg = $this._colors['selected']
         $normalColor = $this._colors['normal']
+        $bgColor = $this._colors['background']
         $searchColor = if ($this._colors['search']) { $this._colors['search'] } else { $normalColor }
         $highlightColor = if ($this._colors['highlight']) { $this._colors['highlight'] } else { "`e[38;2;255;255;0m" }
         $focusBorder = if ($this._colors['border.focused']) { $this._colors['border.focused'] } else { $borderColor }
@@ -330,7 +334,7 @@ class SearchableListBox : UIElement {
         # Calculate content area
         $contentY = $this.Y
         $contentHeight = $this.Height
-        $contentWidth = $this.Width - ($this.ShowBorder ? 2 : 0)
+        $contentWidth = [Math]::Max(1, $this.Width - ($this.ShowBorder ? 2 : 0))
         
         if ($this.ShowBorder) {
             # Top border
@@ -348,7 +352,7 @@ class SearchableListBox : UIElement {
                 if ($this._filteredItems.Count -ne $this.Items.Count) {
                     $titleText += " ($($this._filteredItems.Count)/$($this.Items.Count))"
                 }
-                $titleLine = $titleText.PadRight($contentWidth).Substring(0, $contentWidth)
+                $titleLine = if ($contentWidth -le 0) { "" } else { $titleText.PadRight($contentWidth).Substring(0, $contentWidth) }
                 $sb.Append($titleLine)
                 $contentY++
                 $contentHeight--
@@ -362,7 +366,7 @@ class SearchableListBox : UIElement {
                 if ($this._filteredItems.Count -ne $this.Items.Count) {
                     $titleText += " ($($this._filteredItems.Count)/$($this.Items.Count))"
                 }
-                $titleLine = $titleText.PadRight($this.Width).Substring(0, $this.Width)
+                $titleLine = if ($this.Width -le 0) { "" } else { $titleText.PadRight($this.Width).Substring(0, $this.Width) }
                 $sb.Append($titleLine)
                 $contentY++
                 $contentHeight--
@@ -379,7 +383,7 @@ class SearchableListBox : UIElement {
                 $searchText += "|"  # Cursor indicator
             }
             
-            $searchLine = $searchText.PadRight($contentWidth).Substring(0, $contentWidth)
+            $searchLine = if ($contentWidth -le 0) { "" } else { $searchText.PadRight($contentWidth).Substring(0, $contentWidth) }
             $sb.Append($searchLine)
             $contentY++
             $contentHeight--
@@ -411,11 +415,34 @@ class SearchableListBox : UIElement {
         $endIndex = [Math]::Min($startIndex + $visibleLines, $this._filteredItems.Count)
         
         if ($this._filteredItems.Count -eq 0) {
-            # No results message
-            $noResultsY = $contentY + ($visibleLines / 2)
-            $sb.Append([VT]::MoveTo($this.X + ($this.Width / 2 - $this.NoResultsText.Length / 2), [int]$noResultsY))
-            $sb.Append($normalColor)
-            $sb.Append($this.NoResultsText)
+            # Fill all empty lines first
+            for ($i = 0; $i -lt $visibleLines; $i++) {
+                $y = $contentY + $i
+                $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $y))
+                $sb.Append($normalColor)
+                $sb.Append($bgColor)
+                $sb.Append([StringCache]::GetSpaces($contentWidth))
+                
+                if ($this.ShowBorder) {
+                    $sb.Append([VT]::MoveTo($this.X, $y))
+                    $sb.Append($currentBorderColor)
+                    $sb.Append([VT]::V())
+                    
+                    $sb.Append([VT]::MoveTo($this.X + $this.Width - 1, $y))
+                    $sb.Append($currentBorderColor)
+                    $sb.Append([VT]::V())
+                }
+            }
+            
+            # No results message centered in the content area
+            if ($visibleLines -gt 0) {
+                $noResultsY = $contentY + [int]($visibleLines / 2)
+                $messageX = $this.X + ($this.ShowBorder ? 1 : 0) + [Math]::Max(0, [int](($contentWidth - $this.NoResultsText.Length) / 2))
+                $sb.Append([VT]::MoveTo($messageX, $noResultsY))
+                $sb.Append($normalColor)
+                $sb.Append($bgColor)
+                $sb.Append($this.NoResultsText)
+            }
         } else {
             # Render items
             for ($i = $startIndex; $i -lt $endIndex; $i++) {
@@ -429,6 +456,7 @@ class SearchableListBox : UIElement {
                     $sb.Append($selectedBg)
                 } else {
                     $sb.Append($normalColor)
+                    $sb.Append($bgColor)
                 }
                 
                 # Get display text
@@ -447,7 +475,7 @@ class SearchableListBox : UIElement {
                 if ($displayText.Length -gt $contentWidth) {
                     $displayText = $displayText.Substring(0, $contentWidth - 3) + "..."
                 }
-                $displayLine = $displayText.PadRight($contentWidth).Substring(0, $contentWidth)
+                $displayLine = if ($contentWidth -le 0) { "" } else { $displayText.PadRight($contentWidth).Substring(0, $contentWidth) }
                 $sb.Append($displayLine)
                 
                 # Side borders
@@ -468,6 +496,7 @@ class SearchableListBox : UIElement {
             $y = $contentY + $i
             $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $y))
             $sb.Append($normalColor)
+            $sb.Append($bgColor)
             $sb.Append([StringCache]::GetSpaces($contentWidth))
             
             if ($this.ShowBorder) {
@@ -580,10 +609,16 @@ class SearchableListBox : UIElement {
                     $this.ToggleSearchMode()
                     $handled = $true
                 }
+                ([System.ConsoleKey]::Enter) {
+                    if ($this.OnItemActivated -and $this._filteredItems.Count -gt 0 -and $this.SelectedIndex -ge 0) {
+                        & $this.OnItemActivated $this.GetSelectedItem()
+                    }
+                    $handled = $true
+                }
             }
             
-            # Character-based search activation
-            if (-not $handled -and $key.KeyChar -ge 32 -and $key.KeyChar -lt 127) {
+            # Character-based search activation (exclude shortcut keys)
+            if (-not $handled -and $key.KeyChar -ge 32 -and $key.KeyChar -lt 127 -and $key.KeyChar -notin $this.ExcludedSearchKeys) {
                 $this.SetSearchQuery([string]$key.KeyChar)
                 $this.EnterSearchMode()
                 $handled = $true

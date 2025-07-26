@@ -1,25 +1,49 @@
 #!/usr/bin/env pwsh
-# Debug script for shortcuts
 
-param(
-    [string]$LogPath = "_Logs/praxis.log"
-)
+# Debug shortcut issue with CommandLibraryScreen
+Write-Host "Debugging CommandLibraryScreen shortcuts..." -ForegroundColor Cyan
 
-Write-Host "Testing ShortcutManager Registration..." -ForegroundColor Cyan
+# Load framework
+. "$PSScriptRoot/Start.ps1" -LoadOnly
 
-# Watch the log file
-if (Test-Path $LogPath) {
-    Write-Host "Monitoring log file: $LogPath" -ForegroundColor Yellow
-    Write-Host "Look for these patterns:" -ForegroundColor Gray
-    Write-Host "  - 'Registered shortcut:' when screens activate" -ForegroundColor Gray
-    Write-Host "  - 'ShortcutManager.HandleKeyPress:' when you press keys" -ForegroundColor Gray
-    Write-Host "  - 'Found X matching shortcuts' to see if keys match" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "Press Ctrl+C to stop monitoring" -ForegroundColor Yellow
+try {
+    Write-Host "Creating CommandLibraryScreen..." -ForegroundColor Yellow
+    $screen = [CommandLibraryScreen]::new()
+    $screen.Initialize($global:ServiceContainer)
     
-    Get-Content $LogPath -Wait -Tail 50 | Where-Object { 
-        $_ -match 'shortcut|HandleKeyPress|Registered|Screen.*activated'
+    # Check screen type name
+    $screenTypeName = $screen.GetType().Name
+    Write-Host "Screen type name: '$screenTypeName'" -ForegroundColor Cyan
+    
+    # Check registered shortcuts
+    $shortcutManager = $global:ServiceContainer.GetService('ShortcutManager')
+    $shortcuts = $shortcutManager.GetShortcuts([ShortcutScope]::Screen, "CommandLibraryScreen")
+    
+    Write-Host "`nShortcuts registered for 'CommandLibraryScreen':" -ForegroundColor Yellow
+    foreach ($shortcut in $shortcuts) {
+        Write-Host "  $($shortcut.Id): '$($shortcut.KeyChar)' -> $($shortcut.Name)" -ForegroundColor Cyan
     }
-} else {
-    Write-Host "Log file not found at: $LogPath" -ForegroundColor Red
+    
+    # Test if ShortcutManager would find these shortcuts
+    Write-Host "`nTesting shortcut matching..." -ForegroundColor Yellow
+    $nKey = [System.ConsoleKeyInfo]::new('n', [System.ConsoleKey]::N, $false, $false, $false)
+    
+    # Simulate what ScreenManager would pass
+    $handled = $shortcutManager.HandleKeyPress($nKey, $screenTypeName, "")
+    Write-Host "Key 'n' handled by ShortcutManager: $handled" -ForegroundColor $(if ($handled) { "Green" } else { "Red" })
+    
+    # Check if there are conflicting shortcuts
+    $allShortcuts = $shortcutManager.GetAllShortcuts()
+    $nShortcuts = $allShortcuts | Where-Object { $_.KeyChar -eq 'n' }
+    
+    Write-Host "`nAll shortcuts with key 'n':" -ForegroundColor Yellow
+    foreach ($shortcut in $nShortcuts) {
+        Write-Host "  $($shortcut.Id): Scope=$($shortcut.Scope) ScreenType='$($shortcut.ScreenType)' Priority=$($shortcut.Priority)" -ForegroundColor Cyan
+    }
+    
+} catch {
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Stack: $($_.ScriptStackTrace)" -ForegroundColor DarkRed
 }
+
+Write-Host "`nTest completed!" -ForegroundColor Green

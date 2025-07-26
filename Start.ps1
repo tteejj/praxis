@@ -5,7 +5,8 @@
 param(
     [switch]$Debug,
     [switch]$Performance,
-    [string]$Theme = "default"
+    [string]$Theme = "default",
+    [switch]$LoadOnly
 )
 
 # Enable debug output if requested
@@ -31,6 +32,8 @@ $loadOrder = @(
     "Core/VT100.ps1"
     "Core/ServiceContainer.ps1"
     "Core/StringBuilderPool.ps1"
+    "Core/DocumentBuffer.ps1"
+    "Core/EditorCommands.ps1"
     
     # Services (needed by base classes)
     "Services/Logger.ps1"
@@ -53,6 +56,13 @@ $loadOrder = @(
     "Models/TimeEntry.ps1"
     "Models/TimeCode.ps1"
     "Models/Command.ps1"
+    "Models/BaseAction.ps1"
+    
+    # Actions (after BaseAction)
+    "Actions/CustomIdeaCommandAction.ps1"
+    "Actions/SummarizationAction.ps1"
+    "Actions/AppendFieldAction.ps1"
+    "Actions/ExportToExcelAction.ps1"
     
     # Services
     "Services/ProjectService.ps1"
@@ -62,6 +72,8 @@ $loadOrder = @(
     "Services/CommandService.ps1"
     "Services/ConfigurationService.ps1"
     "Services/StateManager.ps1"
+    "Services/FunctionRegistry.ps1"
+    "Services/MacroContextManager.ps1"
     
     # Components
     "Components/ListBox.ps1"
@@ -110,9 +122,10 @@ $loadOrder = @(
     "Screens/DashboardScreen.ps1",
     "Screens/SettingsScreen.ps1",
     "Screens/FileBrowserScreen.ps1",
-    "Screens/TextEditorScreen.ps1",
+    "Screens/TextEditorScreenNew.ps1",
     "Screens/TimeEntryScreen.ps1",
     "Screens/CommandLibraryScreen.ps1",
+    "Screens/VisualMacroFactoryScreen.ps1",
     
     # CommandPalette (after screens it references)
     "Components/CommandPalette.ps1"
@@ -228,6 +241,12 @@ if ($Debug) { Write-Host "  Pushing to ScreenManager..." -ForegroundColor DarkGr
 $screenManager.Push($mainScreen)
 
 if ($Debug) { Write-Host "  Main screen initialized" -ForegroundColor DarkGray }
+
+# Exit early if LoadOnly is requested
+if ($LoadOnly) {
+    Write-Host "Framework loaded successfully (LoadOnly mode)" -ForegroundColor Green
+    return
+}
 
 Write-Host "Starting PRAXIS..." -ForegroundColor Green
 Write-Host "  • Press 1-6 to switch tabs (Projects, Tasks, Dashboard, Files, Editor, Settings)" -ForegroundColor DarkGray
