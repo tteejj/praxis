@@ -8,10 +8,11 @@ class BaseDialog : Screen {
     [int]$ButtonHeight = 3
     [int]$ButtonSpacing = 2
     [int]$MaxButtonWidth = 12
+    [BorderType]$BorderType = [BorderType]::Rounded
     
     # Common buttons
-    [Button]$PrimaryButton
-    [Button]$SecondaryButton
+    [MinimalButton]$PrimaryButton
+    [MinimalButton]$SecondaryButton
     [string]$PrimaryButtonText = "OK"
     [string]$SecondaryButtonText = "Cancel"
     
@@ -65,21 +66,19 @@ class BaseDialog : Screen {
     
     [void] CreateDefaultButtons() {
         # Create primary button
-        $this.PrimaryButton = [Button]::new($this.PrimaryButtonText)
+        $this.PrimaryButton = [MinimalButton]::new($this.PrimaryButtonText)
         $this.PrimaryButton.IsDefault = $true
         $dialog = $this  # Capture reference
         $this.PrimaryButton.OnClick = {
             $dialog.HandlePrimaryAction()
         }.GetNewClosure()
-        $this.PrimaryButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.PrimaryButton)
         
         # Create secondary button
-        $this.SecondaryButton = [Button]::new($this.SecondaryButtonText)
+        $this.SecondaryButton = [MinimalButton]::new($this.SecondaryButtonText)
         $this.SecondaryButton.OnClick = {
             $dialog.HandleSecondaryAction()
         }.GetNewClosure()
-        $this.SecondaryButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.SecondaryButton)
     }
     
@@ -87,7 +86,6 @@ class BaseDialog : Screen {
         if ($tabIndex -gt 0) {
             $control.TabIndex = $tabIndex
         }
-        $control.Initialize($global:ServiceContainer)
         $this.AddChild($control)
         $this._contentControls.Add($control) | Out-Null
     }
@@ -155,9 +153,36 @@ class BaseDialog : Screen {
             })
         }
         
+        if ($global:Logger) {
+            $global:Logger.Debug("BaseDialog.OnActivated: Dialog=$($this.GetType().Name) ContentControls=$($this._contentControls.Count)")
+        }
+        
         # Focus first content control
         if ($this._contentControls.Count -gt 0) {
-            $this._contentControls[0].Focus()
+            $firstControl = $this._contentControls[0]
+            if ($global:Logger) {
+                $global:Logger.Debug("BaseDialog: Focusing first control: $($firstControl.GetType().Name)")
+            }
+            $firstControl.Focus()
+            
+            # Verify focus was set
+            if ($global:Logger) {
+                $focusManager = $this.ServiceContainer.GetService('FocusManager')
+                if ($focusManager) {
+                    $focused = $focusManager.GetFocused()
+                    if ($focused) {
+                        $global:Logger.Debug("BaseDialog: FocusManager reports focused: $($focused.GetType().Name)")
+                    } else {
+                        $global:Logger.Warning("BaseDialog: FocusManager reports NO focused element!")
+                    }
+                } else {
+                    $global:Logger.Warning("BaseDialog: No FocusManager available!")
+                }
+            }
+        } else {
+            if ($global:Logger) {
+                $global:Logger.Warning("BaseDialog: No content controls to focus!")
+            }
         }
     }
     
@@ -252,11 +277,15 @@ class BaseDialog : Screen {
     }
     
     [void] RenderOverlay([System.Text.StringBuilder]$sb) {
-        # Dark overlay background
-        $overlayBg = [VT]::RGBBG(16, 16, 16)  # Dark gray overlay
+        # Use theme background with slight transparency effect
+        $themeBg = $this.Theme.GetBgColor("background")
+        if ($global:Logger) {
+            $global:Logger.Debug("BaseDialog.RenderOverlay: Theme background color: '$themeBg'")
+        }
+        # For dialogs, darken the background slightly
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo(0, $y))
-            $sb.Append($overlayBg)
+            $sb.Append($themeBg)
             $sb.Append([StringCache]::GetSpaces($this.Width))
         }
     }
@@ -277,20 +306,8 @@ class BaseDialog : Screen {
             $sb.Append([StringCache]::GetSpaces($w))
         }
         
-        # Draw border
-        $sb.Append([VT]::MoveTo($x, $y))
-        $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($w - 2) + [VT]::TR())
-        
-        for ($i = 1; $i -lt $h - 1; $i++) {
-            $sb.Append([VT]::MoveTo($x, $y + $i))
-            $sb.Append([VT]::V())
-            $sb.Append([VT]::MoveTo($x + $w - 1, $y + $i))
-            $sb.Append([VT]::V())
-        }
-        
-        $sb.Append([VT]::MoveTo($x, $y + $h - 1))
-        $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($w - 2) + [VT]::BR())
+        # Draw border using BorderStyle system
+        $sb.Append([BorderStyle]::RenderBorder($x, $y, $w, $h, $this.BorderType, $borderColor))
     }
     
     [void] RenderTitle([System.Text.StringBuilder]$sb) {
@@ -318,4 +335,7 @@ class BaseDialog : Screen {
             }
         }
     }
+    
+    # Tab navigation is now handled by Container base class via FocusManager
+    # No need to override HandleInput for Tab anymore
 }

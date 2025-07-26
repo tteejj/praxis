@@ -304,7 +304,11 @@ class CommandPalette : Container {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Search command executed")
             }
-            # TODO: Implement search
+            # Publish search event for current screen to handle
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish('command.search', $palette, @{})
+            }
+            $palette.Hide()
         }.GetNewClosure())
         
         $this.AddCommand("files", "Open file browser", {
@@ -362,21 +366,36 @@ class CommandPalette : Container {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Reload command executed")
             }
-            # TODO: Implement reload
+            # Publish reload event for services to handle
+            if ($palette.EventBus) {
+                $palette.EventBus.Publish('command.reload', $palette, @{})
+            }
+            # Reload configuration service
+            $configService = $global:ServiceContainer.GetService('ConfigurationService')
+            if ($configService) {
+                $configService.LoadConfiguration()
+            }
+            $palette.Hide()
         }.GetNewClosure())
         
         $this.AddCommand("theme dark", "Switch to dark theme", {
             if ($global:Logger) {
                 $global:Logger.Debug("CommandPalette: Dark theme command executed")
             }
-            # TODO: Implement theme switching
+            if ($palette.Theme) {
+                $palette.Theme.SetTheme('default')
+            }
+            $palette.Hide()
         }.GetNewClosure())
         
-        $this.AddCommand("theme light", "Switch to light theme", {
+        $this.AddCommand("theme matrix", "Switch to matrix theme", {
             if ($global:Logger) {
-                $global:Logger.Debug("CommandPalette: Light theme command executed")
+                $global:Logger.Debug("CommandPalette: Matrix theme command executed")
             }
-            # TODO: Implement theme switching
+            if ($palette.Theme) {
+                $palette.Theme.SetTheme('matrix')
+            }
+            $palette.Hide()
         }.GetNewClosure())
         $this.AddCommand("quit", "Exit application (Ctrl+Q)", {
             if ($global:Logger) {

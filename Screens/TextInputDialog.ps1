@@ -4,9 +4,9 @@ class TextInputDialog : Screen {
     [string]$Prompt
     [string]$DefaultValue
     [string]$Placeholder
-    [TextBox]$InputBox
-    [Button]$OkButton
-    [Button]$CancelButton
+    [MinimalTextBox]$InputBox
+    [MinimalButton]$OkButton
+    [MinimalButton]$CancelButton
     [scriptblock]$OnSubmit = {}
     [scriptblock]$OnCancel = {}
     
@@ -28,14 +28,14 @@ class TextInputDialog : Screen {
     
     [void] OnInitialize() {
         # Create input textbox
-        $this.InputBox = [TextBox]::new()
+        $this.InputBox = [MinimalTextBox]::new()
         $this.InputBox.Text = $this.DefaultValue
         $this.InputBox.Placeholder = $this.Placeholder
         $this.InputBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.InputBox)
         
         # Create buttons
-        $this.OkButton = [Button]::new("OK")
+        $this.OkButton = [MinimalButton]::new("OK")
         # Capture dialog reference
         $dialog = $this
         $this.OkButton.OnClick = {
@@ -46,7 +46,7 @@ class TextInputDialog : Screen {
         $this.OkButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.OkButton)
         
-        $this.CancelButton = [Button]::new("Cancel")
+        $this.CancelButton = [MinimalButton]::new("Cancel")
         $this.CancelButton.OnClick = {
             if ($dialog.OnCancel) {
                 & $dialog.OnCancel

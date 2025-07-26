@@ -8,6 +8,7 @@ class ScreenManager {
     hidden [System.ConsoleKeyInfo]$_lastKey
     hidden [ServiceContainer]$_services
     hidden [ShortcutManager]$_shortcutManager
+    hidden [FocusManager]$_focusManager
     hidden [bool]$_exitRequested = $false
     
     # Performance tracking
@@ -23,8 +24,9 @@ class ScreenManager {
         $this._services = $services
         $this._renderTimer = [System.Diagnostics.Stopwatch]::new()
         
-        # Get ShortcutManager if available
+        # Get managers
         $this._shortcutManager = $services.GetService('ShortcutManager')
+        $this._focusManager = $services.GetService('FocusManager')
     }
     
     # Push a new screen
@@ -97,6 +99,7 @@ class ScreenManager {
                 try {
                     $this._activeScreen.Active = $true
                     $this._activeScreen.OnActivated()
+                    $this._activeScreen.Invalidate()  # Force redraw of the screen
                 } catch {
                     if ($global:Logger) {
                         $global:Logger.Error("ScreenManager.Pop: Error activating previous screen - $_")
@@ -251,7 +254,26 @@ class ScreenManager {
                             }
                         }
                         
-                        # 2. Command Palette override (when visible) - only if not handled by shortcuts
+                        # 2. Global F1 for help
+                        if (-not $handled -and $key.Key -eq [System.ConsoleKey]::F1) {
+                            # Show keyboard help overlay
+                            try {
+                                # Check if HelpManager is available
+                                $helpOverlay = [KeyboardHelpOverlay]::new("")
+                                if ($this._activeScreen) {
+                                    $helpOverlay = [KeyboardHelpOverlay]::new($this._activeScreen.GetType().Name)
+                                }
+                                $this.Push($helpOverlay)
+                                $handled = $true
+                            } catch {
+                                # HelpManager not available yet
+                                if ($global:Logger) {
+                                    $global:Logger.Debug("F1 help not available: $_")
+                                }
+                            }
+                        }
+                        
+                        # 3. Command Palette override (when visible) - only if not handled by shortcuts
                         if (-not $handled -and $this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
                             $handled = $this._activeScreen.CommandPalette.HandleInput($key)
                             if ($global:Logger) {
@@ -270,12 +292,7 @@ class ScreenManager {
                                     }
                                 }
                             } 
-                            elseif ($key.Key -eq [System.ConsoleKey]::Tab) {
-                                # Handle Tab navigation via parent delegation
-                                if ($this._activeScreen) {
-                                    $handled = $this.HandleTabNavigation($key)
-                                }
-                            }
+                            # Tab navigation now handled by Container/Screen hierarchy
                             elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
                                 # Ctrl+Q for quit
                                 if ($key.Key -eq [System.ConsoleKey]::Q) {
@@ -294,10 +311,8 @@ class ScreenManager {
                             }
                         }
                         
-                        # 4. Tab navigation (if not handled above)
-                        if (-not $handled -and $key.Key -eq [System.ConsoleKey]::Tab -and $this._activeScreen) {
-                            $handled = $this.HandleTabNavigation($key)
-                        }
+                        # 4. Tab navigation now handled by Container/Screen hierarchy
+                        # Removed duplicate Tab handling here
                         
                         # 5. If not handled by global shortcuts, let screen handle it
                         if (-not $handled -and $this._activeScreen) {
@@ -363,10 +378,18 @@ class ScreenManager {
             $global:Logger.Debug("ScreenManager.Render: Content length = $($content.Length)")
         }
         
+        # Clear screen if content changed significantly (like dialog closing)
+        if ($this._lastContent -eq "") {
+            [Console]::Clear()
+        }
+        
         # Always write to console
         [Console]::CursorVisible = $false
         [Console]::SetCursorPosition(0, 0)
         [Console]::Write($content)
+        
+        # Store content for next comparison
+        $this._lastContent = $content
         
         $this._renderTimer.Stop()
         $this._frameCount++
@@ -400,67 +423,25 @@ class ScreenManager {
         $this._needsRender = $true
     }
     
-    # Parent-delegated Tab navigation
+    # Fast Tab navigation using FocusManager
     [bool] HandleTabNavigation([System.ConsoleKeyInfo]$key) {
-        # Find the deepest focused element
-        $focused = $this.FindDeepestFocusedElement($this._activeScreen)
-        if ($global:Logger) {
-            $global:Logger.Debug("HandleTabNavigation: Focused element = " + $(if ($focused) { $focused.GetType().Name } else { "null" }))
-        }
+        if (-not $this._focusManager) { return $false }
         
-        if (-not $focused) {
-            # No focus, try to focus first focusable element
-            if ($global:Logger) {
-                $global:Logger.Debug("HandleTabNavigation: No focused element, focusing first")
-            }
-            $this._activeScreen.FocusFirst()
-            return $true
-        }
+        $isReverse = ($key.Modifiers -band [System.ConsoleModifiers]::Shift) -ne 0
         
-        # Ask the parent to handle navigation
-        if ($focused.Parent) {
-            $isReverse = ($key.Modifiers -band [System.ConsoleModifiers]::Shift) -or 
-                         ($key.Key -eq [System.ConsoleKey]::LeftArrow)
-            
-            if ($global:Logger) {
-                $global:Logger.Debug("HandleTabNavigation: Parent = $($focused.Parent.GetType().Name), Reverse = $isReverse")
-            }
-            
-            if ($isReverse) {
-                $focused.Parent.FocusPreviousChild($focused)
-            } else {
-                $focused.Parent.FocusNextChild($focused)
-            }
-            
-            if ($global:Logger) {
-                $direction = if ($isReverse) { "reverse" } else { "forward" }
-                $global:Logger.Debug("Tab navigation: $direction via parent delegation")
-            }
-            return $true
+        # Use FocusManager for O(1) navigation
+        if ($isReverse) {
+            return $this._focusManager.FocusPrevious($this._activeScreen)
+        } else {
+            return $this._focusManager.FocusNext($this._activeScreen)
         }
-        
-        return $false
     }
     
-    # Find the deepest focused element in the tree
-    [UIElement] FindDeepestFocusedElement([UIElement]$root) {
-        if (-not $root) { return $null }
-        
-        if ($root.IsFocused) {
-            # Check if any child is focused (go deeper)
-            foreach ($child in $root.Children) {
-                $deeper = $this.FindDeepestFocusedElement($child)
-                if ($deeper) { return $deeper }
-            }
-            return $root
+    # Get focused element using FocusManager (O(1))
+    [UIElement] GetFocusedElement() {
+        if ($this._focusManager) {
+            return $this._focusManager.GetFocused()
         }
-        
-        # Not focused, check children
-        foreach ($child in $root.Children) {
-            $found = $this.FindDeepestFocusedElement($child)
-            if ($found) { return $found }
-        }
-        
         return $null
     }
     

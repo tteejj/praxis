@@ -1,7 +1,7 @@
 # TaskScreen.ps1 - Task management screen using DataGrid
 
 class TaskScreen : Screen {
-    [DataGrid]$TaskGrid
+    [MinimalDataGrid]$TaskGrid
     [TaskService]$TaskService
     [SubtaskService]$SubtaskService
     [ProjectService]$ProjectService
@@ -112,10 +112,10 @@ class TaskScreen : Screen {
         }
         
         # Create DataGrid with columns
-        $this.TaskGrid = [DataGrid]::new()
+        $this.TaskGrid = [MinimalDataGrid]::new()
         $this.TaskGrid.Title = "Tasks"
-        $this.TaskGrid.ShowBorder = $true
-        $this.TaskGrid.ShowGridLines = $true
+        $this.TaskGrid.ShowBorder = $false  # MainScreen draws the border
+        $this.TaskGrid.ShowGridLines = $false
         
         # Define columns
         $screen = $this
@@ -388,20 +388,10 @@ class TaskScreen : Screen {
                 $screen.LoadTasks()
             }
             
-            # EditTaskDialog is not a BaseDialog, so we need to Pop manually
-            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
-            if ($screenManager) {
-                $screenManager.Pop()
-            }
+            # Don't call Pop() - BaseDialog handles that
         }.GetNewClosure()
         
-        # EditTaskDialog is not a BaseDialog, so we need to handle cancel
-        $dialog.OnCancel = {
-            $screenManager = $screen.ServiceContainer.GetService("ScreenManager")
-            if ($screenManager) {
-                $screenManager.Pop()
-            }
-        }.GetNewClosure()
+        # Don't need OnCancel - BaseDialog handles ESC by default
         
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)

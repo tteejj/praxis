@@ -259,11 +259,22 @@ class TabContainer : Container {
             $x += $tabWidth + 1
         }
         
-        # Reset and draw separator line
+        # Reset and draw separator line with junction characters
         $sb.Append([VT]::Reset())
         $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
         $sb.Append($this._colors['border'])
+        # Draw left junction
+        if ($this.X > 0) {
+            $sb.Append([VT]::MoveTo($this.X - 1, $this.Y + 1))
+            $sb.Append('├')
+        }
+        $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
         $sb.Append([StringCache]::GetHorizontalLine($this.Width))
+        # Draw right junction
+        if (($this.X + $this.Width) -lt [Console]::WindowWidth) {
+            $sb.Append([VT]::MoveTo($this.X + $this.Width, $this.Y + 1))
+            $sb.Append('┤')
+        }
         $sb.Append([VT]::Reset())
         
         $this._cachedTabBar = $sb.ToString()

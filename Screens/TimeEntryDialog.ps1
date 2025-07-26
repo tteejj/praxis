@@ -7,13 +7,13 @@ class TimeEntryDialog : BaseDialog {
     [bool]$IsEditMode = $false
     
     # Input fields
-    [TextBox]$DateTextBox
-    [TextBox]$HoursTextBox
-    [TextBox]$DescriptionTextBox
+    [MinimalTextBox]$DateTextBox
+    [MinimalTextBox]$HoursTextBox
+    [MinimalTextBox]$DescriptionTextBox
     
     # Buttons
-    [Button]$SaveButton
-    [Button]$CancelButton
+    [MinimalButton]$SaveButton
+    [MinimalButton]$CancelButton
     
     # Callbacks
     [scriptblock]$OnSave = {}
@@ -40,7 +40,7 @@ class TimeEntryDialog : BaseDialog {
     
     [void] InitializeContent() {
         # Create input fields
-        $this.DateTextBox = [TextBox]::new()
+        $this.DateTextBox = [MinimalTextBox]::new()
         $this.DateTextBox.Title = "Date (MM/DD/YYYY)"
         $this.DateTextBox.ShowBorder = $true
         
@@ -57,7 +57,7 @@ class TimeEntryDialog : BaseDialog {
             }
         }
         
-        $this.HoursTextBox = [TextBox]::new()
+        $this.HoursTextBox = [MinimalTextBox]::new()
         $this.HoursTextBox.Title = "Hours (e.g., 8.5)"
         $this.HoursTextBox.ShowBorder = $true
         
@@ -65,7 +65,7 @@ class TimeEntryDialog : BaseDialog {
             $this.HoursTextBox.Text = $this.TimeEntry.Total
         }
         
-        $this.DescriptionTextBox = [TextBox]::new()
+        $this.DescriptionTextBox = [MinimalTextBox]::new()
         $this.DescriptionTextBox.Title = "Description"
         $this.DescriptionTextBox.ShowBorder = $true
         $this.DescriptionTextBox.IsMultiline = $true
@@ -74,26 +74,14 @@ class TimeEntryDialog : BaseDialog {
             $this.DescriptionTextBox.Text = $this.TimeEntry.Description
         }
         
-        # Initialize components
-        if ($this.ServiceContainer) {
-            $this.DateTextBox.Initialize($this.ServiceContainer)
-            $this.HoursTextBox.Initialize($this.ServiceContainer)
-            $this.DescriptionTextBox.Initialize($this.ServiceContainer)
-        }
-        
         # Create buttons
         $saveText = if ($this.IsEditMode) { "Update Entry" } else { "Add Entry" }
-        $this.SaveButton = [Button]::new($saveText)
+        $this.SaveButton = [MinimalButton]::new($saveText)
         $this.SaveButton.IsDefault = $true
         $this.SaveButton.OnClick = { $this.HandleSave() }
         
-        $this.CancelButton = [Button]::new("Cancel")
+        $this.CancelButton = [MinimalButton]::new("Cancel")
         $this.CancelButton.OnClick = { $this.HandleCancel() }
-        
-        if ($this.ServiceContainer) {
-            $this.SaveButton.Initialize($this.ServiceContainer)
-            $this.CancelButton.Initialize($this.ServiceContainer)
-        }
         
         # Add children
         $this.AddChild($this.DateTextBox)

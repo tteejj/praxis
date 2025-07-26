@@ -45,10 +45,17 @@ $loadOrder = @(
     # Base classes
     "Base/UIElement.ps1"
     "Base/Container.ps1"
+    "Base/FocusableComponent.ps1"
     "Base/Screen.ps1"
     "Base/BaseModel.ps1"
     
+    # Core UI systems (needed by components)
+    "Core/BorderStyle.ps1"
+    "Core/KeyboardShortcuts.ps1"
+    "Core/AnimationHelper.ps1"
+    
     # Services that depend on base classes
+    "Services/FocusManager.ps1"
     "Services/ShortcutManager.ps1"
     
     # Models
@@ -67,6 +74,7 @@ $loadOrder = @(
     "Actions/ExportToExcelAction.ps1"
     
     # Services
+    "Services/ToastService.ps1"
     "Services/ProjectService.ps1"
     "Services/TaskService.ps1"
     "Services/SubtaskService.ps1"
@@ -81,14 +89,21 @@ $loadOrder = @(
     "Components/ListBox.ps1"
     "Components/TextBox.ps1"
     "Components/Button.ps1"
+    "Components/MinimalButton.ps1"
+    "Components/MinimalListBox.ps1"
+    "Components/MinimalTextBox.ps1"
+    "Components/MinimalDataGrid.ps1"
+    "Components/MinimalStatusBar.ps1"
+    "Components/MinimalModal.ps1"
+    "Components/MinimalContextMenu.ps1"
     "Components/DataGrid.ps1"
-    "Components/TreeView.ps1"
     "Components/ProgressBar.ps1"
     "Components/FastFileTree.ps1"
     "Components/RangerFileTree.ps1"
     "Components/SearchableListBox.ps1"
     "Components/MultiSelectListBox.ps1"
     "Components/TabContainer.ps1"
+    "Components/MinimalTabContainer.ps1"
     
     # Layout Components (NEW!)
     "Components/HorizontalSplit.ps1"
@@ -96,13 +111,11 @@ $loadOrder = @(
     "Components/GridPanel.ps1"
     "Components/DockPanel.ps1"
     
-    # Core systems
-    "Core/ScreenManager.ps1"
-    
     # BaseDialog (after components are loaded)
     "Base/BaseDialog.ps1"
     
     # Dialogs (must be loaded before screens that use them)
+    "Screens/FilePickerDialog.ps1",
     "Screens/TextInputDialog.ps1",
     "Screens/NumberInputDialog.ps1",
     "Screens/ConfirmationDialog.ps1",
@@ -129,9 +142,15 @@ $loadOrder = @(
     "Screens/TimeEntryScreen.ps1",
     "Screens/CommandLibraryScreen.ps1",
     "Screens/VisualMacroFactoryScreen.ps1",
+    "Screens/MinimalShowcaseScreen.ps1",
+    "Screens/LayoutExamplesScreen.ps1",
+    "Screens/KeyboardHelpOverlay.ps1",
+    
+    # Core systems (after KeyboardHelpOverlay)
+    "Core/ScreenManager.ps1",
     
     # CommandPalette (after screens it references)
-    "Components/CommandPalette.ps1"
+    "Components/CommandPalette.ps1",
     
     # Main screen
     "Screens/MainScreen.ps1"
@@ -188,8 +207,37 @@ if ($Debug) {
 # Connect ThemeManager to EventBus
 $themeManager.SetEventBus($eventBus)
 
-# Removed FocusManager and ShortcutManager services
-# Using direct patterns instead: ScreenManager global shortcuts + Screen.FocusNext()
+# FocusManager - Fast O(1) focus management
+$focusManager = [FocusManager]::new()
+$focusManager.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("FocusManager", $focusManager)
+if ($Debug) {
+    Write-Host "  FocusManager initialized" -ForegroundColor DarkGray
+}
+
+# KeyboardShortcutManager - Standardized keyboard shortcuts
+$keyboardShortcutManager = [KeyboardShortcutManager]::new()
+$keyboardShortcutManager.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("KeyboardShortcutManager", $keyboardShortcutManager)
+if ($Debug) {
+    Write-Host "  KeyboardShortcutManager initialized" -ForegroundColor DarkGray
+}
+
+# AnimationManager - Smooth animations
+$animationManager = [AnimationManager]::new()
+$animationManager.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("AnimationManager", $animationManager)
+if ($Debug) {
+    Write-Host "  AnimationManager initialized" -ForegroundColor DarkGray
+}
+
+# ToastService - Notification system
+$toastService = [ToastService]::new()
+$toastService.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("ToastService", $toastService)
+if ($Debug) {
+    Write-Host "  ToastService initialized" -ForegroundColor DarkGray
+}
 
 # Project service
 $projectService = [ProjectService]::new()

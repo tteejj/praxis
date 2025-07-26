@@ -4,8 +4,8 @@
 class VisualMacroFactoryScreen : Screen {
     # UI Components - Three panes
     [SearchableListBox]$ComponentLibrary      # Left pane
-    [DataGrid]$MacroSequence                  # Center pane
-    [DataGrid]$ContextPanel                   # Right pane
+    [MinimalDataGrid]$MacroSequence           # Center pane
+    [MinimalDataGrid]$ContextPanel            # Right pane
     
     # Services
     [MacroContextManager]$ContextManager
@@ -95,7 +95,7 @@ class VisualMacroFactoryScreen : Screen {
     }
     
     [void] CreateMacroSequence() {
-        $this.MacroSequence = [DataGrid]::new()
+        $this.MacroSequence = [MinimalDataGrid]::new()
         $this.MacroSequence.Title = "🔧 Macro Sequence"
         $this.MacroSequence.ShowBorder = $true
         
@@ -108,18 +108,15 @@ class VisualMacroFactoryScreen : Screen {
         )
         $this.MacroSequence.SetColumns($columns)
         
-        # Handle selection changes
-        $this.MacroSequence.OnSelectionChanged = {
-            $this.SelectedSequenceIndex = $this.MacroSequence.SelectedIndex
-            $this.UpdateContextPanel()
-        }.GetNewClosure()
+        # Note: MinimalDataGrid doesn't have OnSelectionChanged callback
+        # Selection tracking will be handled in HandleInput method
         
         $this.MacroSequence.Initialize($this.ServiceContainer)
         $this.AddChild($this.MacroSequence)
     }
     
     [void] CreateContextPanel() {
-        $this.ContextPanel = [DataGrid]::new()
+        $this.ContextPanel = [MinimalDataGrid]::new()
         $this.ContextPanel.Title = "🎯 Macro Context"
         $this.ContextPanel.ShowBorder = $true
         
@@ -156,7 +153,7 @@ class VisualMacroFactoryScreen : Screen {
             Scope = [ShortcutScope]::Screen
             ScreenType = "VisualMacroFactoryScreen"
             Action = {
-                if ($this.MacroSequence.HasFocus() -and $this.SelectedSequenceIndex -ge 0) {
+                if ($this.MacroSequence.IsFocused -and $this.SelectedSequenceIndex -ge 0) {
                     $this.RemoveActionFromSequence($this.SelectedSequenceIndex)
                 }
             }.GetNewClosure()
@@ -172,7 +169,7 @@ class VisualMacroFactoryScreen : Screen {
             Scope = [ShortcutScope]::Screen
             ScreenType = "VisualMacroFactoryScreen"
             Action = {
-                if ($this.MacroSequence.HasFocus() -and $this.SelectedSequenceIndex -gt 0) {
+                if ($this.MacroSequence.IsFocused -and $this.SelectedSequenceIndex -gt 0) {
                     $this.ContextManager.MoveAction($this.SelectedSequenceIndex, $this.SelectedSequenceIndex - 1)
                     $this.SelectedSequenceIndex--
                     $this.UpdateMacroSequence()
@@ -191,7 +188,7 @@ class VisualMacroFactoryScreen : Screen {
             Scope = [ShortcutScope]::Screen
             ScreenType = "VisualMacroFactoryScreen"
             Action = {
-                if ($this.MacroSequence.HasFocus() -and 
+                if ($this.MacroSequence.IsFocused -and 
                     $this.SelectedSequenceIndex -ge 0 -and 
                     $this.SelectedSequenceIndex -lt $this.ContextManager.Actions.Count - 1) {
                     $this.ContextManager.MoveAction($this.SelectedSequenceIndex, $this.SelectedSequenceIndex + 1)
@@ -375,6 +372,9 @@ class VisualMacroFactoryScreen : Screen {
         $this.UpdateMacroSequence()
         $this.UpdateContextPanel()
     }
+    
+    # Note: We could track selection changes here if needed, but for now
+    # we'll update context when actions are explicitly performed
     
     [void] OnBoundsChanged() {
         if ($global:Logger) {

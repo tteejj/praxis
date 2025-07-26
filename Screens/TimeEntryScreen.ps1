@@ -1,11 +1,11 @@
 # TimeEntryScreen.ps1 - Time entry screen based on working ProjectsScreen
 
 class TimeEntryScreen : Screen {
-    [DataGrid]$TimeGrid
-    [Button]$PrevWeekButton
-    [Button]$NextWeekButton  
-    [Button]$CurrentWeekButton
-    [Button]$QuickEntryButton
+    [MinimalDataGrid]$TimeGrid
+    [MinimalButton]$PrevWeekButton
+    [MinimalButton]$NextWeekButton  
+    [MinimalButton]$CurrentWeekButton
+    [MinimalButton]$QuickEntryButton
     [DateTime]$CurrentWeekFriday
     [TimeTrackingService]$TimeService
     [ProjectService]$ProjectService
@@ -40,11 +40,11 @@ class TimeEntryScreen : Screen {
             }.GetNewClosure())
         }
         
-        # Create DataGrid with columns
-        $this.TimeGrid = [DataGrid]::new()
+        # Create MinimalDataGrid with columns
+        $this.TimeGrid = [MinimalDataGrid]::new()
         $this.TimeGrid.Title = $this.GetWeekTitle()
-        $this.TimeGrid.ShowBorder = $true
-        $this.TimeGrid.ShowGridLines = $true
+        $this.TimeGrid.ShowBorder = $false  # MainScreen draws the border
+        $this.TimeGrid.BorderType = [BorderType]::None
         
         # Initialize the TimeGrid with ServiceContainer to get theme
         $this.TimeGrid.Initialize($this.ServiceContainer)
@@ -67,7 +67,7 @@ class TimeEntryScreen : Screen {
         # Create navigation buttons
         $screen = $this  # Capture reference for closures
         
-        $this.PrevWeekButton = [Button]::new("< Prev Week")
+        $this.PrevWeekButton = [MinimalButton]::new("< Prev Week")
         $this.PrevWeekButton.OnClick = { 
             $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(-7)
             $screen.RefreshGrid()
@@ -75,7 +75,7 @@ class TimeEntryScreen : Screen {
         $this.PrevWeekButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.PrevWeekButton)
         
-        $this.CurrentWeekButton = [Button]::new("Current Week")
+        $this.CurrentWeekButton = [MinimalButton]::new("Current Week")
         $this.CurrentWeekButton.OnClick = { 
             $screen.CurrentWeekFriday = $screen.TimeService.GetCurrentWeekFriday()
             $screen.RefreshGrid()
@@ -83,7 +83,7 @@ class TimeEntryScreen : Screen {
         $this.CurrentWeekButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.CurrentWeekButton)
         
-        $this.NextWeekButton = [Button]::new("Next Week >")
+        $this.NextWeekButton = [MinimalButton]::new("Next Week >")
         $this.NextWeekButton.OnClick = { 
             $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(7)
             $screen.RefreshGrid()
@@ -91,7 +91,7 @@ class TimeEntryScreen : Screen {
         $this.NextWeekButton.Initialize($this.ServiceContainer)
         $this.AddChild($this.NextWeekButton)
         
-        $this.QuickEntryButton = [Button]::new("Quick Entry (Q)")
+        $this.QuickEntryButton = [MinimalButton]::new("Quick Entry (Q)")
         $this.QuickEntryButton.IsDefault = $true
         $this.QuickEntryButton.OnClick = { $screen.ShowQuickEntry() }.GetNewClosure()
         $this.QuickEntryButton.Initialize($this.ServiceContainer)

@@ -1,9 +1,9 @@
 # NewTaskDialog.ps1 - Dialog for creating new tasks (refactored to use BaseDialog)
 
 class NewTaskDialog : BaseDialog {
-    [TextBox]$TitleBox
-    [TextBox]$DescriptionBox
-    [ListBox]$PriorityList
+    [MinimalTextBox]$TitleBox
+    [MinimalTextBox]$DescriptionBox
+    [MinimalListBox]$PriorityList
     
     NewTaskDialog() : base("New Task", 50, 18) {
         $this.PrimaryButtonText = "Create"
@@ -12,17 +12,17 @@ class NewTaskDialog : BaseDialog {
     
     [void] InitializeContent() {
         # Create title textbox
-        $this.TitleBox = [TextBox]::new()
+        $this.TitleBox = [MinimalTextBox]::new()
         $this.TitleBox.Placeholder = "Enter task title..."
         $this.AddContentControl($this.TitleBox, 1)
         
         # Create description textbox
-        $this.DescriptionBox = [TextBox]::new()
+        $this.DescriptionBox = [MinimalTextBox]::new()
         $this.DescriptionBox.Placeholder = "Enter description (optional)..."
         $this.AddContentControl($this.DescriptionBox, 2)
         
         # Create priority list
-        $this.PriorityList = [ListBox]::new()
+        $this.PriorityList = [MinimalListBox]::new()
         $this.PriorityList.Title = "Priority"
         $this.PriorityList.ShowBorder = $true
         $this.PriorityList.SetItems(@("Low", "Medium", "High"))

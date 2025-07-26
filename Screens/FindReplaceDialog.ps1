@@ -3,12 +3,12 @@
 
 class FindReplaceDialog : BaseDialog {
     # UI Controls
-    [TextBox]$FindTextBox
-    [TextBox]$ReplaceTextBox
-    [Button]$FindNextButton
-    [Button]$FindPreviousButton
-    [Button]$ReplaceButton
-    [Button]$ReplaceAllButton
+    [MinimalTextBox]$FindTextBox
+    [MinimalTextBox]$ReplaceTextBox
+    [MinimalButton]$FindNextButton
+    [MinimalButton]$FindPreviousButton
+    [MinimalButton]$ReplaceButton
+    [MinimalButton]$ReplaceAllButton
     
     # Search options (could be checkboxes in future)
     [bool]$MatchCase = $false
@@ -38,38 +38,38 @@ class FindReplaceDialog : BaseDialog {
     
     [void] InitializeContent() {
         # Find text box
-        $this.FindTextBox = [TextBox]::new()
+        $this.FindTextBox = [MinimalTextBox]::new()
         $this.FindTextBox.Placeholder = "Text to find..."
         $this.FindTextBox.Width = 50
         $this.AddContentControl($this.FindTextBox, 1)
         
         # Replace text box  
-        $this.ReplaceTextBox = [TextBox]::new()
+        $this.ReplaceTextBox = [MinimalTextBox]::new()
         $this.ReplaceTextBox.Placeholder = "Replace with..."
         $this.ReplaceTextBox.Width = 50
         $this.AddContentControl($this.ReplaceTextBox, 2)
         
         # Find buttons
-        $this.FindNextButton = [Button]::new("Find Next")
+        $this.FindNextButton = [MinimalButton]::new("Find Next")
         $this.FindNextButton.OnClick = {
             $this.FindNext()
         }.GetNewClosure()
         $this.AddContentControl($this.FindNextButton, 3)
         
-        $this.FindPreviousButton = [Button]::new("Find Previous")
+        $this.FindPreviousButton = [MinimalButton]::new("Find Previous")
         $this.FindPreviousButton.OnClick = {
             $this.FindPrevious()
         }.GetNewClosure()
         $this.AddContentControl($this.FindPreviousButton, 4)
         
         # Replace buttons
-        $this.ReplaceButton = [Button]::new("Replace")
+        $this.ReplaceButton = [MinimalButton]::new("Replace")
         $this.ReplaceButton.OnClick = {
             $this.ReplaceNext()
         }.GetNewClosure()
         $this.AddContentControl($this.ReplaceButton, 5)
         
-        $this.ReplaceAllButton = [Button]::new("Replace All")
+        $this.ReplaceAllButton = [MinimalButton]::new("Replace All")
         $this.ReplaceAllButton.OnClick = {
             $this.ReplaceAll()
         }.GetNewClosure()

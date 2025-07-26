@@ -80,7 +80,8 @@ class MainScreen : Screen {
     
     [void] OnBoundsChanged() {
         if ($this.TabContainer) {
-            $this.TabContainer.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
+            # Leave space for border
+            $this.TabContainer.SetBounds($this.X + 1, $this.Y + 1, $this.Width - 2, $this.Height - 2)
         }
         if ($this.CommandPalette) {
             # Command palette uses full screen for centering
@@ -133,5 +134,27 @@ class MainScreen : Screen {
         }
         
         return $false
+    }
+    
+    # Override render to add border
+    [string] OnRender() {
+        $sb = Get-PooledStringBuilder 4096
+        
+        # Draw main screen border
+        $theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($theme) {
+            $borderColor = $theme.GetColor('border.normal')
+            $sb.Append([BorderStyle]::RenderBorder(
+                $this.X, $this.Y, $this.Width, $this.Height,
+                [BorderType]::Rounded, $borderColor
+            ))
+        }
+        
+        # Render base content (which includes TabContainer)
+        $sb.Append(([Screen]$this).OnRender())
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
 }

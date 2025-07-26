@@ -2,12 +2,12 @@
 
 class QuickTimeEntryDialog : BaseDialog {
     [DateTime]$WeekFriday
-    [TextBox]$ProjectBox
-    [TextBox]$MondayBox
-    [TextBox]$TuesdayBox
-    [TextBox]$WednesdayBox
-    [TextBox]$ThursdayBox
-    [TextBox]$FridayBox
+    [MinimalTextBox]$ProjectBox
+    [MinimalTextBox]$MondayBox
+    [MinimalTextBox]$TuesdayBox
+    [MinimalTextBox]$WednesdayBox
+    [MinimalTextBox]$ThursdayBox
+    [MinimalTextBox]$FridayBox
     [TimeTrackingService]$TimeService
     [scriptblock]$OnSave
     
@@ -21,27 +21,27 @@ class QuickTimeEntryDialog : BaseDialog {
     
     [void] InitializeContent() {
         # Create all input fields
-        $this.ProjectBox = [TextBox]::new()
+        $this.ProjectBox = [MinimalTextBox]::new()
         $this.ProjectBox.Placeholder = "Enter Project ID2 or Non-Project Code..."
         $this.AddContentControl($this.ProjectBox, 1)
         
-        $this.MondayBox = [TextBox]::new()
+        $this.MondayBox = [MinimalTextBox]::new()
         $this.MondayBox.Placeholder = "Monday Hours"
         $this.AddContentControl($this.MondayBox, 2)
         
-        $this.TuesdayBox = [TextBox]::new()
+        $this.TuesdayBox = [MinimalTextBox]::new()
         $this.TuesdayBox.Placeholder = "Tuesday Hours"
         $this.AddContentControl($this.TuesdayBox, 3)
         
-        $this.WednesdayBox = [TextBox]::new()
+        $this.WednesdayBox = [MinimalTextBox]::new()
         $this.WednesdayBox.Placeholder = "Wednesday Hours"
         $this.AddContentControl($this.WednesdayBox, 4)
         
-        $this.ThursdayBox = [TextBox]::new()
+        $this.ThursdayBox = [MinimalTextBox]::new()
         $this.ThursdayBox.Placeholder = "Thursday Hours"
         $this.AddContentControl($this.ThursdayBox, 5)
         
-        $this.FridayBox = [TextBox]::new()
+        $this.FridayBox = [MinimalTextBox]::new()
         $this.FridayBox.Placeholder = "Friday Hours"
         $this.AddContentControl($this.FridayBox, 6)
         

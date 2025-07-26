@@ -2,13 +2,13 @@
 # Handles all CRUD operations for command library entries
 
 class CommandEditDialog : Screen {
-    [TextBox]$TitleBox
-    [TextBox]$DescriptionBox
-    [TextBox]$TagsBox
-    [TextBox]$GroupBox
-    [TextBox]$CommandBox
-    [Button]$SaveButton
-    [Button]$CancelButton
+    [MinimalTextBox]$TitleBox
+    [MinimalTextBox]$DescriptionBox
+    [MinimalTextBox]$TagsBox
+    [MinimalTextBox]$GroupBox
+    [MinimalTextBox]$CommandBox
+    [MinimalButton]$SaveButton
+    [MinimalButton]$CancelButton
     [Command]$Command
     [CommandService]$CommandService
     [scriptblock]$OnSave
@@ -23,43 +23,43 @@ class CommandEditDialog : Screen {
         $this.CommandService = $this.ServiceContainer.GetService("CommandService")
         
         # Create title field
-        $this.TitleBox = [TextBox]::new()
+        $this.TitleBox = [MinimalTextBox]::new()
         $this.TitleBox.Placeholder = "Optional: Display name for the command"
         $this.TitleBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.TitleBox)
         
         # Create description field
-        $this.DescriptionBox = [TextBox]::new()
+        $this.DescriptionBox = [MinimalTextBox]::new()
         $this.DescriptionBox.Placeholder = "Optional: What this command does"
         $this.DescriptionBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.DescriptionBox)
         
         # Create tags field
-        $this.TagsBox = [TextBox]::new()
+        $this.TagsBox = [MinimalTextBox]::new()
         $this.TagsBox.Placeholder = "Optional: Comma-separated tags (git, powershell, etc.)"
         $this.TagsBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.TagsBox)
         
         # Create group field
-        $this.GroupBox = [TextBox]::new()
+        $this.GroupBox = [MinimalTextBox]::new()
         $this.GroupBox.Placeholder = "Optional: Category/group name"
         $this.GroupBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.GroupBox)
         
         # Create command field
-        $this.CommandBox = [TextBox]::new()
+        $this.CommandBox = [MinimalTextBox]::new()
         $this.CommandBox.Placeholder = "REQUIRED: The command text to copy to clipboard"
         $this.CommandBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.CommandBox)
         
         # Create buttons
-        $this.SaveButton = [Button]::new("Save")
+        $this.SaveButton = [MinimalButton]::new("Save")
         $dialog = $this
         $this.SaveButton.OnClick = { $dialog.SaveCommand() }.GetNewClosure()
         $this.SaveButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.SaveButton)
         
-        $this.CancelButton = [Button]::new("Cancel")
+        $this.CancelButton = [MinimalButton]::new("Cancel")
         $this.CancelButton.OnClick = { $dialog.Cancel() }.GetNewClosure()
         $this.CancelButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.CancelButton)

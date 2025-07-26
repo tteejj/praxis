@@ -32,6 +32,11 @@ class ThemeManager {
             "selection" = @(60, 60, 60)         # Selection background
             "disabled" = @(128, 128, 128)       # Gray
             
+            # Focus system colors
+            "focus" = @(0, 150, 255)            # Minimalist focus color
+            "focus.background" = @(40, 40, 40)  # Subtle focus background
+            "focus.accent" = @(0, 200, 255)     # Brighter focus accent
+            
             # Generic component colors (for backward compatibility)
             "title" = @(0, 150, 255)              # Blue titles
             "normal" = @(204, 204, 204)           # Normal text
@@ -95,6 +100,11 @@ class ThemeManager {
             "border.focused" = @(0, 255, 0)       # Bright green when focused
             "selection" = @(0, 100, 0)            # Dark green selection - more visible
             "disabled" = @(0, 128, 0)             # Medium green for disabled
+            
+            # Focus system colors
+            "focus" = @(0, 255, 0)                # Matrix green focus
+            "focus.background" = @(0, 40, 0)      # Subtle green focus background
+            "focus.accent" = @(100, 255, 100)     # Brighter green accent
             
             # Generic component colors (for backward compatibility)
             "title" = @(0, 255, 0)                # Bright green for titles

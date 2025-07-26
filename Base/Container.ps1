@@ -112,20 +112,74 @@ class Container : UIElement {
     }
     
     # Route input to focused child
-    # PARENT-DELEGATED INPUT MODEL
+    # PARENT-DELEGATED INPUT MODEL with FocusManager optimization
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Debug logging removed for performance
+        # Handle Tab navigation first
+        if ($key.Key -eq [System.ConsoleKey]::Tab) {
+            if ($global:Logger) {
+                $global:Logger.Debug("Container.HandleInput: Tab key pressed in $($this.GetType().Name)")
+            }
+            
+            $focusManager = $null
+            if ($this.ServiceContainer) {
+                $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            }
+            
+            if ($focusManager) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container: Using FocusManager for Tab navigation")
+                    $global:Logger.Debug("Container: Passing container=$($this.GetType().Name) with $($this.Children.Count) children")
+                }
+                
+                $result = $false
+                if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
+                    $result = $focusManager.FocusPrevious($this)
+                } else {
+                    $result = $focusManager.FocusNext($this)
+                }
+                
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container: FocusManager.FocusNext/Previous returned: $result")
+                }
+                
+                $this.Invalidate()
+                return $true
+            } else {
+                if ($global:Logger) {
+                    $global:Logger.Warning("Container: No FocusManager available for Tab handling!")
+                }
+            }
+        }
         
-        # Simple rule: Let focused child handle first
+        # Fast path: Use FocusManager to get current focus
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        }
+        
+        if ($focusManager) {
+            $focused = $focusManager.GetFocused()
+            if ($focused -and $this.ContainsElement($focused)) {
+                return $focused.HandleInput($key)
+            }
+        }
+        
+        # Fallback to traditional search
         $focused = $this.FindFocusedChild()
         if ($focused) {
-            if ($global:Logger) {
-                $global:Logger.Debug("Container: Routing to focused child $($focused.GetType().Name)")
-            }
             return $focused.HandleInput($key)
         }
         
-        # No focused child
+        return $false
+    }
+    
+    # Check if this container contains the given element
+    [bool] ContainsElement([UIElement]$element) {
+        $current = $element
+        while ($current) {
+            if ($current.Parent -eq $this) { return $true }
+            $current = $current.Parent
+        }
         return $false
     }
     
@@ -145,95 +199,31 @@ class Container : UIElement {
         return $null
     }
     
-    # Parent-delegated focus navigation
+    # Fast focus navigation using FocusManager
     [void] FocusNextChild([UIElement]$currentChild) {
-        if ($global:Logger) {
-            $global:Logger.Debug("Container.FocusNextChild: Type=$($this.GetType().Name), CurrentChild=$($currentChild.GetType().Name)")
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
         }
         
-        # For containers, we need to consider both focusable children AND containers
-        $allChildren = $this.Children | Where-Object { $_.Visible }
-        $currentIndex = -1
-        
-        # Find current child index
-        for ($i = 0; $i -lt $allChildren.Count; $i++) {
-            if ($allChildren[$i] -eq $currentChild) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        if ($currentIndex -eq -1) {
-            # Current child not found, shouldn't happen
-            return
-        }
-        
-        # Look for next child that either is focusable or contains focusable elements
-        for ($i = $currentIndex + 1; $i -lt $allChildren.Count; $i++) {
-            $child = $allChildren[$i]
-            if ($child.IsFocusable) {
-                $child.Focus()
-                return
-            } elseif ($child -is [Container]) {
-                # Try to focus first element in this container
-                $child.FocusFirstInTree()
-                if ($this.GetRoot().FindFocused()) {
-                    return  # Focus was set
-                }
-            }
-        }
-        
-        # No next child found, bubble up or wrap
-        if ($this.Parent) {
-            $this.Parent.FocusNextChild($this)
+        if ($focusManager) {
+            [void]$focusManager.FocusNext($this)
         } else {
-            # We're at root, wrap to beginning
+            # Fallback for initialization
             $this.FocusFirstInTree()
         }
     }
     
     [void] FocusPreviousChild([UIElement]$currentChild) {
-        if ($global:Logger) {
-            $global:Logger.Debug("Container.FocusPreviousChild: Type=$($this.GetType().Name), CurrentChild=$($currentChild.GetType().Name)")
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
         }
         
-        # For containers, we need to consider both focusable children AND containers
-        $allChildren = $this.Children | Where-Object { $_.Visible }
-        $currentIndex = -1
-        
-        # Find current child index
-        for ($i = 0; $i -lt $allChildren.Count; $i++) {
-            if ($allChildren[$i] -eq $currentChild) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        if ($currentIndex -eq -1) {
-            # Current child not found, shouldn't happen
-            return
-        }
-        
-        # Look for previous child that either is focusable or contains focusable elements
-        for ($i = $currentIndex - 1; $i -ge 0; $i--) {
-            $child = $allChildren[$i]
-            if ($child.IsFocusable) {
-                $child.Focus()
-                return
-            } elseif ($child -is [Container]) {
-                # Try to focus last element in this container
-                $child.FocusLastInTree()
-                if ($this.GetRoot().FindFocused()) {
-                    return  # Focus was set
-                }
-            }
-        }
-        
-        # No previous child found, bubble up or wrap
-        if ($this.Parent) {
-            $this.Parent.FocusPreviousChild($this)
+        if ($focusManager) {
+            [void]$focusManager.FocusPrevious($this)
         } else {
-            # We're at root, wrap to end
+            # Fallback for initialization
             $this.FocusLastInTree()
         }
     }
@@ -248,41 +238,42 @@ class Container : UIElement {
     
     # Focus first focusable element in the entire tree
     [void] FocusFirstInTree() {
-        # First check if any direct children are focusable
-        $focusable = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible } | Select-Object -First 1
-        if ($focusable) {
-            $focusable.Focus()
-            return
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
         }
         
-        # Otherwise check children's children
-        foreach ($child in $this.Children) {
-            if ($child -is [Container] -and $child.Visible) {
-                $child.FocusFirstInTree()
-                # If focus was set, we're done
-                $root = $this.GetRoot()
-                if ($root.FindFocused()) {
-                    return
-                }
+        if ($focusManager) {
+            $focusables = $focusManager.GetFocusableChildren($this)
+            if ($focusables.Count -gt 0) {
+                [void]$focusManager.SetFocus($focusables[0])
+            }
+        } else {
+            # Fallback
+            $focusable = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible } | Select-Object -First 1
+            if ($focusable) {
+                $focusable.Focus()
             }
         }
     }
     
     # Focus last focusable element in the entire tree
     [void] FocusLastInTree() {
-        # Check children in reverse order
-        for ($i = $this.Children.Count - 1; $i -ge 0; $i--) {
-            $child = $this.Children[$i]
-            if ($child.Visible) {
-                if ($child -is [Container]) {
-                    # Recurse into container
-                    $child.FocusLastInTree()
-                    # If focus was set, we're done
-                    $root = $this.GetRoot()
-                    if ($root.FindFocused()) {
-                        return
-                    }
-                } elseif ($child.IsFocusable) {
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        }
+        
+        if ($focusManager) {
+            $focusables = $focusManager.GetFocusableChildren($this)
+            if ($focusables.Count -gt 0) {
+                [void]$focusManager.SetFocus($focusables[$focusables.Count - 1])
+            }
+        } else {
+            # Fallback - check children in reverse
+            for ($i = $this.Children.Count - 1; $i -ge 0; $i--) {
+                $child = $this.Children[$i]
+                if ($child.Visible -and $child.IsFocusable) {
                     $child.Focus()
                     return
                 }

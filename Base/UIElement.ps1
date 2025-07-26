@@ -10,6 +10,7 @@ class UIElement {
     
     # Visibility and focus
     [bool]$Visible = $true
+    [bool]$IsVisible = $true  # Some code may be checking IsVisible instead of Visible
     [bool]$IsFocusable = $false
     [bool]$IsFocused = $false
     [int]$TabIndex = 0
@@ -24,6 +25,7 @@ class UIElement {
     # Caching for maximum speed
     hidden [string]$_renderCache = ""
     hidden [bool]$_cacheInvalid = $true
+    hidden [bool]$_focusOnly = $false  # Lightweight focus-only update
     
     # Pre-computed values
     hidden [string]$_cachedPosition = ""
@@ -53,9 +55,10 @@ class UIElement {
     
     # Mark this element (and parents) as needing re-render
     [void] Invalidate() {
-        if ($this._cacheInvalid) { return }  # Already invalid
+        if ($this._cacheInvalid -and -not $this._focusOnly) { return }  # Already invalid
         
         $this._cacheInvalid = $true
+        $this._focusOnly = $false
         $this.InvalidatePosition()  # Position might have changed too
         
         # Propagate up the tree
@@ -64,6 +67,21 @@ class UIElement {
         }
         
         # Render request is handled by propagation to root
+    }
+    
+    # Lightweight invalidation for focus changes only
+    [void] InvalidateFocusOnly() {
+        if ($this._cacheInvalid -and -not $this._focusOnly) { return }
+        
+        $this._cacheInvalid = $true
+        $this._focusOnly = $true
+        
+        # Propagate with focus-only flag
+        if ($this.Parent -and $this.Parent._focusOnly) {
+            $this.Parent.InvalidateFocusOnly()
+        } elseif ($this.Parent) {
+            $this.Parent.Invalidate()
+        }
     }
     
     # Pre-compute position strings
@@ -108,52 +126,46 @@ class UIElement {
         # Base implementation does nothing
     }
     
-    # Child management - now invalidates focus cache
+    # Child management
     [void] AddChild([UIElement]$child) {
         $child.Parent = $this
         $this.Children.Add($child)
-        
-        # No focus cache invalidation needed - using simple direct focus
-        
+
+        # Initialize the child with the container's services.
+        if ($this.ServiceContainer) {
+            $child.Initialize($this.ServiceContainer)
+        }
+
         $this.Invalidate()
     }
     
     [void] RemoveChild([UIElement]$child) {
+        if ($child.IsFocusable -and $this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                $focusManager.UnregisterFocusable($child)
+            }
+        }
         $child.Parent = $null
         $this.Children.Remove($child)
-        
-        # No focus cache invalidation needed - using simple direct focus
-        
         $this.Invalidate()
     }
     
-    # Simple focus management - works with PowerShell patterns
+    # Fast focus management using FocusManager
     [void] Focus() {
-        if (-not $this.IsFocusable -or -not $this.Visible) { 
-            if ($global:Logger) {
-                $global:Logger.Debug("UIElement.Focus: Cannot focus $($this.GetType().Name) - IsFocusable=$($this.IsFocusable), Visible=$($this.Visible)")
-            }
-            return 
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
         }
         
-        if ($global:Logger) {
-            $global:Logger.Debug("UIElement.Focus: Focusing $($this.GetType().Name)")
+        if ($focusManager) {
+            [void]$focusManager.SetFocus($this)
+        } else {
+            # Fallback for initialization phase
+            $this.IsFocused = $true
+            $this.OnGotFocus()
+            $this.InvalidateFocusOnly()
         }
-        
-        # Find root and clear any existing focus
-        $root = $this
-        while ($root.Parent) { $root = $root.Parent }
-        $current = $this.FindFocusedElement($root)
-        if ($current -and $current -ne $this) {
-            $current.IsFocused = $false
-            $current.OnLostFocus()
-            $current.Invalidate()
-        }
-        
-        # Focus this element
-        $this.IsFocused = $true
-        $this.OnGotFocus()
-        $this.Invalidate()
     }
     
     # Find focused element in tree
@@ -191,7 +203,21 @@ class UIElement {
     
     # Initialize with service container
     [void] Initialize([ServiceContainer]$services) {
+        if ($this.ServiceContainer) { return } # Already initialized
+
         $this.ServiceContainer = $services
+        
+        # Register with focus manager if focusable
+        $focusManager = $services.GetService('FocusManager')
+        if ($this.IsFocusable -and $focusManager) {
+            $focusManager.RegisterFocusable($this)
+        }
+        
+        # Recursively initialize children that might have been added before we had a service container
+        foreach ($child in $this.Children) {
+            $child.Initialize($services)
+        }
+
         $this.OnInitialize()
     }
     

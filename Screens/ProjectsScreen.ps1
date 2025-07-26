@@ -1,7 +1,7 @@
 # ProjectsScreen.ps1 - Project management screen using DataGrid component
 
 class ProjectsScreen : Screen {
-    [DataGrid]$ProjectGrid
+    [MinimalDataGrid]$ProjectGrid
     # Buttons removed - using keyboard shortcuts only
     [ProjectService]$ProjectService
     [EventBus]$EventBus
@@ -62,11 +62,11 @@ class ProjectsScreen : Screen {
             }.GetNewClosure())
         }
         
-        # Create DataGrid with columns
-        $this.ProjectGrid = [DataGrid]::new()
+        # Create MinimalDataGrid with columns
+        $this.ProjectGrid = [MinimalDataGrid]::new()
         $this.ProjectGrid.Title = "Projects"
-        $this.ProjectGrid.ShowBorder = $true
-        $this.ProjectGrid.ShowGridLines = $true
+        $this.ProjectGrid.ShowBorder = $false  # MainScreen draws the border
+        $this.ProjectGrid.BorderType = [BorderType]::None
         
         # Define columns with proper formatting
         $columns = @(

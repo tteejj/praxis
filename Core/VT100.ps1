@@ -18,6 +18,8 @@ class VT {
     static [string] Reset() { return "`e[0m" }
     static [string] Bold() { return "`e[1m" }
     static [string] Dim() { return "`e[2m" }
+    static [string] Underline() { return "`e[4m" }
+    static [string] NoUnderline() { return "`e[24m" }
     
     # 24-bit True Color
     static [string] RGB([int]$r, [int]$g, [int]$b) { 

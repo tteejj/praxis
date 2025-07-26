@@ -3,9 +3,9 @@
 
 class FilePickerDialog : Screen {
     [FastFileTree]$FileTree
-    [Button]$SelectButton
-    [Button]$CancelButton
-    [TextBox]$PathBox
+    [MinimalButton]$SelectButton
+    [MinimalButton]$CancelButton
+    [MinimalTextBox]$PathBox
     
     # Configuration
     [string]$InitialPath = ""
@@ -45,7 +45,7 @@ class FilePickerDialog : Screen {
         $centerY = ([Console]::WindowHeight - $this._dialogHeight) / 2
         
         # Path input box at top
-        $this.PathBox = [TextBox]::new()
+        $this.PathBox = [MinimalTextBox]::new()
         $this.PathBox.Placeholder = "Enter path or navigate below"
         $this.PathBox.Text = $this.InitialPath
         $this.PathBox.SetBounds([int]$centerX + 2, [int]$centerY + 2, $this._dialogWidth - 4, 3)
@@ -88,7 +88,7 @@ class FilePickerDialog : Screen {
         $totalButtonWidth = ($buttonWidth * 2) + $buttonSpacing
         $buttonStartX = [int]$centerX + (($this._dialogWidth - $totalButtonWidth) / 2)
         
-        $this.SelectButton = [Button]::new("Select")
+        $this.SelectButton = [MinimalButton]::new("Select")
         $this.SelectButton.IsDefault = $true
         $this.SelectButton.SetBounds($buttonStartX, $buttonY, $buttonWidth, 3)
         $this.SelectButton.OnClick = {
@@ -97,7 +97,7 @@ class FilePickerDialog : Screen {
         $this.SelectButton.Initialize($global:ServiceContainer)
         $this.AddChild($this.SelectButton)
         
-        $this.CancelButton = [Button]::new("Cancel")
+        $this.CancelButton = [MinimalButton]::new("Cancel")
         $this.CancelButton.SetBounds($buttonStartX + $buttonWidth + $buttonSpacing, $buttonY, $buttonWidth, 3)
         $this.CancelButton.OnClick = {
             $dialogRef.SelectedPath = ""
