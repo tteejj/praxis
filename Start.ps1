@@ -32,7 +32,9 @@ $loadOrder = @(
     "Core/VT100.ps1"
     "Core/ServiceContainer.ps1"
     "Core/StringBuilderPool.ps1"
+    "Core/GapBuffer.ps1"
     "Core/DocumentBuffer.ps1"
+    "Core/GapBufferDocumentBuffer.ps1"
     "Core/EditorCommands.ps1"
     
     # Services (needed by base classes)
@@ -112,6 +114,7 @@ $loadOrder = @(
     "Screens/TimeEntryDialog.ps1",
     "Screens/QuickTimeEntryDialog.ps1",
     "Screens/CommandEditDialog.ps1",
+    "Screens/FindReplaceDialog.ps1",
     "Screens/EventBusMonitor.ps1",
     
     # Screens (after dialogs they depend on)

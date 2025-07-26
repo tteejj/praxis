@@ -1,95 +1,124 @@
 # CommandEditDialog.ps1 - Dialog for creating and editing commands
 # Handles all CRUD operations for command library entries
 
-class CommandEditDialog : BaseDialog {
+class CommandEditDialog : Screen {
     [TextBox]$TitleBox
     [TextBox]$DescriptionBox
     [TextBox]$TagsBox
     [TextBox]$GroupBox
     [TextBox]$CommandBox
+    [Button]$SaveButton
+    [Button]$CancelButton
     [Command]$Command
     [CommandService]$CommandService
     [scriptblock]$OnSave
     
-    CommandEditDialog() : base("Command Editor", 80, 25) {
-        # Constructor uses BaseDialog(title, width, height)
+    CommandEditDialog() : base() {
+        $this.Title = "Command Editor"
+        $this.DrawBackground = $true
     }
     
     [void] OnInitialize() {
-        ([BaseDialog]$this).OnInitialize()
-        
         # Get services
         $this.CommandService = $this.ServiceContainer.GetService("CommandService")
         
-        # Calculate positions
-        $labelWidth = 12
-        $fieldX = $labelWidth + 3
-        $fieldWidth = $this.DialogWidth - $fieldX - 3
-        $currentY = 3
-        
-        # Title field
-        $this.CreateLabel("Title:", 2, $currentY)
+        # Create title field
         $this.TitleBox = [TextBox]::new()
-        $this.TitleBox.X = $fieldX
-        $this.TitleBox.Y = $currentY
-        $this.TitleBox.Width = $fieldWidth
         $this.TitleBox.Placeholder = "Optional: Display name for the command"
+        $this.TitleBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.TitleBox)
-        $currentY += 4
         
-        # Description field
-        $this.CreateLabel("Description:", 2, $currentY)
+        # Create description field
         $this.DescriptionBox = [TextBox]::new()
-        $this.DescriptionBox.X = $fieldX
-        $this.DescriptionBox.Y = $currentY
-        $this.DescriptionBox.Width = $fieldWidth
         $this.DescriptionBox.Placeholder = "Optional: What this command does"
+        $this.DescriptionBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.DescriptionBox)
-        $currentY += 4
         
-        # Tags field
-        $this.CreateLabel("Tags:", 2, $currentY)
+        # Create tags field
         $this.TagsBox = [TextBox]::new()
-        $this.TagsBox.X = $fieldX
-        $this.TagsBox.Y = $currentY
-        $this.TagsBox.Width = $fieldWidth
         $this.TagsBox.Placeholder = "Optional: Comma-separated tags (git, powershell, etc.)"
+        $this.TagsBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.TagsBox)
-        $currentY += 4
         
-        # Group field
-        $this.CreateLabel("Group:", 2, $currentY)
+        # Create group field
         $this.GroupBox = [TextBox]::new()
-        $this.GroupBox.X = $fieldX
-        $this.GroupBox.Y = $currentY
-        $this.GroupBox.Width = $fieldWidth
         $this.GroupBox.Placeholder = "Optional: Category/group name"
+        $this.GroupBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.GroupBox)
-        $currentY += 4
         
-        # Command field (required)
-        $this.CreateLabel("Command:", 2, $currentY)
+        # Create command field
         $this.CommandBox = [TextBox]::new()
-        $this.CommandBox.X = $fieldX
-        $this.CommandBox.Y = $currentY
-        $this.CommandBox.Width = $fieldWidth
         $this.CommandBox.Placeholder = "REQUIRED: The command text to copy to clipboard"
+        $this.CommandBox.Initialize($global:ServiceContainer)
         $this.AddChild($this.CommandBox)
-        $currentY += 4
         
-        # Configure BaseDialog buttons
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
-        $this.OnPrimary = { $this.SaveCommand() }
-        $this.OnSecondary = { $this.Cancel() }
+        # Create buttons
+        $this.SaveButton = [Button]::new("Save")
+        $dialog = $this
+        $this.SaveButton.OnClick = { $dialog.SaveCommand() }.GetNewClosure()
+        $this.SaveButton.Initialize($global:ServiceContainer)
+        $this.AddChild($this.SaveButton)
+        
+        $this.CancelButton = [Button]::new("Cancel")
+        $this.CancelButton.OnClick = { $dialog.Cancel() }.GetNewClosure()
+        $this.CancelButton.Initialize($global:ServiceContainer)
+        $this.AddChild($this.CancelButton)
         
         # Set initial focus
         $this.TitleBox.Focus()
     }
     
-    [void] CreateLabel([string]$text, [int]$x, [int]$y) {
-        # Helper method to create labels - could be implemented as a simple text render
-        # For now, we'll handle this in the rendering
+    [void] OnBoundsChanged() {
+        if ($this.Width -le 0 -or $this.Height -le 0) { return }
+        
+        # Position components vertically with some spacing
+        $margin = 2
+        $fieldHeight = 3
+        $spacing = 1
+        $currentY = $margin
+        
+        # Title field
+        if ($this.TitleBox) {
+            $this.TitleBox.SetBounds($margin, $currentY, $this.Width - $margin * 2, $fieldHeight)
+            $currentY += $fieldHeight + $spacing
+        }
+        
+        # Description field
+        if ($this.DescriptionBox) {
+            $this.DescriptionBox.SetBounds($margin, $currentY, $this.Width - $margin * 2, $fieldHeight)
+            $currentY += $fieldHeight + $spacing
+        }
+        
+        # Tags field
+        if ($this.TagsBox) {
+            $this.TagsBox.SetBounds($margin, $currentY, $this.Width - $margin * 2, $fieldHeight)
+            $currentY += $fieldHeight + $spacing
+        }
+        
+        # Group field
+        if ($this.GroupBox) {
+            $this.GroupBox.SetBounds($margin, $currentY, $this.Width - $margin * 2, $fieldHeight)
+            $currentY += $fieldHeight + $spacing
+        }
+        
+        # Command field
+        if ($this.CommandBox) {
+            $this.CommandBox.SetBounds($margin, $currentY, $this.Width - $margin * 2, $fieldHeight)
+            $currentY += $fieldHeight + $spacing * 2
+        }
+        
+        # Buttons at bottom
+        $buttonWidth = 10
+        $buttonHeight = 3
+        $buttonY = $this.Height - $buttonHeight - 1
+        
+        if ($this.SaveButton) {
+            $this.SaveButton.SetBounds($this.Width - $buttonWidth * 2 - 3, $buttonY, $buttonWidth, $buttonHeight)
+        }
+        
+        if ($this.CancelButton) {
+            $this.CancelButton.SetBounds($this.Width - $buttonWidth - 1, $buttonY, $buttonWidth, $buttonHeight)
+        }
     }
     
     [void] SetCommand([Command]$command) {
@@ -116,6 +145,21 @@ class CommandEditDialog : BaseDialog {
     
     [void] SaveCommand() {
         try {
+            # Check if required components are initialized
+            if (-not $this.CommandBox) {
+                if ($global:Logger) {
+                    $global:Logger.Error("CommandBox is null")
+                }
+                return
+            }
+            
+            if (-not $this.CommandService) {
+                if ($global:Logger) {
+                    $global:Logger.Error("CommandService is null")
+                }
+                return
+            }
+            
             # Validate required field
             $commandText = $this.CommandBox.Text.Trim()
             if ([string]::IsNullOrWhiteSpace($commandText)) {
@@ -165,7 +209,9 @@ class CommandEditDialog : BaseDialog {
             }
             
             # Close dialog
-            $this.ScreenManager.PopScreen()
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
             
         } catch {
             if ($global:Logger) {
@@ -175,7 +221,10 @@ class CommandEditDialog : BaseDialog {
     }
     
     [void] Cancel() {
-        $this.ScreenManager.PopScreen()
+        # Close dialog by popping from screen stack
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Pop()
+        }
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
@@ -191,50 +240,10 @@ class CommandEditDialog : BaseDialog {
             return $true
         }
         
-        return ([BaseDialog]$this).HandleInput($key)
+        return $false
     }
     
-    # Override OnRender to draw labels
-    [string] OnRender() {
-        $baseRender = ([BaseDialog]$this).OnRender()
-        
-        # Add labels - this is a simple approach
-        # In a more sophisticated implementation, labels would be proper UI elements
-        $sb = [System.Text.StringBuilder]::new()
-        $sb.Append($baseRender)
-        
-        # Get theme colors
-        $theme = $this.ServiceContainer.GetService("ThemeManager")
-        if ($theme) {
-            $labelColor = $theme.GetColor("foreground")
-            $requiredColor = $theme.GetColor("accent")
-            
-            # Draw labels
-            $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 3))
-            $sb.Append($labelColor)
-            $sb.Append("Title:")
-            
-            $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 7))
-            $sb.Append($labelColor)
-            $sb.Append("Description:")
-            
-            $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 11))
-            $sb.Append($labelColor)
-            $sb.Append("Tags:")
-            
-            $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 15))
-            $sb.Append($labelColor)
-            $sb.Append("Group:")
-            
-            $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 19))
-            $sb.Append($requiredColor)
-            $sb.Append("Command:")
-            
-            $sb.Append([VT]::Reset())
-        }
-        
-        return $sb.ToString()
-    }
+    # Labels will be shown via placeholder text for now
     
     [string] GetHelpText() {
         return @"
