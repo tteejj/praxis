@@ -17,6 +17,11 @@ class RangerFileTree : Container {
     [double]$CenterPaneWidth = 0.35
     [double]$RightPaneWidth = 0.40
     
+    # File operations
+    [System.Collections.ArrayList]$MarkedFiles
+    [FileOperationService]$FileOperationService
+    [bool]$ShowMarkedIndicator = $true
+    
     # Events
     [scriptblock]$OnFileSelected = {}
     
@@ -25,12 +30,14 @@ class RangerFileTree : Container {
     RangerFileTree() : base() {
         $this.CurrentPath = (Get-Location).Path
         $this.IsFocusable = $true
+        $this.MarkedFiles = [System.Collections.ArrayList]::new()
         $this.CreatePanes()
     }
     
     RangerFileTree([string]$path) : base() {
         $this.CurrentPath = $path
         $this.IsFocusable = $true
+        $this.MarkedFiles = [System.Collections.ArrayList]::new()
         $this.CreatePanes()
     }
     
@@ -83,6 +90,9 @@ class RangerFileTree : Container {
         
         # Initialize theme
         $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        
+        # Get file operation service
+        $this.FileOperationService = $this.ServiceContainer.GetService('FileOperationService')
         
         # Initialize child panes
         $this.ParentPane.ServiceContainer = $this.ServiceContainer
@@ -261,6 +271,21 @@ class RangerFileTree : Container {
             $sb.Append([VT]::Reset())
         }
         
+        # If we have marked files, show indicator in status area
+        if ($this.MarkedFiles.Count -gt 0 -and $this.ShowMarkedIndicator) {
+            # Add marked files indicator at bottom-right
+            if ($this.Theme) {
+                $markColor = $this.Theme.GetColor('warning')
+                $x = $this.X + $this.Width - 20
+                $y = $this.Y + $this.Height - 1
+                
+                $sb.Append([VT]::MoveTo($x, $y))
+                $sb.Append($markColor)
+                $sb.Append(" [$($this.MarkedFiles.Count) marked] ")
+                $sb.Append([VT]::Reset())
+            }
+        }
+        
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
@@ -314,6 +339,76 @@ class RangerFileTree : Container {
                     # TODO: Implement hidden file toggle
                     return $true
                 }
+                'y' {
+                    # Yank (copy) current file/directory
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected -and $this.FileOperationService) {
+                        $paths = if ($this.MarkedFiles.Count -gt 0) { @($this.MarkedFiles) } else { @($selected.FullPath) }
+                        $this.FileOperationService.YankItems($paths, $false)
+                        $this.ShowOperationFeedback("Yanked $($paths.Count) item(s)")
+                    }
+                    return $true
+                }
+                'd' {
+                    # Cut current file/directory
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected -and $this.FileOperationService) {
+                        $paths = if ($this.MarkedFiles.Count -gt 0) { @($this.MarkedFiles) } else { @($selected.FullPath) }
+                        $this.FileOperationService.YankItems($paths, $true)
+                        $this.ShowOperationFeedback("Cut $($paths.Count) item(s)")
+                    }
+                    return $true
+                }
+                'p' {
+                    # Paste yanked/cut items
+                    if ($this.FileOperationService) {
+                        $result = $this.FileOperationService.PasteItems($this.CurrentPath)
+                        $this.ShowOperationFeedback($result.Message)
+                        if ($result.Success) {
+                            $this.RefreshCurrentPane()
+                        }
+                    }
+                    return $true
+                }
+                'r' {
+                    # Rename current file/directory
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected) {
+                        $this.ShowRenameDialog($selected)
+                    }
+                    return $true
+                }
+                ' ' {
+                    # Toggle mark on current file
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected) {
+                        if ($this.MarkedFiles.Contains($selected.FullPath)) {
+                            $this.MarkedFiles.Remove($selected.FullPath) | Out-Null
+                        } else {
+                            $this.MarkedFiles.Add($selected.FullPath) | Out-Null
+                        }
+                        # Move to next item after marking
+                        $downKey = New-Object System.ConsoleKeyInfo -ArgumentList ([char]0, [System.ConsoleKey]::DownArrow, $false, $false, $false)
+                        $this.CurrentPane.HandleInput($downKey)
+                        $this.Invalidate()
+                    }
+                    return $true
+                }
+            }
+        }
+        
+        # Handle uppercase keys with Shift
+        if ($key.Modifiers -eq [System.ConsoleModifiers]::Shift) {
+            switch ($key.KeyChar) {
+                'D' {
+                    # Delete with confirmation
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected) {
+                        $paths = if ($this.MarkedFiles.Count -gt 0) { @($this.MarkedFiles) } else { @($selected.FullPath) }
+                        $this.ShowDeleteConfirmation($paths)
+                    }
+                    return $true
+                }
             }
         }
         
@@ -362,4 +457,93 @@ class RangerFileTree : Container {
             $global:Logger.Debug("RangerFileTree.Focus: IsFocused = $($this.IsFocused)")
         }
     }
+    
+    # Helper methods for file operations
+    [void] ShowOperationFeedback([string]$message) {
+        # Use toast service if available, otherwise log
+        $toastService = $this.ServiceContainer.GetService('ToastService')
+        if ($toastService) {
+            $toastService.ShowToast($message, 'info', 2000)
+        } elseif ($global:Logger) {
+            $global:Logger.Info("File operation: $message")
+        }
+    }
+    
+    [void] RefreshCurrentPane() {
+        # Reload current directory
+        $this.CurrentPane.LoadDirectory($this.CurrentPath)
+        if ($this.CurrentPane._flatView.Count -gt 0) {
+            # Try to maintain selection position
+            $currentIndex = $this.CurrentPane.SelectedIndex
+            if ($currentIndex -ge $this.CurrentPane._flatView.Count) {
+                $currentIndex = $this.CurrentPane._flatView.Count - 1
+            }
+            $this.CurrentPane.SelectIndex($currentIndex)
+        }
+        $this.UpdatePreviewPane()
+        $this.Invalidate()
+    }
+    
+    [void] ShowRenameDialog([FileSystemNode]$node) {
+        # Create and show rename dialog
+        # Use late binding to avoid type loading issues
+        $dialogType = [type]"TextInputDialog"
+        if (-not $dialogType) {
+            $this.ShowOperationFeedback("Rename dialog not available")
+            return
+        }
+        
+        $dialog = $dialogType::new("Rename", "Enter new name:", $node.Name)
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        $screenManager.Push($dialog)
+        
+        # Handle dialog result
+        $ranger = $this
+        $dialog.OnSubmit = {
+            param($newName)
+            if ($newName -and $newName -ne $node.Name) {
+                $result = $ranger.FileOperationService.RenameItem($node.FullPath, $newName)
+                $ranger.ShowOperationFeedback($result.Message)
+                if ($result.Success) {
+                    $ranger.RefreshCurrentPane()
+                }
+            }
+        }.GetNewClosure()
+    }
+    
+    [void] ShowDeleteConfirmation([string[]]$paths) {
+        # Create confirmation dialog
+        [string]$message = "Delete " + $paths.Count.ToString() + " "
+        if ($paths.Count -eq 1) {
+            $message += "item?"
+        } else {
+            $message += "items?"
+        }
+        
+        # Use late binding to avoid type loading issues
+        $dialogType = [type]"ConfirmationDialog"
+        if (-not $dialogType) {
+            $this.ShowOperationFeedback("Delete confirmation dialog not available")
+            return
+        }
+        
+        $dialog = $dialogType::new("Confirm Delete", $message)
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        $screenManager.Push($dialog)
+        
+        # Handle dialog result
+        $ranger = $this
+        $dialog.OnConfirm = {
+            $result = $ranger.FileOperationService.DeleteItems($paths, $true)
+            $ranger.ShowOperationFeedback($result.Message)
+            if ($result.Success) {
+                # Clear marked files if any were deleted
+                foreach ($path in $paths) {
+                    $ranger.MarkedFiles.Remove($path) | Out-Null
+                }
+                $ranger.RefreshCurrentPane()
+            }
+        }.GetNewClosure()
+    }
+    
 }

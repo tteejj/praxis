@@ -90,6 +90,13 @@ class ThemeManager {
             # Additional border states
             "border.normal" = @(68, 68, 68)          # Normal border (same as border)
             
+            # Text editor cursor
+            "cursor" = @(255, 255, 255)              # White cursor background
+            "cursor.text" = @(0, 0, 0)               # Black text on cursor
+            "linenumber" = @(100, 100, 100)          # Dim line numbers
+            "selection.text" = @(255, 255, 255)      # White text on selection
+            "status" = @(204, 204, 204)              # Status bar text
+            
             # Gradient endpoints
             "gradient.border.start" = @(0, 150, 255)      # Blue
             "gradient.border.end" = @(68, 68, 68)         # Dark gray
@@ -172,6 +179,13 @@ class ThemeManager {
             
             # Additional border states
             "border.normal" = @(0, 100, 0)
+            
+            # Text editor cursor
+            "cursor" = @(0, 255, 0)                  # Green cursor background
+            "cursor.text" = @(0, 0, 0)               # Black text on cursor
+            "linenumber" = @(0, 100, 0)              # Dim green line numbers
+            "selection.text" = @(0, 0, 0)            # Black text on green selection
+            "status" = @(0, 200, 0)                  # Status bar text
             
             # Gradient endpoints
             "gradient.border.start" = @(0, 255, 0)        # Bright green

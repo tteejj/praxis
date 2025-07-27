@@ -3,7 +3,7 @@
 class ThemeEditorDialog : BaseDialog {
     [MinimalListBox]$ColorList
     [MinimalTextBox]$PreviewBox
-    [EnhancedThemeManager]$ThemeManager
+    $ThemeManager  # Generic type to work with any ThemeManager
     [hashtable]$CurrentTheme = @{}
     [string]$SelectedColorKey = ""
     
@@ -22,8 +22,8 @@ class ThemeEditorDialog : BaseDialog {
     [void] InitializeContent() {
         $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
         
-        # Enable live editing
-        if ($this.ThemeManager -is [EnhancedThemeManager]) {
+        # Enable live editing if available
+        if ($this.ThemeManager -and $this.ThemeManager.PSObject.Methods.Name -contains 'EnableLiveEdit') {
             $this.ThemeManager.EnableLiveEdit()
         }
         

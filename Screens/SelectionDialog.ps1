@@ -36,8 +36,20 @@ class SelectionDialog : BaseDialog {
         $this.ListBox.SetItems($this.Items)
         $this.AddContentControl($this.ListBox)
         
-        # Configure primary button action
+        # Configure list box to handle Enter key
         $dialog = $this
+        $this.ListBox.OnSelectionChanged = {
+            $selectedItem = $dialog.ListBox.GetSelectedItem()
+            if ($selectedItem -and $dialog.OnSelect) {
+                & $dialog.OnSelect $selectedItem
+                # Close the dialog after selection
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }
+        }.GetNewClosure()
+        
+        # Configure primary button action
         $this.OnPrimary = {
             $selectedItem = $dialog.ListBox.GetSelectedItem()
             if ($selectedItem -and $dialog.OnSelect) {

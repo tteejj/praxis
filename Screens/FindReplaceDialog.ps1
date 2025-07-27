@@ -41,6 +41,11 @@ class FindReplaceDialog : BaseDialog {
         $this.FindTextBox = [MinimalTextBox]::new()
         $this.FindTextBox.Placeholder = "Text to find..."
         $this.FindTextBox.Width = 50
+        # Make Enter key trigger Find Next
+        $dialog = $this
+        $this.FindTextBox.OnEnter = {
+            $dialog.FindNext()
+        }.GetNewClosure()
         $this.AddContentControl($this.FindTextBox, 1)
         
         # Replace text box  

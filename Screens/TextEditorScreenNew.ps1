@@ -85,11 +85,50 @@ class TextEditorScreenNew : Screen {
         # Get PRAXIS services
         $this.ThemeManager = $this.ServiceContainer.GetService("ThemeManager")
         $this.EventBus = $this.ServiceContainer.GetService('EventBus')
+        
+        # Load editor settings from config
+        $this.LoadEditorSettings()
+        
+        # Subscribe to configuration changes
+        if ($this.EventBus) {
+            $screen = $this
+            $this.EventBus.Subscribe([EventNames]::ConfigChanged, {
+                param($sender, $eventData)
+                if ($eventData.Path -match "^Editor\.") {
+                    $screen.LoadEditorSettings()
+                    $screen.InvalidateAllLines()
+                    $screen.Invalidate()
+                }
+            }.GetNewClosure())
+        }
     }
     
     hidden [void] InitializeRenderCache() {
         $this._lineRenderCache = @{}
         $this._dirtyLines = @{}
+    }
+    
+    [void] LoadEditorSettings() {
+        $configService = $this.ServiceContainer.GetService("ConfigurationService")
+        if (-not $configService) { return }
+        
+        # Load all editor settings
+        $editorConfig = $configService.Get("Editor")
+        if ($editorConfig) {
+            # Apply settings
+            if ($editorConfig.ContainsKey("TabSize")) {
+                $this.TabWidth = [int]$editorConfig.TabSize
+            }
+            if ($editorConfig.ContainsKey("ShowLineNumbers")) {
+                $this.ShowLineNumbers = [bool]$editorConfig.ShowLineNumbers
+                # Adjust line number width if needed
+                $this.InvalidateAllLines()
+            }
+            if ($editorConfig.ContainsKey("AutoSaveInterval")) {
+                # TODO: Implement auto-save timer
+            }
+            # Additional settings can be applied here
+        }
     }
     
     hidden [void] SetupBufferEventHandlers() {
@@ -103,6 +142,17 @@ class TextEditorScreenNew : Screen {
             param($isModified)
             $screen.OnBufferModifiedStateChanged($isModified)
         }.GetNewClosure()
+    }
+    
+    [void] InvalidateAllLines() {
+        # Mark all lines as dirty
+        $this._allLinesDirty = $true
+        # Clear the line render cache
+        if ($this._lineRenderCache) {
+            $this._lineRenderCache.Clear()
+        }
+        # Invalidate the component
+        $this.Invalidate()
     }
     
     hidden [void] OnBufferContentChanged() {
@@ -767,28 +817,102 @@ Switch to GapBufferDocumentBuffer for better performance.
         # Save state for undo
         $this.SaveDocumentState()
         
-        # Delete the selected text
-        if ($bounds.StartY -eq $bounds.EndY) {
-            # Single line selection
-            $this._buffer.DeleteTextAt($bounds.StartY, $bounds.StartX, $bounds.EndX - $bounds.StartX)
-        } else {
-            # Multi-line selection - delete from end to start to preserve positions
-            for ($y = $bounds.EndY; $y -ge $bounds.StartY; $y--) {
-                if ($y -eq $bounds.EndY -and $y -eq $bounds.StartY) {
-                    # Same line (shouldn't happen but safety check)
-                    $this._buffer.DeleteTextAt($y, $bounds.StartX, $bounds.EndX - $bounds.StartX)
-                } elseif ($y -eq $bounds.EndY) {
-                    # Last line - delete from start to EndX
-                    $this._buffer.DeleteTextAt($y, 0, $bounds.EndX)
-                } elseif ($y -eq $bounds.StartY) {
-                    # First line - delete from StartX to end, then join with next line
+        # For GapBuffer, we need to calculate the total character range to delete
+        if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+            # Get the selected text first (for potential undo)
+            $selectedText = $this.GetSelectedText($bounds)
+            
+            # Calculate total characters to delete including newlines
+            $deleteCount = 0
+            
+            if ($bounds.StartY -eq $bounds.EndY) {
+                # Single line - simple case
+                $deleteCount = $bounds.EndX - $bounds.StartX
+            } else {
+                # Multi-line selection
+                # First line: from StartX to end of line + newline
+                $firstLine = $this._buffer.GetLine($bounds.StartY)
+                $deleteCount += ($firstLine.Length - $bounds.StartX) + 1  # +1 for newline
+                
+                # Middle lines: entire lines including newlines
+                for ($y = $bounds.StartY + 1; $y -lt $bounds.EndY; $y++) {
                     $line = $this._buffer.GetLine($y)
-                    $this._buffer.DeleteTextAt($y, $bounds.StartX, $line.Length - $bounds.StartX)
-                    # Remove the now-empty lines that were in between
-                    for ($i = $bounds.EndY; $i -gt $bounds.StartY; $i--) {
-                        $this._buffer.Lines.RemoveAt($i)
+                    $deleteCount += $line.Length + 1  # +1 for newline
+                }
+                
+                # Last line: from start to EndX (no newline)
+                $deleteCount += $bounds.EndX
+            }
+            
+            # Delete using buffer's delete method with calculated length
+            if ($deleteCount -gt 0) {
+                # For multi-line, we need to delete line by line from bottom to top
+                if ($bounds.StartY -eq $bounds.EndY) {
+                    # Single line - simple delete
+                    $this._buffer.DeleteTextAt($bounds.StartY, $bounds.StartX, $deleteCount)
+                } else {
+                    # Multi-line - more complex
+                    # First, get text that will remain after deletion
+                    $firstLine = $this._buffer.GetLine($bounds.StartY)
+                    $lastLine = $this._buffer.GetLine($bounds.EndY)
+                    $keepBefore = $firstLine.Substring(0, $bounds.StartX)
+                    $keepAfter = if ($bounds.EndX -lt $lastLine.Length) { $lastLine.Substring($bounds.EndX) } else { "" }
+                    
+                    # Delete from last line backwards
+                    for ($y = $bounds.EndY; $y -ge $bounds.StartY; $y--) {
+                        if ($y -eq $bounds.EndY -and $y -eq $bounds.StartY) {
+                            # Single line (shouldn't happen here)
+                            $this._buffer.DeleteTextAt($y, $bounds.StartX, $bounds.EndX - $bounds.StartX)
+                        } elseif ($y -eq $bounds.EndY) {
+                            # Last line - delete from start to EndX, then the newline before it
+                            $this._buffer.DeleteTextAt($y, 0, $bounds.EndX)
+                            if ($y -gt 0) {
+                                # Delete the newline at end of previous line
+                                $prevLine = $this._buffer.GetLine($y - 1)
+                                $this._buffer.DeleteTextAt($y - 1, $prevLine.Length, 1)
+                            }
+                        } elseif ($y -eq $bounds.StartY) {
+                            # First line - delete from StartX to end (newline was already removed)
+                            $line = $this._buffer.GetLine($y)
+                            $deleteLen = $line.Length - $bounds.StartX
+                            if ($deleteLen -gt 0) {
+                                $this._buffer.DeleteTextAt($y, $bounds.StartX, $deleteLen)
+                            }
+                            # Now append the keepAfter text
+                            if ($keepAfter.Length -gt 0) {
+                                $this._buffer.InsertTextAt($y, $bounds.StartX, $keepAfter)
+                            }
+                        } else {
+                            # Middle line - delete entire line by deleting from previous line's newline
+                            if ($y -gt 0) {
+                                $prevLine = $this._buffer.GetLine($y - 1)
+                                $this._buffer.DeleteTextAt($y - 1, $prevLine.Length, 1)
+                            }
+                        }
                     }
-                    break  # We've handled the deletion
+                }
+            }
+        } else {
+            # Fallback for non-GapBuffer buffers
+            if ($bounds.StartY -eq $bounds.EndY) {
+                # Single line selection
+                $this._buffer.DeleteTextAt($bounds.StartY, $bounds.StartX, $bounds.EndX - $bounds.StartX)
+            } else {
+                # Multi-line selection - build the text to keep
+                $firstLine = $this._buffer.GetLine($bounds.StartY)
+                $lastLine = $this._buffer.GetLine($bounds.EndY)
+                
+                # Keep the part before selection and after selection
+                $keepBefore = $firstLine.Substring(0, $bounds.StartX)
+                $keepAfter = if ($bounds.EndX -lt $lastLine.Length) { $lastLine.Substring($bounds.EndX) } else { "" }
+                
+                # Replace the first line with combined text
+                $this._buffer.SetLine($bounds.StartY, $keepBefore + $keepAfter)
+                
+                # Remove all lines between start and end
+                $linesToRemove = $bounds.EndY - $bounds.StartY
+                for ($i = 0; $i -lt $linesToRemove; $i++) {
+                    $this._buffer.RemoveLine($bounds.StartY + 1)
                 }
             }
         }
@@ -797,6 +921,9 @@ Switch to GapBufferDocumentBuffer for better performance.
         $this.CursorX = $bounds.StartX
         $this.CursorY = $bounds.StartY
         
+        # Ensure cursor is valid
+        $this.EnsureCursorValid()
+        
         $this.ClearSelection()
         $this._buffer.IsModified = $true
         $this._allLinesDirty = $true
@@ -804,6 +931,31 @@ Switch to GapBufferDocumentBuffer for better performance.
             $this._lineRenderCache.Clear()
         }
         $this.Invalidate()
+    }
+    
+    hidden [string] GetSelectedText([hashtable]$bounds) {
+        if ($bounds.StartY -eq $bounds.EndY) {
+            # Single line selection
+            $line = $this._buffer.GetLine($bounds.StartY)
+            return $line.Substring($bounds.StartX, $bounds.EndX - $bounds.StartX)
+        } else {
+            # Multi-line selection
+            $text = ""
+            for ($y = $bounds.StartY; $y -le $bounds.EndY; $y++) {
+                $line = $this._buffer.GetLine($y)
+                if ($y -eq $bounds.StartY) {
+                    # First line - from StartX to end
+                    $text += $line.Substring($bounds.StartX)
+                } elseif ($y -eq $bounds.EndY) {
+                    # Last line - from start to EndX
+                    $text += "`n" + $line.Substring(0, $bounds.EndX)
+                } else {
+                    # Middle lines - entire line
+                    $text += "`n" + $line
+                }
+            }
+            return $text
+        }
     }
     
     hidden [hashtable] GetSelectionBounds() {
@@ -1172,6 +1324,31 @@ Switch to GapBufferDocumentBuffer for better performance.
         $this.ScrollOffsetX = [Math]::Max(0, $this.ScrollOffsetX)
         
         $this.Invalidate()
+    }
+    
+    hidden [void] EnsureCursorValid() {
+        # Ensure cursor Y is within valid range
+        $lineCount = $this._buffer.GetLineCount()
+        if ($this.CursorY -ge $lineCount) {
+            $this.CursorY = [Math]::Max(0, $lineCount - 1)
+        }
+        if ($this.CursorY -lt 0) {
+            $this.CursorY = 0
+        }
+        
+        # Ensure cursor X is within valid range for current line
+        if ($this.CursorY -lt $lineCount) {
+            $currentLine = $this._buffer.GetLine($this.CursorY)
+            if ($this.CursorX -gt $currentLine.Length) {
+                $this.CursorX = $currentLine.Length
+            }
+        }
+        if ($this.CursorX -lt 0) {
+            $this.CursorX = 0
+        }
+        
+        # Make sure cursor is visible
+        $this.EnsureCursorVisible()
     }
     
     # --- Optimized Rendering with Line-Level Caching ---

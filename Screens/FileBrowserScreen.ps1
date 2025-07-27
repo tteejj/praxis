@@ -6,7 +6,7 @@ class FileBrowserScreen : Screen {
     [scriptblock]$FileSelectedCallback = $null  # Callback for file selection
     
     FileBrowserScreen() : base() {
-        $this.Title = "File Browser - [h/←]Back [j/↓]Down [k/↑]Up [l/→]Enter [.]Hidden"
+        $this.Title = "File Browser - [h/←]Back [j/↓]Down [k/↑]Up [l/→]Enter [y]Yank [d]Cut [p]Paste [r]Rename [D]Delete [Space]Mark"
     }
     
     [void] OnInitialize() {
@@ -14,9 +14,21 @@ class FileBrowserScreen : Screen {
             $global:Logger.Debug("FileBrowserScreen.OnInitialize: Starting initialization")
         }
         
+        # Get configuration service
+        $configService = $this.ServiceContainer.GetService("ConfigurationService")
+        $defaultPath = (Get-Location).Path
+        
+        if ($configService) {
+            # Load file browser settings
+            $fbConfig = $configService.Get("FileBrowser")
+            if ($fbConfig -and $fbConfig.ContainsKey("DefaultPath") -and $fbConfig.DefaultPath) {
+                $defaultPath = $fbConfig.DefaultPath
+            }
+        }
+        
         # Create and configure the ranger-style file tree
         $this.FileTree = [RangerFileTree]::new()
-        $this.FileTree.CurrentPath = (Get-Location).Path
+        $this.FileTree.CurrentPath = $defaultPath
         
         if ($global:Logger) {
             $global:Logger.Debug("FileBrowserScreen: Created RangerFileTree with path: $($this.FileTree.CurrentPath)")
@@ -29,6 +41,21 @@ class FileBrowserScreen : Screen {
         
         # Initialize the FileTree with the service container
         $this.FileTree.Initialize($this.ServiceContainer)
+        
+        # Apply file browser settings
+        $this.ApplyFileBrowserSettings()
+        
+        # Subscribe to configuration changes
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $screen = $this
+            $eventBus.Subscribe([EventNames]::ConfigChanged, {
+                param($sender, $eventData)
+                if ($eventData.Path -match "^FileBrowser\.") {
+                    $screen.ApplyFileBrowserSettings()
+                }
+            }.GetNewClosure())
+        }
         
         # Set up event handlers
         $screen = $this  # Capture reference for closures
@@ -135,5 +162,27 @@ class FileBrowserScreen : Screen {
         
         # Call base implementation
         return ([Screen]$this).HandleInput($key)
+    }
+    
+    [void] ApplyFileBrowserSettings() {
+        $configService = $this.ServiceContainer.GetService("ConfigurationService")
+        if (-not $configService -or -not $this.FileTree) { return }
+        
+        $fbConfig = $configService.Get("FileBrowser")
+        if ($fbConfig) {
+            # TODO: Apply ShowHiddenFiles setting when RangerFileTree supports it
+            # if ($fbConfig.ContainsKey("ShowHiddenFiles")) {
+            #     $this.FileTree.ShowHiddenFiles = [bool]$fbConfig.ShowHiddenFiles
+            # }
+            
+            # TODO: Apply sort settings when RangerFileTree supports them
+            # Note: Current RangerFileTree may not support these settings yet
+            
+            # For now, just refresh the tree
+            if ($this.FileTree.RefreshView) {
+                $this.FileTree.RefreshView()
+            }
+            $this.FileTree.Invalidate()
+        }
     }
 }

@@ -25317,6 +25317,11 @@ class BaseDialog : Screen {
     }
     
     [void] AddContentControl([UIElement]$control, [int]$tabIndex = -1) {
+        # Initialize the control if it hasn't been initialized
+        if ($control -and -not $control._initialized -and $this.ServiceContainer) {
+            $control.Initialize($this.ServiceContainer)
+        }
+        
         if ($tabIndex -gt 0) {
             $control.TabIndex = $tabIndex
         }
@@ -25376,10 +25381,10 @@ class BaseDialog : Screen {
                             $focusedType = if ($focused) { $focused.GetType().Name } else { "null" }
                             $global:Logger.Debug("BaseDialog.HandleScreenInput: Enter pressed, focused element: $focusedType")
                         }
-                        if ($focused -and $focused -is [MinimalButton]) {
-                            # Let the button handle it
+                        if ($focused -and ($focused -is [MinimalButton] -or $focused -is [MinimalListBox])) {
+                            # Let the button or list handle it
                             if ($global:Logger) {
-                                $global:Logger.Debug("BaseDialog: Button has focus, letting it handle Enter")
+                                $global:Logger.Debug("BaseDialog: Button or ListBox has focus, letting it handle Enter")
                             }
                             return $false
                         }
@@ -30839,6 +30844,9 @@ class MinimalDataGrid : FocusableComponent {
     [bool]$AlternateRowColors = $false
     [BorderType]$BorderType = [BorderType]::Rounded
     
+    # Selection callback
+    [scriptblock]$OnItemSelected = {}
+    
     # Scrolling
     hidden [int]$_scrollOffset = 0
     hidden [int]$_viewportHeight = 0
@@ -31022,28 +31030,21 @@ class MinimalDataGrid : FocusableComponent {
         # Render border if enabled
         if ($this.BorderType -ne [BorderType]::None) {
             $color = if ($this.IsFocused) { $this._colors.accent } else { $this._colors.border }
-            $sb.Append([BorderStyle]::RenderBorder(
-                $this.X, $this.Y, $this.Width, $this.Height,
-                $this.BorderType, $color
-            ))
+            if ($this.ShowTitle -and $this.Title) {
+                $sb.Append([BorderStyle]::RenderBorderWithTitle(
+                    $this.X, $this.Y, $this.Width, $this.Height,
+                    $this.BorderType, $color,
+                    $this.Title, $color  # Using same color for title
+                ))
+            } else {
+                $sb.Append([BorderStyle]::RenderBorder(
+                    $this.X, $this.Y, $this.Width, $this.Height,
+                    $this.BorderType, $color
+                ))
+            }
             $currentY++
         }
         
-        # Render title if enabled and no border
-        if ($this.ShowTitle -and $this.Title -and $this.BorderType -eq [BorderType]::None) {
-            $sb.Append([VT]::MoveTo($this.X, $currentY))
-            $sb.Append($this._colors.accent)
-            $titleText = $this.Title
-            if ($titleText.Length -gt $this.Width) {
-                $titleText = $titleText.Substring(0, $this.Width - 3) + "..."
-            }
-            # Center the title
-            $padding = [Math]::Max(0, [int](($this.Width - $titleText.Length) / 2))
-            $sb.Append(' ' * $padding)
-            $sb.Append($titleText)
-            $sb.Append([VT]::Reset())
-            $currentY++
-        }
         
         # Render header
         if ($this.ShowHeader) {
@@ -31207,23 +31208,17 @@ class MinimalDataGrid : FocusableComponent {
         
         $sb.Append([VT]::Reset())
         
-        # Separator line with proper border connections
+        # Separator line - just a simple line, no T-junctions
         $sb.Append([VT]::MoveTo($x, $y + 1))
         $sb.Append($this._colors.border)
         
-        if ($this.BorderType -ne [BorderType]::None) {
-            # Draw separator with proper border connections
-            $borderStyle = [BorderStyle]::Styles[$this.BorderType.ToString()]
-            $sb.Append([VT]::MoveTo($this.X, $y + 1))
-            $sb.Append($borderStyle.LT)  # Left T-junction
-            $sb.Append($borderStyle.H * ($this.Width - 2))
-            $sb.Append($borderStyle.RT)  # Right T-junction
-        } else {
-            # No border, just draw separator line
-            $separatorWidth = $this.Width - 2
-            if ($separatorWidth -gt 0) {
-                $sb.Append('─' * $separatorWidth)
-            }
+        # Draw separator line inside the border area
+        $separatorWidth = $this.Width - 2
+        if ($this.BorderType -ne [BorderType]::None) { 
+            $separatorWidth -= 2  # Account for side borders
+        }
+        if ($separatorWidth -gt 0) {
+            $sb.Append('─' * $separatorWidth)
         }
         $sb.Append([VT]::Reset())
         
@@ -31311,6 +31306,15 @@ class MinimalDataGrid : FocusableComponent {
             ([System.ConsoleKey]::PageDown) {
                 $this.SelectedIndex = [Math]::Min($this.Items.Count - 1, $this.SelectedIndex + $this._viewportHeight)
                 $this.Invalidate()
+                return $true
+            }
+            ([System.ConsoleKey]::Enter) {
+                if ($this.OnItemSelected -and $this.SelectedIndex -ge 0) {
+                    $selectedItem = $this.GetSelectedItem()
+                    if ($selectedItem) {
+                        & $this.OnItemSelected $selectedItem
+                    }
+                }
                 return $true
             }
         }
@@ -33691,6 +33695,11 @@ class RangerFileTree : Container {
     [double]$CenterPaneWidth = 0.35
     [double]$RightPaneWidth = 0.40
     
+    # File operations
+    [System.Collections.ArrayList]$MarkedFiles
+    [FileOperationService]$FileOperationService
+    [bool]$ShowMarkedIndicator = $true
+    
     # Events
     [scriptblock]$OnFileSelected = {}
     
@@ -33699,12 +33708,14 @@ class RangerFileTree : Container {
     RangerFileTree() : base() {
         $this.CurrentPath = (Get-Location).Path
         $this.IsFocusable = $true
+        $this.MarkedFiles = [System.Collections.ArrayList]::new()
         $this.CreatePanes()
     }
     
     RangerFileTree([string]$path) : base() {
         $this.CurrentPath = $path
         $this.IsFocusable = $true
+        $this.MarkedFiles = [System.Collections.ArrayList]::new()
         $this.CreatePanes()
     }
     
@@ -33757,6 +33768,9 @@ class RangerFileTree : Container {
         
         # Initialize theme
         $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
+        
+        # Get file operation service
+        $this.FileOperationService = $this.ServiceContainer.GetService('FileOperationService')
         
         # Initialize child panes
         $this.ParentPane.ServiceContainer = $this.ServiceContainer
@@ -33935,6 +33949,21 @@ class RangerFileTree : Container {
             $sb.Append([VT]::Reset())
         }
         
+        # If we have marked files, show indicator in status area
+        if ($this.MarkedFiles.Count -gt 0 -and $this.ShowMarkedIndicator) {
+            # Add marked files indicator at bottom-right
+            if ($this.Theme) {
+                $markColor = $this.Theme.GetColor('warning')
+                $x = $this.X + $this.Width - 20
+                $y = $this.Y + $this.Height - 1
+                
+                $sb.Append([VT]::MoveTo($x, $y))
+                $sb.Append($markColor)
+                $sb.Append(" [$($this.MarkedFiles.Count) marked] ")
+                $sb.Append([VT]::Reset())
+            }
+        }
+        
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
@@ -33988,6 +34017,76 @@ class RangerFileTree : Container {
                     # TODO: Implement hidden file toggle
                     return $true
                 }
+                'y' {
+                    # Yank (copy) current file/directory
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected -and $this.FileOperationService) {
+                        $paths = if ($this.MarkedFiles.Count -gt 0) { @($this.MarkedFiles) } else { @($selected.FullPath) }
+                        $this.FileOperationService.YankItems($paths, $false)
+                        $this.ShowOperationFeedback("Yanked $($paths.Count) item(s)")
+                    }
+                    return $true
+                }
+                'd' {
+                    # Cut current file/directory
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected -and $this.FileOperationService) {
+                        $paths = if ($this.MarkedFiles.Count -gt 0) { @($this.MarkedFiles) } else { @($selected.FullPath) }
+                        $this.FileOperationService.YankItems($paths, $true)
+                        $this.ShowOperationFeedback("Cut $($paths.Count) item(s)")
+                    }
+                    return $true
+                }
+                'p' {
+                    # Paste yanked/cut items
+                    if ($this.FileOperationService) {
+                        $result = $this.FileOperationService.PasteItems($this.CurrentPath)
+                        $this.ShowOperationFeedback($result.Message)
+                        if ($result.Success) {
+                            $this.RefreshCurrentPane()
+                        }
+                    }
+                    return $true
+                }
+                'r' {
+                    # Rename current file/directory
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected) {
+                        $this.ShowRenameDialog($selected)
+                    }
+                    return $true
+                }
+                ' ' {
+                    # Toggle mark on current file
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected) {
+                        if ($this.MarkedFiles.Contains($selected.FullPath)) {
+                            $this.MarkedFiles.Remove($selected.FullPath) | Out-Null
+                        } else {
+                            $this.MarkedFiles.Add($selected.FullPath) | Out-Null
+                        }
+                        # Move to next item after marking
+                        $downKey = New-Object System.ConsoleKeyInfo -ArgumentList ([char]0, [System.ConsoleKey]::DownArrow, $false, $false, $false)
+                        $this.CurrentPane.HandleInput($downKey)
+                        $this.Invalidate()
+                    }
+                    return $true
+                }
+            }
+        }
+        
+        # Handle uppercase keys with Shift
+        if ($key.Modifiers -eq [System.ConsoleModifiers]::Shift) {
+            switch ($key.KeyChar) {
+                'D' {
+                    # Delete with confirmation
+                    $selected = $this.CurrentPane.GetSelectedNode()
+                    if ($selected) {
+                        $paths = if ($this.MarkedFiles.Count -gt 0) { @($this.MarkedFiles) } else { @($selected.FullPath) }
+                        $this.ShowDeleteConfirmation($paths)
+                    }
+                    return $true
+                }
             }
         }
         
@@ -34036,6 +34135,95 @@ class RangerFileTree : Container {
             $global:Logger.Debug("RangerFileTree.Focus: IsFocused = $($this.IsFocused)")
         }
     }
+    
+    # Helper methods for file operations
+    [void] ShowOperationFeedback([string]$message) {
+        # Use toast service if available, otherwise log
+        $toastService = $this.ServiceContainer.GetService('ToastService')
+        if ($toastService) {
+            $toastService.ShowToast($message, 'info', 2000)
+        } elseif ($global:Logger) {
+            $global:Logger.Info("File operation: $message")
+        }
+    }
+    
+    [void] RefreshCurrentPane() {
+        # Reload current directory
+        $this.CurrentPane.LoadDirectory($this.CurrentPath)
+        if ($this.CurrentPane._flatView.Count -gt 0) {
+            # Try to maintain selection position
+            $currentIndex = $this.CurrentPane.SelectedIndex
+            if ($currentIndex -ge $this.CurrentPane._flatView.Count) {
+                $currentIndex = $this.CurrentPane._flatView.Count - 1
+            }
+            $this.CurrentPane.SelectIndex($currentIndex)
+        }
+        $this.UpdatePreviewPane()
+        $this.Invalidate()
+    }
+    
+    [void] ShowRenameDialog([FileSystemNode]$node) {
+        # Create and show rename dialog
+        # Use late binding to avoid type loading issues
+        $dialogType = [type]"TextInputDialog"
+        if (-not $dialogType) {
+            $this.ShowOperationFeedback("Rename dialog not available")
+            return
+        }
+        
+        $dialog = $dialogType::new("Rename", "Enter new name:", $node.Name)
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        $screenManager.Push($dialog)
+        
+        # Handle dialog result
+        $ranger = $this
+        $dialog.OnSubmit = {
+            param($newName)
+            if ($newName -and $newName -ne $node.Name) {
+                $result = $ranger.FileOperationService.RenameItem($node.FullPath, $newName)
+                $ranger.ShowOperationFeedback($result.Message)
+                if ($result.Success) {
+                    $ranger.RefreshCurrentPane()
+                }
+            }
+        }.GetNewClosure()
+    }
+    
+    [void] ShowDeleteConfirmation([string[]]$paths) {
+        # Create confirmation dialog
+        [string]$message = "Delete " + $paths.Count.ToString() + " "
+        if ($paths.Count -eq 1) {
+            $message += "item?"
+        } else {
+            $message += "items?"
+        }
+        
+        # Use late binding to avoid type loading issues
+        $dialogType = [type]"ConfirmationDialog"
+        if (-not $dialogType) {
+            $this.ShowOperationFeedback("Delete confirmation dialog not available")
+            return
+        }
+        
+        $dialog = $dialogType::new("Confirm Delete", $message)
+        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+        $screenManager.Push($dialog)
+        
+        # Handle dialog result
+        $ranger = $this
+        $dialog.OnConfirm = {
+            $result = $ranger.FileOperationService.DeleteItems($paths, $true)
+            $ranger.ShowOperationFeedback($result.Message)
+            if ($result.Success) {
+                # Clear marked files if any were deleted
+                foreach ($path in $paths) {
+                    $ranger.MarkedFiles.Remove($path) | Out-Null
+                }
+                $ranger.RefreshCurrentPane()
+            }
+        }.GetNewClosure()
+    }
+    
 }
 
 
@@ -34955,22 +35143,11 @@ class TabContainer : Container {
             $x += $tabWidth + 1
         }
         
-        # Reset and draw separator line with junction characters
+        # Reset and draw separator line
         $sb.Append([VT]::Reset())
         $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
         $sb.Append($this._colors['border'])
-        # Draw left junction
-        if ($this.X > 0) {
-            $sb.Append([VT]::MoveTo($this.X - 1, $this.Y + 1))
-            $sb.Append('├')
-        }
-        $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
         $sb.Append([StringCache]::GetHorizontalLine($this.Width))
-        # Draw right junction
-        if (($this.X + $this.Width) -lt [Console]::WindowWidth) {
-            $sb.Append([VT]::MoveTo($this.X + $this.Width, $this.Y + 1))
-            $sb.Append('┤')
-        }
         $sb.Append([VT]::Reset())
         
         $this._cachedTabBar = $sb.ToString()
@@ -35643,7 +35820,9 @@ class AnimationManager {
     hidden [System.Collections.Generic.Dictionary[string, Animation]]$_animations
     hidden [System.Timers.Timer]$_updateTimer
     hidden [EventBus]$EventBus
+    hidden [ConfigurationService]$ConfigService
     [int]$FrameRate = 30  # FPS
+    [bool]$AnimationsEnabled = $true
     
     AnimationManager() {
         $this._animations = [System.Collections.Generic.Dictionary[string, Animation]]::new()
@@ -35661,9 +35840,49 @@ class AnimationManager {
     
     [void] Initialize([ServiceContainer]$container) {
         $this.EventBus = $container.GetService('EventBus')
+        $this.ConfigService = $container.GetService('ConfigurationService')
+        
+        # Load initial animation settings
+        $this.LoadAnimationSettings()
+        
+        # Subscribe to config changes
+        if ($this.EventBus) {
+            $manager = $this
+            $this.EventBus.Subscribe([EventNames]::ConfigChanged, {
+                param($sender, $eventData)
+                if ($eventData.Path -eq "UI.AnimationsEnabled") {
+                    $manager.AnimationsEnabled = [bool]$eventData.NewValue
+                    # Stop all animations if disabled
+                    if (-not $manager.AnimationsEnabled) {
+                        $manager.StopAllAnimations()
+                    }
+                }
+            }.GetNewClosure())
+        }
+    }
+    
+    [void] LoadAnimationSettings() {
+        if ($this.ConfigService) {
+            $animEnabled = $this.ConfigService.Get("UI.AnimationsEnabled")
+            if ($animEnabled -ne $null) {
+                $this.AnimationsEnabled = [bool]$animEnabled
+            }
+        }
     }
     
     [void] StartAnimation([Animation]$animation) {
+        # Skip if animations are disabled
+        if (-not $this.AnimationsEnabled) {
+            # Immediately set to end value
+            if ($animation.OnUpdate) {
+                & $animation.OnUpdate $animation.EndValue
+            }
+            if ($animation.OnComplete) {
+                & $animation.OnComplete
+            }
+            return
+        }
+        
         $this._animations[$animation.Name] = $animation
         
         # Start timer if not running
@@ -42258,7 +42477,7 @@ class FileBrowserScreen : Screen {
     [scriptblock]$FileSelectedCallback = $null  # Callback for file selection
     
     FileBrowserScreen() : base() {
-        $this.Title = "File Browser - [h/←]Back [j/↓]Down [k/↑]Up [l/→]Enter [.]Hidden"
+        $this.Title = "File Browser - [h/←]Back [j/↓]Down [k/↑]Up [l/→]Enter [y]Yank [d]Cut [p]Paste [r]Rename [D]Delete [Space]Mark"
     }
     
     [void] OnInitialize() {
@@ -42266,9 +42485,21 @@ class FileBrowserScreen : Screen {
             $global:Logger.Debug("FileBrowserScreen.OnInitialize: Starting initialization")
         }
         
+        # Get configuration service
+        $configService = $this.ServiceContainer.GetService("ConfigurationService")
+        $defaultPath = (Get-Location).Path
+        
+        if ($configService) {
+            # Load file browser settings
+            $fbConfig = $configService.Get("FileBrowser")
+            if ($fbConfig -and $fbConfig.ContainsKey("DefaultPath") -and $fbConfig.DefaultPath) {
+                $defaultPath = $fbConfig.DefaultPath
+            }
+        }
+        
         # Create and configure the ranger-style file tree
         $this.FileTree = [RangerFileTree]::new()
-        $this.FileTree.CurrentPath = (Get-Location).Path
+        $this.FileTree.CurrentPath = $defaultPath
         
         if ($global:Logger) {
             $global:Logger.Debug("FileBrowserScreen: Created RangerFileTree with path: $($this.FileTree.CurrentPath)")
@@ -42281,6 +42512,21 @@ class FileBrowserScreen : Screen {
         
         # Initialize the FileTree with the service container
         $this.FileTree.Initialize($this.ServiceContainer)
+        
+        # Apply file browser settings
+        $this.ApplyFileBrowserSettings()
+        
+        # Subscribe to configuration changes
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $screen = $this
+            $eventBus.Subscribe([EventNames]::ConfigChanged, {
+                param($sender, $eventData)
+                if ($eventData.Path -match "^FileBrowser\.") {
+                    $screen.ApplyFileBrowserSettings()
+                }
+            }.GetNewClosure())
+        }
         
         # Set up event handlers
         $screen = $this  # Capture reference for closures
@@ -42387,6 +42633,28 @@ class FileBrowserScreen : Screen {
         
         # Call base implementation
         return ([Screen]$this).HandleInput($key)
+    }
+    
+    [void] ApplyFileBrowserSettings() {
+        $configService = $this.ServiceContainer.GetService("ConfigurationService")
+        if (-not $configService -or -not $this.FileTree) { return }
+        
+        $fbConfig = $configService.Get("FileBrowser")
+        if ($fbConfig) {
+            # TODO: Apply ShowHiddenFiles setting when RangerFileTree supports it
+            # if ($fbConfig.ContainsKey("ShowHiddenFiles")) {
+            #     $this.FileTree.ShowHiddenFiles = [bool]$fbConfig.ShowHiddenFiles
+            # }
+            
+            # TODO: Apply sort settings when RangerFileTree supports them
+            # Note: Current RangerFileTree may not support these settings yet
+            
+            # For now, just refresh the tree
+            if ($this.FileTree.RefreshView) {
+                $this.FileTree.RefreshView()
+            }
+            $this.FileTree.Invalidate()
+        }
     }
 }
 
@@ -42662,6 +42930,11 @@ class FindReplaceDialog : BaseDialog {
         $this.FindTextBox = [MinimalTextBox]::new()
         $this.FindTextBox.Placeholder = "Text to find..."
         $this.FindTextBox.Width = 50
+        # Make Enter key trigger Find Next
+        $dialog = $this
+        $this.FindTextBox.OnEnter = {
+            $dialog.FindNext()
+        }.GetNewClosure()
         $this.AddContentControl($this.FindTextBox, 1)
         
         # Replace text box  
@@ -44017,8 +44290,8 @@ class MainScreen : Screen {
     
     [void] OnBoundsChanged() {
         if ($this.TabContainer) {
-            # Leave space for border and status bar
-            $this.TabContainer.SetBounds($this.X + 1, $this.Y + 1, $this.Width - 2, $this.Height - 3)
+            # TabContainer gets full screen except status bar
+            $this.TabContainer.SetBounds($this.X, $this.Y, $this.Width, $this.Height - 1)
         }
         if ($this.CommandPalette) {
             # Command palette uses full screen for centering
@@ -44026,7 +44299,7 @@ class MainScreen : Screen {
         }
         if ($this.StatusBar) {
             # Status bar at bottom
-            $this.StatusBar.SetBounds($this.X + 1, $this.Y + $this.Height - 2, $this.Width - 2, 1)
+            $this.StatusBar.SetBounds($this.X, $this.Y + $this.Height - 1, $this.Width, 1)
         }
     }
     
@@ -44128,10 +44401,11 @@ class MainScreen : Screen {
                 }
                 "Settings" {
                     $this.StatusBar.SetHints(@(
+                        @{Key="←→/Tab"; Action="Switch Panel"}
                         @{Key="Enter"; Action="Edit"}
-                        @{Key="T"; Action="Theme"}
+                        @{Key="T"; Action="Quick Theme"}
                         @{Key="R"; Action="Reset"}
-                        @{Key="Tab"; Action="Navigate"}
+                        @{Key="B"; Action="Backup"}
                     ))
                 }
                 default {
@@ -44150,26 +44424,8 @@ class MainScreen : Screen {
     }
     
     # Override render to add border
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 4096
-        
-        # Draw main screen border
-        $theme = $this.ServiceContainer.GetService('ThemeManager')
-        if ($theme) {
-            $borderColor = $theme.GetColor('border.normal')
-            $sb.Append([BorderStyle]::RenderBorder(
-                $this.X, $this.Y, $this.Width, $this.Height,
-                [BorderType]::Rounded, $borderColor
-            ))
-        }
-        
-        # Render base content (which includes TabContainer)
-        $sb.Append(([Screen]$this).OnRender())
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
-    }
+    # MainScreen no longer draws its own border - let child screens handle their own rendering
+    # This was causing double borders and layout issues
 }
 
 
@@ -46868,8 +47124,20 @@ class SelectionDialog : BaseDialog {
         $this.ListBox.SetItems($this.Items)
         $this.AddContentControl($this.ListBox)
         
-        # Configure primary button action
+        # Configure list box to handle Enter key
         $dialog = $this
+        $this.ListBox.OnSelectionChanged = {
+            $selectedItem = $dialog.ListBox.GetSelectedItem()
+            if ($selectedItem -and $dialog.OnSelect) {
+                & $dialog.OnSelect $selectedItem
+                # Close the dialog after selection
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }
+        }.GetNewClosure()
+        
+        # Configure primary button action
         $this.OnPrimary = {
             $selectedItem = $dialog.ListBox.GetSelectedItem()
             if ($selectedItem -and $dialog.OnSelect) {
@@ -46946,7 +47214,8 @@ class SettingsScreen : Screen {
         
         # Create category list
         $this.CategoryList = [MinimalListBox]::new()
-        $this.CategoryList.ShowBorder = $false  # MainScreen draws the border
+        $this.CategoryList.ShowBorder = $false  # No border - we'll handle separation ourselves
+        $this.CategoryList.BorderType = [BorderType]::None
         # Capture screen reference for callback
         $screen = $this
         $this.CategoryList.OnSelectionChanged = {
@@ -46957,8 +47226,10 @@ class SettingsScreen : Screen {
         
         # Create settings grid
         $this.SettingsGrid = [MinimalDataGrid]::new()
-        $this.SettingsGrid.Title = "Settings"
-        $this.SettingsGrid.ShowBorder = $false  # MainScreen draws the border
+        $this.SettingsGrid.Title = ""  # No title needed
+        $this.SettingsGrid.ShowBorder = $false  # No border
+        $this.SettingsGrid.BorderType = [BorderType]::None
+        $this.SettingsGrid.ShowTitle = $false
         $this.SettingsGrid.Initialize($global:ServiceContainer)
         $columns = @(
             @{Name="Setting"; Header="Setting"; Width=30; Getter={param($item) $item.Setting}},
@@ -46966,6 +47237,14 @@ class SettingsScreen : Screen {
             @{Name="Type"; Header="Type"; Width=10; Getter={param($item) $item.Type}}
         )
         $this.SettingsGrid.SetColumns($columns)
+        
+        # Set up Enter key handler for the grid
+        $screen = $this
+        $this.SettingsGrid.OnItemSelected = {
+            param($item)
+            $screen.EditSetting()
+        }.GetNewClosure()
+        
         $this.AddChild($this.SettingsGrid)
         
         # Load categories
@@ -46987,6 +47266,29 @@ class SettingsScreen : Screen {
                 $this.EditSetting()
                 return $true
             }
+            ([System.ConsoleKey]::Tab) {
+                # Toggle focus between CategoryList and SettingsGrid
+                if ($this.CategoryList.IsFocused) {
+                    if ($this.SettingsGrid.Items.Count -gt 0) {
+                        $this.SettingsGrid.Focus()
+                    }
+                } else {
+                    $this.CategoryList.Focus()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::LeftArrow) {
+                # Focus category list
+                $this.CategoryList.Focus()
+                return $true
+            }
+            ([System.ConsoleKey]::RightArrow) {
+                # Focus settings grid if it has items
+                if ($this.SettingsGrid.Items.Count -gt 0) {
+                    $this.SettingsGrid.Focus()
+                }
+                return $true
+            }
         }
         
         switch ($key.KeyChar) {
@@ -46996,6 +47298,11 @@ class SettingsScreen : Screen {
             's' { $this.SaveSettings(); return $true }
             'b' { $this.CreateBackup(); return $true }
             'B' { $this.RestoreBackup(); return $true }
+            't' { 
+                # Quick theme selector - navigate to Theme category and show theme selector
+                $this.SelectThemeCategory()
+                return $true 
+            }
         }
         
         return $false
@@ -47012,24 +47319,31 @@ class SettingsScreen : Screen {
     }
     
     [void] OnBoundsChanged() {
-        # Split the width between category list and settings grid
-        $categoryWidth = 30  # Increased to accommodate longer category names
-        $gridWidth = [Math]::Max(10, $this.Width - $categoryWidth)
+        # Account for border
+        $innerX = $this.X + 1
+        $innerY = $this.Y + 1
+        $innerWidth = $this.Width - 2
+        $innerHeight = $this.Height - 2
         
-        # Set bounds for category list - use relative positioning
+        # Split the width between category list and settings grid
+        $categoryWidth = 28  # Fixed width for categories
+        $separatorWidth = 1  # Vertical separator
+        $gridWidth = [Math]::Max(10, $innerWidth - $categoryWidth - $separatorWidth)
+        
+        # Set bounds for category list
         $this.CategoryList.SetBounds(
-            0,
-            0,
+            $innerX,
+            $innerY,
             $categoryWidth,
-            $this.Height
+            $innerHeight
         )
         
-        # Set bounds for settings grid - use relative positioning
+        # Set bounds for settings grid (after separator)
         $this.SettingsGrid.SetBounds(
-            $categoryWidth,
-            0,
+            $innerX + $categoryWidth + $separatorWidth,
+            $innerY,
             $gridWidth,
-            $this.Height
+            $innerHeight
         )
     }
     
@@ -47082,16 +47396,63 @@ class SettingsScreen : Screen {
         if ($categoryConfig -is [hashtable]) {
             $settings = @()
             
-            foreach ($key in $categoryConfig.Keys | Sort-Object) {
-                $value = $categoryConfig[$key]
-                $type = $this.GetValueType($value)
+            # For Theme category, put CurrentTheme first
+            if ($selected.Name -eq "Theme") {
+                if ($global:Logger) {
+                    $global:Logger.Debug("LoadCategorySettings: Theme category detected")
+                    $global:Logger.Debug("  Keys in categoryConfig: $($categoryConfig.Keys -join ', ')")
+                }
+                # Add CurrentTheme first
+                if ($categoryConfig.ContainsKey("CurrentTheme")) {
+                    $value = $categoryConfig["CurrentTheme"]
+                    $settings += @{
+                        Setting = $this.FormatSettingName("CurrentTheme")
+                        Value = "▸ $value ◂ [Press Enter to change]"
+                        Type = $this.GetValueType($value)
+                        Key = "CurrentTheme"
+                        RawValue = $value
+                    }
+                    if ($global:Logger) {
+                        $global:Logger.Debug("  Added CurrentTheme as first item")
+                    }
+                }
                 
-                $settings += @{
-                    Setting = $this.FormatSettingName($key)
-                    Value = $this.FormatValue($value)
-                    Type = $type
-                    Key = $key
-                    RawValue = $value
+                # Then add other settings except CurrentTheme
+                foreach ($key in $categoryConfig.Keys | Sort-Object) {
+                    if ($key -eq "CurrentTheme") { continue }
+                    
+                    $value = $categoryConfig[$key]
+                    $type = $this.GetValueType($value)
+                    
+                    # Special formatting for EditTheme
+                    $displayValue = if ($key -eq "EditTheme") {
+                        "✎ Press Enter to open theme editor"
+                    } else {
+                        $this.FormatValue($value)
+                    }
+                    
+                    $settings += @{
+                        Setting = $this.FormatSettingName($key)
+                        Value = $displayValue
+                        Type = $type
+                        Key = $key
+                        RawValue = $value
+                    }
+                }
+            }
+            else {
+                # Normal alphabetical sorting for other categories
+                foreach ($key in $categoryConfig.Keys | Sort-Object) {
+                    $value = $categoryConfig[$key]
+                    $type = $this.GetValueType($value)
+                    
+                    $settings += @{
+                        Setting = $this.FormatSettingName($key)
+                        Value = $this.FormatValue($value)
+                        Type = $type
+                        Key = $key
+                        RawValue = $value
+                    }
                 }
             }
             
@@ -47101,8 +47462,19 @@ class SettingsScreen : Screen {
                 $global:Logger.Debug("SettingsScreen.LoadCategorySettings: Loading $($settings.Count) settings for category '$($selected.DisplayName)'")
             }
             
+            # For Theme category, reset selection before setting items
+            if ($selected.Name -eq "Theme") {
+                $this.SettingsGrid.SelectedIndex = 0
+            }
+            
             $this.SettingsGrid.SetItems($settings)
             $this.SettingsGrid.Title = "Settings - $($selected.DisplayName)"
+            
+            # Force selection to first item for Theme category
+            if ($selected.Name -eq "Theme" -and $settings.Count -gt 0) {
+                $this.SettingsGrid.SelectedIndex = 0
+                $this.SettingsGrid.Invalidate()
+            }
         }
     }
     
@@ -47132,11 +47504,18 @@ class SettingsScreen : Screen {
         $path = "$($this.CurrentCategory).$($selected.Key)"
         $currentValue = $selected.RawValue
         
+        if ($global:Logger) {
+            $global:Logger.Debug("SettingsScreen.EditSetting: Path=$path, Key=$($selected.Key), Category=$($this.CurrentCategory)")
+        }
+        
         # Create appropriate dialog based on type
         $dialog = $null
         
         # Special handling for theme selection
         if ($path -eq "Theme.CurrentTheme") {
+            if ($global:Logger) {
+                $global:Logger.Debug("SettingsScreen.EditSetting: Showing theme selection dialog")
+            }
             # Show theme selection dialog
             $this.ShowThemeSelectionDialog($currentValue)
             return
@@ -47390,6 +47769,15 @@ class SettingsScreen : Screen {
             }
             return "<array[$($value.Count)]>" 
         }
+        
+        # Special formatting for specific settings
+        if ($value -is [string]) {
+            # Don't double-format already formatted values
+            if ($value -match "[\[▸◂]") {
+                return $value  # Already formatted
+            }
+        }
+        
         return $value.ToString()
     }
     
@@ -47537,23 +47925,6 @@ This will add the following themes:
         $global:ScreenManager.Push($dialog)
     }
     
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 4096
-        
-        # Clear the entire area first to prevent overlap
-        $clearLine = [StringCache]::GetSpaces($this.Width)
-        for ($y = 0; $y -lt $this.Height; $y++) {
-            $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))
-            $sb.Append($clearLine)
-        }
-        
-        # Now render the base container with child components
-        $sb.Append(([Container]$this).OnRender())
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
-    }
     
     [void] ShowTemplateEditor([string]$templateType, $currentTemplates) {
         # Create template list editor dialog
@@ -47822,6 +48193,88 @@ This will add the following themes:
         $toastService = $this.ServiceContainer.GetService('ToastService')
         if ($toastService) {
             $toastService.ShowToast("Edit: Remove and re-add template", [ToastType]::Info, 2000)
+        }
+    }
+    
+    [string] OnRender() {
+        $sb = Get-PooledStringBuilder 4096
+        
+        # Draw outer border
+        $theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($theme) {
+            $borderColor = $theme.GetColor('border')
+            $sb.Append([BorderStyle]::RenderBorderWithTitle(
+                $this.X, $this.Y, $this.Width, $this.Height,
+                [BorderType]::Rounded, $borderColor,
+                "Settings", $theme.GetColor('accent')
+            ))
+            
+            # Draw vertical separator
+            $separatorX = $this.X + 29  # After category list
+            $separatorColor = $theme.GetColor('border')
+            $sb.Append($separatorColor)
+            
+            # Draw vertical line
+            for ($y = $this.Y + 1; $y -lt $this.Y + $this.Height - 1; $y++) {
+                $sb.Append([VT]::MoveTo($separatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Connect to top border
+            $sb.Append([VT]::MoveTo($separatorX, $this.Y))
+            $sb.Append('┬')
+            
+            # Connect to bottom border
+            $sb.Append([VT]::MoveTo($separatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')
+            
+            $sb.Append([VT]::Reset())
+        }
+        
+        # Render children (category list and settings grid)
+        $sb.Append(([Screen]$this).OnRender())
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
+    }
+    
+    [void] SelectThemeCategory() {
+        # Find the Theme category in the list
+        $themeIndex = -1
+        for ($i = 0; $i -lt $this.CategoryList.Items.Count; $i++) {
+            if ($this.CategoryList.Items[$i].Name -eq "Theme") {
+                $themeIndex = $i
+                break
+            }
+        }
+        
+        if ($themeIndex -ge 0) {
+            # Select the Theme category
+            $this.CategoryList.SelectedIndex = $themeIndex
+            $this.LoadCategorySettings()
+            
+            # Focus on the settings grid
+            $this.SettingsGrid.Focus()
+            
+            # CurrentTheme should be at index 0 after LoadCategorySettings
+            if ($this.SettingsGrid.Items.Count -gt 0) {
+                $this.SettingsGrid.SelectedIndex = 0
+                # Verify it's CurrentTheme
+                if ($this.SettingsGrid.Items[0].Key -eq "CurrentTheme") {
+                    # Directly show theme selection dialog
+                    $this.ShowThemeSelectionDialog($this.SettingsGrid.Items[0].RawValue)
+                } else {
+                    # Search for CurrentTheme if not at index 0
+                    for ($i = 0; $i -lt $this.SettingsGrid.Items.Count; $i++) {
+                        if ($this.SettingsGrid.Items[$i].Key -eq "CurrentTheme") {
+                            $this.SettingsGrid.SelectedIndex = $i
+                            $this.ShowThemeSelectionDialog($this.SettingsGrid.Items[$i].RawValue)
+                            break
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -49792,11 +50245,50 @@ class TextEditorScreenNew : Screen {
         # Get PRAXIS services
         $this.ThemeManager = $this.ServiceContainer.GetService("ThemeManager")
         $this.EventBus = $this.ServiceContainer.GetService('EventBus')
+        
+        # Load editor settings from config
+        $this.LoadEditorSettings()
+        
+        # Subscribe to configuration changes
+        if ($this.EventBus) {
+            $screen = $this
+            $this.EventBus.Subscribe([EventNames]::ConfigChanged, {
+                param($sender, $eventData)
+                if ($eventData.Path -match "^Editor\.") {
+                    $screen.LoadEditorSettings()
+                    $screen.InvalidateAllLines()
+                    $screen.Invalidate()
+                }
+            }.GetNewClosure())
+        }
     }
     
     hidden [void] InitializeRenderCache() {
         $this._lineRenderCache = @{}
         $this._dirtyLines = @{}
+    }
+    
+    [void] LoadEditorSettings() {
+        $configService = $this.ServiceContainer.GetService("ConfigurationService")
+        if (-not $configService) { return }
+        
+        # Load all editor settings
+        $editorConfig = $configService.Get("Editor")
+        if ($editorConfig) {
+            # Apply settings
+            if ($editorConfig.ContainsKey("TabSize")) {
+                $this.TabWidth = [int]$editorConfig.TabSize
+            }
+            if ($editorConfig.ContainsKey("ShowLineNumbers")) {
+                $this.ShowLineNumbers = [bool]$editorConfig.ShowLineNumbers
+                # Adjust line number width if needed
+                $this.InvalidateAllLines()
+            }
+            if ($editorConfig.ContainsKey("AutoSaveInterval")) {
+                # TODO: Implement auto-save timer
+            }
+            # Additional settings can be applied here
+        }
     }
     
     hidden [void] SetupBufferEventHandlers() {
@@ -49810,6 +50302,17 @@ class TextEditorScreenNew : Screen {
             param($isModified)
             $screen.OnBufferModifiedStateChanged($isModified)
         }.GetNewClosure()
+    }
+    
+    [void] InvalidateAllLines() {
+        # Mark all lines as dirty
+        $this._allLinesDirty = $true
+        # Clear the line render cache
+        if ($this._lineRenderCache) {
+            $this._lineRenderCache.Clear()
+        }
+        # Invalidate the component
+        $this.Invalidate()
     }
     
     hidden [void] OnBufferContentChanged() {
@@ -50474,28 +50977,102 @@ Switch to GapBufferDocumentBuffer for better performance.
         # Save state for undo
         $this.SaveDocumentState()
         
-        # Delete the selected text
-        if ($bounds.StartY -eq $bounds.EndY) {
-            # Single line selection
-            $this._buffer.DeleteTextAt($bounds.StartY, $bounds.StartX, $bounds.EndX - $bounds.StartX)
-        } else {
-            # Multi-line selection - delete from end to start to preserve positions
-            for ($y = $bounds.EndY; $y -ge $bounds.StartY; $y--) {
-                if ($y -eq $bounds.EndY -and $y -eq $bounds.StartY) {
-                    # Same line (shouldn't happen but safety check)
-                    $this._buffer.DeleteTextAt($y, $bounds.StartX, $bounds.EndX - $bounds.StartX)
-                } elseif ($y -eq $bounds.EndY) {
-                    # Last line - delete from start to EndX
-                    $this._buffer.DeleteTextAt($y, 0, $bounds.EndX)
-                } elseif ($y -eq $bounds.StartY) {
-                    # First line - delete from StartX to end, then join with next line
+        # For GapBuffer, we need to calculate the total character range to delete
+        if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+            # Get the selected text first (for potential undo)
+            $selectedText = $this.GetSelectedText($bounds)
+            
+            # Calculate total characters to delete including newlines
+            $deleteCount = 0
+            
+            if ($bounds.StartY -eq $bounds.EndY) {
+                # Single line - simple case
+                $deleteCount = $bounds.EndX - $bounds.StartX
+            } else {
+                # Multi-line selection
+                # First line: from StartX to end of line + newline
+                $firstLine = $this._buffer.GetLine($bounds.StartY)
+                $deleteCount += ($firstLine.Length - $bounds.StartX) + 1  # +1 for newline
+                
+                # Middle lines: entire lines including newlines
+                for ($y = $bounds.StartY + 1; $y -lt $bounds.EndY; $y++) {
                     $line = $this._buffer.GetLine($y)
-                    $this._buffer.DeleteTextAt($y, $bounds.StartX, $line.Length - $bounds.StartX)
-                    # Remove the now-empty lines that were in between
-                    for ($i = $bounds.EndY; $i -gt $bounds.StartY; $i--) {
-                        $this._buffer.Lines.RemoveAt($i)
+                    $deleteCount += $line.Length + 1  # +1 for newline
+                }
+                
+                # Last line: from start to EndX (no newline)
+                $deleteCount += $bounds.EndX
+            }
+            
+            # Delete using buffer's delete method with calculated length
+            if ($deleteCount -gt 0) {
+                # For multi-line, we need to delete line by line from bottom to top
+                if ($bounds.StartY -eq $bounds.EndY) {
+                    # Single line - simple delete
+                    $this._buffer.DeleteTextAt($bounds.StartY, $bounds.StartX, $deleteCount)
+                } else {
+                    # Multi-line - more complex
+                    # First, get text that will remain after deletion
+                    $firstLine = $this._buffer.GetLine($bounds.StartY)
+                    $lastLine = $this._buffer.GetLine($bounds.EndY)
+                    $keepBefore = $firstLine.Substring(0, $bounds.StartX)
+                    $keepAfter = if ($bounds.EndX -lt $lastLine.Length) { $lastLine.Substring($bounds.EndX) } else { "" }
+                    
+                    # Delete from last line backwards
+                    for ($y = $bounds.EndY; $y -ge $bounds.StartY; $y--) {
+                        if ($y -eq $bounds.EndY -and $y -eq $bounds.StartY) {
+                            # Single line (shouldn't happen here)
+                            $this._buffer.DeleteTextAt($y, $bounds.StartX, $bounds.EndX - $bounds.StartX)
+                        } elseif ($y -eq $bounds.EndY) {
+                            # Last line - delete from start to EndX, then the newline before it
+                            $this._buffer.DeleteTextAt($y, 0, $bounds.EndX)
+                            if ($y -gt 0) {
+                                # Delete the newline at end of previous line
+                                $prevLine = $this._buffer.GetLine($y - 1)
+                                $this._buffer.DeleteTextAt($y - 1, $prevLine.Length, 1)
+                            }
+                        } elseif ($y -eq $bounds.StartY) {
+                            # First line - delete from StartX to end (newline was already removed)
+                            $line = $this._buffer.GetLine($y)
+                            $deleteLen = $line.Length - $bounds.StartX
+                            if ($deleteLen -gt 0) {
+                                $this._buffer.DeleteTextAt($y, $bounds.StartX, $deleteLen)
+                            }
+                            # Now append the keepAfter text
+                            if ($keepAfter.Length -gt 0) {
+                                $this._buffer.InsertTextAt($y, $bounds.StartX, $keepAfter)
+                            }
+                        } else {
+                            # Middle line - delete entire line by deleting from previous line's newline
+                            if ($y -gt 0) {
+                                $prevLine = $this._buffer.GetLine($y - 1)
+                                $this._buffer.DeleteTextAt($y - 1, $prevLine.Length, 1)
+                            }
+                        }
                     }
-                    break  # We've handled the deletion
+                }
+            }
+        } else {
+            # Fallback for non-GapBuffer buffers
+            if ($bounds.StartY -eq $bounds.EndY) {
+                # Single line selection
+                $this._buffer.DeleteTextAt($bounds.StartY, $bounds.StartX, $bounds.EndX - $bounds.StartX)
+            } else {
+                # Multi-line selection - build the text to keep
+                $firstLine = $this._buffer.GetLine($bounds.StartY)
+                $lastLine = $this._buffer.GetLine($bounds.EndY)
+                
+                # Keep the part before selection and after selection
+                $keepBefore = $firstLine.Substring(0, $bounds.StartX)
+                $keepAfter = if ($bounds.EndX -lt $lastLine.Length) { $lastLine.Substring($bounds.EndX) } else { "" }
+                
+                # Replace the first line with combined text
+                $this._buffer.SetLine($bounds.StartY, $keepBefore + $keepAfter)
+                
+                # Remove all lines between start and end
+                $linesToRemove = $bounds.EndY - $bounds.StartY
+                for ($i = 0; $i -lt $linesToRemove; $i++) {
+                    $this._buffer.RemoveLine($bounds.StartY + 1)
                 }
             }
         }
@@ -50504,6 +51081,9 @@ Switch to GapBufferDocumentBuffer for better performance.
         $this.CursorX = $bounds.StartX
         $this.CursorY = $bounds.StartY
         
+        # Ensure cursor is valid
+        $this.EnsureCursorValid()
+        
         $this.ClearSelection()
         $this._buffer.IsModified = $true
         $this._allLinesDirty = $true
@@ -50511,6 +51091,31 @@ Switch to GapBufferDocumentBuffer for better performance.
             $this._lineRenderCache.Clear()
         }
         $this.Invalidate()
+    }
+    
+    hidden [string] GetSelectedText([hashtable]$bounds) {
+        if ($bounds.StartY -eq $bounds.EndY) {
+            # Single line selection
+            $line = $this._buffer.GetLine($bounds.StartY)
+            return $line.Substring($bounds.StartX, $bounds.EndX - $bounds.StartX)
+        } else {
+            # Multi-line selection
+            $text = ""
+            for ($y = $bounds.StartY; $y -le $bounds.EndY; $y++) {
+                $line = $this._buffer.GetLine($y)
+                if ($y -eq $bounds.StartY) {
+                    # First line - from StartX to end
+                    $text += $line.Substring($bounds.StartX)
+                } elseif ($y -eq $bounds.EndY) {
+                    # Last line - from start to EndX
+                    $text += "`n" + $line.Substring(0, $bounds.EndX)
+                } else {
+                    # Middle lines - entire line
+                    $text += "`n" + $line
+                }
+            }
+            return $text
+        }
     }
     
     hidden [hashtable] GetSelectionBounds() {
@@ -50879,6 +51484,31 @@ Switch to GapBufferDocumentBuffer for better performance.
         $this.ScrollOffsetX = [Math]::Max(0, $this.ScrollOffsetX)
         
         $this.Invalidate()
+    }
+    
+    hidden [void] EnsureCursorValid() {
+        # Ensure cursor Y is within valid range
+        $lineCount = $this._buffer.GetLineCount()
+        if ($this.CursorY -ge $lineCount) {
+            $this.CursorY = [Math]::Max(0, $lineCount - 1)
+        }
+        if ($this.CursorY -lt 0) {
+            $this.CursorY = 0
+        }
+        
+        # Ensure cursor X is within valid range for current line
+        if ($this.CursorY -lt $lineCount) {
+            $currentLine = $this._buffer.GetLine($this.CursorY)
+            if ($this.CursorX -gt $currentLine.Length) {
+                $this.CursorX = $currentLine.Length
+            }
+        }
+        if ($this.CursorX -lt 0) {
+            $this.CursorX = 0
+        }
+        
+        # Make sure cursor is visible
+        $this.EnsureCursorVisible()
     }
     
     # --- Optimized Rendering with Line-Level Caching ---
@@ -51269,7 +51899,7 @@ class TextInputDialog : BaseDialog {
 class ThemeEditorDialog : BaseDialog {
     [MinimalListBox]$ColorList
     [MinimalTextBox]$PreviewBox
-    [EnhancedThemeManager]$ThemeManager
+    $ThemeManager  # Generic type to work with any ThemeManager
     [hashtable]$CurrentTheme = @{}
     [string]$SelectedColorKey = ""
     
@@ -51288,8 +51918,8 @@ class ThemeEditorDialog : BaseDialog {
     [void] InitializeContent() {
         $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
         
-        # Enable live editing
-        if ($this.ThemeManager -is [EnhancedThemeManager]) {
+        # Enable live editing if available
+        if ($this.ThemeManager -and $this.ThemeManager.PSObject.Methods.Name -contains 'EnableLiveEdit') {
             $this.ThemeManager.EnableLiveEdit()
         }
         
@@ -51533,6 +52163,86 @@ class ThemeEditorDialog : BaseDialog {
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
+    }
+}
+
+
+####\Screens/ThemeSelectionDialog.ps1
+# ThemeSelectionDialog.ps1 - Simple theme picker
+
+class ThemeSelectionDialog : BaseDialog {
+    [MinimalListBox]$ThemeList
+    [ThemeManager]$ThemeManager
+    [string]$SelectedTheme
+    
+    ThemeSelectionDialog() : base() {
+        $this.Title = "Select Theme"
+        $this.Width = 40
+        $this.Height = 12
+    }
+    
+    [void] OnInitialize() {
+        ([BaseDialog]$this).OnInitialize()
+        
+        $this.ThemeManager = $this.ServiceContainer.GetService('ThemeManager')
+        
+        # Create list box
+        $this.ThemeList = [MinimalListBox]::new()
+        $this.ThemeList.Title = "Available Themes"
+        $this.ThemeList.ShowBorder = $false
+        
+        # Add theme names
+        $themes = $this.ThemeManager.GetThemeNames()
+        foreach ($theme in $themes) {
+            $this.ThemeList.AddItem($theme)
+        }
+        
+        # Select current theme
+        $currentTheme = $this.ThemeManager.GetCurrentTheme()
+        $index = $themes.IndexOf($currentTheme)
+        if ($index -ge 0) {
+            $this.ThemeList.SetSelectedIndex($index)
+        }
+        
+        $this.AddContentControl($this.ThemeList)
+        $this.ThemeList.Focus()
+    }
+    
+    [void] OnBoundsChanged() {
+        ([BaseDialog]$this).OnBoundsChanged()
+        
+        if ($this.ThemeList) {
+            # Give list full dialog content area
+            $this.ThemeList.SetBounds(
+                $this.ContentX,
+                $this.ContentY,
+                $this.ContentWidth,
+                $this.ContentHeight
+            )
+        }
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::Enter) {
+                # Apply theme
+                $this.SelectedTheme = $this.ThemeList.GetSelectedItem()
+                if ($this.SelectedTheme) {
+                    $this.ThemeManager.SetTheme($this.SelectedTheme)
+                }
+                $this.DialogResult = [DialogResult]::OK
+                $this.Close()
+                return $true
+            }
+            ([System.ConsoleKey]::Escape) {
+                $this.DialogResult = [DialogResult]::Cancel
+                $this.Close()
+                return $true
+            }
+        }
+        
+        # Let base handle it
+        return ([BaseDialog]$this).HandleInput($key)
     }
 }
 
@@ -53808,7 +54518,7 @@ class ConfigurationService {
             Theme = @{
                 CurrentTheme = "default"
                 AvailableThemes = @("default", "matrix", "amber")
-                EditTheme = "[Click to open theme editor]"
+                EditTheme = "[Press Enter to open theme editor]"
                 UserCustomizations = @{}
                 EnableLiveEdit = $true
                 ShowThemePreview = $true
@@ -54684,6 +55394,288 @@ class ExcelImportService {
         $project.Comments = $ImportedData.Comments
         
         return $project
+    }
+}
+
+
+####\Services/FileOperationService.ps1
+# FileOperationService.ps1 - Handles file copy/cut/paste/rename/delete operations
+
+class FileOperationService {
+    [ServiceContainer]$ServiceContainer
+    
+    # Clipboard for file operations
+    [System.Collections.ArrayList]$YankBuffer
+    [bool]$IsCutOperation = $false
+    
+    # Operation history for undo (future feature)
+    [System.Collections.ArrayList]$OperationHistory
+    
+    FileOperationService() {
+        $this.YankBuffer = [System.Collections.ArrayList]::new()
+        $this.OperationHistory = [System.Collections.ArrayList]::new()
+    }
+    
+    [void] Initialize([ServiceContainer]$container) {
+        $this.ServiceContainer = $container
+    }
+    
+    # Copy files/directories to yank buffer
+    [void] YankItems([string[]]$paths, [bool]$cut = $false) {
+        $this.YankBuffer.Clear()
+        $this.IsCutOperation = $cut
+        
+        foreach ($path in $paths) {
+            if (Test-Path $path) {
+                $this.YankBuffer.Add($path) | Out-Null
+            }
+        }
+        
+        $operation = if ($cut) { "Cut" } else { "Copied" }
+        $count = $this.YankBuffer.Count
+        $itemText = if ($count -eq 1) { "item" } else { "items" }
+        
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $eventBus.Publish('FileOperation', @{
+                Operation = $operation
+                Message = "$operation $count $itemText"
+                Items = $this.YankBuffer
+            })
+        }
+    }
+    
+    # Paste yanked items to destination
+    [hashtable] PasteItems([string]$destinationPath) {
+        $result = @{
+            Success = $true
+            Message = ""
+            ProcessedCount = 0
+            Errors = @()
+        }
+        
+        if ($this.YankBuffer.Count -eq 0) {
+            $result.Success = $false
+            $result.Message = "Nothing to paste"
+            return $result
+        }
+        
+        if (-not (Test-Path $destinationPath -PathType Container)) {
+            $result.Success = $false
+            $result.Message = "Destination must be a directory"
+            return $result
+        }
+        
+        $operation = if ($this.IsCutOperation) { "Moving" } else { "Copying" }
+        $processed = 0
+        
+        foreach ($sourcePath in $this.YankBuffer) {
+            try {
+                $item = Get-Item $sourcePath -ErrorAction Stop
+                $destPath = Join-Path $destinationPath $item.Name
+                
+                # Check if destination exists
+                if (Test-Path $destPath) {
+                    $destPath = $this.GetUniqueDestinationPath($destPath)
+                }
+                
+                if ($this.IsCutOperation) {
+                    Move-Item -Path $sourcePath -Destination $destPath -Force -ErrorAction Stop
+                } else {
+                    if ($item.PSIsContainer) {
+                        Copy-Item -Path $sourcePath -Destination $destPath -Recurse -Force -ErrorAction Stop
+                    } else {
+                        Copy-Item -Path $sourcePath -Destination $destPath -Force -ErrorAction Stop
+                    }
+                }
+                
+                $processed++
+                
+                # Record operation for history
+                $this.OperationHistory.Add(@{
+                    Type = if ($this.IsCutOperation) { 'Move' } else { 'Copy' }
+                    Source = $sourcePath
+                    Destination = $destPath
+                    Timestamp = Get-Date
+                }) | Out-Null
+                
+            } catch {
+                $result.Errors += "Failed to process ${sourcePath}: $_"
+            }
+        }
+        
+        $result.ProcessedCount = $processed
+        
+        if ($processed -gt 0) {
+            if ($this.IsCutOperation) {
+                $this.YankBuffer.Clear()
+                $this.IsCutOperation = $false
+            }
+            
+            $itemText = if ($processed -eq 1) { "item" } else { "items" }
+            $result.Message = "$operation complete: $processed $itemText"
+        } else {
+            $result.Success = $false
+            $result.Message = "No items were processed"
+        }
+        
+        # Publish event
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $eventBus.Publish('FileOperation', @{
+                Operation = 'Paste'
+                Result = $result
+            })
+        }
+        
+        return $result
+    }
+    
+    # Rename a file or directory
+    [hashtable] RenameItem([string]$path, [string]$newName) {
+        $result = @{
+            Success = $true
+            Message = ""
+            NewPath = ""
+        }
+        
+        if (-not (Test-Path $path)) {
+            $result.Success = $false
+            $result.Message = "Item not found: $path"
+            return $result
+        }
+        
+        try {
+            $item = Get-Item $path -ErrorAction Stop
+            $directory = Split-Path $path -Parent
+            $newPath = Join-Path $directory $newName
+            
+            # Check if new name already exists
+            if (Test-Path $newPath) {
+                $result.Success = $false
+                $result.Message = "An item with that name already exists"
+                return $result
+            }
+            
+            # Rename the item
+            Rename-Item -Path $path -NewName $newName -Force -ErrorAction Stop
+            
+            $result.NewPath = $newPath
+            $result.Message = "Renamed to: $newName"
+            
+            # Record operation
+            $this.OperationHistory.Add(@{
+                Type = 'Rename'
+                Source = $path
+                Destination = $newPath
+                Timestamp = Get-Date
+            }) | Out-Null
+            
+        } catch {
+            $result.Success = $false
+            $result.Message = "Rename failed: $_"
+        }
+        
+        # Publish event
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $eventBus.Publish('FileOperation', @{
+                Operation = 'Rename'
+                Result = $result
+            })
+        }
+        
+        return $result
+    }
+    
+    # Delete files/directories with confirmation
+    [hashtable] DeleteItems([string[]]$paths, [bool]$skipConfirmation = $false) {
+        $result = @{
+            Success = $true
+            Message = ""
+            DeletedCount = 0
+            Errors = @()
+        }
+        
+        if ($paths.Count -eq 0) {
+            $result.Success = $false
+            $result.Message = "No items to delete"
+            return $result
+        }
+        
+        $deleted = 0
+        
+        foreach ($path in $paths) {
+            try {
+                if (Test-Path $path) {
+                    Remove-Item -Path $path -Recurse -Force -ErrorAction Stop
+                    $deleted++
+                    
+                    # Record operation
+                    $this.OperationHistory.Add(@{
+                        Type = 'Delete'
+                        Source = $path
+                        Timestamp = Get-Date
+                    }) | Out-Null
+                }
+            } catch {
+                $result.Errors += "Failed to delete ${path}: $_"
+            }
+        }
+        
+        $result.DeletedCount = $deleted
+        
+        if ($deleted -gt 0) {
+            $itemText = if ($deleted -eq 1) { "item" } else { "items" }
+            $result.Message = "Deleted $deleted $itemText"
+        } else {
+            $result.Success = $false
+            $result.Message = "No items were deleted"
+        }
+        
+        # Publish event
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $eventBus.Publish('FileOperation', @{
+                Operation = 'Delete'
+                Result = $result
+            })
+        }
+        
+        return $result
+    }
+    
+    # Get unique destination path by appending number
+    [string] GetUniqueDestinationPath([string]$path) {
+        $directory = Split-Path $path -Parent
+        $nameWithoutExt = [System.IO.Path]::GetFileNameWithoutExtension($path)
+        $extension = [System.IO.Path]::GetExtension($path)
+        
+        $counter = 1
+        $newPath = $path
+        
+        while (Test-Path $newPath) {
+            $newName = "${nameWithoutExt}_${counter}${extension}"
+            $newPath = Join-Path $directory $newName
+            $counter++
+        }
+        
+        return $newPath
+    }
+    
+    # Clear yank buffer
+    [void] ClearYankBuffer() {
+        $this.YankBuffer.Clear()
+        $this.IsCutOperation = $false
+    }
+    
+    # Get yank buffer info
+    [hashtable] GetYankBufferInfo() {
+        return @{
+            Count = $this.YankBuffer.Count
+            IsCut = $this.IsCutOperation
+            Items = @($this.YankBuffer)
+        }
     }
 }
 
@@ -57697,6 +58689,13 @@ class ThemeManager {
             # Additional border states
             "border.normal" = @(68, 68, 68)          # Normal border (same as border)
             
+            # Text editor cursor
+            "cursor" = @(255, 255, 255)              # White cursor background
+            "cursor.text" = @(0, 0, 0)               # Black text on cursor
+            "linenumber" = @(100, 100, 100)          # Dim line numbers
+            "selection.text" = @(255, 255, 255)      # White text on selection
+            "status" = @(204, 204, 204)              # Status bar text
+            
             # Gradient endpoints
             "gradient.border.start" = @(0, 150, 255)      # Blue
             "gradient.border.end" = @(68, 68, 68)         # Dark gray
@@ -57779,6 +58778,13 @@ class ThemeManager {
             
             # Additional border states
             "border.normal" = @(0, 100, 0)
+            
+            # Text editor cursor
+            "cursor" = @(0, 255, 0)                  # Green cursor background
+            "cursor.text" = @(0, 0, 0)               # Black text on cursor
+            "linenumber" = @(0, 100, 0)              # Dim green line numbers
+            "selection.text" = @(0, 0, 0)            # Black text on green selection
+            "status" = @(0, 200, 0)                  # Status bar text
             
             # Gradient endpoints
             "gradient.border.start" = @(0, 255, 0)        # Bright green
@@ -60221,6 +61227,7 @@ $loadOrder = @(
     "Services/MacroContextManager.ps1"
     "Services/MacroService.ps1"
     "Services/BackupService.ps1"
+    "Services/FileOperationService.ps1"
     
     # Components
     "Components/ListBox.ps1"
@@ -60350,6 +61357,33 @@ if ($Debug) {
 # Connect ThemeManager to EventBus
 $themeManager.SetEventBus($eventBus)
 
+# Subscribe to configuration changes
+$eventBus.Subscribe([EventNames]::ConfigChanged, {
+    param($sender, $eventData)
+    
+    # Handle theme changes
+    if ($eventData.Path -eq "Theme.CurrentTheme") {
+        $themeManager = $global:ServiceContainer.GetService("ThemeManager")
+        if ($themeManager -and $eventData.NewValue) {
+            # Theme change is already handled in SettingsScreen.ShowThemeSelectionDialog
+            # This is just for any additional handling needed
+        }
+    }
+    
+    # Handle UI settings changes
+    elseif ($eventData.Path -match "^UI\.") {
+        # Force screen refresh for UI changes
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Invalidate()
+        }
+    }
+    
+    # Log all config changes for debugging
+    if ($global:Logger) {
+        $global:Logger.Debug("Config changed: $($eventData.Path) = $($eventData.NewValue)")
+    }
+})
+
 # FocusManager - Fast O(1) focus management
 $focusManager = [FocusManager]::new()
 $focusManager.Initialize($global:ServiceContainer)
@@ -60364,6 +61398,13 @@ $keyboardShortcutManager.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("KeyboardShortcutManager", $keyboardShortcutManager)
 if ($Debug) {
     Write-Host "  KeyboardShortcutManager initialized" -ForegroundColor DarkGray
+}
+
+# Configuration service - Needed by AnimationManager and other services
+$configService = [ConfigurationService]::new()
+$global:ServiceContainer.Register("ConfigurationService", $configService)
+if ($Debug) {
+    Write-Host "  ConfigurationService initialized" -ForegroundColor DarkGray
 }
 
 # AnimationManager - Smooth animations
@@ -60405,13 +61446,14 @@ $global:ServiceContainer.Register("CommandService", $commandService)
 $macroService = [MacroService]::new()
 $global:ServiceContainer.Register("MacroService", $macroService)
 
-# Configuration service
-$configService = [ConfigurationService]::new()
-$global:ServiceContainer.Register("ConfigurationService", $configService)
-
 # Backup service
 $backupService = [BackupService]::new()
 $global:ServiceContainer.Register("BackupService", $backupService)
+
+# File operation service
+$fileOperationService = [FileOperationService]::new()
+$fileOperationService.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("FileOperationService", $fileOperationService)
 
 # Initialize synthwave themes
 [ThemeSynthwave]::CreateSynthwave84()
@@ -60459,10 +61501,11 @@ if ($LoadOnly) {
 }
 
 Write-Host "Starting PRAXIS..." -ForegroundColor Green
-Write-Host "  • Press 1-6 to switch tabs (Projects, Tasks, Dashboard, Files, Editor, Settings)" -ForegroundColor DarkGray
+Write-Host "  • Press 1-8 to switch tabs" -ForegroundColor DarkGray
 Write-Host "  • Press Ctrl+Tab to cycle tabs" -ForegroundColor DarkGray
 Write-Host "  • Press / or : for command palette" -ForegroundColor DarkGray
-Write-Host "  • Press Q or Escape to quit" -ForegroundColor DarkGray
+Write-Host "  • In Settings: Press T for quick theme selection" -ForegroundColor DarkGray
+Write-Host "  • Press Ctrl+Q to quit" -ForegroundColor DarkGray
 Write-Host ""
 
 # Run the application
@@ -61717,6 +62760,124 @@ try {
 }
 
 Write-Host "`nTest completed!" -ForegroundColor Green
+
+
+####\test-file-operations.ps1
+#!/usr/bin/env pwsh
+# Test script for file operations in the RangerFileTree
+
+# Load the framework in test mode
+. ./Start.ps1 -LoadOnly
+
+Write-Host "`nTesting File Operations" -ForegroundColor Cyan
+Write-Host "======================" -ForegroundColor Cyan
+
+# Create test environment
+$testDir = Join-Path $env:TEMP "praxis_file_ops_test_$(Get-Random)"
+New-Item -ItemType Directory -Path $testDir -Force | Out-Null
+
+Write-Host "`nCreating test files..." -ForegroundColor Yellow
+
+# Create test files and directories
+@(
+    "file1.txt",
+    "file2.ps1",
+    "document.md",
+    "script.sh"
+) | ForEach-Object {
+    $filePath = Join-Path $testDir $_
+    "Test content for $_" | Out-File -FilePath $filePath -Encoding UTF8
+    Write-Host "  Created: $_" -ForegroundColor DarkGray
+}
+
+# Create subdirectories
+@(
+    "src",
+    "docs",
+    "tests"
+) | ForEach-Object {
+    $dirPath = Join-Path $testDir $_
+    New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
+    
+    # Add a file in each directory
+    $subFile = Join-Path $dirPath "example.txt"
+    "Content in $_" | Out-File -FilePath $subFile -Encoding UTF8
+    Write-Host "  Created: $_/ with example.txt" -ForegroundColor DarkGray
+}
+
+Write-Host "`nTest directory created at: $testDir" -ForegroundColor Green
+
+# Create FileBrowserScreen with the test directory
+Write-Host "`nInitializing File Browser..." -ForegroundColor Yellow
+
+$fileBrowser = [FileBrowserScreen]::new()
+$fileBrowser.ServiceContainer = $global:ServiceContainer
+$fileBrowser.OnInitialize()
+
+# Set the test directory
+$fileBrowser.FileTree.CurrentPath = $testDir
+$fileBrowser.FileTree.NavigateToDirectory($testDir)
+
+Write-Host "File Browser initialized with test directory" -ForegroundColor Green
+
+# Test file operations service
+Write-Host "`nTesting FileOperationService..." -ForegroundColor Yellow
+
+$fileOps = $global:ServiceContainer.GetService('FileOperationService')
+if ($fileOps) {
+    Write-Host "  FileOperationService found" -ForegroundColor Green
+    
+    # Test yank operation
+    $testFile = Join-Path $testDir "file1.txt"
+    $fileOps.YankItems(@($testFile), $false)
+    $yankInfo = $fileOps.GetYankBufferInfo()
+    Write-Host "  Yank buffer contains: $($yankInfo.Count) items" -ForegroundColor DarkGray
+    
+    # Test paste operation
+    $destDir = Join-Path $testDir "src"
+    $result = $fileOps.PasteItems($destDir)
+    if ($result.Success) {
+        Write-Host "  Paste operation: $($result.Message)" -ForegroundColor Green
+    } else {
+        Write-Host "  Paste operation failed: $($result.Message)" -ForegroundColor Red
+    }
+    
+    # Test rename operation
+    $renameFile = Join-Path $testDir "file2.ps1"
+    $renameResult = $fileOps.RenameItem($renameFile, "renamed_file.ps1")
+    if ($renameResult.Success) {
+        Write-Host "  Rename operation: $($renameResult.Message)" -ForegroundColor Green
+    } else {
+        Write-Host "  Rename operation failed: $($renameResult.Message)" -ForegroundColor Red
+    }
+    
+} else {
+    Write-Host "  FileOperationService not found!" -ForegroundColor Red
+}
+
+Write-Host "`nFile Operations Test Summary:" -ForegroundColor Cyan
+Write-Host "- Test directory: $testDir" -ForegroundColor DarkGray
+Write-Host "- FileOperationService: $(if ($fileOps) { 'OK' } else { 'FAILED' })" -ForegroundColor $(if ($fileOps) { 'Green' } else { 'Red' })
+Write-Host "- Keyboard shortcuts:" -ForegroundColor DarkGray
+Write-Host "  - y: Yank (copy) files" -ForegroundColor DarkGray
+Write-Host "  - d: Cut files" -ForegroundColor DarkGray
+Write-Host "  - p: Paste files" -ForegroundColor DarkGray
+Write-Host "  - r: Rename file" -ForegroundColor DarkGray
+Write-Host "  - D: Delete files" -ForegroundColor DarkGray
+Write-Host "  - Space: Mark/unmark files" -ForegroundColor DarkGray
+
+Write-Host "`nPress Enter to run the File Browser with test directory..."
+Read-Host
+
+# Run the file browser
+$screenManager = $global:ServiceContainer.GetService('ScreenManager')
+$screenManager.Push($fileBrowser)
+$screenManager.Run()
+
+# Cleanup
+Write-Host "`nCleaning up test directory..." -ForegroundColor Yellow
+Remove-Item -Path $testDir -Recurse -Force -ErrorAction SilentlyContinue
+Write-Host "Test completed!" -ForegroundColor Green
 
 
 ####\test-final-shortcuts.ps1

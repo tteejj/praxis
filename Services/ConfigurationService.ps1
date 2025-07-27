@@ -23,7 +23,7 @@ class ConfigurationService {
             Theme = @{
                 CurrentTheme = "default"
                 AvailableThemes = @("default", "matrix", "amber")
-                EditTheme = "[Click to open theme editor]"
+                EditTheme = "[Press Enter to open theme editor]"
                 UserCustomizations = @{}
                 EnableLiveEdit = $true
                 ShowThemePreview = $true

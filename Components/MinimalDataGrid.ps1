@@ -14,6 +14,9 @@ class MinimalDataGrid : FocusableComponent {
     [bool]$AlternateRowColors = $false
     [BorderType]$BorderType = [BorderType]::Rounded
     
+    # Selection callback
+    [scriptblock]$OnItemSelected = {}
+    
     # Scrolling
     hidden [int]$_scrollOffset = 0
     hidden [int]$_viewportHeight = 0
@@ -197,28 +200,21 @@ class MinimalDataGrid : FocusableComponent {
         # Render border if enabled
         if ($this.BorderType -ne [BorderType]::None) {
             $color = if ($this.IsFocused) { $this._colors.accent } else { $this._colors.border }
-            $sb.Append([BorderStyle]::RenderBorder(
-                $this.X, $this.Y, $this.Width, $this.Height,
-                $this.BorderType, $color
-            ))
+            if ($this.ShowTitle -and $this.Title) {
+                $sb.Append([BorderStyle]::RenderBorderWithTitle(
+                    $this.X, $this.Y, $this.Width, $this.Height,
+                    $this.BorderType, $color,
+                    $this.Title, $color  # Using same color for title
+                ))
+            } else {
+                $sb.Append([BorderStyle]::RenderBorder(
+                    $this.X, $this.Y, $this.Width, $this.Height,
+                    $this.BorderType, $color
+                ))
+            }
             $currentY++
         }
         
-        # Render title if enabled and no border
-        if ($this.ShowTitle -and $this.Title -and $this.BorderType -eq [BorderType]::None) {
-            $sb.Append([VT]::MoveTo($this.X, $currentY))
-            $sb.Append($this._colors.accent)
-            $titleText = $this.Title
-            if ($titleText.Length -gt $this.Width) {
-                $titleText = $titleText.Substring(0, $this.Width - 3) + "..."
-            }
-            # Center the title
-            $padding = [Math]::Max(0, [int](($this.Width - $titleText.Length) / 2))
-            $sb.Append(' ' * $padding)
-            $sb.Append($titleText)
-            $sb.Append([VT]::Reset())
-            $currentY++
-        }
         
         # Render header
         if ($this.ShowHeader) {
@@ -382,23 +378,17 @@ class MinimalDataGrid : FocusableComponent {
         
         $sb.Append([VT]::Reset())
         
-        # Separator line with proper border connections
+        # Separator line - just a simple line, no T-junctions
         $sb.Append([VT]::MoveTo($x, $y + 1))
         $sb.Append($this._colors.border)
         
-        if ($this.BorderType -ne [BorderType]::None) {
-            # Draw separator with proper border connections
-            $borderStyle = [BorderStyle]::Styles[$this.BorderType.ToString()]
-            $sb.Append([VT]::MoveTo($this.X, $y + 1))
-            $sb.Append($borderStyle.LT)  # Left T-junction
-            $sb.Append($borderStyle.H * ($this.Width - 2))
-            $sb.Append($borderStyle.RT)  # Right T-junction
-        } else {
-            # No border, just draw separator line
-            $separatorWidth = $this.Width - 2
-            if ($separatorWidth -gt 0) {
-                $sb.Append('─' * $separatorWidth)
-            }
+        # Draw separator line inside the border area
+        $separatorWidth = $this.Width - 2
+        if ($this.BorderType -ne [BorderType]::None) { 
+            $separatorWidth -= 2  # Account for side borders
+        }
+        if ($separatorWidth -gt 0) {
+            $sb.Append('─' * $separatorWidth)
         }
         $sb.Append([VT]::Reset())
         
@@ -486,6 +476,15 @@ class MinimalDataGrid : FocusableComponent {
             ([System.ConsoleKey]::PageDown) {
                 $this.SelectedIndex = [Math]::Min($this.Items.Count - 1, $this.SelectedIndex + $this._viewportHeight)
                 $this.Invalidate()
+                return $true
+            }
+            ([System.ConsoleKey]::Enter) {
+                if ($this.OnItemSelected -and $this.SelectedIndex -ge 0) {
+                    $selectedItem = $this.GetSelectedItem()
+                    if ($selectedItem) {
+                        & $this.OnItemSelected $selectedItem
+                    }
+                }
                 return $true
             }
         }

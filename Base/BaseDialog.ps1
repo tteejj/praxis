@@ -86,6 +86,11 @@ class BaseDialog : Screen {
     }
     
     [void] AddContentControl([UIElement]$control, [int]$tabIndex = -1) {
+        # Initialize the control if it hasn't been initialized
+        if ($control -and -not $control._initialized -and $this.ServiceContainer) {
+            $control.Initialize($this.ServiceContainer)
+        }
+        
         if ($tabIndex -gt 0) {
             $control.TabIndex = $tabIndex
         }
@@ -145,10 +150,10 @@ class BaseDialog : Screen {
                             $focusedType = if ($focused) { $focused.GetType().Name } else { "null" }
                             $global:Logger.Debug("BaseDialog.HandleScreenInput: Enter pressed, focused element: $focusedType")
                         }
-                        if ($focused -and $focused -is [MinimalButton]) {
-                            # Let the button handle it
+                        if ($focused -and ($focused -is [MinimalButton] -or $focused -is [MinimalListBox])) {
+                            # Let the button or list handle it
                             if ($global:Logger) {
-                                $global:Logger.Debug("BaseDialog: Button has focus, letting it handle Enter")
+                                $global:Logger.Debug("BaseDialog: Button or ListBox has focus, letting it handle Enter")
                             }
                             return $false
                         }

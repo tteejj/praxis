@@ -25,7 +25,8 @@ class SettingsScreen : Screen {
         
         # Create category list
         $this.CategoryList = [MinimalListBox]::new()
-        $this.CategoryList.ShowBorder = $false  # MainScreen draws the border
+        $this.CategoryList.ShowBorder = $false  # No border - we'll handle separation ourselves
+        $this.CategoryList.BorderType = [BorderType]::None
         # Capture screen reference for callback
         $screen = $this
         $this.CategoryList.OnSelectionChanged = {
@@ -36,8 +37,10 @@ class SettingsScreen : Screen {
         
         # Create settings grid
         $this.SettingsGrid = [MinimalDataGrid]::new()
-        $this.SettingsGrid.Title = "Settings"
-        $this.SettingsGrid.ShowBorder = $false  # MainScreen draws the border
+        $this.SettingsGrid.Title = ""  # No title needed
+        $this.SettingsGrid.ShowBorder = $false  # No border
+        $this.SettingsGrid.BorderType = [BorderType]::None
+        $this.SettingsGrid.ShowTitle = $false
         $this.SettingsGrid.Initialize($global:ServiceContainer)
         $columns = @(
             @{Name="Setting"; Header="Setting"; Width=30; Getter={param($item) $item.Setting}},
@@ -45,6 +48,14 @@ class SettingsScreen : Screen {
             @{Name="Type"; Header="Type"; Width=10; Getter={param($item) $item.Type}}
         )
         $this.SettingsGrid.SetColumns($columns)
+        
+        # Set up Enter key handler for the grid
+        $screen = $this
+        $this.SettingsGrid.OnItemSelected = {
+            param($item)
+            $screen.EditSetting()
+        }.GetNewClosure()
+        
         $this.AddChild($this.SettingsGrid)
         
         # Load categories
@@ -66,6 +77,29 @@ class SettingsScreen : Screen {
                 $this.EditSetting()
                 return $true
             }
+            ([System.ConsoleKey]::Tab) {
+                # Toggle focus between CategoryList and SettingsGrid
+                if ($this.CategoryList.IsFocused) {
+                    if ($this.SettingsGrid.Items.Count -gt 0) {
+                        $this.SettingsGrid.Focus()
+                    }
+                } else {
+                    $this.CategoryList.Focus()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::LeftArrow) {
+                # Focus category list
+                $this.CategoryList.Focus()
+                return $true
+            }
+            ([System.ConsoleKey]::RightArrow) {
+                # Focus settings grid if it has items
+                if ($this.SettingsGrid.Items.Count -gt 0) {
+                    $this.SettingsGrid.Focus()
+                }
+                return $true
+            }
         }
         
         switch ($key.KeyChar) {
@@ -75,6 +109,11 @@ class SettingsScreen : Screen {
             's' { $this.SaveSettings(); return $true }
             'b' { $this.CreateBackup(); return $true }
             'B' { $this.RestoreBackup(); return $true }
+            't' { 
+                # Quick theme selector - navigate to Theme category and show theme selector
+                $this.SelectThemeCategory()
+                return $true 
+            }
         }
         
         return $false
@@ -91,24 +130,31 @@ class SettingsScreen : Screen {
     }
     
     [void] OnBoundsChanged() {
-        # Split the width between category list and settings grid
-        $categoryWidth = 30  # Increased to accommodate longer category names
-        $gridWidth = [Math]::Max(10, $this.Width - $categoryWidth)
+        # Account for border
+        $innerX = $this.X + 1
+        $innerY = $this.Y + 1
+        $innerWidth = $this.Width - 2
+        $innerHeight = $this.Height - 2
         
-        # Set bounds for category list - use relative positioning
+        # Split the width between category list and settings grid
+        $categoryWidth = 28  # Fixed width for categories
+        $separatorWidth = 1  # Vertical separator
+        $gridWidth = [Math]::Max(10, $innerWidth - $categoryWidth - $separatorWidth)
+        
+        # Set bounds for category list
         $this.CategoryList.SetBounds(
-            0,
-            0,
+            $innerX,
+            $innerY,
             $categoryWidth,
-            $this.Height
+            $innerHeight
         )
         
-        # Set bounds for settings grid - use relative positioning
+        # Set bounds for settings grid (after separator)
         $this.SettingsGrid.SetBounds(
-            $categoryWidth,
-            0,
+            $innerX + $categoryWidth + $separatorWidth,
+            $innerY,
             $gridWidth,
-            $this.Height
+            $innerHeight
         )
     }
     
@@ -161,16 +207,63 @@ class SettingsScreen : Screen {
         if ($categoryConfig -is [hashtable]) {
             $settings = @()
             
-            foreach ($key in $categoryConfig.Keys | Sort-Object) {
-                $value = $categoryConfig[$key]
-                $type = $this.GetValueType($value)
+            # For Theme category, put CurrentTheme first
+            if ($selected.Name -eq "Theme") {
+                if ($global:Logger) {
+                    $global:Logger.Debug("LoadCategorySettings: Theme category detected")
+                    $global:Logger.Debug("  Keys in categoryConfig: $($categoryConfig.Keys -join ', ')")
+                }
+                # Add CurrentTheme first
+                if ($categoryConfig.ContainsKey("CurrentTheme")) {
+                    $value = $categoryConfig["CurrentTheme"]
+                    $settings += @{
+                        Setting = $this.FormatSettingName("CurrentTheme")
+                        Value = "▸ $value ◂ [Press Enter to change]"
+                        Type = $this.GetValueType($value)
+                        Key = "CurrentTheme"
+                        RawValue = $value
+                    }
+                    if ($global:Logger) {
+                        $global:Logger.Debug("  Added CurrentTheme as first item")
+                    }
+                }
                 
-                $settings += @{
-                    Setting = $this.FormatSettingName($key)
-                    Value = $this.FormatValue($value)
-                    Type = $type
-                    Key = $key
-                    RawValue = $value
+                # Then add other settings except CurrentTheme
+                foreach ($key in $categoryConfig.Keys | Sort-Object) {
+                    if ($key -eq "CurrentTheme") { continue }
+                    
+                    $value = $categoryConfig[$key]
+                    $type = $this.GetValueType($value)
+                    
+                    # Special formatting for EditTheme
+                    $displayValue = if ($key -eq "EditTheme") {
+                        "✎ Press Enter to open theme editor"
+                    } else {
+                        $this.FormatValue($value)
+                    }
+                    
+                    $settings += @{
+                        Setting = $this.FormatSettingName($key)
+                        Value = $displayValue
+                        Type = $type
+                        Key = $key
+                        RawValue = $value
+                    }
+                }
+            }
+            else {
+                # Normal alphabetical sorting for other categories
+                foreach ($key in $categoryConfig.Keys | Sort-Object) {
+                    $value = $categoryConfig[$key]
+                    $type = $this.GetValueType($value)
+                    
+                    $settings += @{
+                        Setting = $this.FormatSettingName($key)
+                        Value = $this.FormatValue($value)
+                        Type = $type
+                        Key = $key
+                        RawValue = $value
+                    }
                 }
             }
             
@@ -180,8 +273,19 @@ class SettingsScreen : Screen {
                 $global:Logger.Debug("SettingsScreen.LoadCategorySettings: Loading $($settings.Count) settings for category '$($selected.DisplayName)'")
             }
             
+            # For Theme category, reset selection before setting items
+            if ($selected.Name -eq "Theme") {
+                $this.SettingsGrid.SelectedIndex = 0
+            }
+            
             $this.SettingsGrid.SetItems($settings)
             $this.SettingsGrid.Title = "Settings - $($selected.DisplayName)"
+            
+            # Force selection to first item for Theme category
+            if ($selected.Name -eq "Theme" -and $settings.Count -gt 0) {
+                $this.SettingsGrid.SelectedIndex = 0
+                $this.SettingsGrid.Invalidate()
+            }
         }
     }
     
@@ -211,11 +315,18 @@ class SettingsScreen : Screen {
         $path = "$($this.CurrentCategory).$($selected.Key)"
         $currentValue = $selected.RawValue
         
+        if ($global:Logger) {
+            $global:Logger.Debug("SettingsScreen.EditSetting: Path=$path, Key=$($selected.Key), Category=$($this.CurrentCategory)")
+        }
+        
         # Create appropriate dialog based on type
         $dialog = $null
         
         # Special handling for theme selection
         if ($path -eq "Theme.CurrentTheme") {
+            if ($global:Logger) {
+                $global:Logger.Debug("SettingsScreen.EditSetting: Showing theme selection dialog")
+            }
             # Show theme selection dialog
             $this.ShowThemeSelectionDialog($currentValue)
             return
@@ -469,6 +580,15 @@ class SettingsScreen : Screen {
             }
             return "<array[$($value.Count)]>" 
         }
+        
+        # Special formatting for specific settings
+        if ($value -is [string]) {
+            # Don't double-format already formatted values
+            if ($value -match "[\[▸◂]") {
+                return $value  # Already formatted
+            }
+        }
+        
         return $value.ToString()
     }
     
@@ -616,23 +736,6 @@ This will add the following themes:
         $global:ScreenManager.Push($dialog)
     }
     
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 4096
-        
-        # Clear the entire area first to prevent overlap
-        $clearLine = [StringCache]::GetSpaces($this.Width)
-        for ($y = 0; $y -lt $this.Height; $y++) {
-            $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))
-            $sb.Append($clearLine)
-        }
-        
-        # Now render the base container with child components
-        $sb.Append(([Container]$this).OnRender())
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
-    }
     
     [void] ShowTemplateEditor([string]$templateType, $currentTemplates) {
         # Create template list editor dialog
@@ -901,6 +1004,88 @@ This will add the following themes:
         $toastService = $this.ServiceContainer.GetService('ToastService')
         if ($toastService) {
             $toastService.ShowToast("Edit: Remove and re-add template", [ToastType]::Info, 2000)
+        }
+    }
+    
+    [string] OnRender() {
+        $sb = Get-PooledStringBuilder 4096
+        
+        # Draw outer border
+        $theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($theme) {
+            $borderColor = $theme.GetColor('border')
+            $sb.Append([BorderStyle]::RenderBorderWithTitle(
+                $this.X, $this.Y, $this.Width, $this.Height,
+                [BorderType]::Rounded, $borderColor,
+                "Settings", $theme.GetColor('accent')
+            ))
+            
+            # Draw vertical separator
+            $separatorX = $this.X + 29  # After category list
+            $separatorColor = $theme.GetColor('border')
+            $sb.Append($separatorColor)
+            
+            # Draw vertical line
+            for ($y = $this.Y + 1; $y -lt $this.Y + $this.Height - 1; $y++) {
+                $sb.Append([VT]::MoveTo($separatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Connect to top border
+            $sb.Append([VT]::MoveTo($separatorX, $this.Y))
+            $sb.Append('┬')
+            
+            # Connect to bottom border
+            $sb.Append([VT]::MoveTo($separatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')
+            
+            $sb.Append([VT]::Reset())
+        }
+        
+        # Render children (category list and settings grid)
+        $sb.Append(([Screen]$this).OnRender())
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
+    }
+    
+    [void] SelectThemeCategory() {
+        # Find the Theme category in the list
+        $themeIndex = -1
+        for ($i = 0; $i -lt $this.CategoryList.Items.Count; $i++) {
+            if ($this.CategoryList.Items[$i].Name -eq "Theme") {
+                $themeIndex = $i
+                break
+            }
+        }
+        
+        if ($themeIndex -ge 0) {
+            # Select the Theme category
+            $this.CategoryList.SelectedIndex = $themeIndex
+            $this.LoadCategorySettings()
+            
+            # Focus on the settings grid
+            $this.SettingsGrid.Focus()
+            
+            # CurrentTheme should be at index 0 after LoadCategorySettings
+            if ($this.SettingsGrid.Items.Count -gt 0) {
+                $this.SettingsGrid.SelectedIndex = 0
+                # Verify it's CurrentTheme
+                if ($this.SettingsGrid.Items[0].Key -eq "CurrentTheme") {
+                    # Directly show theme selection dialog
+                    $this.ShowThemeSelectionDialog($this.SettingsGrid.Items[0].RawValue)
+                } else {
+                    # Search for CurrentTheme if not at index 0
+                    for ($i = 0; $i -lt $this.SettingsGrid.Items.Count; $i++) {
+                        if ($this.SettingsGrid.Items[$i].Key -eq "CurrentTheme") {
+                            $this.SettingsGrid.SelectedIndex = $i
+                            $this.ShowThemeSelectionDialog($this.SettingsGrid.Items[$i].RawValue)
+                            break
+                        }
+                    }
+                }
+            }
         }
     }
 }

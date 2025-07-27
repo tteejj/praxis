@@ -92,8 +92,8 @@ class MainScreen : Screen {
     
     [void] OnBoundsChanged() {
         if ($this.TabContainer) {
-            # Leave space for border and status bar
-            $this.TabContainer.SetBounds($this.X + 1, $this.Y + 1, $this.Width - 2, $this.Height - 3)
+            # TabContainer gets full screen except status bar
+            $this.TabContainer.SetBounds($this.X, $this.Y, $this.Width, $this.Height - 1)
         }
         if ($this.CommandPalette) {
             # Command palette uses full screen for centering
@@ -101,7 +101,7 @@ class MainScreen : Screen {
         }
         if ($this.StatusBar) {
             # Status bar at bottom
-            $this.StatusBar.SetBounds($this.X + 1, $this.Y + $this.Height - 2, $this.Width - 2, 1)
+            $this.StatusBar.SetBounds($this.X, $this.Y + $this.Height - 1, $this.Width, 1)
         }
     }
     
@@ -203,10 +203,11 @@ class MainScreen : Screen {
                 }
                 "Settings" {
                     $this.StatusBar.SetHints(@(
+                        @{Key="←→/Tab"; Action="Switch Panel"}
                         @{Key="Enter"; Action="Edit"}
-                        @{Key="T"; Action="Theme"}
+                        @{Key="T"; Action="Quick Theme"}
                         @{Key="R"; Action="Reset"}
-                        @{Key="Tab"; Action="Navigate"}
+                        @{Key="B"; Action="Backup"}
                     ))
                 }
                 default {
@@ -225,24 +226,6 @@ class MainScreen : Screen {
     }
     
     # Override render to add border
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 4096
-        
-        # Draw main screen border
-        $theme = $this.ServiceContainer.GetService('ThemeManager')
-        if ($theme) {
-            $borderColor = $theme.GetColor('border.normal')
-            $sb.Append([BorderStyle]::RenderBorder(
-                $this.X, $this.Y, $this.Width, $this.Height,
-                [BorderType]::Rounded, $borderColor
-            ))
-        }
-        
-        # Render base content (which includes TabContainer)
-        $sb.Append(([Screen]$this).OnRender())
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
-    }
+    # MainScreen no longer draws its own border - let child screens handle their own rendering
+    # This was causing double borders and layout issues
 }

@@ -81,7 +81,9 @@ class AnimationManager {
     hidden [System.Collections.Generic.Dictionary[string, Animation]]$_animations
     hidden [System.Timers.Timer]$_updateTimer
     hidden [EventBus]$EventBus
+    hidden [ConfigurationService]$ConfigService
     [int]$FrameRate = 30  # FPS
+    [bool]$AnimationsEnabled = $true
     
     AnimationManager() {
         $this._animations = [System.Collections.Generic.Dictionary[string, Animation]]::new()
@@ -99,9 +101,49 @@ class AnimationManager {
     
     [void] Initialize([ServiceContainer]$container) {
         $this.EventBus = $container.GetService('EventBus')
+        $this.ConfigService = $container.GetService('ConfigurationService')
+        
+        # Load initial animation settings
+        $this.LoadAnimationSettings()
+        
+        # Subscribe to config changes
+        if ($this.EventBus) {
+            $manager = $this
+            $this.EventBus.Subscribe([EventNames]::ConfigChanged, {
+                param($sender, $eventData)
+                if ($eventData.Path -eq "UI.AnimationsEnabled") {
+                    $manager.AnimationsEnabled = [bool]$eventData.NewValue
+                    # Stop all animations if disabled
+                    if (-not $manager.AnimationsEnabled) {
+                        $manager.StopAllAnimations()
+                    }
+                }
+            }.GetNewClosure())
+        }
+    }
+    
+    [void] LoadAnimationSettings() {
+        if ($this.ConfigService) {
+            $animEnabled = $this.ConfigService.Get("UI.AnimationsEnabled")
+            if ($animEnabled -ne $null) {
+                $this.AnimationsEnabled = [bool]$animEnabled
+            }
+        }
     }
     
     [void] StartAnimation([Animation]$animation) {
+        # Skip if animations are disabled
+        if (-not $this.AnimationsEnabled) {
+            # Immediately set to end value
+            if ($animation.OnUpdate) {
+                & $animation.OnUpdate $animation.EndValue
+            }
+            if ($animation.OnComplete) {
+                & $animation.OnComplete
+            }
+            return
+        }
+        
         $this._animations[$animation.Name] = $animation
         
         # Start timer if not running

@@ -94,6 +94,7 @@ $loadOrder = @(
     "Services/MacroContextManager.ps1"
     "Services/MacroService.ps1"
     "Services/BackupService.ps1"
+    "Services/FileOperationService.ps1"
     
     # Components
     "Components/ListBox.ps1"
@@ -223,6 +224,33 @@ if ($Debug) {
 # Connect ThemeManager to EventBus
 $themeManager.SetEventBus($eventBus)
 
+# Subscribe to configuration changes
+$eventBus.Subscribe([EventNames]::ConfigChanged, {
+    param($sender, $eventData)
+    
+    # Handle theme changes
+    if ($eventData.Path -eq "Theme.CurrentTheme") {
+        $themeManager = $global:ServiceContainer.GetService("ThemeManager")
+        if ($themeManager -and $eventData.NewValue) {
+            # Theme change is already handled in SettingsScreen.ShowThemeSelectionDialog
+            # This is just for any additional handling needed
+        }
+    }
+    
+    # Handle UI settings changes
+    elseif ($eventData.Path -match "^UI\.") {
+        # Force screen refresh for UI changes
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Invalidate()
+        }
+    }
+    
+    # Log all config changes for debugging
+    if ($global:Logger) {
+        $global:Logger.Debug("Config changed: $($eventData.Path) = $($eventData.NewValue)")
+    }
+})
+
 # FocusManager - Fast O(1) focus management
 $focusManager = [FocusManager]::new()
 $focusManager.Initialize($global:ServiceContainer)
@@ -237,6 +265,13 @@ $keyboardShortcutManager.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("KeyboardShortcutManager", $keyboardShortcutManager)
 if ($Debug) {
     Write-Host "  KeyboardShortcutManager initialized" -ForegroundColor DarkGray
+}
+
+# Configuration service - Needed by AnimationManager and other services
+$configService = [ConfigurationService]::new()
+$global:ServiceContainer.Register("ConfigurationService", $configService)
+if ($Debug) {
+    Write-Host "  ConfigurationService initialized" -ForegroundColor DarkGray
 }
 
 # AnimationManager - Smooth animations
@@ -278,13 +313,14 @@ $global:ServiceContainer.Register("CommandService", $commandService)
 $macroService = [MacroService]::new()
 $global:ServiceContainer.Register("MacroService", $macroService)
 
-# Configuration service
-$configService = [ConfigurationService]::new()
-$global:ServiceContainer.Register("ConfigurationService", $configService)
-
 # Backup service
 $backupService = [BackupService]::new()
 $global:ServiceContainer.Register("BackupService", $backupService)
+
+# File operation service
+$fileOperationService = [FileOperationService]::new()
+$fileOperationService.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("FileOperationService", $fileOperationService)
 
 # Initialize synthwave themes
 [ThemeSynthwave]::CreateSynthwave84()
@@ -332,10 +368,11 @@ if ($LoadOnly) {
 }
 
 Write-Host "Starting PRAXIS..." -ForegroundColor Green
-Write-Host "  • Press 1-6 to switch tabs (Projects, Tasks, Dashboard, Files, Editor, Settings)" -ForegroundColor DarkGray
+Write-Host "  • Press 1-8 to switch tabs" -ForegroundColor DarkGray
 Write-Host "  • Press Ctrl+Tab to cycle tabs" -ForegroundColor DarkGray
 Write-Host "  • Press / or : for command palette" -ForegroundColor DarkGray
-Write-Host "  • Press Q or Escape to quit" -ForegroundColor DarkGray
+Write-Host "  • In Settings: Press T for quick theme selection" -ForegroundColor DarkGray
+Write-Host "  • Press Ctrl+Q to quit" -ForegroundColor DarkGray
 Write-Host ""
 
 # Run the application
