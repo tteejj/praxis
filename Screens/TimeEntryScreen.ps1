@@ -2,19 +2,11 @@
 
 class TimeEntryScreen : Screen {
     [MinimalDataGrid]$TimeGrid
-    [MinimalButton]$PrevWeekButton
-    [MinimalButton]$NextWeekButton  
-    [MinimalButton]$CurrentWeekButton
-    [MinimalButton]$QuickEntryButton
     [DateTime]$CurrentWeekFriday
     [TimeTrackingService]$TimeService
     [ProjectService]$ProjectService
     [EventBus]$EventBus
     hidden [hashtable]$EventSubscriptions = @{}
-    
-    # Layout
-    hidden [int]$ButtonHeight = 3
-    hidden [int]$ButtonSpacing = 2
     
     TimeEntryScreen() : base() {
         $this.Title = "Time Entry"
@@ -26,8 +18,9 @@ class TimeEntryScreen : Screen {
         $this.ProjectService = $this.ServiceContainer.GetService("ProjectService")
         $this.EventBus = $this.ServiceContainer.GetService('EventBus')
         
-        # Set current week
-        $this.CurrentWeekFriday = $this.TimeService.GetCurrentWeekFriday()
+        # Set to last week to show sample data (temporary for testing)
+        # TODO: Remove this and use current week when we have current week data
+        $this.CurrentWeekFriday = $this.TimeService.GetCurrentWeekFriday().AddDays(-7)
         
         # Subscribe to events
         if ($this.EventBus) {
@@ -49,61 +42,53 @@ class TimeEntryScreen : Screen {
         # Initialize the TimeGrid with ServiceContainer to get theme
         $this.TimeGrid.Initialize($this.ServiceContainer)
         
-        # Define columns for time entry grid
+        # Get current day of week for highlighting
+        $today = [DateTime]::Today
+        $currentDayOfWeek = $today.DayOfWeek
+        $isCurrentWeek = $this.IsCurrentWeek()
+        
+        # Define columns for time entry grid with day highlighting
         $columns = @(
             @{ Name = "Name"; Header = "Name"; Width = 30; Getter = { param($item) $item.Name } }
             @{ Name = "ID1"; Header = "ID1"; Width = 10; Getter = { param($item) $item.ID1 } }
             @{ Name = "ID2"; Header = "ID2"; Width = 15; Getter = { param($item) $item.ID2 } }
-            @{ Name = "Monday"; Header = "Mon"; Width = 6; Getter = { param($item) if ($item.Monday -gt 0) { $item.Monday.ToString("F1") } else { "" } } }
-            @{ Name = "Tuesday"; Header = "Tue"; Width = 6; Getter = { param($item) if ($item.Tuesday -gt 0) { $item.Tuesday.ToString("F1") } else { "" } } }
-            @{ Name = "Wednesday"; Header = "Wed"; Width = 6; Getter = { param($item) if ($item.Wednesday -gt 0) { $item.Wednesday.ToString("F1") } else { "" } } }
-            @{ Name = "Thursday"; Header = "Thu"; Width = 6; Getter = { param($item) if ($item.Thursday -gt 0) { $item.Thursday.ToString("F1") } else { "" } } }
-            @{ Name = "Friday"; Header = "Fri"; Width = 6; Getter = { param($item) if ($item.Friday -gt 0) { $item.Friday.ToString("F1") } else { "" } } }
+            @{ 
+                Name = "Monday"
+                Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Monday) { "▸Mon" } else { "Mon" }
+                Width = 6
+                Getter = { param($item) if ($item.Monday -gt 0) { $item.Monday.ToString("F1") } else { "" } }
+            }
+            @{ 
+                Name = "Tuesday"
+                Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Tuesday) { "▸Tue" } else { "Tue" }
+                Width = 6
+                Getter = { param($item) if ($item.Tuesday -gt 0) { $item.Tuesday.ToString("F1") } else { "" } }
+            }
+            @{ 
+                Name = "Wednesday"
+                Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Wednesday) { "▸Wed" } else { "Wed" }
+                Width = 6
+                Getter = { param($item) if ($item.Wednesday -gt 0) { $item.Wednesday.ToString("F1") } else { "" } }
+            }
+            @{ 
+                Name = "Thursday"
+                Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Thursday) { "▸Thu" } else { "Thu" }
+                Width = 6
+                Getter = { param($item) if ($item.Thursday -gt 0) { $item.Thursday.ToString("F1") } else { "" } }
+            }
+            @{ 
+                Name = "Friday"
+                Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Friday) { "▸Fri" } else { "Fri" }
+                Width = 6
+                Getter = { param($item) if ($item.Friday -gt 0) { $item.Friday.ToString("F1") } else { "" } }
+            }
             @{ Name = "Total"; Header = "Total"; Width = 7; Getter = { param($item) $item.Total.ToString("F1") } }
         )
         $this.TimeGrid.SetColumns($columns)
         $this.AddChild($this.TimeGrid)
         
-        # Create navigation buttons
-        $screen = $this  # Capture reference for closures
-        
-        $this.PrevWeekButton = [MinimalButton]::new("< Prev Week")
-        $this.PrevWeekButton.OnClick = { 
-            $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(-7)
-            $screen.RefreshGrid()
-        }.GetNewClosure()
-        $this.PrevWeekButton.Initialize($this.ServiceContainer)
-        $this.AddChild($this.PrevWeekButton)
-        
-        $this.CurrentWeekButton = [MinimalButton]::new("Current Week")
-        $this.CurrentWeekButton.OnClick = { 
-            $screen.CurrentWeekFriday = $screen.TimeService.GetCurrentWeekFriday()
-            $screen.RefreshGrid()
-        }.GetNewClosure()
-        $this.CurrentWeekButton.Initialize($this.ServiceContainer)
-        $this.AddChild($this.CurrentWeekButton)
-        
-        $this.NextWeekButton = [MinimalButton]::new("Next Week >")
-        $this.NextWeekButton.OnClick = { 
-            $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(7)
-            $screen.RefreshGrid()
-        }.GetNewClosure()
-        $this.NextWeekButton.Initialize($this.ServiceContainer)
-        $this.AddChild($this.NextWeekButton)
-        
-        $this.QuickEntryButton = [MinimalButton]::new("Quick Entry (Q)")
-        $this.QuickEntryButton.IsDefault = $true
-        $this.QuickEntryButton.OnClick = { $screen.ShowQuickEntry() }.GetNewClosure()
-        $this.QuickEntryButton.Initialize($this.ServiceContainer)
-        $this.AddChild($this.QuickEntryButton)
-        
         # Load initial data
         $this.RefreshGrid()
-        
-        # Focus the grid
-        if ($this.TimeGrid.Items.Count -gt 0) {
-            $this.TimeGrid.Focus()
-        }
         
         # Register shortcuts
         $this.RegisterShortcuts()
@@ -116,30 +101,8 @@ class TimeEntryScreen : Screen {
             $global:Logger.Debug("TimeEntryScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
         }
         
-        # Calculate layout
-        $gridHeight = $this.Height - $this.ButtonHeight - 1
-        
-        # Position grid - use relative positioning within the screen bounds
-        $this.TimeGrid.SetBounds(0, 0, $this.Width, $gridHeight)
-        
-        # Position buttons at bottom
-        $buttonY = $this.Y + $this.Height - $this.ButtonHeight - 1
-        $buttonWidth = 16
-        $totalButtonWidth = ($buttonWidth * 4) + ($this.ButtonSpacing * 3)
-        
-        # Center buttons
-        $buttonX = $this.X + [Math]::Floor(($this.Width - $totalButtonWidth) / 2)
-        
-        $this.PrevWeekButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
-        $buttonX += $buttonWidth + $this.ButtonSpacing
-        
-        $this.CurrentWeekButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
-        $buttonX += $buttonWidth + $this.ButtonSpacing
-        
-        $this.NextWeekButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
-        $buttonX += $buttonWidth + $this.ButtonSpacing
-        
-        $this.QuickEntryButton.SetBounds($buttonX, $buttonY, $buttonWidth, $this.ButtonHeight)
+        # Grid uses full height now that buttons are removed
+        $this.TimeGrid.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
     }
     
     [void] OnActivated() {
@@ -154,7 +117,16 @@ class TimeEntryScreen : Screen {
     
     [string] GetWeekTitle() {
         $monday = $this.CurrentWeekFriday.AddDays(-4)
-        return "Time Entry - Week of $($monday.ToString('MM/dd/yyyy')) to $($this.CurrentWeekFriday.ToString('MM/dd/yyyy'))"
+        $weekText = "Week of $($monday.ToString('MM/dd/yyyy')) to $($this.CurrentWeekFriday.ToString('MM/dd/yyyy'))"
+        if ($this.IsCurrentWeek()) {
+            $weekText += " (Current)"
+        }
+        return "Time Entry - $weekText"
+    }
+    
+    [bool] IsCurrentWeek() {
+        $currentFriday = $this.TimeService.GetCurrentWeekFriday()
+        return $this.CurrentWeekFriday.Date -eq $currentFriday.Date
     }
     
     [void] RefreshGrid() {
@@ -164,6 +136,9 @@ class TimeEntryScreen : Screen {
         
         # Update title
         $this.TimeGrid.Title = $this.GetWeekTitle()
+        
+        # Update column headers to reflect current day
+        $this.UpdateColumnHeaders()
         
         # Get entries for current week
         $weekString = $this.CurrentWeekFriday.ToString("yyyyMMdd")
@@ -263,11 +238,25 @@ class TimeEntryScreen : Screen {
         $selected = $this.TimeGrid.GetSelectedItem()
         if (-not $selected) { return }
         
-        # Create edit dialog - TimeEntryDialog expects a Project parameter, not DateTime and ID2
-        # For now, use the parameterless constructor
-        $dialog = [TimeEntryDialog]::new()
+        # Create a project object from the selected entry
+        $project = [PSCustomObject]@{
+            Id = $selected.ID2
+            Name = $selected.Name
+            ID1 = $selected.ID1
+            ID2 = $selected.ID2
+        }
+        
+        # Create edit dialog with project
+        $dialog = [TimeEntryDialog]::new($project)
+        $dialog.Title = "Edit Time Entry - $($selected.Name)"
+        
+        # Pre-populate with current week's data if available
+        # For now, just use the dialog for new entries on this project
+        $screen = $this
         $dialog.OnSave = {
-            $this.RefreshGrid()
+            param($timeEntry)
+            # The dialog should handle saving via TimeTrackingService
+            $screen.RefreshGrid()
         }.GetNewClosure()
         
         # Show dialog
@@ -353,6 +342,20 @@ class TimeEntryScreen : Screen {
                     $screen.RefreshGrid()
                 }.GetNewClosure()
             })
+            
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.currentweek"
+                Name = "Current Week"
+                Description = "Navigate to current week"
+                KeyChar = 'c'
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = {
+                    $screen.CurrentWeekFriday = $screen.TimeService.GetCurrentWeekFriday()
+                    $screen.RefreshGrid()
+                }.GetNewClosure()
+            })
         }
     }
     
@@ -393,8 +396,47 @@ class TimeEntryScreen : Screen {
                 $this.EditSelectedEntry()
                 return $true
             }
+            ([ConsoleKey]::C) {
+                $this.CurrentWeekFriday = $this.TimeService.GetCurrentWeekFriday()
+                $this.RefreshGrid()
+                return $true
+            }
         }
         
         return $false
+    }
+    
+    [void] UpdateColumnHeaders() {
+        # Update column headers to show current day indicator
+        $today = [DateTime]::Today
+        $currentDayOfWeek = $today.DayOfWeek
+        $isCurrentWeek = $this.IsCurrentWeek()
+        
+        # Get current columns
+        $columns = $this.TimeGrid.Columns
+        
+        # Update day column headers
+        foreach ($col in $columns) {
+            switch ($col.Name) {
+                "Monday" { 
+                    $col.Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Monday) { "▸Mon" } else { "Mon" }
+                }
+                "Tuesday" { 
+                    $col.Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Tuesday) { "▸Tue" } else { "Tue" }
+                }
+                "Wednesday" { 
+                    $col.Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Wednesday) { "▸Wed" } else { "Wed" }
+                }
+                "Thursday" { 
+                    $col.Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Thursday) { "▸Thu" } else { "Thu" }
+                }
+                "Friday" { 
+                    $col.Header = if ($isCurrentWeek -and $currentDayOfWeek -eq [DayOfWeek]::Friday) { "▸Fri" } else { "Fri" }
+                }
+            }
+        }
+        
+        # Force header rebuild
+        $this.TimeGrid._headerInvalid = $true
     }
 }

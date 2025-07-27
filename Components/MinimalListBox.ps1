@@ -53,7 +53,9 @@ class MinimalListBox : FocusableComponent {
     
     [void] SetItems([object[]]$items) {
         $this.Items.Clear()
-        $this.Items.AddRange($items)
+        if ($items -and $items.Count -gt 0) {
+            $this.Items.AddRange($items)
+        }
         
         # Reset selection if out of bounds
         if ($this.SelectedIndex -ge $this.Items.Count) {
@@ -96,8 +98,8 @@ class MinimalListBox : FocusableComponent {
                 $text = $text.Substring(0, $this.MaxDisplayLength - 1) + "…"
             }
             
-            # Pad to width
-            $availableWidth = $this.Width - 2
+            # Pad to width (account for 2-char selection prefix)
+            $availableWidth = $this.Width - 4  # -2 for border, -2 for prefix
             if ($this.ShowScrollbar -and $this.Items.Count -gt $this._viewportHeight) {
                 $availableWidth--
             }
@@ -114,12 +116,12 @@ class MinimalListBox : FocusableComponent {
                 $sb.Append($this._selectedColor)
                 if ($this.IsFocused) {
                     $sb.Append("▸ ")  # Minimal focus indicator
-                    $text = $text.Substring(2)
+                } else {
+                    $sb.Append("  ")
                 }
             } else {
                 $sb.Append($this._normalColor)
                 $sb.Append("  ")
-                $text = $text.Substring(2)
             }
             
             $sb.Append($text)

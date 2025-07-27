@@ -73,7 +73,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateComponentLibrary() {
         $this.ComponentLibrary = [SearchableListBox]::new()
         $this.ComponentLibrary.Title = "📚 Component Library"
-        $this.ComponentLibrary.ShowBorder = $true
+        $this.ComponentLibrary.ShowBorder = $false  # MainScreen draws the border
         $this.ComponentLibrary.SearchPrompt = "Search actions... (category:core type:export)"
         
         # Custom renderer for actions
@@ -83,12 +83,11 @@ class VisualMacroFactoryScreen : Screen {
             return $action.GetDisplayText()
         }
         
-        # Handle double-click to add action
-        # TODO: Implement OnItemActivated in SearchableListBox or handle differently
-        # $this.ComponentLibrary.OnItemActivated = {
-        #     param($action)
-        #     $this.AddActionToSequence($action)
-        # }.GetNewClosure()
+        # Handle selection change to add action
+        $screen = $this
+        $this.ComponentLibrary.OnSelectionChanged = {
+            # User can press Enter to add selected action
+        }.GetNewClosure()
         
         $this.ComponentLibrary.Initialize($this.ServiceContainer)
         $this.AddChild($this.ComponentLibrary)
@@ -100,7 +99,8 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateMacroSequence() {
         $this.MacroSequence = [MinimalDataGrid]::new()
         $this.MacroSequence.Title = "🔧 Macro Sequence"
-        $this.MacroSequence.ShowBorder = $true
+        $this.MacroSequence.ShowBorder = $false  # MainScreen draws the border
+        $this.MacroSequence.ShowTitle = $true
         
         # Define columns for macro sequence
         $columns = @(
@@ -126,17 +126,112 @@ class VisualMacroFactoryScreen : Screen {
         $this.MacroSequence.Initialize($this.ServiceContainer)
         $this.AddChild($this.MacroSequence)
         
-        # Handle double-click/Enter to edit action properties
-        # TODO: Implement OnItemActivated in MinimalDataGrid or handle differently
-        # $this.MacroSequence.OnItemActivated = {
-        #     $this.EditSelectedAction()
-        # }.GetNewClosure()
+        # Track sequence data
+        $this._sequenceData = [System.Collections.ArrayList]::new()
+    }
+    
+    [System.Collections.ArrayList]$_sequenceData = [System.Collections.ArrayList]::new()
+    
+    [void] AddActionToSequence() {
+        $selectedAction = $this.ComponentLibrary.GetSelectedItem()
+        if (-not $selectedAction) { return }
+        
+        # Clone the action for the sequence
+        $actionInstance = $selectedAction.Clone()
+        
+        # Add to sequence data
+        $sequenceItem = [PSCustomObject]@{
+            Step = $this._sequenceData.Count + 1
+            Action = $actionInstance.Name
+            Description = $actionInstance.Description
+            Status = "⚠️ Not configured"
+            Instance = $actionInstance
+        }
+        
+        $this._sequenceData.Add($sequenceItem) | Out-Null
+        $this.UpdateMacroSequence()
+        
+        # Show property dialog if action has properties
+        if ($actionInstance.Properties.Count -gt 0) {
+            $this.EditAction($sequenceItem)
+        }
+    }
+    
+    
+    [void] EditAction($sequenceItem) {
+        # Create action properties dialog
+        $dialog = [ActionPropertiesDialog]::new($sequenceItem.Instance)
+        $dialog.Initialize($this.ServiceContainer)
+        
+        $screen = $this
+        $dialog.OnSave = {
+            # Update status
+            $sequenceItem.Status = "✅ Configured"
+            $screen.UpdateMacroSequence()
+            $screen.UpdateContext()
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($dialog)
+    }
+    
+    [void] RemoveSelectedAction() {
+        if ($this.MacroSequence.SelectedIndex -lt 0) { return }
+        
+        $this._sequenceData.RemoveAt($this.MacroSequence.SelectedIndex)
+        
+        # Renumber steps
+        for ($i = 0; $i -lt $this._sequenceData.Count; $i++) {
+            $this._sequenceData[$i].Step = $i + 1
+        }
+        
+        $this.UpdateMacroSequence()
+        $this.UpdateContext()
+    }
+    
+    
+    [void] UpdateContext() {
+        $this.UpdateContextPanel()
+    }
+    
+    [void] MoveActionUp() {
+        $idx = $this.MacroSequence.SelectedIndex
+        if ($idx -le 0) { return }
+        
+        # Swap items
+        $temp = $this._sequenceData[$idx - 1]
+        $this._sequenceData[$idx - 1] = $this._sequenceData[$idx]
+        $this._sequenceData[$idx] = $temp
+        
+        # Update step numbers
+        $this._sequenceData[$idx - 1].Step = $idx
+        $this._sequenceData[$idx].Step = $idx + 1
+        
+        $this.UpdateMacroSequence()
+        $this.MacroSequence.SelectedIndex = $idx - 1
+    }
+    
+    [void] MoveActionDown() {
+        $idx = $this.MacroSequence.SelectedIndex
+        if ($idx -lt 0 -or $idx -ge $this._sequenceData.Count - 1) { return }
+        
+        # Swap items
+        $temp = $this._sequenceData[$idx + 1]
+        $this._sequenceData[$idx + 1] = $this._sequenceData[$idx]
+        $this._sequenceData[$idx] = $temp
+        
+        # Update step numbers
+        $this._sequenceData[$idx].Step = $idx + 1
+        $this._sequenceData[$idx + 1].Step = $idx + 2
+        
+        $this.UpdateMacroSequence()
+        $this.MacroSequence.SelectedIndex = $idx + 1
     }
     
     [void] CreateContextPanel() {
         $this.ContextPanel = [MinimalDataGrid]::new()
         $this.ContextPanel.Title = "🎯 Macro Context"
-        $this.ContextPanel.ShowBorder = $true
+        $this.ContextPanel.ShowBorder = $false  # MainScreen draws the border
+        $this.ContextPanel.ShowTitle = $true
         
         # Define columns for context variables
         $columns = @(
@@ -162,6 +257,23 @@ class VisualMacroFactoryScreen : Screen {
     [void] RegisterShortcuts() {
         if (-not $this.ShortcutManager) { return }
         
+        $screen = $this
+        
+        # A: Add action to sequence
+        $this.ShortcutManager.RegisterShortcut(@{
+            Id = "macro_factory_add"
+            Name = "Add Action"
+            Description = "Add selected action to sequence"
+            KeyChar = 'a'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "VisualMacroFactoryScreen"
+            Action = {
+                if ($screen.ComponentLibrary.IsFocused) {
+                    $screen.AddActionToSequence()
+                }
+            }.GetNewClosure()
+        })
+        
         # Enter: Edit selected action properties
         $this.ShortcutManager.RegisterShortcut(@{
             Id = "macro_factory_edit_action"
@@ -171,23 +283,25 @@ class VisualMacroFactoryScreen : Screen {
             Scope = [ShortcutScope]::Screen
             ScreenType = "VisualMacroFactoryScreen"
             Action = {
-                if ($this.MacroSequence.IsFocused) {
-                    $this.EditSelectedAction()
+                if ($screen.MacroSequence.IsFocused) {
+                    $screen.EditSelectedAction()
+                } elseif ($screen.ComponentLibrary.IsFocused) {
+                    $screen.AddActionToSequence()
                 }
             }.GetNewClosure()
         })
         
-        # Delete: Remove selected action from sequence
+        # Delete/D: Remove selected action from sequence
         $this.ShortcutManager.RegisterShortcut(@{
             Id = "macro_factory_delete"
             Name = "Delete Action"
             Description = "Remove selected action from macro sequence"
-            Key = [System.ConsoleKey]::Delete
+            KeyChar = 'd'
             Scope = [ShortcutScope]::Screen
             ScreenType = "VisualMacroFactoryScreen"
             Action = {
-                if ($this.MacroSequence.IsFocused -and $this.SelectedSequenceIndex -ge 0) {
-                    $this.RemoveActionFromSequence($this.SelectedSequenceIndex)
+                if ($screen.MacroSequence.IsFocused) {
+                    $screen.RemoveSelectedAction()
                 }
             }.GetNewClosure()
         })
@@ -368,6 +482,24 @@ class VisualMacroFactoryScreen : Screen {
         }
     }
     
+    
+    [void] NewMacro() {
+        if ($this._sequenceData.Count -gt 0) {
+            # Confirm before clearing
+            $dialog = [ConfirmationDialog]::new("Clear current macro and start new?")
+            $dialog.Initialize($this.ServiceContainer)
+            
+            $screen = $this
+            $dialog.OnPrimary = {
+                $screen._sequenceData.Clear()
+                $screen.UpdateMacroSequence()
+                $screen.UpdateContext()
+            }.GetNewClosure()
+            
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
     [void] PreviewGeneratedScript() {
         try {
             $script = $this.ContextManager.GenerateScript()
@@ -533,11 +665,59 @@ class VisualMacroFactoryScreen : Screen {
         }
     }
     
-    [void] NewMacro() {
-        $this.ContextManager.Clear()
-        $this.SelectedSequenceIndex = -1
-        $this.UpdateMacroSequence()
-        $this.UpdateContextPanel()
+    
+    [string] OnRender() {
+        # Get base rendering
+        $baseRender = ([Screen]$this).OnRender()
+        
+        # Add vertical separators between panes
+        $sb = Get-PooledStringBuilder 1024
+        $sb.Append($baseRender)
+        
+        # Get theme for colors
+        $theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($theme) {
+            $borderColor = $theme.GetColor('border')
+            $sb.Append($borderColor)
+            
+            # Calculate separator positions (must match OnBoundsChanged calculations)
+            $separatorWidth = 1
+            $leftWidth = [int]($this.Width * 0.3) - $separatorWidth
+            $centerWidth = [int]($this.Width * 0.4) - $separatorWidth
+            
+            $leftSeparatorX = $this.X + $leftWidth
+            $rightSeparatorX = $this.X + $leftWidth + $separatorWidth + $centerWidth
+            
+            # Draw left separator
+            for ($y = $this.Y + 1; $y -lt ($this.Y + $this.Height - 1); $y++) {
+                $sb.Append([VT]::MoveTo($leftSeparatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Add T-junctions for left separator
+            $sb.Append([VT]::MoveTo($leftSeparatorX, $this.Y))
+            $sb.Append('┬')
+            $sb.Append([VT]::MoveTo($leftSeparatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')
+            
+            # Draw right separator
+            for ($y = $this.Y + 1; $y -lt ($this.Y + $this.Height - 1); $y++) {
+                $sb.Append([VT]::MoveTo($rightSeparatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Add T-junctions for right separator
+            $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y))
+            $sb.Append('┬')
+            $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')
+            
+            $sb.Append([VT]::Reset())
+        }
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     # Override to provide help text
@@ -590,11 +770,15 @@ Press ESC to close help
         }
         
         # Three-pane layout: 30% | 40% | 30%
-        $leftWidth = [int]($this.Width * 0.3)
-        $centerWidth = [int]($this.Width * 0.4)
-        $rightWidth = $this.Width - $leftWidth - $centerWidth
+        # Account for 2 separators (1 char each)
+        $separatorWidth = 1
+        $totalSeparatorWidth = $separatorWidth * 2
         
-        $contentHeight = $this.Height - 2  # Account for title
+        $leftWidth = [int]($this.Width * 0.3) - $separatorWidth
+        $centerWidth = [int]($this.Width * 0.4) - $separatorWidth
+        $rightWidth = $this.Width - $leftWidth - $centerWidth - $totalSeparatorWidth
+        
+        $contentHeight = $this.Height  # Use full height
         
         if ($global:Logger) {
             $global:Logger.Debug("VisualMacroFactoryScreen.OnBoundsChanged: leftWidth=$leftWidth centerWidth=$centerWidth rightWidth=$rightWidth contentHeight=$contentHeight")
@@ -602,17 +786,17 @@ Press ESC to close help
         
         # Position Component Library (left pane)
         if ($this.ComponentLibrary) {
-            $this.ComponentLibrary.SetBounds(0, 1, $leftWidth, $contentHeight)
+            $this.ComponentLibrary.SetBounds($this.X, $this.Y, $leftWidth, $contentHeight)
         }
         
         # Position Macro Sequence (center pane)
         if ($this.MacroSequence) {
-            $this.MacroSequence.SetBounds($leftWidth, 1, $centerWidth, $contentHeight)
+            $this.MacroSequence.SetBounds($this.X + $leftWidth + $separatorWidth, $this.Y, $centerWidth, $contentHeight)
         }
         
         # Position Context Panel (right pane)
         if ($this.ContextPanel) {
-            $this.ContextPanel.SetBounds($leftWidth + $centerWidth, 1, $rightWidth, $contentHeight)
+            $this.ContextPanel.SetBounds($this.X + $leftWidth + $centerWidth + $totalSeparatorWidth, $this.Y, $rightWidth, $contentHeight)
         }
     }
     

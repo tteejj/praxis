@@ -72,8 +72,8 @@ class ProjectsScreen : Screen {
         $columns = @(
             @{
                 Name = "Status"
-                Header = "Sts"
-                Width = 3
+                Header = "Status"
+                Width = 6
                 Getter = {
                     param($project)
                     if ($project.ClosedDate -ne [DateTime]::MinValue) { "[✓]" } else { "[ ]" }
@@ -87,36 +87,36 @@ class ProjectsScreen : Screen {
             @{
                 Name = "ID1"
                 Header = "ID1"
-                Width = 5
+                Width = 8
             },
             @{
                 Name = "ID2"
                 Header = "ID2"
-                Width = 9
+                Width = 12
             },
             @{
                 Name = "DateAssigned"
                 Header = "Assigned"
-                Width = 10
+                Width = 12  # Increased to accommodate date + padding
                 Formatter = {
                     param($value)
                     if ($value -is [DateTime] -and $value -ne [DateTime]::MinValue) {
                         $value.ToString("yyyy-MM-dd")
                     } else {
-                        "          "
+                        ""  # Empty string instead of spaces
                     }
                 }
             },
             @{
                 Name = "DateDue"
                 Header = "Due"
-                Width = 10
+                Width = 12  # Increased to accommodate date + padding
                 Formatter = {
                     param($value)
                     if ($value -is [DateTime] -and $value -ne [DateTime]::MinValue) {
                         $value.ToString("yyyy-MM-dd")
                     } else {
-                        "          "
+                        ""  # Empty string instead of spaces
                     }
                 }
             }
@@ -406,50 +406,42 @@ class ProjectsScreen : Screen {
         }
         
         # Screen-specific shortcuts - only called as fallback by base Screen class
-        switch ($key.Key) {
-            ([System.ConsoleKey]::N) {
-                if (-not $key.Modifiers) {
+        # Handle Enter key
+        if ($key.Key -eq [System.ConsoleKey]::Enter) {
+            $this.ViewProjectDetails()
+            return $true
+        }
+        
+        # Handle character shortcuts using KeyChar
+        if (-not $key.Modifiers) {
+            switch ($key.KeyChar) {
+                'n' {
                     if ($global:Logger) {
-                        $global:Logger.Debug("ProjectsScreen: 'N' key pressed, calling NewProject")
+                        $global:Logger.Debug("ProjectsScreen: 'n' key pressed, calling NewProject")
                     }
                     $this.NewProject()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::E) {
-                if (-not $key.Modifiers) {
+                'e' {
                     if ($global:Logger) {
-                        $global:Logger.Debug("ProjectsScreen: 'E' key pressed, calling EditProject")
+                        $global:Logger.Debug("ProjectsScreen: 'e' key pressed, calling EditProject")
                     }
                     $this.EditProject()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::Enter) {
-                $this.ViewProjectDetails()
-                return $true
-            }
-            ([System.ConsoleKey]::V) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'V' -or $key.KeyChar -eq 'v')) {
+                'v' {
                     $this.ViewProjectDetails()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::D) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'D' -or $key.KeyChar -eq 'd')) {
+                'd' {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ProjectsScreen: 'd' key pressed, calling DeleteProject")
+                    }
                     $this.DeleteProject()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::R) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'R' -or $key.KeyChar -eq 'r')) {
+                'r' {
                     $this.LoadProjects()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::Q) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'Q' -or $key.KeyChar -eq 'q')) {
-                    $this.Active = $false
                     return $true
                 }
             }

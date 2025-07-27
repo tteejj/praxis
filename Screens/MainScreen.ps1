@@ -3,6 +3,7 @@
 class MainScreen : Screen {
     [TabContainer]$TabContainer
     [CommandPalette]$CommandPalette
+    [MinimalStatusBar]$StatusBar
     [EventBus]$EventBus
     hidden [string]$TabChangedSubscription
     
@@ -22,6 +23,8 @@ class MainScreen : Screen {
                 if ($eventData.TabIndex -ne $null -and $this.TabContainer) {
                     $this.TabContainer.ActivateTab($eventData.TabIndex)
                     $this.RequestRender()
+                    # Update status bar for new tab
+                    $this.UpdateStatusBar()
                 }
             }.GetNewClosure())
         }
@@ -69,6 +72,15 @@ class MainScreen : Screen {
         $this.CommandPalette.Initialize($global:ServiceContainer)
         $this.AddChild($this.CommandPalette)
         
+        # Create status bar
+        $this.StatusBar = [MinimalStatusBar]::new()
+        $this.StatusBar.Initialize($global:ServiceContainer)
+        
+        # Update status bar based on active tab
+        $this.UpdateStatusBar()
+        
+        $this.AddChild($this.StatusBar)
+        
         # Ensure bounds are set if we already have them
         if ($this.Width -gt 0 -and $this.Height -gt 0) {
             $this.OnBoundsChanged()
@@ -80,12 +92,16 @@ class MainScreen : Screen {
     
     [void] OnBoundsChanged() {
         if ($this.TabContainer) {
-            # Leave space for border
-            $this.TabContainer.SetBounds($this.X + 1, $this.Y + 1, $this.Width - 2, $this.Height - 2)
+            # Leave space for border and status bar
+            $this.TabContainer.SetBounds($this.X + 1, $this.Y + 1, $this.Width - 2, $this.Height - 3)
         }
         if ($this.CommandPalette) {
             # Command palette uses full screen for centering
             $this.CommandPalette.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
+        }
+        if ($this.StatusBar) {
+            # Status bar at bottom
+            $this.StatusBar.SetBounds($this.X + 1, $this.Y + $this.Height - 2, $this.Width - 2, 1)
         }
     }
     
@@ -97,6 +113,9 @@ class MainScreen : Screen {
         if ($this.Width -eq 0 -or $this.Height -eq 0) {
             $this.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
         }
+        
+        # Update status bar for current tab
+        $this.UpdateStatusBar()
         
         # Activate the active tab's content screen
         if ($this.TabContainer) {
@@ -134,6 +153,75 @@ class MainScreen : Screen {
         }
         
         return $false
+    }
+    
+    [void] UpdateStatusBar() {
+        if (-not $this.StatusBar -or -not $this.TabContainer) { return }
+        
+        $activeTab = $this.TabContainer.GetActiveTab()
+        if ($activeTab) {
+            $this.StatusBar.LeftText = "PRAXIS - $($activeTab.Title)"
+            
+            # Set context-specific hints based on active tab
+            switch ($activeTab.Title) {
+                "Tasks" {
+                    $this.StatusBar.SetHints(@(
+                        @{Key="N"; Action="New"}
+                        @{Key="E"; Action="Edit"}
+                        @{Key="D"; Action="Delete"}
+                        @{Key="S"; Action="Status"}
+                        @{Key="P"; Action="Priority"}
+                        @{Key="Tab"; Action="Navigate"}
+                    ))
+                }
+                "Projects" {
+                    $this.StatusBar.SetHints(@(
+                        @{Key="N"; Action="New"}
+                        @{Key="E"; Action="Edit"}
+                        @{Key="D"; Action="Delete"}
+                        @{Key="Enter"; Action="Details"}
+                        @{Key="Tab"; Action="Navigate"}
+                    ))
+                }
+                "Time" {
+                    $this.StatusBar.SetHints(@(
+                        @{Key="Q"; Action="Quick Entry"}
+                        @{Key="N"; Action="New"}
+                        @{Key="E"; Action="Edit"}
+                        @{Key="D"; Action="Delete"}
+                        @{Key="Tab"; Action="Navigate"}
+                    ))
+                }
+                "Commands" {
+                    $this.StatusBar.SetHints(@(
+                        @{Key="N"; Action="New"}
+                        @{Key="E"; Action="Edit"}
+                        @{Key="D"; Action="Delete"}
+                        @{Key="Enter"; Action="Execute"}
+                        @{Key="Tab"; Action="Navigate"}
+                    ))
+                }
+                "Settings" {
+                    $this.StatusBar.SetHints(@(
+                        @{Key="Enter"; Action="Edit"}
+                        @{Key="T"; Action="Theme"}
+                        @{Key="R"; Action="Reset"}
+                        @{Key="Tab"; Action="Navigate"}
+                    ))
+                }
+                default {
+                    # Default hints
+                    $this.StatusBar.SetHints(@(
+                        @{Key="Tab"; Action="Switch Tab"}
+                        @{Key="Ctrl+P"; Action="Command"}
+                        @{Key="F1"; Action="Help"}
+                        @{Key="Ctrl+Q"; Action="Quit"}
+                    ))
+                }
+            }
+        } else {
+            $this.StatusBar.LeftText = "PRAXIS"
+        }
     }
     
     # Override render to add border

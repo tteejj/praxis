@@ -6,8 +6,10 @@ class MinimalDataGrid : FocusableComponent {
     [int]$SelectedIndex = -1
     [string]$Title = ""
     [bool]$ShowBorder = $true
+    [bool]$ShowTitle = $true  # Show title even without border
     [bool]$ShowHeader = $true
     [bool]$ShowGridLines = $false  # Minimal style - no grid lines by default
+    [bool]$ShowColumnSeparators = $true  # Show vertical separators between columns
     [bool]$ShowRowNumbers = $false
     [bool]$AlternateRowColors = $false
     [BorderType]$BorderType = [BorderType]::Rounded
@@ -73,7 +75,9 @@ class MinimalDataGrid : FocusableComponent {
     
     [void] SetItems([object[]]$items) {
         $this.Items.Clear()
-        $this.Items.AddRange($items)
+        if ($items -and $items.Count -gt 0) {
+            $this.Items.AddRange($items)
+        }
         
         # Auto-size columns if needed
         $this.AutoSizeColumns()
@@ -107,10 +111,33 @@ class MinimalDataGrid : FocusableComponent {
     [void] AutoSizeColumns() {
         if ($this.Columns.Count -eq 0) { return }
         
-        # Calculate max width for each column
+        # Calculate available width
+        $availableWidth = $this.Width - 2  # Account for borders
+        if ($this.BorderType -ne [BorderType]::None) { $availableWidth -= 2 }
+        $availableWidth -= 3  # Selection column
+        if ($this.ShowRowNumbers) { $availableWidth -= 7 }
+        
+        # Calculate fixed column widths
+        $fixedWidth = 0
+        $flexibleColumns = @()
         foreach ($col in $this.Columns) {
-            if ($col.Width -gt 0) { continue }  # Skip fixed-width columns
-            
+            if ($col.Width -gt 0) {
+                $fixedWidth += $col.Width
+            } else {
+                $flexibleColumns += $col
+            }
+        }
+        
+        # Account for column separators
+        if ($this.ShowColumnSeparators -and $this.Columns.Count -gt 1) {
+            $fixedWidth += ($this.Columns.Count - 1) * 3
+        }
+        
+        # Remaining width for flexible columns
+        $remainingWidth = $availableWidth - $fixedWidth
+        
+        # Calculate max width needed for each flexible column
+        foreach ($col in $flexibleColumns) {
             $maxWidth = $col.Name.Length
             foreach ($item in $this.Items) {
                 $value = ""
@@ -121,8 +148,32 @@ class MinimalDataGrid : FocusableComponent {
                 }
                 $maxWidth = [Math]::Max($maxWidth, $value.Length)
             }
+            $col.MaxContentWidth = $maxWidth
+        }
+        
+        # Distribute remaining width among flexible columns
+        if ($flexibleColumns.Count -gt 0 -and $remainingWidth -gt 0) {
+            # First pass: give each column its minimum needed width
+            $totalNeeded = 0
+            foreach ($col in $flexibleColumns) {
+                $col.Width = [Math]::Max($col.Header.Length + 2, [Math]::Min($col.MaxContentWidth + 2, 30))
+                $totalNeeded += $col.Width
+            }
             
-            $col.Width = [Math]::Max(3, [Math]::Min($maxWidth + 2, 30))  # Min 3, max 30 chars
+            # If we have extra space, distribute it proportionally
+            if ($totalNeeded -lt $remainingWidth) {
+                $extraSpace = $remainingWidth - $totalNeeded
+                # Give extra space to the first flexible column (usually the main content)
+                if ($flexibleColumns.Count -gt 0) {
+                    $flexibleColumns[0].Width += $extraSpace
+                }
+            } elseif ($totalNeeded -gt $remainingWidth) {
+                # Need to shrink columns - distribute shrinkage proportionally
+                $shrinkFactor = $remainingWidth / $totalNeeded
+                foreach ($col in $flexibleColumns) {
+                    $col.Width = [Math]::Max($col.Header.Length + 2, [int]($col.Width * $shrinkFactor))
+                }
+            }
         }
     }
     
@@ -132,12 +183,16 @@ class MinimalDataGrid : FocusableComponent {
         $sb = Get-PooledStringBuilder 4096
         
         # Calculate viewport
+        $titleHeight = if ($this.ShowTitle -and $this.Title) { 1 } else { 0 }
         $this._headerHeight = if ($this.ShowHeader) { 2 } else { 0 }
         $borderInset = if ($this.BorderType -ne [BorderType]::None) { 2 } else { 0 }
-        $this._viewportHeight = $this.Height - $this._headerHeight - $borderInset
+        $this._viewportHeight = $this.Height - $this._headerHeight - $borderInset - $titleHeight
         
         # Ensure scroll is valid
         $this.EnsureSelectedVisible()
+        
+        # Current Y position for rendering
+        $currentY = $this.Y
         
         # Render border if enabled
         if ($this.BorderType -ne [BorderType]::None) {
@@ -146,19 +201,35 @@ class MinimalDataGrid : FocusableComponent {
                 $this.X, $this.Y, $this.Width, $this.Height,
                 $this.BorderType, $color
             ))
+            $currentY++
+        }
+        
+        # Render title if enabled and no border
+        if ($this.ShowTitle -and $this.Title -and $this.BorderType -eq [BorderType]::None) {
+            $sb.Append([VT]::MoveTo($this.X, $currentY))
+            $sb.Append($this._colors.accent)
+            $titleText = $this.Title
+            if ($titleText.Length -gt $this.Width) {
+                $titleText = $titleText.Substring(0, $this.Width - 3) + "..."
+            }
+            # Center the title
+            $padding = [Math]::Max(0, [int](($this.Width - $titleText.Length) / 2))
+            $sb.Append(' ' * $padding)
+            $sb.Append($titleText)
+            $sb.Append([VT]::Reset())
+            $currentY++
         }
         
         # Render header
         if ($this.ShowHeader) {
             if ($this._headerInvalid) {
-                $this.RebuildHeader()
+                $this.RebuildHeader($currentY)
             }
             $sb.Append($this._cachedHeader)
         }
         
         # Render rows
-        $startY = $this.Y + $this._headerHeight
-        if ($this.BorderType -ne [BorderType]::None) { $startY++ }
+        $startY = $currentY + $this._headerHeight
         
         $endIndex = [Math]::Min($this._scrollOffset + $this._viewportHeight, $this.Items.Count)
         
@@ -210,7 +281,8 @@ class MinimalDataGrid : FocusableComponent {
         }
         
         # Render columns
-        foreach ($col in $this.Columns) {
+        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
+            $col = $this.Columns[$i]
             $value = ""
             if ($col.ValueGetter) {
                 $rawValue = & $col.ValueGetter $item
@@ -235,12 +307,20 @@ class MinimalDataGrid : FocusableComponent {
                 }
             }
             $sb.Append($value.PadRight($col.Width))
+            
+            # Add column separator if not last column
+            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
+                $sb.Append(' │ ')
+            }
         }
         
         # Clear to end of row
         $remainingWidth = $this.Width - ($x - $this.X) - 2
         if ($this.ShowRowNumbers) { $remainingWidth -= 7 }
         foreach ($col in $this.Columns) { $remainingWidth -= $col.Width }
+        if ($this.ShowColumnSeparators -and $this.Columns.Count -gt 1) {
+            $remainingWidth -= ($this.Columns.Count - 1) * 3  # ' │ ' is 3 chars
+        }
         if ($remainingWidth -gt 0) {
             $sb.Append(' ' * $remainingWidth)
         }
@@ -248,38 +328,46 @@ class MinimalDataGrid : FocusableComponent {
         $sb.Append([VT]::Reset())
     }
     
-    [void] RebuildHeader() {
+    [void] RebuildHeader([int]$startY) {
         $sb = Get-PooledStringBuilder 512
         
         $x = $this.X + 1
-        $y = $this.Y
+        $y = $startY
         if ($this.BorderType -ne [BorderType]::None) { 
             $x++
-            $y++
         }
         
         # Header row
         $sb.Append([VT]::MoveTo($x, $y))
         $sb.Append($this._colors.headerBg)
         $sb.Append($this._colors.header)
-        $sb.Append('  ')  # Selection column
+        $sb.Append('   ')  # Selection column (3 spaces for alignment with "▸ ")
         
         if ($this.ShowRowNumbers) {
             $sb.Append(' No. │ ')
         }
         
-        foreach ($col in $this.Columns) {
+        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
+            $col = $this.Columns[$i]
             $header = if ($col.Header) { $col.Header } else { $col.Name }
             if ($header.Length -gt $col.Width) {
                 $header = $header.Substring(0, [Math]::Max(1, $col.Width - 1)) + '…'
             }
             $sb.Append($header.PadRight($col.Width))
+            
+            # Add column separator if not last column
+            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
+                $sb.Append(' │ ')
+            }
         }
         
         # Clear to end
-        $totalWidth = 2
+        $totalWidth = 3  # Selection column width (3 chars for "▸ " or "  ")
         if ($this.ShowRowNumbers) { $totalWidth += 7 }
         foreach ($col in $this.Columns) { $totalWidth += $col.Width }
+        if ($this.ShowColumnSeparators -and $this.Columns.Count -gt 1) {
+            $totalWidth += ($this.Columns.Count - 1) * 3  # ' │ ' is 3 chars
+        }
         $remainingWidth = $this.Width - $totalWidth - 2
         if ($this.BorderType -ne [BorderType]::None) { $remainingWidth -= 2 }
 
@@ -294,15 +382,23 @@ class MinimalDataGrid : FocusableComponent {
         
         $sb.Append([VT]::Reset())
         
-        # Separator line
+        # Separator line with proper border connections
         $sb.Append([VT]::MoveTo($x, $y + 1))
         $sb.Append($this._colors.border)
-        $separatorWidth = $this.Width - 2
+        
         if ($this.BorderType -ne [BorderType]::None) {
-            $separatorWidth -= 2
-        }
-        if ($separatorWidth -gt 0) {
-            $sb.Append('─' * $separatorWidth)
+            # Draw separator with proper border connections
+            $borderStyle = [BorderStyle]::Styles[$this.BorderType.ToString()]
+            $sb.Append([VT]::MoveTo($this.X, $y + 1))
+            $sb.Append($borderStyle.LT)  # Left T-junction
+            $sb.Append($borderStyle.H * ($this.Width - 2))
+            $sb.Append($borderStyle.RT)  # Right T-junction
+        } else {
+            # No border, just draw separator line
+            $separatorWidth = $this.Width - 2
+            if ($separatorWidth -gt 0) {
+                $sb.Append('─' * $separatorWidth)
+            }
         }
         $sb.Append([VT]::Reset())
         
@@ -433,4 +529,5 @@ class GridColumn {
     [scriptblock]$ValueGetter
     [scriptblock]$Formatter
     [int]$Width
+    [int]$MaxContentWidth
 }

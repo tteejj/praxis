@@ -89,12 +89,8 @@ class ThemeBuilder {
     # Build and register the theme
     [void] Build() {
         $themeManager = $global:ServiceContainer.GetService('ThemeManager')
-        if ($themeManager -is [EnhancedThemeManager]) {
-            $themeManager.CreateThemeFromBase($this.Name, $this.BaseTheme, $this.Colors)
-        } else {
-            # Fallback for standard ThemeManager
-            $themeManager.RegisterTheme($this.Name, $this.Colors)
-        }
+        # Just use RegisterTheme for both
+        $themeManager.RegisterTheme($this.Name, $this.Colors)
     }
     
     # Export theme definition

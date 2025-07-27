@@ -82,6 +82,14 @@ class ThemeManager {
             "progress.complete" = @(0, 200, 83)
             "progress.text" = @(204, 204, 204)
             
+            # Dialog colors
+            "dialog.background" = @(24, 24, 24)      # Same as background
+            "dialog.border" = @(68, 68, 68)          # Same as border
+            "dialog.title" = @(0, 150, 255)          # Same as accent/title
+            
+            # Additional border states
+            "border.normal" = @(68, 68, 68)          # Normal border (same as border)
+            
             # Gradient endpoints
             "gradient.border.start" = @(0, 150, 255)      # Blue
             "gradient.border.end" = @(68, 68, 68)         # Dark gray
@@ -162,6 +170,9 @@ class ThemeManager {
             "dialog.border" = @(0, 150, 0)
             "dialog.title" = @(0, 255, 0)
             
+            # Additional border states
+            "border.normal" = @(0, 100, 0)
+            
             # Gradient endpoints
             "gradient.border.start" = @(0, 255, 0)        # Bright green
             "gradient.border.end" = @(0, 50, 0)           # Very dark green
@@ -241,6 +252,9 @@ class ThemeManager {
             "dialog.background" = @(20, 18, 12)
             "dialog.border" = @(153, 102, 0)
             "dialog.title" = @(255, 230, 77)
+            
+            # Additional border states
+            "border.normal" = @(153, 102, 0)
             
             # Gradient endpoints
             "gradient.border.start" = @(255, 230, 77)     # Bright amber

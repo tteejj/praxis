@@ -18,6 +18,7 @@ class MinimalStatusBar : UIElement {
     
     # Shortcut hints
     [string[]]$ShortcutHints = @()
+    [hashtable[]]$Hints = @()  # Array of @{Key="F1"; Action="Help"}
     
     # Colors
     hidden [hashtable]$_colors = @{}
@@ -79,22 +80,44 @@ class MinimalStatusBar : UIElement {
         }
     }
     
+    [void] SetHints([hashtable[]]$hints) {
+        $this.Hints = $hints
+        $this.Invalidate()
+    }
+    
     [string] OnRender() {
         $sb = Get-PooledStringBuilder 512
         
         # Move to position
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         
-        # Background
+        # Background and clear line
         if ($this._colors.background -and -not $this.UseMinimalStyle) {
             $sb.Append($this._colors.background)
         }
+        
+        # Clear the entire line first to prevent artifacts
+        # Note: StatusBar width already accounts for being inside the border
+        $clearWidth = $this.Width
+        $sb.Append(' ' * $clearWidth)
+        $sb.Append([VT]::MoveTo($this.X, $this.Y))
         
         # Calculate sections
         $availableWidth = $this.Width
         $leftWidth = [Math]::Min($this.LeftText.Length, [int]($availableWidth * 0.3))
         $rightWidth = [Math]::Min($this.RightText.Length, [int]($availableWidth * 0.3))
-        $centerWidth = $availableWidth - $leftWidth - $rightWidth - 4  # Space for separators
+        # Always account for 6 separator spaces (3 on each side)
+        $separatorSpace = 6
+        $centerWidth = $availableWidth - $leftWidth - $rightWidth - $separatorSpace
+        
+        # Ensure centerWidth is not negative
+        if ($centerWidth -lt 0) {
+            $centerWidth = 0
+            # Recalculate left and right to fit
+            $totalSideWidth = $availableWidth - $separatorSpace
+            $leftWidth = [Math]::Min($leftWidth, [int]($totalSideWidth / 2))
+            $rightWidth = [Math]::Min($rightWidth, $totalSideWidth - $leftWidth)
+        }
         
         # Left section
         if ($this.LeftText) {
@@ -116,11 +139,52 @@ class MinimalStatusBar : UIElement {
         }
         
         # Center section or shortcuts
-        if ($this.ShortcutHints.Count -gt 0 -and $this.ShortcutManager) {
+        if ($this.Hints.Count -gt 0) {
+            # Build hints with proper spacing
+            $renderedHints = ""
+            $first = $true
+            foreach ($hint in $this.Hints) {
+                if (-not $first) {
+                    $renderedHints += "  "
+                }
+                $first = $false
+                $renderedHints += $hint.Key + ":" + $hint.Action
+            }
+            
+            # Truncate if too long
+            if ($renderedHints.Length -gt $centerWidth) {
+                $renderedHints = $this.TruncateText($renderedHints, $centerWidth)
+            }
+            
+            # Calculate padding for centering
+            $actualLength = $renderedHints.Length
+            $padding = [Math]::Max(0, [int](($centerWidth - $actualLength) / 2))
+            $sb.Append(' ' * $padding)
+            
+            # Render with key highlighting
+            $first = $true
+            foreach ($hint in $this.Hints) {
+                if (-not $first) {
+                    $sb.Append("  ")
+                }
+                $first = $false
+                $sb.Append($this._colors.accent)
+                $sb.Append($hint.Key)
+                $sb.Append($this._colors.text)
+                $sb.Append(":")
+                $sb.Append($hint.Action)
+            }
+            
+            # Fill remaining space
+            $remaining = $centerWidth - $actualLength - $padding
+            if ($remaining -gt 0) {
+                $sb.Append(' ' * $remaining)
+            }
+        } elseif ($this.ShortcutHints.Count -gt 0 -and $this.ShortcutManager) {
             # Render shortcuts instead of center text
-            $hints = $this.ShortcutManager.RenderShortcutHints($this.ShortcutHints, $centerWidth)
-            $sb.Append($hints)
-            $sb.Append(' ' * [Math]::Max(0, $centerWidth - $hints.Length))
+            $hintsText = $this.ShortcutManager.RenderShortcutHints($this.ShortcutHints, $centerWidth)
+            $sb.Append($hintsText)
+            $sb.Append(' ' * [Math]::Max(0, $centerWidth - $hintsText.Length))
         } elseif ($this.CenterText) {
             $sb.Append($this._colors.accent)
             $text = $this.TruncateText($this.CenterText, $centerWidth)
@@ -151,11 +215,7 @@ class MinimalStatusBar : UIElement {
             $sb.Append(' ' * $rightWidth)
         }
         
-        # Fill remaining space
-        $totalLength = $leftWidth + $rightWidth + $centerWidth + 6
-        if ($totalLength -lt $this.Width) {
-            $sb.Append(' ' * ($this.Width - $totalLength))
-        }
+        # No need to fill remaining space since we cleared the whole line at the beginning
         
         $sb.Append([VT]::Reset())
         

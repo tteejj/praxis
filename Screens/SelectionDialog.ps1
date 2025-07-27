@@ -29,9 +29,10 @@ class SelectionDialog : BaseDialog {
         $this.ListBox.BorderType = [BorderType]::Rounded
         
         if ($this.ItemRenderer) {
-            $this.ListBox.ItemRenderer = $this.ItemRenderer
+            $this.ListBox.ItemFormatter = $this.ItemRenderer
         }
         
+        $this.ListBox.Initialize($this.ServiceContainer)
         $this.ListBox.SetItems($this.Items)
         $this.AddContentControl($this.ListBox)
         

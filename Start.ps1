@@ -44,6 +44,7 @@ $loadOrder = @(
     "Services/ThemeManager.ps1"
     "Services/ThemeSystem.ps1"
     "Utils/ThemeBuilder.ps1"
+    "Themes/ThemeSynthwave.ps1"
     
     # Base classes
     "Base/UIElement.ps1"
@@ -99,6 +100,7 @@ $loadOrder = @(
     "Components/TextBox.ps1"
     "Components/Button.ps1"
     "Components/MinimalButton.ps1"
+    "Components/GradientButton.ps1"
     "Components/MinimalListBox.ps1"
     "Components/MinimalTextBox.ps1"
     "Components/MinimalDataGrid.ps1"
@@ -284,6 +286,10 @@ $global:ServiceContainer.Register("ConfigurationService", $configService)
 $backupService = [BackupService]::new()
 $global:ServiceContainer.Register("BackupService", $backupService)
 
+# Initialize synthwave themes
+[ThemeSynthwave]::CreateSynthwave84()
+[ThemeSynthwave]::CreateSynthwaveOutrun()
+
 # Apply theme from configuration
 $currentTheme = $configService.Get("Theme.CurrentTheme", "matrix")
 if ($themeManager._themes.ContainsKey($currentTheme)) {
@@ -292,6 +298,10 @@ if ($themeManager._themes.ContainsKey($currentTheme)) {
     # Fallback to matrix theme if configured theme doesn't exist
     $themeManager.SetTheme("matrix")
 }
+
+# Update available themes in config to include synthwave
+$availableThemes = @($themeManager.GetThemeNames())
+$configService.Set("Theme.AvailableThemes", $availableThemes)
 
 # State manager - high-performance centralized state
 $stateManager = [StateManager]::new()

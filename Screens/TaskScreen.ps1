@@ -13,7 +13,7 @@ class TaskScreen : Screen {
     hidden [hashtable]$ProjectCache = @{}
     
     # Layout settings
-    hidden [int]$StatusBarHeight = 2
+    hidden [int]$StatusBarHeight = 0
     
     TaskScreen() : base() {
         $this.Title = "Tasks"
@@ -115,6 +115,7 @@ class TaskScreen : Screen {
         $this.TaskGrid = [MinimalDataGrid]::new()
         $this.TaskGrid.Title = "Tasks"
         $this.TaskGrid.ShowBorder = $false  # MainScreen draws the border
+        $this.TaskGrid.BorderType = [BorderType]::None
         $this.TaskGrid.ShowGridLines = $false
         
         # Define columns
@@ -269,8 +270,8 @@ class TaskScreen : Screen {
     }
     
     [void] OnBoundsChanged() {
-        # Layout: Grid takes all space except status bar
-        $gridHeight = $this.Height - $this.StatusBarHeight
+        # Layout: Grid takes all space
+        $gridHeight = $this.Height
         
         # Task grid
         $this.TaskGrid.SetBounds(
@@ -589,70 +590,59 @@ class TaskScreen : Screen {
             $global:Logger.Debug("TaskScreen.HandleScreenInput: Key=$($key.Key) Char='$($key.KeyChar)'")
         }
         
-        # Handle screen-specific shortcuts
-        switch ($key.Key) {
-            ([System.ConsoleKey]::N) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'N' -or $key.KeyChar -eq 'n')) {
+        # Handle Enter and Delete keys
+        if ($key.Key -eq [System.ConsoleKey]::Enter) {
+            $this.EditTask()
+            return $true
+        }
+        if ($key.Key -eq [System.ConsoleKey]::Delete) {
+            $this.DeleteTask()
+            return $true
+        }
+        if ($key.Key -eq [System.ConsoleKey]::F5) {
+            $this.LoadTasks()
+            return $true
+        }
+        
+        # Handle character shortcuts using KeyChar
+        if (-not $key.Modifiers) {
+            switch ($key.KeyChar) {
+                'n' {
                     $this.NewTask()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::E) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'E' -or $key.KeyChar -eq 'e')) {
+                'e' {
                     $this.EditTask()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::Enter) {
-                $this.EditTask()
-                return $true
-            }
-            ([System.ConsoleKey]::D) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'D' -or $key.KeyChar -eq 'd')) {
+                'd' {
                     $this.DeleteTask()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::Delete) {
-                $this.DeleteTask()
-                return $true
-            }
-            ([System.ConsoleKey]::R) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'R' -or $key.KeyChar -eq 'r')) {
+                'r' {
                     $this.LoadTasks()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::F5) {
-                $this.LoadTasks()
-                return $true
-            }
-            ([System.ConsoleKey]::S) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'S' -or $key.KeyChar -eq 's')) {
+                's' {
                     $this.CycleStatus()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::P) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'P' -or $key.KeyChar -eq 'p')) {
+                'p' {
                     $this.CyclePriority()
                     return $true
                 }
-            }
-            ([System.ConsoleKey]::A) {
-                if ($key.Modifiers -band [ConsoleModifiers]::Shift -and ($key.KeyChar -eq 'A')) {
-                    # Shift+A to add subtask
-                    $this.AddSubtask()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::T) {
-                if (-not $key.Modifiers -and ($key.KeyChar -eq 'T' -or $key.KeyChar -eq 't')) {
+                't' {
                     # Toggle subtask view
                     $this.ToggleSubtaskView()
                     return $true
                 }
             }
+        }
+        
+        # Handle Shift+A for adding subtask
+        if (($key.Modifiers -band [ConsoleModifiers]::Shift) -and $key.KeyChar -eq 'A') {
+            $this.AddSubtask()
+            return $true
         }
         
         return $false
@@ -663,33 +653,6 @@ class TaskScreen : Screen {
         
         # Render base (background and children)
         $sb.Append(([Container]$this).OnRender())
-        
-        # Render status bar
-        $statusY = $this.Y + $this.Height - $this.StatusBarHeight
-        $sb.Append([VT]::MoveTo($this.X, $statusY))
-        $sb.Append($this.Theme.GetColor("border"))
-        $sb.Append([StringCache]::GetHorizontalLine($this.Width))
-        
-        # Status text
-        $sb.Append([VT]::MoveTo($this.X + 1, $statusY + 1))
-        $sb.Append($this.Theme.GetColor("disabled"))
-        
-        $selected = $this.TaskGrid.GetSelectedItem()
-        if ($selected) {
-            # Show task details in status bar
-            $isSubtask = $selected.PSObject.Properties.Name -contains 'ParentTaskId'
-            $type = if ($isSubtask) { "Subtask" } else { "Task" }
-            $status = $selected.Status.ToString()
-            $priority = $selected.Priority.ToString()
-            $sb.Append("${type}: $($selected.Title) | Status: $status | Priority: $priority")
-        } else {
-            # Show help text with letter-based shortcuts
-            $sb.Append("[N]ew [E]dit [D]elete [S]tatus [P]riority [A+Shift]Subtask [T]oggle [Tab]Navigate")
-        }
-        
-        # Add legend for status/priority letters
-        $sb.Append([VT]::MoveTo($this.X + $this.Width - 35, $statusY + 1))
-        $sb.Append("S: P=Pending W=Working D=Done X=Cancel")
         
         $sb.Append([VT]::Reset())
         

@@ -1,64 +1,141 @@
 {
-  "Tasks": {
-    "DefaultPriority": "Medium",
-    "ShowCompletedTasks": true,
-    "CompletedTaskRetention": 30
-  },
-  "Editor": {
-    "ShowLineNumbers": true,
-    "WordWrap": false,
-    "SyntaxHighlighting": true,
-    "HighlightCurrentLine": true,
-    "TabSize": 4,
-    "AutoSaveInterval": 0
-  },
   "Theme": {
-    "UserCustomizations": {},
-    "ShowThemePreview": true,
+    "EditTheme": "[Click to open theme editor]",
+    "EnableLiveEdit": false,
     "AvailableThemes": [
+      "amber",
       "default",
       "matrix",
-      "amber"
+      "synthwave-84",
+      "synthwave-outrun"
     ],
-    "EditTheme": "[Click to open theme editor]",
-    "EnableLiveEdit": true,
-    "CurrentTheme": "default"
-  },
-  "UI": {
-    "ShowScrollbars": true,
-    "UseGradients": false,
-    "AnimationsEnabled": true,
-    "GradientType": "vertical",
-    "CompactMode": false,
-    "VerticalSpacing": 1
+    "CurrentTheme": "default",
+    "ShowThemePreview": true,
+    "UserCustomizations": {}
   },
   "Logging": {
-    "MaxFiles": 5,
     "MaxFileSize": 10,
-    "Level": "Info"
+    "Level": "Info",
+    "MaxFiles": 5
   },
   "FileBrowser": {
-    "ShowHiddenFiles": false,
+    "SortBy": "Name",
+    "SortDescending": false,
     "ShowModifiedDate": false,
-    "ShowFileSize": true,
     "DefaultPath": "/home/teej/projects/github/praxis",
+    "ShowFileSize": true,
+    "ShowHiddenFiles": true,
     "IgnoredExtensions": [
       ".tmp",
       ".cache",
       ".log"
-    ],
-    "SortBy": "Name",
-    "SortDescending": false
+    ]
   },
-  "Performance": {
-    "RenderOptimization": true,
-    "EnableCaching": true,
-    "MaxCacheSize": 100
+  "Editor": {
+    "TabSize": 4,
+    "WordWrap": false,
+    "AutoSaveInterval": 0,
+    "HighlightCurrentLine": true,
+    "ShowLineNumbers": true,
+    "SyntaxHighlighting": true
+  },
+  "Templates": {
+    "Macros": {
+      "Items": [
+        {
+          "Actions": [
+            {
+              "Fields": [
+                "Amount",
+                "Category"
+              ],
+              "Type": "Summarization"
+            },
+            {
+              "FileName": "analysis_results.xlsx",
+              "Type": "ExportToExcel"
+            }
+          ],
+          "Name": "Basic Analysis",
+          "Description": "Standard analysis workflow"
+        }
+      ],
+      "Enabled": true
+    },
+    "TimeEntry": {
+      "Items": [
+        {
+          "DefaultHours": 0.25,
+          "Name": "Daily Standup",
+          "DefaultDays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "Description": "Daily standup meeting",
+          "ProjectID": "Internal"
+        },
+        {
+          "DefaultHours": 1.0,
+          "Name": "Weekly Planning",
+          "DefaultDays": [
+            "Monday"
+          ],
+          "Description": "Weekly planning and review",
+          "ProjectID": "Internal"
+        }
+      ],
+      "Enabled": true
+    },
+    "Commands": {
+      "Items": [
+        {
+          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
+          "Name": "Export to CSV",
+          "Placeholders": [
+            "DATABASE",
+            "OUTPUT_FILE"
+          ],
+          "Description": "Export current database to CSV format"
+        },
+        {
+          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
+          "Name": "Join Databases",
+          "Placeholders": [
+            "PRIMARY",
+            "SECONDARY",
+            "KEY_FIELD"
+          ],
+          "Description": "Join two databases on a common field"
+        }
+      ],
+      "Enabled": true
+    }
   },
   "Projects": {
     "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
     "BackupCount": 5,
-    "BackupEnabled": true,
-    "AutoSave": true
+    "AutoSave": true,
+    "BackupEnabled": true
+  },
+  "Tasks": {
+    "ShowCompletedTasks": true,
+    "DefaultPriority": "Medium",
+    "CompletedTaskRetention": 30
+  },
+  "Performance": {
+    "RenderOptimization": true,
+    "MaxCacheSize": 100,
+    "EnableCaching": true
+  },
+  "UI": {
+    "CompactMode": false,
+    "AnimationsEnabled": true,
+    "ShowScrollbars": true,
+    "VerticalSpacing": 1,
+    "GradientType": "vertical",
+    "UseGradients": false
   }
 }

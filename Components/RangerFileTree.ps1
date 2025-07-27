@@ -37,22 +37,22 @@ class RangerFileTree : Container {
     [void] CreatePanes() {
         # Create parent pane
         $this.ParentPane = [FastFileTree]::new()
-        $this.ParentPane.ShowBorder = $true
-        $this.ParentPane.Title = "Parent"
+        $this.ParentPane.ShowBorder = $false  # MainScreen draws the outer border
+        $this.ParentPane.Title = ""  # Title will be set dynamically
         $this.ParentPane.ShowSize = $false
         $this.AddChild($this.ParentPane)
         
         # Create current pane
         $this.CurrentPane = [FastFileTree]::new()
-        $this.CurrentPane.ShowBorder = $true
-        $this.CurrentPane.Title = "Current"
+        $this.CurrentPane.ShowBorder = $false  # MainScreen draws the outer border
+        $this.CurrentPane.Title = ""  # Title will be set dynamically
         $this.CurrentPane.ShowSize = $true
         $this.AddChild($this.CurrentPane)
         
         # Create preview pane
         $this.PreviewPane = [FastFileTree]::new()
-        $this.PreviewPane.ShowBorder = $true
-        $this.PreviewPane.Title = "Preview"
+        $this.PreviewPane.ShowBorder = $false  # MainScreen draws the outer border
+        $this.PreviewPane.Title = ""  # Title will be set dynamically
         $this.PreviewPane.ShowSize = $true
         $this.AddChild($this.PreviewPane)
         
@@ -132,14 +132,14 @@ class RangerFileTree : Container {
             }
         } else {
             # At root, show drives or root
-            $this.ParentPane.Title = "Drives"
+            $this.ParentPane.Title = ""
             $this.ParentPane._flatView.Clear()
             $this.ParentPane.Invalidate()
         }
         
         # Update current pane
         $this.CurrentPane.LoadDirectory($this.CurrentPath)
-        $this.CurrentPane.Title = Split-Path $this.CurrentPath -Leaf
+        $this.CurrentPane.Title = ""  # No title needed - path shows in status
         if ($this.CurrentPane._flatView.Count -gt 0) {
             $this.CurrentPane.SelectIndex(0)
             if ($global:Logger) {
@@ -158,7 +158,7 @@ class RangerFileTree : Container {
     [void] UpdatePreviewPane() {
         $selected = $this.CurrentPane.GetSelectedNode()
         if (-not $selected) {
-            $this.PreviewPane.Title = "Preview"
+            $this.PreviewPane.Title = ""
             $this.PreviewPane._flatView.Clear()
             $this.PreviewPane.Invalidate()
             return
@@ -167,10 +167,10 @@ class RangerFileTree : Container {
         if ($selected.IsDirectory) {
             # Show directory contents
             $this.PreviewPane.LoadDirectory($selected.FullPath)
-            $this.PreviewPane.Title = $selected.Name
+            $this.PreviewPane.Title = ""
         } else {
             # Show file preview
-            $this.PreviewPane.Title = "File: $($selected.Name)"
+            $this.PreviewPane.Title = ""
             $this.PreviewPane._flatView.Clear()
             
             # Could add file preview logic here (first N lines, file info, etc.)
@@ -221,8 +221,49 @@ class RangerFileTree : Container {
             $global:Logger.Debug("RangerFileTree.OnRender: Rendering with IsFocused=$($this.IsFocused)")
         }
         
-        # Let base Container render children
-        return ([Container]$this).OnRender()
+        # Get base rendering from Container
+        $baseRender = ([Container]$this).OnRender()
+        
+        # Add vertical separators between panes
+        $sb = Get-PooledStringBuilder 1024
+        $sb.Append($baseRender)
+        
+        if ($this.Theme) {
+            $borderColor = $this.Theme.GetColor('border')
+            $sb.Append($borderColor)
+            
+            # Draw vertical separator between parent and current panes
+            $leftSeparatorX = $this.X + [int]($this.Width * $this.LeftPaneWidth)
+            for ($y = $this.Y + 1; $y -lt ($this.Y + $this.Height - 1); $y++) {
+                $sb.Append([VT]::MoveTo($leftSeparatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Add T-junctions at top and bottom for left separator
+            $sb.Append([VT]::MoveTo($leftSeparatorX, $this.Y))
+            $sb.Append('┬')  # Top T-junction
+            $sb.Append([VT]::MoveTo($leftSeparatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')  # Bottom T-junction
+            
+            # Draw vertical separator between current and preview panes
+            $rightSeparatorX = $this.X + [int]($this.Width * $this.LeftPaneWidth) + [int]($this.Width * $this.CenterPaneWidth)
+            for ($y = $this.Y + 1; $y -lt ($this.Y + $this.Height - 1); $y++) {
+                $sb.Append([VT]::MoveTo($rightSeparatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Add T-junctions at top and bottom for right separator
+            $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y))
+            $sb.Append('┬')  # Top T-junction
+            $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')  # Bottom T-junction
+            
+            $sb.Append([VT]::Reset())
+        }
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

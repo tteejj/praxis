@@ -74,6 +74,57 @@ class ConfigurationService {
                 MaxFileSize = 10  # MB
                 MaxFiles = 5
             }
+            Templates = @{
+                TimeEntry = @{
+                    Enabled = $true
+                    Items = @(
+                        @{
+                            Name = "Daily Standup"
+                            ProjectID = "Internal"
+                            Description = "Daily standup meeting"
+                            DefaultHours = 0.25
+                            DefaultDays = @("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
+                        }
+                        @{
+                            Name = "Weekly Planning"
+                            ProjectID = "Internal"
+                            Description = "Weekly planning and review"
+                            DefaultHours = 1.0
+                            DefaultDays = @("Monday")
+                        }
+                    )
+                }
+                Commands = @{
+                    Enabled = $true
+                    Items = @(
+                        @{
+                            Name = "Export to CSV"
+                            Template = "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV"
+                            Description = "Export current database to CSV format"
+                            Placeholders = @("DATABASE", "OUTPUT_FILE")
+                        }
+                        @{
+                            Name = "Join Databases"
+                            Template = "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}"
+                            Description = "Join two databases on a common field"
+                            Placeholders = @("PRIMARY", "SECONDARY", "KEY_FIELD")
+                        }
+                    )
+                }
+                Macros = @{
+                    Enabled = $true
+                    Items = @(
+                        @{
+                            Name = "Basic Analysis"
+                            Description = "Standard analysis workflow"
+                            Actions = @(
+                                @{Type="Summarization"; Fields=@("Amount", "Category")}
+                                @{Type="ExportToExcel"; FileName="analysis_results.xlsx"}
+                            )
+                        }
+                    )
+                }
+            }
         }
     }
     

@@ -20,7 +20,7 @@ class CommandLibraryScreen : Screen {
         # Create command list using SearchableListBox
         $this.CommandList = [SearchableListBox]::new()
         $this.CommandList.Title = "Commands"
-        $this.CommandList.ShowBorder = $true
+        $this.CommandList.ShowBorder = $false  # MainScreen draws the border
         $this.CommandList.SearchPrompt = "Search commands... (t:tag d:desc g:group +and |or)"
         
         # Set custom search filter for advanced syntax
@@ -46,10 +46,11 @@ class CommandLibraryScreen : Screen {
             return $displayText
         }
         
-        # Handle selection changes
+        # Handle selection changes (Enter key)
+        $screen = $this
         $this.CommandList.OnSelectionChanged = {
-            # Could update UI state here if needed
-        }
+            $screen.CopySelectedCommand()
+        }.GetNewClosure()
         
         $this.CommandList.Initialize($this.ServiceContainer)
         $this.AddChild($this.CommandList)
@@ -59,11 +60,6 @@ class CommandLibraryScreen : Screen {
         
         # Register shortcuts
         $this.RegisterShortcuts()
-        
-        # Set initial focus to command list
-        if ($this.CommandList) {
-            $this.CommandList.Focus()
-        }
     }
     
     [void] LoadCommands() {
@@ -264,14 +260,7 @@ class CommandLibraryScreen : Screen {
         
         # CommandLibraryScreen has a single CommandList that takes the full area
         if ($this.CommandList) {
-            $this.CommandList.SetBounds(0, 0, $this.Width, $this.Height)
-        }
-    }
-    
-    [void] OnActivated() {
-        # Set focus when screen becomes active
-        if ($this.CommandList) {
-            $this.CommandList.Focus()
+            $this.CommandList.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
         }
     }
     
@@ -322,5 +311,14 @@ t:idea|script     - Tagged as "idea" OR "script"
 ---
 Press ESC to close help
 "@
+    }
+    
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        
+        # Set initial focus to command list
+        if ($this.CommandList) {
+            $this.CommandList.Focus()
+        }
     }
 }
