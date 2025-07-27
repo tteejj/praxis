@@ -11,23 +11,36 @@ class AppendFieldAction : BaseAction {
         $this.Consumes = @(
             @{
                 Name = "fieldName"
+                Label = "Field Name"
                 Type = "String"
                 Description = "Name for the new field"
+                Required = $true
+                Default = "NEW_FIELD"
             },
             @{
                 Name = "fieldEquation"
+                Label = "Field Equation"
                 Type = "String"
                 Description = "IDEA equation for the field calculation"
+                Required = $true
+                Default = ""
             },
             @{
                 Name = "fieldType"
-                Type = "String"
-                Description = "Data type: Character, Numeric, Date, Logical"
+                Label = "Field Type"
+                Type = "Choice"
+                Description = "Data type for the new field"
+                Options = @("Character", "Numeric", "Date", "Logical")
+                Required = $true
+                Default = "Character"
             },
             @{
                 Name = "fieldLength"
+                Label = "Field Length"
                 Type = "String"
                 Description = "Field length (optional, for Character fields)"
+                Required = $false
+                Default = "50"
             }
         )
         
@@ -41,41 +54,51 @@ class AppendFieldAction : BaseAction {
     }
     
     [string] RenderScript([hashtable]$macroContext) {
-        $fieldName = $macroContext["fieldName"]
-        $equation = $macroContext["fieldEquation"]
-        $fieldType = $macroContext["fieldType"]
-        $fieldLength = $macroContext["fieldLength"]
+        $fieldName = $this.Parameters["fieldName"] ?? "NEW_FIELD"
+        $equation = $this.Parameters["fieldEquation"] ?? ""
+        $fieldType = $this.Parameters["fieldType"] ?? "Character"
+        $fieldLength = $this.Parameters["fieldLength"] ?? "50"
         
         $sb = [System.Text.StringBuilder]::new()
         
         # Build the append field script
-        $sb.AppendLine("Set db = Client.OpenDatabase(""$($macroContext['ActiveDatabase'])"")")
-        $sb.AppendLine("Set task = db.TableManagement.AppendDatabase")
+        $sb.AppendLine("' Append Field: $fieldName = $equation")
+        $sb.AppendLine("Set db = Client.CurrentDatabase()")
+        $sb.AppendLine("Set task = db.TableManagement")
+        $sb.AppendLine("Set field = task.NewField")
+        $sb.AppendLine("")
         
         # Set field properties
-        $sb.AppendLine("task.AddFieldToAppend ""$fieldName"", ""$equation""")
+        $sb.AppendLine("field.Name = ""$fieldName""")
+        $sb.AppendLine("field.Equation = ""$equation""")
         
         # Set field type
         switch ($fieldType.ToUpper()) {
             "CHARACTER" { 
                 $length = if ($fieldLength) { $fieldLength } else { "50" }
-                $sb.AppendLine("task.SetFieldType ""$fieldName"", WI_CHAR_FIELD, $length")
+                $sb.AppendLine("field.Type = WI_VIRT_CHAR")
+                $sb.AppendLine("field.Length = $length")
             }
             "NUMERIC" { 
-                $sb.AppendLine("task.SetFieldType ""$fieldName"", WI_VIRT_NUM_FIELD")
+                $sb.AppendLine("field.Type = WI_VIRT_NUM")
+                $sb.AppendLine("field.Decimals = 2")
             }
             "DATE" { 
-                $sb.AppendLine("task.SetFieldType ""$fieldName"", WI_VIRT_DATE_FIELD")
+                $sb.AppendLine("field.Type = WI_VIRT_DATE")
             }
             "LOGICAL" { 
-                $sb.AppendLine("task.SetFieldType ""$fieldName"", WI_VIRT_BOOL_FIELD")
+                $sb.AppendLine("field.Type = WI_VIRT_LOG")
             }
         }
         
-        # Execute the task
+        $sb.AppendLine("")
+        $sb.AppendLine("' Add the field to the database")
+        $sb.AppendLine("task.AppendField field")
         $sb.AppendLine("task.PerformTask")
-        $sb.AppendLine("Set db = Nothing")
+        $sb.AppendLine("")
+        $sb.AppendLine("Set field = Nothing")
         $sb.AppendLine("Set task = Nothing")
+        $sb.AppendLine("Set db = Nothing")
         
         return $sb.ToString()
     }

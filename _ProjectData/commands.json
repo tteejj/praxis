@@ -1,91 +1,91 @@
 [
   {
+    "Title": "@CurrentDate_YYYYMMDD",
+    "CommandText": "@CurrentDate_YYYYMMDD",
+    "LastUsed": "2025-07-26T17:40:14.4614616-06:00",
+    "Description": "Returns current date in YYYYMMDD format",
     "Tags": [
       "function",
       "date",
       "idea"
     ],
-    "UseCount": 11,
-    "Title": "@CurrentDate_YYYYMMDD",
     "Group": "Built-in Functions",
-    "Created": "2025-07-25T21:50:13.0000000",
-    "Description": "Returns current date in YYYYMMDD format",
-    "LastUsed": "2025-07-26T00:08:39.7718685-06:00",
     "Id": "6f222d38-64fb-48b0-8daa-65494aa65db5",
-    "CommandText": "@CurrentDate_YYYYMMDD"
+    "UseCount": 12,
+    "Created": "2025-07-25T21:50:13.0000000"
   },
   {
+    "Title": "@PromptForField",
+    "CommandText": "@PromptForField(\"Select field:\")",
+    "LastUsed": "2025-07-25T22:37:32.0000000",
+    "Description": "Prompts user to select a field from the current database",
     "Tags": [
       "function",
       "field",
       "input",
       "idea"
     ],
-    "UseCount": 4,
-    "Title": "@PromptForField",
     "Group": "Built-in Functions",
-    "Created": "2025-07-25T21:50:13.0000000",
-    "Description": "Prompts user to select a field from the current database",
-    "LastUsed": "2025-07-25T22:37:32.0000000",
     "Id": "de6a08cc-87f3-47ef-9fcb-4eef07a694eb",
-    "CommandText": "@PromptForField(\"Select field:\")"
+    "UseCount": 4,
+    "Created": "2025-07-25T21:50:13.0000000"
   },
   {
+    "Title": "Open Database",
+    "CommandText": "Set db = Client.OpenDatabase(\"database.IMD\")",
+    "LastUsed": "2025-07-25T22:32:15.0000000",
+    "Description": "Opens a database file in IDEA",
     "Tags": [
       "database",
       "open",
       "idea"
     ],
-    "UseCount": 3,
-    "Title": "Open Database",
     "Group": "Database Operations",
-    "Created": "2025-07-25T21:50:13.0000000",
-    "Description": "Opens a database file in IDEA",
-    "LastUsed": "2025-07-25T22:32:15.0000000",
     "Id": "965db34d-c43d-416e-addf-ba847fc57a48",
-    "CommandText": "Set db = Client.OpenDatabase(\"database.IMD\")"
+    "UseCount": 3,
+    "Created": "2025-07-25T21:50:13.0000000"
   },
   {
+    "Title": "Summarize by Field",
+    "CommandText": "Set task = db.Summarization\nTask.AddFieldToSummarize \"FIELD_NAME\"\nTask.OutputDBName = \"Summary_Output\"\ndbName = task.Run()",
+    "LastUsed": null,
+    "Description": "Creates a summarization by specified field",
     "Tags": [
       "summarize",
       "group",
       "analysis",
       "idea"
     ],
-    "UseCount": 0,
-    "Title": "Summarize by Field",
     "Group": "Analysis",
-    "Created": "2025-07-25T21:50:14.0000000",
-    "Description": "Creates a summarization by specified field",
-    "LastUsed": null,
     "Id": "70d5af35-2849-4668-b713-d8151b8a11ef",
-    "CommandText": "Set task = db.Summarization\nTask.AddFieldToSummarize \"FIELD_NAME\"\nTask.OutputDBName = \"Summary_Output\"\ndbName = task.Run()"
+    "UseCount": 0,
+    "Created": "2025-07-25T21:50:14.0000000"
   },
   {
+    "Title": "Export to Excel",
+    "CommandText": "Set task = db.ExportToExcel\nTask.OutputFile = \"output.xlsx\"\nTask.Run()",
+    "LastUsed": null,
+    "Description": "Exports current database to Excel format",
     "Tags": [
       "export",
       "excel",
       "output",
       "idea"
     ],
-    "UseCount": 0,
-    "Title": "Export to Excel",
     "Group": "Export",
-    "Created": "2025-07-25T21:50:14.0000000",
-    "Description": "Exports current database to Excel format",
-    "LastUsed": null,
     "Id": "a67e4959-db5c-4a89-bd59-41ae0451bd57",
-    "CommandText": "Set task = db.ExportToExcel\nTask.OutputFile = \"output.xlsx\"\nTask.Run()"
+    "UseCount": 0,
+    "Created": "2025-07-25T21:50:14.0000000"
   },
   {
-    "Tags": [],
-    "UseCount": 0,
     "Title": "Test Command",
-    "Group": "",
-    "Created": "2025-07-25T23:56:51.0000000",
-    "Description": "",
+    "CommandText": "echo 'test command'",
     "LastUsed": null,
+    "Description": "",
+    "Tags": [],
+    "Group": "",
     "Id": "a3458ed5-d2e3-4681-8665-c64f5dfccba1",
-    "CommandText": "echo 'test command'"
+    "UseCount": 0,
+    "Created": "2025-07-25T23:56:51.0000000"
   }
 ]

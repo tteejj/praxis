@@ -84,12 +84,21 @@ class MinimalButton : FocusableComponent {
     }
     
     [bool] OnHandleInput([System.ConsoleKeyInfo]$key) {
+        if ($global:Logger) {
+            $global:Logger.Debug("MinimalButton.OnHandleInput: Key=$($key.Key) for button '$($this.Text)'")
+        }
         switch ($key.Key) {
             ([System.ConsoleKey]::Enter) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("MinimalButton: Enter pressed, calling Click()")
+                }
                 $this.Click()
                 return $true
             }
             ([System.ConsoleKey]::Spacebar) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("MinimalButton: Spacebar pressed, calling Click()")
+                }
                 $this.Click()
                 return $true
             }
@@ -98,13 +107,23 @@ class MinimalButton : FocusableComponent {
     }
     
     [void] Click() {
+        if ($global:Logger) {
+            $global:Logger.Debug("MinimalButton.Click: Called for button '$($this.Text)'")
+        }
         if ($this.OnClick) {
             try {
+                if ($global:Logger) {
+                    $global:Logger.Debug("MinimalButton.Click: Executing OnClick handler")
+                }
                 & $this.OnClick
             } catch {
                 if ($global:Logger) {
                     $global:Logger.Error("Button click error: $_")
                 }
+            }
+        } else {
+            if ($global:Logger) {
+                $global:Logger.Warning("MinimalButton.Click: No OnClick handler for button '$($this.Text)'")
             }
         }
     }

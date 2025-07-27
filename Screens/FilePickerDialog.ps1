@@ -1,10 +1,8 @@
 # FilePickerDialog.ps1 - File selection dialog using FastFileTree
 # Modal dialog for selecting files or directories
 
-class FilePickerDialog : Screen {
+class FilePickerDialog : BaseDialog {
     [FastFileTree]$FileTree
-    [MinimalButton]$SelectButton
-    [MinimalButton]$CancelButton
     [MinimalTextBox]$PathBox
     
     # Configuration
@@ -22,43 +20,37 @@ class FilePickerDialog : Screen {
     # Events
     [scriptblock]$OnFileSelected = {}
     
-    # Layout
-    hidden [int]$_treeHeight = 20
-    hidden [int]$_dialogWidth = 80
-    hidden [int]$_dialogHeight = 25
-    
-    FilePickerDialog() : base() {
-        $this.Title = "File Picker"
-        $this.DrawBackground = $true
+    FilePickerDialog() : base("File Picker") {
+        $this.DialogWidth = 80
+        $this.DialogHeight = 25
+        $this.PrimaryButtonText = "Select"
+        $this.SecondaryButtonText = "Cancel"
         $this.InitialPath = $PWD.Path
     }
     
-    FilePickerDialog([string]$initialPath) : base() {
-        $this.Title = "File Picker"
-        $this.DrawBackground = $true
+    FilePickerDialog([string]$initialPath) : base("File Picker") {
+        $this.DialogWidth = 80
+        $this.DialogHeight = 25
+        $this.PrimaryButtonText = "Select"
+        $this.SecondaryButtonText = "Cancel"
         $this.InitialPath = $initialPath
     }
     
-    [void] OnInitialize() {
-        # Calculate dialog position (centered)
-        $centerX = ([Console]::WindowWidth - $this._dialogWidth) / 2
-        $centerY = ([Console]::WindowHeight - $this._dialogHeight) / 2
-        
+    [void] InitializeContent() {
         # Path input box at top
         $this.PathBox = [MinimalTextBox]::new()
         $this.PathBox.Placeholder = "Enter path or navigate below"
         $this.PathBox.Text = $this.InitialPath
-        $this.PathBox.SetBounds([int]$centerX + 2, [int]$centerY + 2, $this._dialogWidth - 4, 3)
-        $this.PathBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.PathBox)
+        $this.PathBox.ShowBorder = $false  # Dialog provides the border
+        $this.PathBox.Height = 1
+        $this.AddContentControl($this.PathBox, 1)
         
         # File tree in the middle
         $this.FileTree = [FastFileTree]::new($this.InitialPath)
         $this.FileTree.Title = $this.DialogTitle
         $this.FileTree.Filter = $this.Filter
-        $this.FileTree.ShowBorder = $true
-        $this.FileTree.SetBounds([int]$centerX + 2, [int]$centerY + 6, $this._dialogWidth - 4, $this._treeHeight)
-        $this.FileTree.Initialize($global:ServiceContainer)
+        $this.FileTree.ShowBorder = $false  # Dialog provides the border
+        $this.AddContentControl($this.FileTree, 15)  # Most of the dialog height
         
         # Set up events
         $dialogRef = $this
@@ -75,40 +67,15 @@ class FilePickerDialog : Screen {
             if ($dialogRef.IsValidSelection($node)) {
                 $dialogRef.SelectedPath = $node.FullPath
                 $dialogRef.DialogResult = $true
-                $dialogRef.Active = $false
+                # Dialog will be closed by SelectFile or CloseDialog
             }
         }.GetNewClosure()
         
-        $this.AddChild($this.FileTree)
-        
-        # Buttons at bottom
-        $buttonY = [int]$centerY + 6 + $this._treeHeight + 1
-        $buttonWidth = 15
-        $buttonSpacing = 2
-        $totalButtonWidth = ($buttonWidth * 2) + $buttonSpacing
-        $buttonStartX = [int]$centerX + (($this._dialogWidth - $totalButtonWidth) / 2)
-        
-        $this.SelectButton = [MinimalButton]::new("Select")
-        $this.SelectButton.IsDefault = $true
-        $this.SelectButton.SetBounds($buttonStartX, $buttonY, $buttonWidth, 3)
-        $this.SelectButton.OnClick = {
+        # Set up primary action handler
+        $dialogRef = $this
+        $this.OnPrimary = {
             $dialogRef.SelectFile()
         }.GetNewClosure()
-        $this.SelectButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.SelectButton)
-        
-        $this.CancelButton = [MinimalButton]::new("Cancel")
-        $this.CancelButton.SetBounds($buttonStartX + $buttonWidth + $buttonSpacing, $buttonY, $buttonWidth, 3)
-        $this.CancelButton.OnClick = {
-            $dialogRef.SelectedPath = ""
-            $dialogRef.DialogResult = $false
-            $dialogRef.Active = $false
-        }.GetNewClosure()
-        $this.CancelButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CancelButton)
-        
-        # Set initial focus
-        $this.FileTree.Focus()
         
         # Update button states
         $this.UpdateButtonStates()
@@ -185,128 +152,73 @@ class FilePickerDialog : Screen {
                     & $this.OnFileSelected $pathFromBox
                 }
                 
-                $this.Active = $false
+                $this.CloseDialog()
             }
         }
     }
     
-    [void] OnBoundsChanged() {
-        # Dialog is positioned manually in OnInitialize
-        # This could be enhanced to support resizing
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Position the path box at the top
+        $this.PathBox.SetBounds(
+            $dialogX + $this.DialogPadding,
+            $dialogY + 2,
+            $this.DialogWidth - ($this.DialogPadding * 2),
+            1
+        )
+        
+        # Position the file tree below with some spacing
+        $this.FileTree.SetBounds(
+            $dialogX + $this.DialogPadding,
+            $dialogY + 4,
+            $this.DialogWidth - ($this.DialogPadding * 2),
+            15  # Most of the dialog height
+        )
     }
     
     [string] OnRender() {
-        # Draw dark overlay background
         $sb = Get-PooledStringBuilder 2048
         
-        # Semi-transparent background overlay
-        $overlayColor = if ($this.Theme) { $this.Theme.GetBgColor("dialog.overlay") } else { "`e[48;2;0;0;0m" }
+        # First render the base dialog
+        $baseRender = ([BaseDialog]$this).OnRender()
+        $sb.Append($baseRender)
         
-        for ($y = 0; $y -lt [Console]::WindowHeight; $y++) {
-            $sb.Append([VT]::MoveTo(0, $y))
-            $sb.Append($overlayColor)
-            $sb.Append([StringCache]::GetSpaces([Console]::WindowWidth))
-        }
-        
-        # Dialog border
-        $centerX = ([Console]::WindowWidth - $this._dialogWidth) / 2
-        $centerY = ([Console]::WindowHeight - $this._dialogHeight) / 2
-        
-        $borderColor = if ($this.Theme) { $this.Theme.GetColor("dialog.border") } else { "`e[38;2;100;100;100m" }
-        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor("dialog.background") } else { "`e[48;2;40;40;40m" }
-        
-        # Draw dialog background
-        for ($y = 0; $y -lt $this._dialogHeight; $y++) {
-            $sb.Append([VT]::MoveTo([int]$centerX, [int]$centerY + $y))
-            $sb.Append($bgColor)
-            $sb.Append([StringCache]::GetSpaces($this._dialogWidth))
-        }
-        
-        # Draw border
-        $sb.Append([VT]::MoveTo([int]$centerX, [int]$centerY))
-        $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + ([VT]::H() * ($this._dialogWidth - 2)) + [VT]::TR())
-        
-        for ($y = 1; $y -lt $this._dialogHeight - 1; $y++) {
-            $sb.Append([VT]::MoveTo([int]$centerX, [int]$centerY + $y))
-            $sb.Append($borderColor)
-            $sb.Append([VT]::V())
-            
-            $sb.Append([VT]::MoveTo([int]$centerX + $this._dialogWidth - 1, [int]$centerY + $y))
-            $sb.Append($borderColor)
-            $sb.Append([VT]::V())
-        }
-        
-        $sb.Append([VT]::MoveTo([int]$centerX, [int]$centerY + $this._dialogHeight - 1))
-        $sb.Append($borderColor)
-        $sb.Append([VT]::BL() + ([VT]::H() * ($this._dialogWidth - 2)) + [VT]::BR())
-        
-        # Title
-        if ($this.DialogTitle) {
-            $sb.Append([VT]::MoveTo([int]$centerX + 2, [int]$centerY))
-            $titleColor = if ($this.Theme) { $this.Theme.GetColor("dialog.title") } else { "`e[38;2;255;255;255m" }
-            $sb.Append($titleColor)
-            $sb.Append(" $($this.DialogTitle) ")
-        }
-        
+        # Add label for path box
+        $labelColor = $this.Theme.GetColor("dialog.title")
+        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $this.DialogPadding, $this.PathBox.Y - 1))
+        $sb.Append($labelColor)
+        $sb.Append("Path:")
         $sb.Append([VT]::Reset())
-        
-        # Render children on top
-        foreach ($child in $this.Children) {
-            if ($child.Visible) {
-                $sb.Append($child.Render())
-            }
-        }
         
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
     }
     
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        switch ($key.Key) {
-            ([System.ConsoleKey]::Escape) {
-                $this.SelectedPath = ""
-                $this.DialogResult = $false
-                $this.Active = $false
-                return $true
-            }
-            ([System.ConsoleKey]::Enter) {
-                if ($this.PathBox.IsFocused) {
-                    # Try to navigate to path in text box
-                    $path = $this.PathBox.Text.Trim()
-                    if ($path -and (Test-Path $path)) {
-                        if (Test-Path $path -PathType Container) {
-                            $this.FileTree.LoadDirectory($path)
-                            $this.FileTree.Focus()
-                        } else {
-                            # It's a file, select it
-                            $this.SelectedPath = $path
-                            $this.DialogResult = $true
-                            $this.Active = $false
-                        }
-                    }
-                    return $true
-                }
-                # Let other controls handle Enter
-                break
-            }
-            ([System.ConsoleKey]::Tab) {
-                # Cycle focus between controls
-                if ($this.PathBox.IsFocused) {
-                    $this.FileTree.Focus()
-                } elseif ($this.FileTree.IsFocused) {
-                    $this.SelectButton.Focus()
-                } elseif ($this.SelectButton.IsFocused) {
-                    $this.CancelButton.Focus()
-                } else {
-                    $this.PathBox.Focus()
-                }
-                return $true
-            }
+    # Override HandleScreenInput to handle path box Enter key
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Let base class handle standard dialog shortcuts first
+        if (([BaseDialog]$this).HandleScreenInput($key)) {
+            return $true
         }
         
-        # Let base Screen handle other input
-        return ([Screen]$this).HandleInput($key)
+        # Handle Enter in path box
+        if ($key.Key -eq [System.ConsoleKey]::Enter -and $this.PathBox.IsFocused) {
+            # Try to navigate to path in text box
+            $path = $this.PathBox.Text.Trim()
+            if ($path -and (Test-Path $path)) {
+                if (Test-Path $path -PathType Container) {
+                    $this.FileTree.LoadDirectory($path)
+                    $this.FileTree.Focus()
+                } else {
+                    # It's a file, select it
+                    $this.SelectedPath = $path
+                    $this.DialogResult = $true
+                    $this.CloseDialog()
+                }
+            }
+            return $true
+        }
+        
+        return $false
     }
 }

@@ -81,6 +81,12 @@ class ThemeManager {
             "progress.active" = @(0, 150, 255)
             "progress.complete" = @(0, 200, 83)
             "progress.text" = @(204, 204, 204)
+            
+            # Gradient endpoints
+            "gradient.border.start" = @(0, 150, 255)      # Blue
+            "gradient.border.end" = @(68, 68, 68)         # Dark gray
+            "gradient.bg.start" = @(48, 48, 48)           # Light gray
+            "gradient.bg.end" = @(24, 24, 24)             # Dark gray
         }
         
         $this.RegisterTheme("default", $defaultTheme)
@@ -155,10 +161,96 @@ class ThemeManager {
             "dialog.background" = @(0, 0, 0)
             "dialog.border" = @(0, 150, 0)
             "dialog.title" = @(0, 255, 0)
+            
+            # Gradient endpoints
+            "gradient.border.start" = @(0, 255, 0)        # Bright green
+            "gradient.border.end" = @(0, 50, 0)           # Very dark green
+            "gradient.bg.start" = @(0, 40, 0)             # Dark green
+            "gradient.bg.end" = @(0, 0, 0)                # Black
         }
         
         $this.RegisterTheme("matrix", $matrixTheme)
-        $this.SetTheme("matrix")
+        
+        # Define amber theme - classic amber terminal
+        $amberTheme = @{
+            # Base colors
+            "background" = @(20, 18, 12)           # Very dark amber/brown background
+            "foreground" = @(255, 204, 0)          # Amber text
+            "accent" = @(255, 230, 77)             # Bright amber accent
+            "success" = @(0, 255, 0)               # Green
+            "warning" = @(255, 255, 0)             # Yellow
+            "error" = @(255, 85, 85)               # Red
+            
+            # UI elements
+            "border" = @(153, 102, 0)              # Darker amber borders
+            "border.focused" = @(255, 230, 77)     # Bright amber when focused
+            "selection" = @(51, 34, 0)             # Dark amber selection
+            "disabled" = @(102, 82, 0)             # Dim amber
+            
+            # Focus system colors
+            "focus" = @(255, 230, 77)              # Bright amber focus
+            "focus.background" = @(51, 41, 0)      # Dark amber focus bg
+            "focus.accent" = @(255, 255, 102)      # Very bright amber
+            
+            # Generic component colors
+            "title" = @(255, 230, 77)              # Bright amber titles
+            "normal" = @(255, 204, 0)              # Normal amber text
+            "selected" = @(51, 34, 0)              # Dark amber selection
+            
+            # Component specific
+            "button.background" = @(41, 33, 0)
+            "button.foreground" = @(255, 204, 0)
+            "button.focused.background" = @(255, 230, 77)
+            "button.focused.foreground" = @(20, 18, 12)
+            
+            "input.background" = @(31, 25, 0)
+            "input.foreground" = @(255, 204, 0)
+            "input.focused.border" = @(255, 230, 77)
+            
+            "menu.background" = @(31, 25, 0)
+            "menu.foreground" = @(255, 204, 0)
+            "menu.selected.background" = @(255, 230, 77)
+            "menu.selected.foreground" = @(20, 18, 12)
+            
+            "tab.background" = @(41, 33, 0)
+            "tab.foreground" = @(204, 163, 0)
+            "tab.active.background" = @(20, 18, 12)
+            "tab.active.foreground" = @(255, 230, 77)
+            "tab.active.accent" = @(255, 230, 77)
+            
+            # DataGrid specific colors
+            "header.background" = @(41, 33, 0)
+            "header.foreground" = @(255, 230, 77)
+            "scrollbar" = @(102, 82, 0)
+            "scrollbar.thumb" = @(153, 122, 0)
+            
+            # Additional component colors
+            "checkbox" = @(255, 230, 77)
+            "checkbox.selected" = @(255, 255, 102)
+            "search" = @(255, 255, 0)
+            "highlight" = @(255, 255, 102)
+            "directory" = @(255, 230, 77)
+            "file" = @(255, 204, 0)
+            "input.border" = @(153, 102, 0)
+            "input.placeholder" = @(102, 82, 0)
+            "progress.active" = @(255, 230, 77)
+            "progress.complete" = @(255, 204, 0)
+            "progress.text" = @(255, 204, 0)
+            
+            # Dialog colors
+            "dialog.background" = @(20, 18, 12)
+            "dialog.border" = @(153, 102, 0)
+            "dialog.title" = @(255, 230, 77)
+            
+            # Gradient endpoints
+            "gradient.border.start" = @(255, 230, 77)     # Bright amber
+            "gradient.border.end" = @(102, 82, 0)         # Dim amber
+            "gradient.bg.start" = @(31, 25, 0)            # Dark amber
+            "gradient.bg.end" = @(10, 8, 0)               # Almost black
+        }
+        
+        $this.RegisterTheme("amber", $amberTheme)
+        $this.SetTheme("default")
     }
     
     # Register a new theme
@@ -192,6 +284,22 @@ class ThemeManager {
         
         # Also notify legacy listeners for backward compatibility
         $this.NotifyListeners()
+    }
+    
+    # Get gradient colors for borders or backgrounds
+    [string[]] GetGradient([string]$startKey, [string]$endKey, [int]$steps) {
+        $theme = $this._themes[$this._currentTheme]
+        
+        # Get start and end colors
+        $startColor = $theme[$startKey]
+        $endColor = $theme[$endKey]
+        
+        if (-not $startColor -or -not $endColor) {
+            # Fallback to normal color
+            return @($this.GetColor($startKey)) * $steps
+        }
+        
+        return [VT]::VerticalGradient($startColor, $endColor, $steps)
     }
     
     # Get pre-computed ANSI color sequence

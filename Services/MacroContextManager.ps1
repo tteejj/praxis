@@ -180,9 +180,26 @@ class MacroContextManager {
     
     # Generate the final IDEAScript
     [string] GenerateScript() {
-        $validation = $this.ValidateMacro()
-        if (-not $validation.IsValid) {
-            throw "Cannot generate script: Macro validation failed. Errors: $($validation.Errors -join '; ')"
+        # First check if we have any actions
+        if ($this.Actions.Count -eq 0) {
+            throw "Cannot generate script: No actions in macro sequence"
+        }
+        
+        # Validate that all actions have required parameters configured
+        $paramErrors = @()
+        for ($i = 0; $i -lt $this.Actions.Count; $i++) {
+            $action = $this.Actions[$i]
+            foreach ($param in $action.Consumes) {
+                if ($param.Required -and 
+                    (-not $action.Parameters.ContainsKey($param.Name) -or 
+                     [string]::IsNullOrEmpty($action.Parameters[$param.Name]))) {
+                    $paramErrors += "Step $($i + 1) ($($action.Name)): Missing required parameter '$($param.Label)'"
+                }
+            }
+        }
+        
+        if ($paramErrors.Count -gt 0) {
+            throw "Cannot generate script: Missing parameters. Errors: $($paramErrors -join '; ')"
         }
         
         $sb = [System.Text.StringBuilder]::new()
@@ -190,26 +207,45 @@ class MacroContextManager {
         $sb.AppendLine("' Generated on: $(Get-Date)")
         $sb.AppendLine("' Total steps: $($this.Actions.Count)")
         $sb.AppendLine("")
+        $sb.AppendLine("Option Explicit")
+        $sb.AppendLine("")
+        $sb.AppendLine("Sub Main()")
+        $sb.AppendLine("    On Error GoTo ErrorHandler")
+        $sb.AppendLine("")
         
         for ($i = 0; $i -lt $this.Actions.Count; $i++) {
             $action = $this.Actions[$i]
-            $context = $this.GetContextAtStep($i + 1)  # Context after this action runs
+            $context = $this.GetContextAtStep($i)  # Context available TO this action
             
-            $sb.AppendLine("' Step $($i + 1): $($action.Name)")
+            $sb.AppendLine("    ' Step $($i + 1): $($action.Name)")
             if ($action.Description) {
-                $sb.AppendLine("' $($action.Description)")
+                $sb.AppendLine("    ' $($action.Description)")
             }
             $sb.AppendLine("")
             
             try {
                 $actionScript = $action.RenderScript($context)
-                $sb.AppendLine($actionScript)
+                # Indent the action script
+                $lines = $actionScript -split "`n"
+                foreach ($line in $lines) {
+                    if ($line.Trim()) {
+                        $sb.AppendLine("    $line")
+                    } else {
+                        $sb.AppendLine("")
+                    }
+                }
             } catch {
-                $sb.AppendLine("' ERROR generating script for $($action.Name): $($_.Exception.Message)")
+                $sb.AppendLine("    ' ERROR generating script for $($action.Name): $($_.Exception.Message)")
             }
             
             $sb.AppendLine("")
         }
+        
+        $sb.AppendLine("    Exit Sub")
+        $sb.AppendLine("")
+        $sb.AppendLine("ErrorHandler:")
+        $sb.AppendLine("    MsgBox ""Error: "" & Err.Description")
+        $sb.AppendLine("End Sub")
         
         return $sb.ToString()
     }

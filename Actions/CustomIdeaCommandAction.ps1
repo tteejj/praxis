@@ -13,7 +13,16 @@ class CustomIdeaCommandAction : BaseAction {
         $this.AllowsCustomCommands = $true
         
         # This action is flexible - consumes/produces depend on the selected command
-        $this.Consumes = @()
+        $this.Consumes = @(
+            @{
+                Name = "commandText"
+                Type = "String"
+                Label = "IDEA Command"
+                Description = "IDEA@ command or script to execute"
+                Required = $true
+                Default = ""
+            }
+        )
         $this.Produces = @()
     }
     
@@ -66,11 +75,13 @@ class CustomIdeaCommandAction : BaseAction {
     }
     
     [string] RenderScript([hashtable]$macroContext) {
-        if ([string]::IsNullOrWhiteSpace($this.SelectedCommand)) {
+        $commandText = $this.Parameters["commandText"]
+        
+        if ([string]::IsNullOrWhiteSpace($commandText)) {
             return "' No command specified"
         }
         
-        $scriptText = $this.SelectedCommand
+        $scriptText = $commandText
         
         # Replace @function references with values from macro context
         $functions = $this.ExtractFunctions($scriptText)

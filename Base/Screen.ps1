@@ -6,6 +6,7 @@ class Screen : Container {
     [bool]$Active = $true
     hidden [hashtable]$_keyBindings = @{}
     hidden [ThemeManager]$Theme
+    hidden [HelpOverlay]$_helpOverlay
     
     # Protected service container for dependency injection
     hidden [ServiceContainer]$ServiceContainer
@@ -38,7 +39,12 @@ class Screen : Container {
     }
     
     # Override for custom initialization
-    [void] OnInitialize() {}
+    [void] OnInitialize() {
+        # Create help overlay
+        $this._helpOverlay = [HelpOverlay]::new()
+        $this._helpOverlay.Initialize($this.ServiceContainer)
+        $this.AddChild($this._helpOverlay)
+    }
     
     # Theme change handler
     [void] OnThemeChanged() {
@@ -56,6 +62,17 @@ class Screen : Container {
     
     # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Check if help overlay is visible and let it handle input first
+        if ($this._helpOverlay -and $this._helpOverlay.IsVisible) {
+            return $this._helpOverlay.HandleInput($keyInfo)
+        }
+        
+        # Handle F1 for help
+        if ($keyInfo.Key -eq [System.ConsoleKey]::F1) {
+            $this.ShowHelp()
+            return $true
+        }
+        
         # Debug logging removed for performance
         
         # 1. Let focused child handle first (components get priority)
@@ -92,6 +109,35 @@ class Screen : Container {
         ([Container]$this).FocusFirst()
     }
 
+    # Get help text for this screen - override in derived classes
+    [string] GetHelpText() {
+        return @"
+No help available for this screen.
+
+Press F1 to toggle help.
+Press ESC to close help.
+"@
+    }
+    
+    # Show help overlay
+    [void] ShowHelp() {
+        if ($this._helpOverlay) {
+            $helpText = $this.GetHelpText()
+            $this._helpOverlay.Show($helpText)
+        }
+    }
+    
+    
+    # Override OnBoundsChanged to update help overlay
+    [void] OnBoundsChanged() {
+        ([Container]$this).OnBoundsChanged()
+        
+        # Make help overlay cover the entire screen
+        if ($this._helpOverlay) {
+            $this._helpOverlay.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
+        }
+    }
+    
     # Request a re-render
     [void] RequestRender() {
         $this.Invalidate()

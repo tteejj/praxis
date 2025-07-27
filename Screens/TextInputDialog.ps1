@@ -1,227 +1,97 @@
-# TextInputDialog.ps1 - Simple dialog for text input
+# TextInputDialog.ps1 - Simple dialog for text input using BaseDialog
 
-class TextInputDialog : Screen {
+class TextInputDialog : BaseDialog {
     [string]$Prompt
     [string]$DefaultValue
     [string]$Placeholder
     [MinimalTextBox]$InputBox
-    [MinimalButton]$OkButton
-    [MinimalButton]$CancelButton
     [scriptblock]$OnSubmit = {}
-    [scriptblock]$OnCancel = {}
     
-    TextInputDialog([string]$prompt) : base() {
-        $this.Title = "Input"
+    TextInputDialog([string]$prompt) : base("Input") {
         $this.Prompt = $prompt
         $this.DefaultValue = ""
         $this.Placeholder = "Enter text..."
-        $this.DrawBackground = $true
+        $this.DialogWidth = 50
+        $this.DialogHeight = 10
+        $this.PrimaryButtonText = "OK"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    TextInputDialog([string]$prompt, [string]$defaultValue) : base() {
-        $this.Title = "Input"
+    TextInputDialog([string]$prompt, [string]$defaultValue) : base("Input") {
         $this.Prompt = $prompt
         $this.DefaultValue = $defaultValue
         $this.Placeholder = "Enter text..."
-        $this.DrawBackground = $true
+        $this.DialogWidth = 50
+        $this.DialogHeight = 10
+        $this.PrimaryButtonText = "OK"
+        $this.SecondaryButtonText = "Cancel"
     }
     
-    [void] OnInitialize() {
+    [void] InitializeContent() {
         # Create input textbox
         $this.InputBox = [MinimalTextBox]::new()
         $this.InputBox.Text = $this.DefaultValue
         $this.InputBox.Placeholder = $this.Placeholder
-        $this.InputBox.Initialize($global:ServiceContainer)
-        $this.AddChild($this.InputBox)
+        $this.InputBox.ShowBorder = $false  # Dialog provides the border
+        $this.InputBox.Height = 1
+        $this.AddContentControl($this.InputBox, 1)
         
-        # Create buttons
-        $this.OkButton = [MinimalButton]::new("OK")
-        # Capture dialog reference
+        # Set up primary action handler
         $dialog = $this
-        $this.OkButton.OnClick = {
+        $this.OnPrimary = {
             if ($dialog.OnSubmit) {
                 & $dialog.OnSubmit $dialog.InputBox.Text
             }
         }.GetNewClosure()
-        $this.OkButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.OkButton)
         
-        $this.CancelButton = [MinimalButton]::new("Cancel")
-        $this.CancelButton.OnClick = {
-            if ($dialog.OnCancel) {
-                & $dialog.OnCancel
-            }
-        }.GetNewClosure()
-        $this.CancelButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CancelButton)
-        
-        # Key bindings
-        $this.BindKey([System.ConsoleKey]::Escape, { 
-            if ($this.OnCancel) {
-                & $this.OnCancel
-            }
-        })
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
-        $this.BindKey([System.ConsoleKey]::Enter, {
-            $focused = $this.FindFocused()
-            if ($focused -eq $this.InputBox -or $focused -eq $this.OkButton) {
-                & $this.OkButton.OnClick
-            } elseif ($focused -eq $this.CancelButton) {
-                & $this.CancelButton.OnClick
-            }
-        })
+        # OnCancel is automatically handled by BaseDialog's OnSecondary
     }
     
-    [void] OnActivated() {
-        ([Screen]$this).OnActivated()
-        # Focus on input box and select all text
-        $this.InputBox.Focus()
-        # TODO: Add SelectAll method to TextBox
-    }
-    
-    [void] OnBoundsChanged() {
-        # Calculate dialog dimensions based on prompt
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Position the prompt label and input box
+        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+        
+        # Calculate prompt lines
         $promptLines = $this.Prompt -split "`n"
-        $maxLineLength = ($promptLines | ForEach-Object { $_.Length } | Measure-Object -Maximum).Maximum
-        $dialogWidth = [Math]::Max(50, $maxLineLength + 8)
-        $dialogHeight = 10 + $promptLines.Count
-        $centerX = [int](($this.Width - $dialogWidth) / 2)
-        $centerY = [int](($this.Height - $dialogHeight) / 2)
+        $currentY = $dialogY + 2
         
-        # Position components
-        $this.InputBox.SetBounds($centerX + 2, $centerY + 2 + $promptLines.Count + 1, $dialogWidth - 4, 3)
-        
-        # Position buttons (use similar logic to ProjectsScreen)
-        $buttonY = $centerY + $dialogHeight - 4
-        $buttonHeight = 3
-        $buttonSpacing = 2
-        $maxButtonWidth = 10
-        $totalButtonWidth = ($maxButtonWidth * 2) + $buttonSpacing
-        
-        # Center buttons if dialog is wide enough
-        if ($dialogWidth -gt $totalButtonWidth) {
-            $buttonStartX = $centerX + [int](($dialogWidth - $totalButtonWidth) / 2)
-            $buttonWidth = $maxButtonWidth
-        } else {
-            $buttonStartX = $centerX + 2
-            $buttonWidth = [int](($dialogWidth - 4 - $buttonSpacing) / 2)
-        }
-        
-        $this.OkButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
+        # Position input box after prompt
+        $this.InputBox.SetBounds(
+            $dialogX + $this.DialogPadding,
+            $currentY + $promptLines.Count + 1,
+            $controlWidth,
+            1
         )
-        
-        $this.CancelButton.SetBounds(
-            $buttonStartX + $buttonWidth + $buttonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
-        
-        # Store dialog bounds for rendering
-        $this._dialogBounds = @{
-            X = $centerX
-            Y = $centerY
-            Width = $dialogWidth
-            Height = $dialogHeight
-        }
     }
-    
-    hidden [hashtable]$_dialogBounds
     
     [string] OnRender() {
-        $sb = Get-PooledStringBuilder 2048
+        $sb = Get-PooledStringBuilder 1024
         
-        # First, clear the entire screen with a dark overlay
-        $overlayBg = [VT]::RGBBG(16, 16, 16)  # Dark gray overlay
-        for ($y = 0; $y -lt $this.Height; $y++) {
-            $sb.Append([VT]::MoveTo(0, $y))
-            $sb.Append($overlayBg)
-            $sb.Append([StringCache]::GetSpaces($this.Width))
-        }
+        # First render the base dialog
+        $baseRender = ([BaseDialog]$this).OnRender()
+        $sb.Append($baseRender)
         
-        if ($this._dialogBounds) {
-            # Draw dialog box
-            $borderColor = $this.Theme.GetColor("dialog.border")
-            $bgColor = $this.Theme.GetBgColor("dialog.background")
-            $titleColor = $this.Theme.GetColor("dialog.title")
-            
-            $x = $this._dialogBounds.X
-            $y = $this._dialogBounds.Y
-            $w = $this._dialogBounds.Width
-            $h = $this._dialogBounds.Height
-            
-            # Fill background
-            for ($i = 0; $i -lt $h; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append($bgColor)
-                $sb.Append([StringCache]::GetSpaces($w))
-            }
-            
-            # Draw border
-            $sb.Append([VT]::MoveTo($x, $y))
-            $sb.Append($borderColor)
-            $sb.Append([VT]::TL() + ([VT]::H() * ($w - 2)) + [VT]::TR())
-            
-            for ($i = 1; $i -lt $h - 1; $i++) {
-                $sb.Append([VT]::MoveTo($x, $y + $i))
-                $sb.Append([VT]::V())
-                $sb.Append([VT]::MoveTo($x + $w - 1, $y + $i))
-                $sb.Append([VT]::V())
-            }
-            
-            $sb.Append([VT]::MoveTo($x, $y + $h - 1))
-            $sb.Append([VT]::BL() + ([VT]::H() * ($w - 2)) + [VT]::BR())
-            
-            # Draw title
-            $title = " $($this.Title) "
-            $titleX = $x + [int](($w - $title.Length) / 2)
-            $sb.Append([VT]::MoveTo($titleX, $y))
-            $sb.Append($titleColor)
-            $sb.Append($title)
-            
-            # Draw prompt
+        # Then render the prompt
+        if ($this.Prompt) {
             $promptLines = $this.Prompt -split "`n"
-            $promptY = $y + 2
-            $sb.Append($this.Theme.GetColor("foreground"))
+            $promptY = $this._dialogBounds.Y + 2
+            
             foreach ($line in $promptLines) {
-                $lineX = $x + 2
-                $sb.Append([VT]::MoveTo($lineX, $promptY))
+                $sb.Append([VT]::MoveTo($this._dialogBounds.X + $this.DialogPadding, $promptY))
+                $sb.Append($this.Theme.GetColor("dialog.title"))
                 $sb.Append($line)
+                $sb.Append([VT]::Reset())
                 $promptY++
             }
         }
-        
-        # Render children
-        foreach ($child in $this.Children) {
-            if ($child.Visible) {
-                $sb.Append($child.Render())
-            }
-        }
-        
-        $sb.Append([VT]::Reset())
         
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
     }
     
-    [void] FocusNext() {
-        $focusableChildren = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible }
-        if ($focusableChildren.Count -eq 0) { return }
-        
-        $currentIndex = -1
-        for ($i = 0; $i -lt $focusableChildren.Count; $i++) {
-            if ($focusableChildren[$i].IsFocused) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        $nextIndex = ($currentIndex + 1) % $focusableChildren.Count
-        $focusableChildren[$nextIndex].Focus()
+    # Helper method for compatibility
+    [string] GetValue() {
+        return $this.InputBox.Text
     }
 }

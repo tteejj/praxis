@@ -1,35 +1,64 @@
 {
-  "Theme": "default",
-  "UI": {
-    "ShowScrollbars": true,
-    "CompactMode": false,
-    "AnimationsEnabled": true
-  },
-  "Performance": {
-    "EnableCaching": true,
-    "RenderOptimization": true,
-    "MaxCacheSize": 100
-  },
-  "Logging": {
-    "MaxFileSize": 10,
-    "MaxFiles": 5,
-    "Level": "Info"
-  },
-  "Projects": {
-    "AutoSave": true,
-    "BackupCount": 5,
-    "BackupEnabled": true,
-    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData"
+  "Tasks": {
+    "DefaultPriority": "Medium",
+    "ShowCompletedTasks": true,
+    "CompletedTaskRetention": 30
   },
   "Editor": {
     "ShowLineNumbers": true,
     "WordWrap": false,
+    "SyntaxHighlighting": true,
+    "HighlightCurrentLine": true,
     "TabSize": 4,
-    "HighlightCurrentLine": true
+    "AutoSaveInterval": 0
   },
-  "Tasks": {
-    "ShowCompletedTasks": true,
-    "DefaultPriority": "Medium",
-    "CompletedTaskRetention": 30
+  "Theme": {
+    "UserCustomizations": {},
+    "ShowThemePreview": true,
+    "AvailableThemes": [
+      "default",
+      "matrix",
+      "amber"
+    ],
+    "EditTheme": "[Click to open theme editor]",
+    "EnableLiveEdit": true,
+    "CurrentTheme": "default"
+  },
+  "UI": {
+    "ShowScrollbars": true,
+    "UseGradients": false,
+    "AnimationsEnabled": true,
+    "GradientType": "vertical",
+    "CompactMode": false,
+    "VerticalSpacing": 1
+  },
+  "Logging": {
+    "MaxFiles": 5,
+    "MaxFileSize": 10,
+    "Level": "Info"
+  },
+  "FileBrowser": {
+    "ShowHiddenFiles": false,
+    "ShowModifiedDate": false,
+    "ShowFileSize": true,
+    "DefaultPath": "/home/teej/projects/github/praxis",
+    "IgnoredExtensions": [
+      ".tmp",
+      ".cache",
+      ".log"
+    ],
+    "SortBy": "Name",
+    "SortDescending": false
+  },
+  "Performance": {
+    "RenderOptimization": true,
+    "EnableCaching": true,
+    "MaxCacheSize": 100
+  },
+  "Projects": {
+    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
+    "BackupCount": 5,
+    "BackupEnabled": true,
+    "AutoSave": true
   }
 }

@@ -49,6 +49,9 @@ class BaseDialog : Screen {
         }
         $this._initialized = $true
         
+        # Call parent initialization to set Theme
+        ([Screen]$this).OnInitialize()
+        
         # Get EventBus
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
         
@@ -133,6 +136,27 @@ class BaseDialog : Screen {
         switch ($key.Key) {
             ([System.ConsoleKey]::Enter) {
                 if (-not $key.Modifiers) {
+                    # Only handle Enter if no button has focus
+                    # This allows buttons to handle their own Enter key
+                    $focusManager = $this.ServiceContainer.GetService('FocusManager')
+                    if ($focusManager) {
+                        $focused = $focusManager.GetFocused()
+                        if ($global:Logger) {
+                            $focusedType = if ($focused) { $focused.GetType().Name } else { "null" }
+                            $global:Logger.Debug("BaseDialog.HandleScreenInput: Enter pressed, focused element: $focusedType")
+                        }
+                        if ($focused -and $focused -is [MinimalButton]) {
+                            # Let the button handle it
+                            if ($global:Logger) {
+                                $global:Logger.Debug("BaseDialog: Button has focus, letting it handle Enter")
+                            }
+                            return $false
+                        }
+                    }
+                    # No button focused, use default behavior
+                    if ($global:Logger) {
+                        $global:Logger.Debug("BaseDialog: No button focused, calling HandlePrimaryAction")
+                    }
                     $this.HandlePrimaryAction()
                     return $true
                 }
@@ -291,23 +315,84 @@ class BaseDialog : Screen {
     }
     
     [void] RenderDialogBox([System.Text.StringBuilder]$sb) {
-        $borderColor = $this.Theme.GetColor("dialog.border")
-        $bgColor = $this.Theme.GetBgColor("dialog.background")
-        
         $x = $this._dialogBounds.X
         $y = $this._dialogBounds.Y
         $w = $this._dialogBounds.Width
         $h = $this._dialogBounds.Height
         
-        # Fill background
-        for ($i = 0; $i -lt $h; $i++) {
-            $sb.Append([VT]::MoveTo($x, $y + $i))
-            $sb.Append($bgColor)
-            $sb.Append([StringCache]::GetSpaces($w))
+        # Check if gradients are enabled
+        $useGradients = $false
+        $configService = $this.ServiceContainer.GetService('ConfigurationService')
+        if ($configService) {
+            $useGradients = $configService.Get("UI.UseGradients", $false)
         }
         
-        # Draw border using BorderStyle system
-        $sb.Append([BorderStyle]::RenderBorder($x, $y, $w, $h, $this.BorderType, $borderColor))
+        if ($useGradients) {
+            # Get gradient colors
+            $bgGradient = $this.Theme.GetGradient("gradient.bg.start", "gradient.bg.end", $h)
+            
+            # Fill background with gradient
+            for ($i = 0; $i -lt $h; $i++) {
+                $sb.Append([VT]::MoveTo($x, $y + $i))
+                # Extract RGB values from gradient color
+                $gradientColor = $this.Theme._themes[$this.Theme._currentTheme]["gradient.bg.start"]
+                $endColor = $this.Theme._themes[$this.Theme._currentTheme]["gradient.bg.end"]
+                $position = $i / [double]($h - 1)
+                $r = [int]($gradientColor[0] + ($endColor[0] - $gradientColor[0]) * $position)
+                $g = [int]($gradientColor[1] + ($endColor[1] - $gradientColor[1]) * $position)
+                $b = [int]($gradientColor[2] + ($endColor[2] - $gradientColor[2]) * $position)
+                $sb.Append([VT]::RGBBG($r, $g, $b))
+                $sb.Append([StringCache]::GetSpaces($w))
+            }
+            
+            # Draw border with gradient (vertical gradient on sides)
+            $borderGradient = $this.Theme.GetGradient("gradient.border.start", "gradient.border.end", $h)
+            $this.RenderGradientBorder($sb, $x, $y, $w, $h, $borderGradient)
+        } else {
+            # Standard rendering
+            $borderColor = $this.Theme.GetColor("dialog.border")
+            $bgColor = $this.Theme.GetBgColor("dialog.background")
+            
+            # Fill background
+            for ($i = 0; $i -lt $h; $i++) {
+                $sb.Append([VT]::MoveTo($x, $y + $i))
+                $sb.Append($bgColor)
+                $sb.Append([StringCache]::GetSpaces($w))
+            }
+            
+            # Draw border using BorderStyle system
+            $sb.Append([BorderStyle]::RenderBorder($x, $y, $w, $h, $this.BorderType, $borderColor))
+        }
+    }
+    
+    [void] RenderGradientBorder([System.Text.StringBuilder]$sb, [int]$x, [int]$y, [int]$w, [int]$h, [string[]]$gradient) {
+        # Top border
+        $sb.Append([VT]::MoveTo($x, $y))
+        $sb.Append($gradient[0])
+        $sb.Append([VT]::TL())
+        $sb.Append([StringCache]::GetHorizontalLine($w - 2))
+        $sb.Append([VT]::TR())
+        
+        # Sides with gradient
+        for ($i = 1; $i -lt $h - 1; $i++) {
+            $color = $gradient[$i]
+            # Left side
+            $sb.Append([VT]::MoveTo($x, $y + $i))
+            $sb.Append($color)
+            $sb.Append([VT]::V())
+            
+            # Right side
+            $sb.Append([VT]::MoveTo($x + $w - 1, $y + $i))
+            $sb.Append($color)
+            $sb.Append([VT]::V())
+        }
+        
+        # Bottom border
+        $sb.Append([VT]::MoveTo($x, $y + $h - 1))
+        $sb.Append($gradient[$h - 1])
+        $sb.Append([VT]::BL())
+        $sb.Append([StringCache]::GetHorizontalLine($w - 2))
+        $sb.Append([VT]::BR())
     }
     
     [void] RenderTitle([System.Text.StringBuilder]$sb) {

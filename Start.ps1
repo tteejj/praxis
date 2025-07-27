@@ -40,19 +40,27 @@ $loadOrder = @(
     # Services (needed by base classes)
     "Services/Logger.ps1"
     "Services/EventBus.ps1"
+    "Services/ConfigurationService.ps1"
     "Services/ThemeManager.ps1"
+    "Services/ThemeSystem.ps1"
+    "Utils/ThemeBuilder.ps1"
     
     # Base classes
     "Base/UIElement.ps1"
     "Base/Container.ps1"
     "Base/FocusableComponent.ps1"
-    "Base/Screen.ps1"
-    "Base/BaseModel.ps1"
     
-    # Core UI systems (needed by components)
+    # Core UI systems (needed by components and screens)
     "Core/BorderStyle.ps1"
     "Core/KeyboardShortcuts.ps1"
     "Core/AnimationHelper.ps1"
+    "Core/SpacingSystem.ps1"
+    
+    # HelpOverlay (after BorderStyle)
+    "Screens/HelpOverlay.ps1"
+    
+    "Base/Screen.ps1"
+    "Base/BaseModel.ps1"
     
     # Services that depend on base classes
     "Services/FocusManager.ps1"
@@ -80,10 +88,11 @@ $loadOrder = @(
     "Services/SubtaskService.ps1"
     "Services/TimeTrackingService.ps1"
     "Services/CommandService.ps1"
-    "Services/ConfigurationService.ps1"
     "Services/StateManager.ps1"
     "Services/FunctionRegistry.ps1"
     "Services/MacroContextManager.ps1"
+    "Services/MacroService.ps1"
+    "Services/BackupService.ps1"
     
     # Components
     "Components/ListBox.ps1"
@@ -128,7 +137,12 @@ $loadOrder = @(
     "Screens/QuickTimeEntryDialog.ps1",
     "Screens/CommandEditDialog.ps1",
     "Screens/FindReplaceDialog.ps1",
+    "Screens/FieldPickerDialog.ps1",
+    "Screens/ScriptPreviewDialog.ps1",
+    "Screens/ActionPropertiesDialog.ps1",
     "Screens/EventBusMonitor.ps1",
+    "Screens/SelectionDialog.ps1",
+    "Screens/ThemeEditorDialog.ps1",
     
     # Screens (after dialogs they depend on)
     "Screens/TestScreen.ps1",
@@ -187,8 +201,8 @@ if ($Debug) {
     Write-Host "  Logger created at: $($logger.LogPath)" -ForegroundColor DarkGray
 }
 
-# Theme manager
-$themeManager = [ThemeManager]::new()
+# Theme manager - Use enhanced version with semantic colors
+$themeManager = [EnhancedThemeManager]::new()
 $global:ServiceContainer.Register("ThemeManager", $themeManager)
 
 # EventBus (after Logger and ThemeManager, before other services)
@@ -258,9 +272,17 @@ $global:ServiceContainer.Register("TimeTrackingService", $timeTrackingService)
 $commandService = [CommandService]::new()
 $global:ServiceContainer.Register("CommandService", $commandService)
 
+# Macro service
+$macroService = [MacroService]::new()
+$global:ServiceContainer.Register("MacroService", $macroService)
+
 # Configuration service
 $configService = [ConfigurationService]::new()
 $global:ServiceContainer.Register("ConfigurationService", $configService)
+
+# Backup service
+$backupService = [BackupService]::new()
+$global:ServiceContainer.Register("BackupService", $backupService)
 
 # Apply theme from configuration
 $currentTheme = $configService.Get("Theme.CurrentTheme", "matrix")

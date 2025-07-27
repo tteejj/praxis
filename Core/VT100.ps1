@@ -61,6 +61,34 @@ class VT {
     static [string] DBR() { return "╝" }
     static [string] DH() { return "═" }
     static [string] DV() { return "║" }
+    
+    # Gradient support
+    static [string] InterpolateRGB([int[]]$startRGB, [int[]]$endRGB, [double]$position) {
+        # Position should be between 0.0 and 1.0
+        $position = [Math]::Max(0.0, [Math]::Min(1.0, $position))
+        
+        $r = [int]($startRGB[0] + ($endRGB[0] - $startRGB[0]) * $position)
+        $g = [int]($startRGB[1] + ($endRGB[1] - $startRGB[1]) * $position)
+        $b = [int]($startRGB[2] + ($endRGB[2] - $startRGB[2]) * $position)
+        
+        return [VT]::RGB($r, $g, $b)
+    }
+    
+    static [string[]] VerticalGradient([int[]]$startRGB, [int[]]$endRGB, [int]$steps) {
+        $gradient = [string[]]::new($steps)
+        
+        for ($i = 0; $i -lt $steps; $i++) {
+            $position = $i / [double]($steps - 1)
+            $gradient[$i] = [VT]::InterpolateRGB($startRGB, $endRGB, $position)
+        }
+        
+        return $gradient
+    }
+    
+    static [string[]] HorizontalGradient([int[]]$startRGB, [int[]]$endRGB, [int]$steps) {
+        # Same calculation as vertical, but will be applied per-character
+        return [VT]::VerticalGradient($startRGB, $endRGB, $steps)
+    }
 }
 
 # Layout measurement helpers

@@ -66,6 +66,8 @@ class SettingsScreen : Screen {
             'r' { $this.ResetCategory(); return $true }
             'R' { $this.ResetAll(); return $true }
             's' { $this.SaveSettings(); return $true }
+            'b' { $this.CreateBackup(); return $true }
+            'B' { $this.RestoreBackup(); return $true }
         }
         
         return $false
@@ -165,31 +167,14 @@ class SettingsScreen : Screen {
         
         # Special handling for theme selection
         if ($path -eq "Theme.CurrentTheme") {
-            # Cycle through available themes
-            $availableThemes = $this.ConfigService.Get("Theme.AvailableThemes", @("default", "matrix"))
-            $currentIndex = $availableThemes.IndexOf($currentValue)
-            $nextIndex = ($currentIndex + 1) % $availableThemes.Count
-            $newValue = $availableThemes[$nextIndex]
-            
-            $this.ConfigService.Set($path, $newValue)
-            
-            # Apply theme immediately
-            $themeManager = $global:ServiceContainer.GetService("ThemeManager")
-            if ($themeManager) {
-                $themeManager.SetTheme($newValue)
-            }
-            
-            # Publish config changed event
-            if ($this.EventBus) {
-                $this.EventBus.Publish([EventNames]::ConfigChanged, @{
-                    Path = $path
-                    OldValue = $currentValue
-                    NewValue = $newValue
-                    Category = $this.CurrentCategory
-                })
-            }
-            
-            $this.LoadCategorySettings()
+            # Show theme selection dialog
+            $this.ShowThemeSelectionDialog($currentValue)
+            return
+        }
+        
+        # Special handling for theme editing
+        if ($path -eq "Theme.EditTheme") {
+            $this.ShowThemeEditor()
             return
         }
         
@@ -213,9 +198,35 @@ class SettingsScreen : Screen {
                 return
             }
             "Number" {
-                # TODO: Create NumberInputDialog
-                if ($global:Logger) {
-                    $global:Logger.Info("Number editing not yet implemented")
+                $dialog = [NumberInputDialog]::new("Edit $($selected.Setting)", "Enter new value:", $currentValue)
+                $dialog.OnConfirm = {
+                    param($result)
+                    $this.ConfigService.Set($path, $result)
+                    
+                    # Publish config changed event
+                    if ($this.EventBus) {
+                        $this.EventBus.Publish([EventNames]::ConfigChanged, @{
+                            Path = $path
+                            OldValue = $currentValue
+                            NewValue = $result
+                            Category = $this.CurrentCategory
+                        })
+                    }
+                    
+                    # Apply vertical spacing immediately if changed
+                    if ($path -eq "UI.VerticalSpacing") {
+                        [Spacing]::Component.ElementGap = $result
+                        # Force full screen refresh
+                        if ($global:ScreenManager) {
+                            $global:ScreenManager.Invalidate()
+                        }
+                    }
+                    
+                    $this.LoadCategorySettings()
+                }.GetNewClosure()
+                
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Push($dialog)
                 }
             }
             "String" {
@@ -269,6 +280,97 @@ class SettingsScreen : Screen {
         }
     }
     
+    [void] CreateBackup() {
+        $backupService = $global:ServiceContainer.GetService("BackupService")
+        if (-not $backupService) {
+            $backupService = [BackupService]::new()
+            $global:ServiceContainer.Register("BackupService", $backupService)
+        }
+        
+        try {
+            $backupPath = $backupService.CreateBackup("Settings backup")
+            $message = "Backup created successfully:`n$backupPath"
+            $dialog = [ConfirmationDialog]::new($message)
+            $dialog.ShowCancel = $false
+            $dialog.ConfirmText = "OK"
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }
+        catch {
+            $message = "Backup failed:`n$_"
+            $dialog = [ConfirmationDialog]::new($message)
+            $dialog.ShowCancel = $false
+            $dialog.ConfirmText = "OK"
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }
+    }
+    
+    [void] RestoreBackup() {
+        $backupService = $global:ServiceContainer.GetService("BackupService")
+        if (-not $backupService) {
+            $backupService = [BackupService]::new()
+            $global:ServiceContainer.Register("BackupService", $backupService)
+        }
+        
+        $backups = $backupService.ListBackups()
+        if ($backups.Count -eq 0) {
+            $message = "No backups found."
+            $dialog = [ConfirmationDialog]::new($message)
+            $dialog.ShowCancel = $false
+            $dialog.ConfirmText = "OK"
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+            return
+        }
+        
+        # TODO: Create backup selection dialog
+        # For now, restore the most recent backup
+        $latestBackup = $backups[0]
+        
+        $message = "Restore from backup?`n`nBackup: $($latestBackup.Name)`nDate: $($latestBackup.Timestamp)`n`nThis will replace all current data!"
+        $dialog = [ConfirmationDialog]::new($message)
+        $dialog.ConfirmText = "Restore"
+        $dialog.OnConfirm = {
+            try {
+                $backupService.RestoreBackup($latestBackup.Name)
+                
+                # Reload configuration
+                $this.ConfigService.Load()
+                $this.LoadCategories()
+                
+                $message = "Restore completed successfully.`nRestart the application for all changes to take effect."
+                $dialog2 = [ConfirmationDialog]::new($message)
+                $dialog2.ShowCancel = $false
+                $dialog2.ConfirmText = "OK"
+                
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Push($dialog2)
+                }
+            }
+            catch {
+                $message = "Restore failed:`n$_"
+                $dialog2 = [ConfirmationDialog]::new($message)
+                $dialog2.ShowCancel = $false
+                $dialog2.ConfirmText = "OK"
+                
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Push($dialog2)
+                }
+            }
+        }.GetNewClosure()
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
     
     hidden [string] FormatCategoryName([string]$name) {
         # Convert PascalCase to Title Case
@@ -301,6 +403,137 @@ class SettingsScreen : Screen {
         return "Unknown"
     }
     
+    [void] ShowThemeSelectionDialog([string]$currentTheme) {
+        $themeManager = $global:ServiceContainer.GetService("ThemeManager")
+        if (-not $themeManager) { return }
+        
+        $themes = $themeManager.GetThemeNames()
+        
+        # Create selection dialog
+        $dialog = [SelectionDialog]::new()
+        $dialog.Title = "Select Theme"
+        $dialog.Prompt = "Choose a theme:"
+        $dialog.Initialize($this.ServiceContainer)
+        
+        # Format theme list with preview
+        $items = @()
+        foreach ($theme in $themes) {
+            $items += @{
+                Name = $theme
+                Display = if ($theme -eq $currentTheme) { "● $theme (current)" } else { "  $theme" }
+            }
+        }
+        
+        # Add option to install more themes
+        $items += @{
+            Name = "_install"
+            Display = "↓ Install More Themes..."
+        }
+        
+        # Add option to edit themes
+        $items += @{
+            Name = "_edit"
+            Display = "✎ Edit Current Theme..."
+        }
+        
+        $dialog.SetItems($items)
+        $dialog.ItemRenderer = { param($item) $item.Display }
+        
+        $screen = $this
+        $dialog.OnSelect = {
+            param($item)
+            
+            if ($item.Name -eq "_install") {
+                $screen.InstallThemeTemplates()
+            }
+            elseif ($item.Name -eq "_edit") {
+                $screen.ShowThemeEditor()
+            }
+            else {
+                # Apply selected theme
+                $screen.ConfigService.Set("Theme.CurrentTheme", $item.Name)
+                $themeManager.SetTheme($item.Name)
+                
+                # Publish event
+                if ($screen.EventBus) {
+                    $screen.EventBus.Publish([EventNames]::ConfigChanged, @{
+                        Path = "Theme.CurrentTheme"
+                        OldValue = $currentTheme
+                        NewValue = $item.Name
+                        Category = "Theme"
+                    })
+                }
+                
+                $screen.LoadCategorySettings()
+            }
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($dialog)
+    }
+    
+    [void] ShowThemeEditor() {
+        $editor = [ThemeEditorDialog]::new()
+        $editor.Initialize($this.ServiceContainer)
+        
+        $screen = $this
+        $editor.OnPrimary = {
+            # Refresh settings after editing
+            $screen.LoadCategorySettings()
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($editor)
+    }
+    
+    [void] InstallThemeTemplates() {
+        # Create confirmation dialog
+        $message = @"
+Install additional theme templates?
+
+This will add the following themes:
+• High Contrast - Maximum accessibility
+• Solarized Dark - Popular color scheme
+• Dracula - Dark purple theme
+• Nord - Arctic color palette
+• Monokai - Classic code editor theme
+"@
+        
+        $dialog = [ConfirmationDialog]::new($message)
+        $dialog.Title = "Install Themes"
+        $dialog.Initialize($this.ServiceContainer)
+        
+        $screen = $this
+        $dialog.OnPrimary = {
+            try {
+                # Install theme templates
+                [ThemeTemplates]::CreateHighContrast()
+                [ThemeTemplates]::CreateSolarizedDark()
+                [ThemeTemplates]::CreateDracula()
+                [ThemeTemplates]::CreateNord()
+                [ThemeTemplates]::CreateMonokai()
+                
+                # Update available themes in config
+                $themes = $global:ServiceContainer.GetService("ThemeManager").GetThemeNames()
+                $screen.ConfigService.Set("Theme.AvailableThemes", $themes)
+                
+                # Show success
+                $successDialog = [ConfirmationDialog]::new("Themes installed successfully!")
+                $successDialog.Title = "Success"
+                $successDialog.ShowCancel = $false
+                $successDialog.Initialize($screen.ServiceContainer)
+                $global:ScreenManager.Push($successDialog)
+                
+            } catch {
+                $errorDialog = [ConfirmationDialog]::new("Failed to install themes: $_")
+                $errorDialog.Title = "Error"
+                $errorDialog.ShowCancel = $false
+                $errorDialog.Initialize($screen.ServiceContainer)
+                $global:ScreenManager.Push($errorDialog)
+            }
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($dialog)
+    }
+    
     [string] OnRender() {
         $sb = Get-PooledStringBuilder 1024
         
@@ -315,7 +548,7 @@ class SettingsScreen : Screen {
         
         $sb.Append([VT]::MoveTo($this.X + 1, $statusY))
         $sb.Append($this.Theme.GetColor("disabled"))
-        $sb.Append(" [Tab]Navigate [Enter/E]Edit [R]Reset Category [Shift+R]Reset All [S]Save")
+        $sb.Append(" [Tab]Nav [Enter/E]Edit [R]Reset [Shift+R]Reset All [S]Save [B]Backup [Shift+B]Restore")
         
         $sb.Append([VT]::Reset())
         

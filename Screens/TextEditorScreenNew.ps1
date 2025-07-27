@@ -133,23 +133,27 @@ class TextEditorScreenNew : Screen {
     hidden [void] AddSampleContent() {
         # Add some sample content to test the editor
         $sampleText = @"
-Welcome to PRAXIS Text Editor!
+PRAXIS Text Editor
 
-This is the new Buffer/View architecture with:
-• Gap Buffer for high-performance editing
-• Line-level render caching for performance
-• Block selection with visual highlighting
-• Find/Replace with comprehensive search
-• Professional copy/paste system
+High-performance text editing with professional features:
+• Gap Buffer for efficient text operations
+• Full undo/redo support (Ctrl+Z / Ctrl+Y)
+• Block selection (Shift+Arrow keys)
+• Find and Replace (Ctrl+F / Ctrl+H)
 
-Try these features:
-• Shift+Arrow keys for block selection
-• Ctrl+C/X/V for copy/cut/paste
-• Ctrl+F for find, Ctrl+H for replace
-• Ctrl+U/R for undo/redo
-• Ctrl+A to select all
+Keyboard shortcuts:
+• Ctrl+C/X/V     Copy/Cut/Paste
+• Ctrl+A         Select all
+• Ctrl+Z         Undo (or Ctrl+U)
+• Ctrl+Y         Redo (or Ctrl+R)
+• Ctrl+F         Find
+• Ctrl+H         Find and Replace
+• Ctrl+S         Save (when file loaded)
+• Shift+Arrows   Block selection
+• Delete/Backspace  Delete text
+• ESC            Clear selection
 
-The architecture is now professional-grade!
+All operations support full undo/redo!
 "@
         
         # Set the content using the buffer's proper interface
@@ -270,6 +274,14 @@ The architecture is now professional-grade!
                     $this.RedoEdit()
                     return $true
                 }
+                ([System.ConsoleKey]::Z) {
+                    $this.UndoEdit()
+                    return $true
+                }
+                ([System.ConsoleKey]::Y) {
+                    $this.RedoEdit()
+                    return $true
+                }
                 ([System.ConsoleKey]::C) {
                     $this.CopySelection()
                     return $true
@@ -324,8 +336,13 @@ The architecture is now professional-grade!
                 $this._groupingInserts = $true
             }
             
-            # Insert character
-            $this._buffer.InsertTextAt($this.CursorY, $this.CursorX, [string]$char)
+            # Insert character using command for GapBuffer
+            if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+                $command = [InsertTextCommand]::new($this.CursorY, $this.CursorX, [string]$char)
+                $this._buffer.ExecuteCommand($command)
+            } else {
+                $this._buffer.InsertTextAt($this.CursorY, $this.CursorX, [string]$char)
+            }
             $this.CursorX++
             $this._lastActionTime = $now
             
@@ -358,14 +375,26 @@ The architecture is now professional-grade!
         $this.SaveDocumentState()
         
         if ($this.CursorX -gt 0) {
-            # Delete character before cursor
-            $this._buffer.DeleteTextAt($this.CursorY, $this.CursorX - 1, 1)
+            # Delete character before cursor using command for GapBuffer
+            if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+                $charToDelete = $this._buffer.GetTextAt($this.CursorY, $this.CursorX - 1, 1)
+                $command = [DeleteTextCommand]::new($this.CursorY, $this.CursorX - 1, $charToDelete)
+                $this._buffer.ExecuteCommand($command)
+            } else {
+                $this._buffer.DeleteTextAt($this.CursorY, $this.CursorX - 1, 1)
+            }
             $this.CursorX--
         } elseif ($this.CursorY -gt 0) {
             # Join with previous line
             $prevLineLength = $this._buffer.GetLine($this.CursorY - 1).Length
-            $currentLineText = $this._buffer.GetLine($this.CursorY)
-            $this._buffer.JoinLinesAt($this.CursorY - 1, "")
+            if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+                $currentLineText = $this._buffer.GetLine($this.CursorY)
+                $command = [JoinLinesCommand]::new($this.CursorY - 1, $currentLineText)
+                $this._buffer.ExecuteCommand($command)
+            } else {
+                $currentLineText = $this._buffer.GetLine($this.CursorY)
+                $this._buffer.JoinLinesAt($this.CursorY - 1, "")
+            }
             $this.CursorY--
             $this.CursorX = $prevLineLength
         }
@@ -562,73 +591,99 @@ Switch to GapBufferDocumentBuffer for better performance.
     # --- Undo/Redo ---
     
     [void] UndoEdit() {
-        if ($this._undoStack.Count -eq 0) {
-            $this.StatusMessage = "Nothing to undo"
-            return
-        }
-        
-        try {
-            # Stop any current grouping
-            $this._groupingInserts = $false
-            
-            # Save current document state for redo
-            $currentState = $this.GetDocumentState()
-            $this._redoStack.Add($currentState) | Out-Null
-            
-            # Get and apply previous state
-            $previousState = $this._undoStack[$this._undoStack.Count - 1]
-            $this._undoStack.RemoveAt($this._undoStack.Count - 1)
-            
-            $this.RestoreDocumentState($previousState)
-            $this.StatusMessage = "Undo"
-            
-        } catch {
-            if ($global:Logger) {
-                $global:Logger.Error("UndoEdit failed: $($_.Exception.Message)")
+        # Use the buffer's undo system if it supports it
+        if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+            if ($this._buffer.CanUndo()) {
+                $this._buffer.Undo()
+                $this.StatusMessage = "Undo"
+                $this._allLinesDirty = $true
+                $this.Invalidate()
+                # Update cursor position based on buffer state
+                $this.EnsureCursorValid()
+            } else {
+                $this.StatusMessage = "Nothing to undo"
             }
-            $this.StatusMessage = "Undo failed"
+        } else {
+            # Fallback to editor's own undo for basic buffers
+            if ($this._undoStack.Count -eq 0) {
+                $this.StatusMessage = "Nothing to undo"
+                return
+            }
+            
+            try {
+                $this._groupingInserts = $false
+                
+                $currentState = $this.GetDocumentState()
+                $this._redoStack.Add($currentState) | Out-Null
+                
+                $previousState = $this._undoStack[$this._undoStack.Count - 1]
+                $this._undoStack.RemoveAt($this._undoStack.Count - 1)
+                
+                $this.RestoreDocumentState($previousState)
+                $this.StatusMessage = "Undo"
+            } catch {
+                if ($global:Logger) {
+                    $global:Logger.Error("UndoEdit failed: $($_.Exception.Message)")
+                }
+                $this.StatusMessage = "Undo failed"
+            }
         }
     }
     
     [void] RedoEdit() {
-        if ($this._redoStack.Count -eq 0) {
-            $this.StatusMessage = "Nothing to redo"
-            return
-        }
-        
-        try {
-            # Stop any current grouping
-            $this._groupingInserts = $false
-            
-            # Save current document state for undo
-            $currentState = $this.GetDocumentState()
-            $this._undoStack.Add($currentState) | Out-Null
-            
-            # Get and apply redo state
-            $redoState = $this._redoStack[$this._redoStack.Count - 1]
-            $this._redoStack.RemoveAt($this._redoStack.Count - 1)
-            
-            $this.RestoreDocumentState($redoState)
-            $this.StatusMessage = "Redo"
-            
-        } catch {
-            if ($global:Logger) {
-                $global:Logger.Error("RedoEdit failed: $($_.Exception.Message)")
+        # Use the buffer's redo system if it supports it
+        if ($this._buffer.GetType().Name -eq "GapBufferDocumentBuffer") {
+            if ($this._buffer.CanRedo()) {
+                $this._buffer.Redo()
+                $this.StatusMessage = "Redo"
+                $this._allLinesDirty = $true
+                $this.Invalidate()
+                # Update cursor position based on buffer state
+                $this.EnsureCursorValid()
+            } else {
+                $this.StatusMessage = "Nothing to redo"
             }
-            $this.StatusMessage = "Redo failed"
+        } else {
+            # Fallback to editor's own redo for basic buffers
+            if ($this._redoStack.Count -eq 0) {
+                $this.StatusMessage = "Nothing to redo"
+                return
+            }
+            
+            try {
+                $this._groupingInserts = $false
+                
+                $currentState = $this.GetDocumentState()
+                $this._undoStack.Add($currentState) | Out-Null
+                
+                $redoState = $this._redoStack[$this._redoStack.Count - 1]
+                $this._redoStack.RemoveAt($this._redoStack.Count - 1)
+                
+                $this.RestoreDocumentState($redoState)
+                $this.StatusMessage = "Redo"
+            } catch {
+                if ($global:Logger) {
+                    $global:Logger.Error("RedoEdit failed: $($_.Exception.Message)")
+                }
+                $this.StatusMessage = "Redo failed"
+            }
         }
     }
     
     hidden [void] SaveDocumentState() {
-        $state = $this.GetDocumentState()
-        $this._undoStack.Add($state) | Out-Null
-        
-        # Clear redo stack when new action is performed
-        $this._redoStack.Clear()
-        
-        # Limit undo history
-        if ($this._undoStack.Count -gt 50) {
-            $this._undoStack.RemoveAt(0)
+        # Only save state for non-GapBuffer implementations
+        # GapBuffer handles its own undo internally through commands
+        if ($this._buffer.GetType().Name -ne "GapBufferDocumentBuffer") {
+            $state = $this.GetDocumentState()
+            $this._undoStack.Add($state) | Out-Null
+            
+            # Clear redo stack when new action is performed
+            $this._redoStack.Clear()
+            
+            # Limit undo history
+            if ($this._undoStack.Count -gt 50) {
+                $this._undoStack.RemoveAt(0)
+            }
         }
     }
     

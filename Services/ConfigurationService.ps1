@@ -21,14 +21,12 @@ class ConfigurationService {
     hidden [void] InitializeDefaults() {
         $this.Defaults = @{
             Theme = @{
-                CurrentTheme = "matrix"  # Changed to matrix as requested
-                AvailableThemes = @("default", "matrix", "custom")
-                CustomColors = @{
-                    background = @(0, 0, 0)
-                    foreground = @(0, 255, 0)
-                    accent = @(0, 200, 0)
-                    border = @(0, 100, 0)
-                }
+                CurrentTheme = "default"
+                AvailableThemes = @("default", "matrix", "amber")
+                EditTheme = "[Click to open theme editor]"
+                UserCustomizations = @{}
+                EnableLiveEdit = $true
+                ShowThemePreview = $true
             }
             Editor = @{
                 TabSize = 4
@@ -51,6 +49,9 @@ class ConfigurationService {
                 AnimationsEnabled = $true
                 ShowScrollbars = $true
                 CompactMode = $false
+                VerticalSpacing = 1  # Lines between UI elements
+                UseGradients = $false
+                GradientType = "vertical"  # vertical or horizontal
             }
             Projects = @{
                 DefaultPath = Join-Path $global:PraxisRoot "_ProjectData"

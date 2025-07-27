@@ -24,9 +24,11 @@ class CommandLibraryScreen : Screen {
         $this.CommandList.SearchPrompt = "Search commands... (t:tag d:desc g:group +and |or)"
         
         # Set custom search filter for advanced syntax
+        $service = $this.CommandService
         $this.CommandList.SearchFilter = {
             param($command, $query)
-            return $this.CommandService.SearchCommands($query) -contains $command
+            $searchResults = $service.SearchCommands($query)
+            return $searchResults -contains $command
         }.GetNewClosure()
         
         # Custom renderer for commands
@@ -141,11 +143,12 @@ class CommandLibraryScreen : Screen {
             $screen.Initialize($this.ServiceContainer)
             
             $screen.SetCommand($null)  # New command
+            $parentScreen = $this
             $screen.OnSave = {
                 param($command)
-                $this.LoadCommands()
-                $this.FilterCommands()
-            }
+                $parentScreen.LoadCommands()
+                $parentScreen.FilterCommands()
+            }.GetNewClosure()
             
             $global:ScreenManager.Push($screen)
         } catch {
@@ -172,11 +175,12 @@ class CommandLibraryScreen : Screen {
             $screen.Initialize($this.ServiceContainer)
             
             $screen.SetCommand($selectedCommand)
+            $parentScreen = $this
             $screen.OnSave = {
                 param($command)
-                $this.LoadCommands()
-                $this.FilterCommands()
-            }
+                $parentScreen.LoadCommands()
+                $parentScreen.FilterCommands()
+            }.GetNewClosure()
             
             $global:ScreenManager.Push($screen)
         } catch {
@@ -200,15 +204,15 @@ class CommandLibraryScreen : Screen {
         
         try {
             # Show confirmation dialog
-            $confirmScreen = [ConfirmationDialog]::new()
+            $message = "Are you sure you want to delete this command?`n`n$($selectedCommand.GetDisplayText())"
+            $confirmScreen = [ConfirmationDialog]::new($message)
+            $confirmScreen.Title = "Delete Command"
             $confirmScreen.Initialize($this.ServiceContainer)
-            $confirmScreen.SetTitle("Delete Command")
-            $confirmScreen.SetMessage("Are you sure you want to delete this command?`n`n$($selectedCommand.GetDisplayText())")
-            $confirmScreen.OnConfirm = {
+            $confirmScreen.OnPrimary = {
                 $this.CommandService.DeleteCommand($selectedCommand.Id)
                 $this.LoadCommands()
                 $this.FilterCommands()
-            }
+            }.GetNewClosure()
             
             $global:ScreenManager.Push($confirmScreen)
         } catch {
@@ -224,7 +228,12 @@ class CommandLibraryScreen : Screen {
             try {
                 $this.CommandService.CopyToClipboard($selectedCommand.Id)
                 
-                # Show brief confirmation (could be a toast notification)
+                # Show toast notification
+                $toastService = $this.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.ShowToast("Command copied to clipboard!", [ToastType]::Success, 2000)
+                }
+                
                 if ($global:Logger) {
                     $global:Logger.Info("Copied to clipboard: $($selectedCommand.GetDisplayText())")
                 }
@@ -233,6 +242,12 @@ class CommandLibraryScreen : Screen {
                 $this.LoadCommands()
                 $this.FilterCommands()
             } catch {
+                # Show error toast
+                $toastService = $this.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.ShowToast("Failed to copy command", [ToastType]::Error, 3000)
+                }
+                
                 if ($global:Logger) {
                     $global:Logger.Error("Failed to copy command: $($_.Exception.Message)")
                 }
@@ -271,17 +286,41 @@ class CommandLibraryScreen : Screen {
     
     [string] GetHelpText() {
         return @"
-Command Library Help:
+# Command Library Help
 
-Enter         - Copy selected command to clipboard
-n             - Add new command
-e             - Edit selected command  
-d             - Delete selected command
-Escape        - Return to main menu
-Tab           - Navigate between elements
+Store and manage reusable IDEA commands and scripts.
 
-Search supports advanced syntax:
-  t:tag d:desc g:group +and |or
+## Navigation
+Tab               - Navigate between elements
+Arrow Keys        - Browse commands
+Enter             - Copy command to clipboard
+
+## Actions
+n                 - Add new command
+e                 - Edit selected command  
+d                 - Delete selected command
+Escape            - Return to main menu
+
+## Search Syntax
+The search box supports advanced filtering:
+
+Basic search      - Type any text to search all fields
+t:tag             - Search by tag (e.g., t:export)
+d:description     - Search in descriptions
+g:group           - Filter by group
++                 - AND operator (all terms must match)
+|                 - OR operator (any term matches)
+
+## Examples
+t:export          - Find all export commands
+g:analysis +sum   - Analysis group AND contains "sum"
+t:idea|script     - Tagged as "idea" OR "script"
+
+## Usage Count
+★                 - Shows how many times used
+
+---
+Press ESC to close help
 "@
     }
 }

@@ -18,6 +18,9 @@ class BaseAction {
     # Whether this action can accept custom IDEA@ commands
     [bool]$AllowsCustomCommands = $false
     
+    # Stores the configured parameter values for this action instance
+    [hashtable]$Parameters = @{}
+    
     BaseAction() {
         # Override in derived classes
     }
@@ -73,5 +76,40 @@ class BaseAction {
             }
         }
         return $missing
+    }
+    
+    # Get validation status with detailed message
+    [hashtable] GetValidationStatus([hashtable]$macroContext) {
+        # First check if all parameters are configured
+        $unconfigured = @()
+        foreach ($param in $this.Consumes) {
+            if (-not $this.Parameters.ContainsKey($param.Name) -or 
+                [string]::IsNullOrEmpty($this.Parameters[$param.Name])) {
+                $unconfigured += $param.Label ?? $param.Name
+            }
+        }
+        
+        if ($unconfigured.Count -gt 0) {
+            return @{ 
+                IsValid = $false
+                Message = "⚠️ Configure: $($unconfigured -join ', ')"
+            }
+        }
+        
+        # Then check context requirements
+        $missing = $this.GetMissingContext($macroContext)
+        if ($missing.Count -gt 0) {
+            return @{ 
+                IsValid = $false
+                Message = "⚠️ Missing: $($missing -join ', ')" 
+            }
+        }
+        
+        # Add more validation checks here if needed
+        
+        return @{ 
+            IsValid = $true
+            Message = "✅ Ready" 
+        }
     }
 }

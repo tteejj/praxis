@@ -12,12 +12,18 @@ class ExportToExcelAction : BaseAction {
             @{
                 Name = "outputPath"
                 Type = "String"
+                Label = "Output Path"
                 Description = "Full path for the output Excel file"
+                Required = $true
+                Default = "C:\IDEA\Export.xlsx"
             },
             @{
                 Name = "includeAllRecords"
                 Type = "Boolean"
+                Label = "Include All Records"
                 Description = "Include all records or only extracted ones"
+                Required = $false
+                Default = "True"
             }
         )
         
@@ -31,29 +37,31 @@ class ExportToExcelAction : BaseAction {
     }
     
     [string] RenderScript([hashtable]$macroContext) {
-        $outputPath = $macroContext["outputPath"]
-        $includeAll = $macroContext["includeAllRecords"]
+        $outputPath = $this.Parameters["outputPath"]
+        $includeAll = $this.Parameters["includeAllRecords"]
         
         $sb = [System.Text.StringBuilder]::new()
         
         # Build the export script
-        $sb.AppendLine("Set db = Client.OpenDatabase(""$($macroContext['ActiveDatabase'])"")")
-        $sb.AppendLine("Set task = db.ExternalFiles.ExcelFiles.NewExport")
+        $sb.AppendLine("' Export to Excel: $outputPath")
+        $sb.AppendLine("Set db = Client.CurrentDatabase()")
+        $sb.AppendLine("Set task = db.ExportDatabase")
+        $sb.AppendLine("")
         
         # Set output file
         $sb.AppendLine("task.OutputFileName = ""$outputPath""")
+        $sb.AppendLine("task.FileType = ""Excel 2007/2010 (*.xlsx)""")
+        $sb.AppendLine("")
         
         # Set record selection
         if ($includeAll -eq "True" -or $includeAll -eq $true) {
-            $sb.AppendLine("task.UseAllRecords")
+            $sb.AppendLine("task.IncludeAllRecords = True")
         } else {
-            $sb.AppendLine("task.UseExtractedRecords")
+            $sb.AppendLine("task.IncludeAllRecords = False")
         }
         
-        # Export all fields
-        $sb.AppendLine("task.UseAllFields")
-        
         # Execute the export
+        $sb.AppendLine("' Execute export")
         $sb.AppendLine("task.PerformTask")
         $sb.AppendLine("Set db = Nothing")
         $sb.AppendLine("Set task = Nothing")

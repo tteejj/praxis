@@ -12,17 +12,26 @@ class SummarizationAction : BaseAction {
             @{
                 Name = "summaryFields"
                 Type = "FieldList"
+                Label = "Summary Fields"
                 Description = "Fields to group by in the summarization"
+                Required = $true
+                Default = ""
             },
             @{
                 Name = "totalFields"
                 Type = "FieldList"
+                Label = "Total Fields"
                 Description = "Numeric fields to total (optional)"
+                Required = $false
+                Default = ""
             },
             @{
                 Name = "outputDatabase"
                 Type = "String"
+                Label = "Output Database Name"
                 Description = "Name for the output database"
+                Required = $true
+                Default = "Summary_Result"
             }
         )
         
@@ -36,33 +45,53 @@ class SummarizationAction : BaseAction {
     }
     
     [string] RenderScript([hashtable]$macroContext) {
-        $summaryFields = $macroContext["summaryFields"]
-        $totalFields = $macroContext["totalFields"]
-        $outputDb = $macroContext["outputDatabase"]
+        # Get parameters from this action instance
+        $summaryFields = $this.Parameters["summaryFields"]
+        $totalFields = $this.Parameters["totalFields"]
+        $outputDb = $this.Parameters["outputDatabase"]
+        
+        # Use defaults if not set
+        if ([string]::IsNullOrEmpty($outputDb)) {
+            $outputDb = "Summary_Result"
+        }
         
         $sb = [System.Text.StringBuilder]::new()
         
         # Build the summarization script
-        $sb.AppendLine("Set db = Client.OpenDatabase(""$($macroContext['ActiveDatabase'])"")")
+        $sb.AppendLine("' Summarization: Group by $summaryFields")
+        $sb.AppendLine("Set db = Client.CurrentDatabase()")
         $sb.AppendLine("Set task = db.Summarization")
+        $sb.AppendLine("")
         
         # Add grouping fields
         if ($summaryFields) {
-            $sb.AppendLine("task.AddFieldToSummarize ""$summaryFields""")
+            foreach ($field in ($summaryFields -split ',')) {
+                $field = $field.Trim()
+                if ($field) {
+                    $sb.AppendLine("task.AddFieldToSummarize ""$field""")
+                }
+            }
         }
         
         # Add total fields if specified
         if ($totalFields -and $totalFields -ne "") {
-            $sb.AppendLine("task.AddFieldToTotal ""$totalFields""")
+            foreach ($field in ($totalFields -split ',')) {
+                $field = $field.Trim()
+                if ($field) {
+                    $sb.AppendLine("task.AddFieldToTotal ""$field""")
+                }
+            }
         }
         
         # Set output database
+        $sb.AppendLine("")
         $sb.AppendLine("task.OutputDBName = ""$outputDb""")
+        $sb.AppendLine("task.CreatePercentage = False")
+        $sb.AppendLine("")
         
         # Execute the task
-        $sb.AppendLine("task.CreatePercentage = False")
-        $sb.AppendLine("task.AppendDB = True")
-        $sb.AppendLine("dbName = task.Run()")
+        $sb.AppendLine("' Execute summarization")
+        $sb.AppendLine("task.PerformTask")
         $sb.AppendLine("Set db = Nothing")
         $sb.AppendLine("Set task = Nothing")
         

@@ -1,106 +1,79 @@
 # EventBusMonitor.ps1 - Dialog for monitoring EventBus activity
 
-class EventBusMonitor : Screen {
-    [TextBox]$InfoDisplay
-    [Button]$RefreshButton
-    [Button]$ToggleHistoryButton
-    [Button]$ToggleDebugButton
-    [Button]$ClearHistoryButton
-    [Button]$CloseButton
+class EventBusMonitor : BaseDialog {
+    [MinimalTextBox]$InfoDisplay
+    [MinimalButton]$RefreshButton
+    [MinimalButton]$ToggleHistoryButton
+    [MinimalButton]$ToggleDebugButton
+    [MinimalButton]$ClearHistoryButton
     [EventBus]$EventBus
     hidden [System.Timers.Timer]$RefreshTimer
     
-    EventBusMonitor() : base() {
-        $this.Title = "EventBus Monitor"
+    EventBusMonitor() : base("EventBus Monitor") {
+        $this.DialogWidth = 70
+        $this.DialogHeight = 20
+        $this.PrimaryButtonText = "Close"
+        $this.SecondaryButtonText = $null  # No secondary button
     }
     
-    [void] OnInitialize() {
+    [void] InitializeContent() {
         # Get EventBus
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
         
         # Create info display
-        $this.InfoDisplay = [TextBox]::new()
+        $this.InfoDisplay = [MinimalTextBox]::new()
         $this.InfoDisplay.ReadOnly = $true
-        $this.InfoDisplay.ShowBorder = $true
+        $this.InfoDisplay.ShowBorder = $false  # Dialog provides the border
         $this.InfoDisplay.Text = "Loading EventBus information..."
-        $this.InfoDisplay.Initialize($global:ServiceContainer)
-        $this.AddChild($this.InfoDisplay)
+        $this.InfoDisplay.Height = 10  # Multi-line display
+        $this.AddContentControl($this.InfoDisplay, 10)
         
         # Create buttons
-        $this.RefreshButton = [Button]::new("Refresh")
-        $this.RefreshButton.OnClick = { $this.RefreshInfo() }
-        $this.RefreshButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.RefreshButton)
+        $this.RefreshButton = [MinimalButton]::new("Refresh", "r")
+        $this.RefreshButton.OnClick = { $this.RefreshInfo() }.GetNewClosure()
+        $this.AddContentControl($this.RefreshButton, 1)
         
-        $this.ToggleHistoryButton = [Button]::new("Toggle History")
-        $this.ToggleHistoryButton.OnClick = { $this.ToggleHistory() }
-        $this.ToggleHistoryButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.ToggleHistoryButton)
+        $this.ToggleHistoryButton = [MinimalButton]::new("Toggle History", "h")
+        $this.ToggleHistoryButton.OnClick = { $this.ToggleHistory() }.GetNewClosure()
+        $this.AddContentControl($this.ToggleHistoryButton, 1)
         
-        $this.ToggleDebugButton = [Button]::new("Toggle Debug")
-        $this.ToggleDebugButton.OnClick = { $this.ToggleDebug() }
-        $this.ToggleDebugButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.ToggleDebugButton)
+        $this.ToggleDebugButton = [MinimalButton]::new("Toggle Debug", "d")
+        $this.ToggleDebugButton.OnClick = { $this.ToggleDebug() }.GetNewClosure()
+        $this.AddContentControl($this.ToggleDebugButton, 1)
         
-        $this.ClearHistoryButton = [Button]::new("Clear History")
-        $this.ClearHistoryButton.OnClick = { $this.ClearHistory() }
-        $this.ClearHistoryButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.ClearHistoryButton)
+        $this.ClearHistoryButton = [MinimalButton]::new("Clear History", "c")
+        $this.ClearHistoryButton.OnClick = { $this.ClearHistory() }.GetNewClosure()
+        $this.AddContentControl($this.ClearHistoryButton, 1)
         
-        $this.CloseButton = [Button]::new("Close")
-        $this.CloseButton.IsDefault = $true
-        $this.CloseButton.OnClick = { 
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        }
-        $this.CloseButton.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CloseButton)
-        
-        # Key bindings
-        $this.BindKey([System.ConsoleKey]::Escape, { 
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Pop()
-            }
-        })
-        $this.BindKey('r', { $this.RefreshInfo() })
-        $this.BindKey('h', { $this.ToggleHistory() })
-        $this.BindKey('d', { $this.ToggleDebug() })
-        $this.BindKey('c', { $this.ClearHistory() })
-        $this.BindKey([System.ConsoleKey]::Tab, { $this.FocusNext() })
+        # Primary button handler (Close)
+        $this.OnPrimary = {
+            # Just close the dialog
+        }.GetNewClosure()
         
         # Initial refresh
         $this.RefreshInfo()
-        
-        # Focus on close button
-        $this.CloseButton.Focus()
     }
     
-    [void] OnBoundsChanged() {
-        # Layout components
-        $padding = 2
-        $buttonHeight = 3
-        $buttonWidth = 20
-        $buttonSpacing = 2
-        
-        # Info display takes most of the space
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Position info display
         $this.InfoDisplay.SetBounds(
-            $this.X + $padding,
-            $this.Y + $padding,
-            $this.Width - ($padding * 2),
-            $this.Height - $buttonHeight - ($padding * 3)
+            $dialogX + $this.DialogPadding,
+            $dialogY + 2,
+            $this.DialogWidth - ($this.DialogPadding * 2),
+            10
         )
         
-        # Buttons at the bottom
-        $totalButtonWidth = ($buttonWidth * 5) + ($buttonSpacing * 4)
-        $buttonStartX = $this.X + [int](($this.Width - $totalButtonWidth) / 2)
-        $buttonY = $this.Y + $this.Height - $buttonHeight - $padding
+        # Position buttons horizontally below info display
+        $buttonY = $dialogY + 13
+        $buttonWidth = 15
+        $buttonSpacing = 2
+        $totalButtonWidth = ($buttonWidth * 4) + ($buttonSpacing * 3)
+        $buttonStartX = $dialogX + [int](($this.DialogWidth - $totalButtonWidth) / 2)
         
-        $this.RefreshButton.SetBounds($buttonStartX, $buttonY, $buttonWidth, $buttonHeight)
-        $this.ToggleHistoryButton.SetBounds($buttonStartX + $buttonWidth + $buttonSpacing, $buttonY, $buttonWidth, $buttonHeight)
-        $this.ToggleDebugButton.SetBounds($buttonStartX + ($buttonWidth + $buttonSpacing) * 2, $buttonY, $buttonWidth, $buttonHeight)
-        $this.ClearHistoryButton.SetBounds($buttonStartX + ($buttonWidth + $buttonSpacing) * 3, $buttonY, $buttonWidth, $buttonHeight)
-        $this.CloseButton.SetBounds($buttonStartX + ($buttonWidth + $buttonSpacing) * 4, $buttonY, $buttonWidth, $buttonHeight)
+        $this.RefreshButton.SetBounds($buttonStartX, $buttonY, $buttonWidth, 1)
+        $this.ToggleHistoryButton.SetBounds($buttonStartX + $buttonWidth + $buttonSpacing, $buttonY, $buttonWidth, 1)
+        $this.ToggleDebugButton.SetBounds($buttonStartX + ($buttonWidth + $buttonSpacing) * 2, $buttonY, $buttonWidth, 1)
+        $this.ClearHistoryButton.SetBounds($buttonStartX + ($buttonWidth + $buttonSpacing) * 3, $buttonY, $buttonWidth, 1)
     }
     
     [void] RefreshInfo() {
@@ -150,21 +123,4 @@ class EventBusMonitor : Screen {
         }
     }
     
-    [void] FocusNext() {
-        $focusableChildren = @($this.RefreshButton, $this.ToggleHistoryButton, 
-                              $this.ToggleDebugButton, $this.ClearHistoryButton, 
-                              $this.CloseButton)
-        
-        $currentIndex = -1
-        for ($i = 0; $i -lt $focusableChildren.Count; $i++) {
-            if ($focusableChildren[$i].IsFocused) {
-                $currentIndex = $i
-                break
-            }
-        }
-        
-        # Move to next
-        $nextIndex = ($currentIndex + 1) % $focusableChildren.Count
-        $focusableChildren[$nextIndex].Focus()
-    }
 }

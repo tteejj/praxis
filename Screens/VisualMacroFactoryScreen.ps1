@@ -13,6 +13,7 @@ class VisualMacroFactoryScreen : Screen {
     [CommandService]$CommandService
     [EventBus]$EventBus
     [ShortcutManager]$ShortcutManager
+    [MacroService]$MacroService
     
     # Available actions
     [System.Collections.ArrayList]$AvailableActions
@@ -35,6 +36,7 @@ class VisualMacroFactoryScreen : Screen {
         $this.FunctionRegistry = [FunctionRegistry]::new()
         $this.FunctionRegistry.SetCommandService($this.CommandService)
         $this.ContextManager.SetFunctionRegistry($this.FunctionRegistry)
+        $this.MacroService = [MacroService]::new()
         
         # Create UI components
         $this.CreateComponentLibrary()
@@ -82,10 +84,11 @@ class VisualMacroFactoryScreen : Screen {
         }
         
         # Handle double-click to add action
-        $this.ComponentLibrary.OnItemActivated = {
-            param($action)
-            $this.AddActionToSequence($action)
-        }.GetNewClosure()
+        # TODO: Implement OnItemActivated in SearchableListBox or handle differently
+        # $this.ComponentLibrary.OnItemActivated = {
+        #     param($action)
+        #     $this.AddActionToSequence($action)
+        # }.GetNewClosure()
         
         $this.ComponentLibrary.Initialize($this.ServiceContainer)
         $this.AddChild($this.ComponentLibrary)
@@ -104,7 +107,16 @@ class VisualMacroFactoryScreen : Screen {
             @{ Name = "Step"; Width = 6; Alignment = "Center" },
             @{ Name = "Action"; Width = 20; Alignment = "Left" },
             @{ Name = "Description"; Width = 30; Alignment = "Left" },
-            @{ Name = "Status"; Width = 10; Alignment = "Center" }
+            @{ Name = "Status"; Width = 15; Alignment = "Center";
+                Formatter = { param($value)
+                    if ($value -match "✅") {
+                        return "`e[32m$value`e[0m" # Green
+                    } elseif ($value -match "⚠️") {
+                        return "`e[33m$value`e[0m" # Yellow
+                    }
+                    return $value
+                }
+            }
         )
         $this.MacroSequence.SetColumns($columns)
         
@@ -113,6 +125,12 @@ class VisualMacroFactoryScreen : Screen {
         
         $this.MacroSequence.Initialize($this.ServiceContainer)
         $this.AddChild($this.MacroSequence)
+        
+        # Handle double-click/Enter to edit action properties
+        # TODO: Implement OnItemActivated in MinimalDataGrid or handle differently
+        # $this.MacroSequence.OnItemActivated = {
+        #     $this.EditSelectedAction()
+        # }.GetNewClosure()
     }
     
     [void] CreateContextPanel() {
@@ -143,6 +161,21 @@ class VisualMacroFactoryScreen : Screen {
     
     [void] RegisterShortcuts() {
         if (-not $this.ShortcutManager) { return }
+        
+        # Enter: Edit selected action properties
+        $this.ShortcutManager.RegisterShortcut(@{
+            Id = "macro_factory_edit_action"
+            Name = "Edit Action"
+            Description = "Edit properties of selected action"
+            Key = [System.ConsoleKey]::Enter
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "VisualMacroFactoryScreen"
+            Action = {
+                if ($this.MacroSequence.IsFocused) {
+                    $this.EditSelectedAction()
+                }
+            }.GetNewClosure()
+        })
         
         # Delete: Remove selected action from sequence
         $this.ShortcutManager.RegisterShortcut(@{
@@ -288,9 +321,9 @@ class VisualMacroFactoryScreen : Screen {
             $action = $this.ContextManager.Actions[$i]
             $context = $this.ContextManager.GetContextAtStep($i)
             
-            # Check if action requirements are met
-            $isValid = $action.ValidateContext($context)
-            $status = if ($isValid) { "✅ Ready" } else { "⚠️ Issues" }
+            # Get detailed validation status
+            $statusInfo = $action.GetValidationStatus($context)
+            $status = $statusInfo.Message
             
             $rows += @{
                 Step = ($i + 1).ToString()
@@ -339,13 +372,27 @@ class VisualMacroFactoryScreen : Screen {
         try {
             $script = $this.ContextManager.GenerateScript()
             
-            # TODO: Show script in a dialog or new screen
-            # For now, just log the script
-            if ($global:Logger) {
-                $global:Logger.Info("Generated Script: $script")
+            # Show script in preview dialog
+            $previewDialog = [ScriptPreviewDialog]::new($script)
+            $previewDialog.Initialize($this.ServiceContainer)
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($previewDialog)
             }
             
         } catch {
+            # Show error in confirmation dialog
+            $errorMessage = "Script Generation Error:`n`n$($_.Exception.Message)"
+            $errorDialog = [ConfirmationDialog]::new($errorMessage)
+            $errorDialog.Title = "Error"
+            $errorDialog.ShowCancel = $false
+            $errorDialog.ConfirmText = "OK"
+            $errorDialog.Initialize($this.ServiceContainer)
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($errorDialog)
+            }
+            
             if ($global:Logger) {
                 $global:Logger.Error("Script Generation Error: $($_.Exception.Message)")
             }
@@ -353,16 +400,136 @@ class VisualMacroFactoryScreen : Screen {
     }
     
     [void] SaveMacro() {
-        # TODO: Implement macro saving to file
-        if ($global:Logger) {
-            $global:Logger.Info("Save Macro: Not yet implemented")
+        try {
+            # Create text input dialog for macro name
+            $nameDialog = [TextInputDialog]::new()
+            $nameDialog.Title = "Save Macro"
+            $nameDialog.Prompt = "Enter macro name:"
+            $nameDialog.Initialize($this.ServiceContainer)
+            
+            $screen = $this
+            $nameDialog.OnConfirm = {
+                param($macroName)
+                
+                if ([string]::IsNullOrWhiteSpace($macroName)) {
+                    return
+                }
+                
+                # Get description
+                $descDialog = [TextInputDialog]::new()
+                $descDialog.Title = "Macro Description"
+                $descDialog.Prompt = "Enter description (optional):"
+                $descDialog.Initialize($screen.ServiceContainer)
+                
+                $descDialog.OnConfirm = {
+                    param($description)
+                    
+                    try {
+                        # Save the macro
+                        $screen.MacroService.SaveMacro($macroName, $screen.ContextManager, $description)
+                        
+                        # Show success message
+                        $successDialog = [ConfirmationDialog]::new("Macro saved successfully!")
+                        $successDialog.Title = "Success"
+                        $successDialog.ShowCancel = $false
+                        $successDialog.ConfirmText = "OK"
+                        $successDialog.Initialize($screen.ServiceContainer)
+                        
+                        $global:ScreenManager.Push($successDialog)
+                    } catch {
+                        $errorDialog = [ConfirmationDialog]::new("Failed to save macro:`n$_")
+                        $errorDialog.Title = "Error"
+                        $errorDialog.ShowCancel = $false
+                        $errorDialog.ConfirmText = "OK"
+                        $errorDialog.Initialize($screen.ServiceContainer)
+                        
+                        $global:ScreenManager.Push($errorDialog)
+                    }
+                }.GetNewClosure()
+                
+                $global:ScreenManager.Push($descDialog)
+            }.GetNewClosure()
+            
+            $global:ScreenManager.Push($nameDialog)
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("SaveMacro error: $_")
+            }
         }
     }
     
     [void] OpenMacro() {
-        # TODO: Implement macro loading from file
-        if ($global:Logger) {
-            $global:Logger.Info("Open Macro: Not yet implemented")
+        try {
+            # Get available macros
+            $macros = $this.MacroService.GetAvailableMacros()
+            
+            if ($macros.Count -eq 0) {
+                $dialog = [ConfirmationDialog]::new("No saved macros found.")
+                $dialog.Title = "Open Macro"
+                $dialog.ShowCancel = $false
+                $dialog.ConfirmText = "OK"
+                $dialog.Initialize($this.ServiceContainer)
+                $global:ScreenManager.Push($dialog)
+                return
+            }
+            
+            # Create selection dialog
+            $selectDialog = [SelectionDialog]::new()
+            $selectDialog.Title = "Open Macro"
+            $selectDialog.Prompt = "Select a macro to open:"
+            $selectDialog.Initialize($this.ServiceContainer)
+            
+            # Format macro list
+            $items = @()
+            foreach ($macro in $macros) {
+                $items += @{
+                    Display = "$($macro.Name) - $($macro.Description)"
+                    Value = $macro.Filename
+                    Macro = $macro
+                }
+            }
+            
+            $selectDialog.SetItems($items)
+            $selectDialog.ItemRenderer = { param($item) $item.Display }
+            
+            $screen = $this
+            $selectDialog.OnSelect = {
+                param($item)
+                
+                try {
+                    # Load the macro
+                    $newContextManager = $screen.MacroService.LoadMacro($item.Value)
+                    
+                    # Replace current context
+                    $screen.ContextManager = $newContextManager
+                    $screen.ContextManager.SetFunctionRegistry($screen.FunctionRegistry)
+                    
+                    # Update UI
+                    $screen.SelectedSequenceIndex = -1
+                    $screen.UpdateMacroSequence()
+                    $screen.UpdateContextPanel()
+                    
+                    if ($global:Logger) {
+                        $global:Logger.Info("Loaded macro: $($item.Macro.Name)")
+                    }
+                } catch {
+                    $errorDialog = [ConfirmationDialog]::new("Failed to load macro:`n$_")
+                    $errorDialog.Title = "Error"
+                    $errorDialog.ShowCancel = $false
+                    $errorDialog.ConfirmText = "OK"
+                    $errorDialog.Initialize($screen.ServiceContainer)
+                    
+                    $global:ScreenManager.Push($errorDialog)
+                }
+            }.GetNewClosure()
+            
+            $global:ScreenManager.Push($selectDialog)
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("OpenMacro error: $_")
+            }
         }
     }
     
@@ -373,8 +540,42 @@ class VisualMacroFactoryScreen : Screen {
         $this.UpdateContextPanel()
     }
     
-    # Note: We could track selection changes here if needed, but for now
-    # we'll update context when actions are explicitly performed
+    # Override to provide help text
+    [string] GetHelpText() {
+        return @"
+# Visual Macro Factory Help
+
+Build IDEA macros visually by combining actions in sequence.
+
+## Navigation
+Tab               - Switch between panes
+Arrow Keys        - Navigate within lists
+Enter             - Edit action properties / Add action
+
+## Component Library (Left Pane)
+Double-click      - Add action to sequence
+Search            - Filter available actions
+
+## Macro Sequence (Center Pane)
+Enter             - Edit action properties
+Delete            - Remove selected action
+Ctrl+Up/Down      - Move action in sequence
+
+## Shortcuts
+F5                - Preview generated script
+Ctrl+S            - Save macro
+Ctrl+O            - Open saved macro
+Ctrl+N            - New macro (clear)
+
+## Status Indicators
+✅ Ready          - Action configured and ready
+⚠️ Configure      - Action needs configuration
+⚠️ Missing        - Required context missing
+
+---
+Press ESC to close help
+"@
+    }
     
     [void] OnBoundsChanged() {
         if ($global:Logger) {
@@ -413,5 +614,44 @@ class VisualMacroFactoryScreen : Screen {
         if ($this.ContextPanel) {
             $this.ContextPanel.SetBounds($leftWidth + $centerWidth, 1, $rightWidth, $contentHeight)
         }
+    }
+    
+    [void] EditSelectedAction() {
+        if (-not $this.MacroSequence) { return }
+        
+        $selectedIndex = $this.MacroSequence.SelectedIndex
+        if ($selectedIndex -lt 0 -or $selectedIndex -ge $this.ContextManager.Actions.Count) { 
+            return 
+        }
+        
+        $action = $this.ContextManager.Actions[$selectedIndex]
+        if (-not $action) { return }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("VisualMacroFactoryScreen.EditSelectedAction: Editing action $($action.Name) at index $selectedIndex")
+        }
+        
+        # Create and show the properties dialog
+        $dialog = [ActionPropertiesDialog]::new($action)
+        
+        # After the dialog closes, refresh the UI to reflect changes
+        $originalOnPrimary = $dialog.OnPrimary
+        $screen = $this
+        $dialog.OnPrimary = {
+            # Call the original handler first
+            if ($originalOnPrimary) {
+                & $originalOnPrimary
+            }
+            
+            # Then update our UI
+            $screen.UpdateMacroSequence()
+            $screen.UpdateContextPanel()
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("VisualMacroFactoryScreen: Updated after editing action")
+            }
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($dialog)
     }
 }
