@@ -239,7 +239,7 @@ class RangerFileTree : Container {
         $sb.Append($baseRender)
         
         if ($this.Theme) {
-            $borderColor = $this.Theme.GetColor('border')
+            $borderColor = $this.Theme.GetColor('border.normal')
             $sb.Append($borderColor)
             
             # Draw vertical separator between parent and current panes
@@ -267,8 +267,7 @@ class RangerFileTree : Container {
             $sb.Append('┬')  # Top T-junction
             $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y + $this.Height - 1))
             $sb.Append('┴')  # Bottom T-junction
-            
-            $sb.Append([VT]::Reset())
+
         }
         
         # If we have marked files, show indicator in status area
@@ -282,7 +281,7 @@ class RangerFileTree : Container {
                 $sb.Append([VT]::MoveTo($x, $y))
                 $sb.Append($markColor)
                 $sb.Append(" [$($this.MarkedFiles.Count) marked] ")
-                $sb.Append([VT]::Reset())
+                
             }
         }
         
@@ -512,38 +511,52 @@ class RangerFileTree : Container {
     }
     
     [void] ShowDeleteConfirmation([string[]]$paths) {
-        # Create confirmation dialog
-        [string]$message = "Delete " + $paths.Count.ToString() + " "
-        if ($paths.Count -eq 1) {
-            $message += "item?"
-        } else {
-            $message += "items?"
-        }
+        # Create simple confirmation dialog with safe late binding
+        $message = "Delete $($paths.Count) item(s)? This will move them to recycle bin."
         
         # Use late binding to avoid type loading issues
-        $dialogType = [type]"ConfirmationDialog"
+        $dialogType = $null
+        try {
+            $dialogType = Get-TypeData -TypeName "ConfirmationDialog" -ErrorAction SilentlyContinue
+            if (-not $dialogType) {
+                # Try alternative method
+                $dialogType = [System.Type]::GetType("ConfirmationDialog")
+            }
+        } catch {
+            # Type not available yet
+        }
+        
         if (-not $dialogType) {
             $this.ShowOperationFeedback("Delete confirmation dialog not available")
             return
         }
         
-        $dialog = $dialogType::new("Confirm Delete", $message)
-        $screenManager = $this.ServiceContainer.GetService("ScreenManager")
-        $screenManager.Push($dialog)
-        
-        # Handle dialog result
-        $ranger = $this
-        $dialog.OnConfirm = {
-            $result = $ranger.FileOperationService.DeleteItems($paths, $true)
-            $ranger.ShowOperationFeedback($result.Message)
-            if ($result.Success) {
-                # Clear marked files if any were deleted
-                foreach ($path in $paths) {
-                    $ranger.MarkedFiles.Remove($path) | Out-Null
+        try {
+            $dialog = New-Object -TypeName "ConfirmationDialog" -ArgumentList $message
+            $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+            $screenManager.Push($dialog)
+            
+            # Handle dialog result
+            $ranger = $this
+            $dialog.OnConfirm = {
+                $result = $ranger.FileOperationService.DeleteItems($paths, $true)
+                $ranger.ShowOperationFeedback($result.Message)
+                if ($result.Success) {
+                    # Clear marked files if any were deleted
+                    foreach ($path in $paths) {
+                        $ranger.MarkedFiles.Remove($path) | Out-Null
+                    }
+                    $ranger.RefreshCurrentPane()
                 }
-                $ranger.RefreshCurrentPane()
-            }
-        }.GetNewClosure()
+            }.GetNewClosure()
+            
+            $dialog.OnCancel = {
+                $ranger.ShowOperationFeedback("Delete cancelled")
+            }.GetNewClosure()
+            
+        } catch {
+            $this.ShowOperationFeedback("Failed to create delete confirmation dialog: $($_.Exception.Message)")
+        }
     }
     
 }

@@ -87,8 +87,8 @@ class MinimalModal : Screen {
             $this._colors = @{
                 modalBg = $this.Theme.GetBgColor('menu.background')
                 border = $this.Theme.GetColor('border.focused')
-                title = $this.Theme.GetColor('accent')
-                text = $this.Theme.GetColor('normal')
+                title = $this.Theme.GetColor('color.primary')
+                text = $this.Theme.GetColor('text.primary')
             }
             
             if ($this.ModalContainer) {
@@ -327,8 +327,7 @@ class ConfirmModal : MinimalModal {
                 $sb.Append($line)
                 $y++
             }
-            $sb.Append([VT]::Reset())
-            
+
             $result = $sb.ToString()
             Return-PooledStringBuilder $sb
             return $result

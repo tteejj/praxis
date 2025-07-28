@@ -43,16 +43,16 @@ class ListBox : UIElement {
         # Cache colors on theme change
         if ($this.Theme) {
             $this._colors = @{
-                "accent" = $this.Theme.GetColor("accent")
-                "foreground" = $this.Theme.GetColor("foreground")
-                "selection.bg" = $this.Theme.GetBgColor("selection")
-                "selection.fg" = $this.Theme.GetColor("menu.selected.foreground")
-                "border" = $this.Theme.GetColor("border")
+                "accent" = $this.Theme.GetColor('color.primary')
+                "foreground" = $this.Theme.GetColor('text.primary')
+                "selection.bg" = $this.Theme.GetBgColor("state.selected")
+                "selection.fg" = $this.Theme.GetColor("menu.text.selected")
+                "border" = $this.Theme.GetColor('border.normal')
                 "border.focused" = $this.Theme.GetColor("border.focused")
-                "scrollbar" = $this.Theme.GetColor("scrollbar")
+                "scrollbar" = $this.Theme.GetColor("scrollbar.track")
                 "scrollbar.thumb" = $this.Theme.GetColor("scrollbar.thumb")
-                "disabled" = $this.Theme.GetColor("disabled")
-                "background" = $this.Theme.GetBgColor("background")
+                "disabled" = $this.Theme.GetColor('text.disabled')
+                "background" = $this.Theme.GetBgColor('surface.background')
             }
         }
         $this._dataVersion++  # Increment for theme change
@@ -188,6 +188,13 @@ class ListBox : UIElement {
             
             $sb.Append([VT]::MoveTo($contentX, $itemY))
             
+            # Clear row with theme background
+            $bgColor = $this._colors["background"]
+            $rowWidth = $contentWidth + 2
+            $sb.Append($bgColor)
+            $sb.Append(" " * $rowWidth)
+            $sb.Append([VT]::MoveTo($contentX, $itemY))
+            
             # Selection highlighting
             if ($i -eq $this.SelectedIndex) {
                 if ($this.IsFocused) {
@@ -198,6 +205,8 @@ class ListBox : UIElement {
                 }
                 $sb.Append("> ")
             } else {
+                $sb.Append($this._colors["background"])
+                $sb.Append($this._colors["foreground"])
                 $sb.Append("  ")
             }
             
@@ -209,7 +218,7 @@ class ListBox : UIElement {
                 if ($remainingSpace -gt 0) {
                     $sb.Append([StringCache]::GetSpaces($remainingSpace))
                 }
-                $sb.Append([VT]::Reset())
+                
             }
             
             $itemY++
@@ -225,7 +234,7 @@ class ListBox : UIElement {
                 $sb.Append([VT]::MoveTo($contentX, $itemY))
                 $sb.Append($bgColor)
                 $sb.Append($clearLine)
-                $sb.Append([VT]::Reset())
+                
                 $itemY++
             }
         }
@@ -234,8 +243,7 @@ class ListBox : UIElement {
         if ($this.ShowScrollbar -and $this.Items.Count -gt $this.VisibleItems) {
             $this.DrawScrollbar($sb)
         }
-        
-        $sb.Append([VT]::Reset())
+
         $this._cachedItems = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
         $this._itemsCacheInvalid = $false
@@ -264,7 +272,7 @@ class ListBox : UIElement {
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
         $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
-        $sb.Append([VT]::Reset())
+        
     }
     
     [void] DrawScrollbar([System.Text.StringBuilder]$sb) {

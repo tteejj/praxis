@@ -54,14 +54,14 @@ class MinimalDataGrid : FocusableComponent {
     [void] UpdateColors() {
         if ($this.Theme) {
             $this._colors = @{
-                header = $this.Theme.GetColor('header.foreground')
-                headerBg = $this.Theme.GetBgColor('header.background')
-                normal = $this.Theme.GetColor('normal')
-                selected = $this.Theme.GetColor('menu.selected.foreground')
-                selectedBg = $this.Theme.GetBgColor('menu.selected.background')
-                alternate = $this.Theme.GetColor('disabled')
-                border = $this.Theme.GetColor('border')
-                accent = $this.Theme.GetColor('accent')
+                header = $this.Theme.GetColor('list.header.text')
+                headerBg = $this.Theme.GetBgColor('list.header.background')
+                normal = $this.Theme.GetColor('text.primary')
+                selected = $this.Theme.GetColor('menu.text.selected')
+                selectedBg = $this.Theme.GetBgColor('menu.background.selected')
+                alternate = $this.Theme.GetColor('text.disabled')
+                border = $this.Theme.GetColor('border.normal')
+                accent = $this.Theme.GetColor('color.primary')
             }
         }
     }
@@ -251,6 +251,14 @@ class MinimalDataGrid : FocusableComponent {
         
         $sb.Append([VT]::MoveTo($x, $y))
         
+        # Clear the entire row first with theme background
+        $bgColor = $this.Theme.GetBgColor('surface.background')
+        $rowWidth = $this.Width - 2
+        if ($this.BorderType -ne [BorderType]::None) { $rowWidth -= 2 }
+        $sb.Append($bgColor)
+        $sb.Append(' ' * $rowWidth)
+        $sb.Append([VT]::MoveTo($x, $y))
+        
         # Row selection
         if ($index -eq $this.SelectedIndex) {
             $sb.Append($this._colors.selectedBg)
@@ -261,6 +269,8 @@ class MinimalDataGrid : FocusableComponent {
                 $sb.Append('  ')
             }
         } else {
+            # Ensure background color for normal rows
+            $sb.Append($bgColor)
             # Alternate row colors
             if ($this.AlternateRowColors -and ($index % 2 -eq 1)) {
                 $sb.Append($this._colors.alternate)
@@ -320,8 +330,6 @@ class MinimalDataGrid : FocusableComponent {
         if ($remainingWidth -gt 0) {
             $sb.Append(' ' * $remainingWidth)
         }
-        
-        $sb.Append([VT]::Reset())
     }
     
     [void] RebuildHeader([int]$startY) {
@@ -376,8 +384,6 @@ class MinimalDataGrid : FocusableComponent {
             $sb.Append(' ' * $remainingWidth)
         }
         
-        $sb.Append([VT]::Reset())
-        
         # Separator line - just a simple line, no T-junctions
         $sb.Append([VT]::MoveTo($x, $y + 1))
         $sb.Append($this._colors.border)
@@ -390,7 +396,6 @@ class MinimalDataGrid : FocusableComponent {
         if ($separatorWidth -gt 0) {
             $sb.Append('─' * $separatorWidth)
         }
-        $sb.Append([VT]::Reset())
         
         $this._cachedHeader = $sb.ToString()
         Return-PooledStringBuilder $sb
@@ -420,8 +425,6 @@ class MinimalDataGrid : FocusableComponent {
                 $sb.Append('│')
             }
         }
-        
-        $sb.Append([VT]::Reset())
     }
     
     [void] EnsureSelectedVisible() {

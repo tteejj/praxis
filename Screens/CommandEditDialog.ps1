@@ -250,32 +250,27 @@ class CommandEditDialog : BaseDialog {
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.TitleBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Title:")
-        $sb.Append([VT]::Reset())
-        
+
         # Description label
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.DescriptionBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Description:")
-        $sb.Append([VT]::Reset())
-        
+
         # Tags label
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.TagsBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Tags:")
-        $sb.Append([VT]::Reset())
-        
+
         # Group label
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.GroupBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Group:")
-        $sb.Append([VT]::Reset())
-        
+
         # Command label
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.CommandBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Command (Required):")
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

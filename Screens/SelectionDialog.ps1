@@ -86,11 +86,9 @@ class SelectionDialog : BaseDialog {
         $promptY = $this._dialogBounds.Y + 1
         
         $sb.Append([VT]::MoveTo($promptX, $promptY))
-        $sb.Append($this.Theme.GetColor("normal"))
+        $sb.Append($this.Theme.GetColor('text.primary'))
         $sb.Append($this.Prompt)
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

@@ -167,21 +167,20 @@ class FastFileTree : UIElement {
     [void] OnThemeChanged() {
         if ($this.Theme) {
             $this._colors = @{
-                'border' = $this.Theme.GetColor("border")
-                'title' = $this.Theme.GetColor("title")
-                'selection' = $this.Theme.GetBgColor("selection")
-                'normal' = $this.Theme.GetColor("normal")
-                'directory' = $this.Theme.GetColor("directory")
-                'file' = $this.Theme.GetColor("file")
+                'border' = $this.Theme.GetColor('border.normal')
+                'title' = $this.Theme.GetColor('text.heading')
+                'selection' = $this.Theme.GetBgColor("state.selected")
+                'normal' = $this.Theme.GetColor('text.primary')
+                'directory' = $this.Theme.GetColor("file.directory")
+                'file' = $this.Theme.GetColor("file.normal")
                 'border.focused' = $this.Theme.GetColor("border.focused")
-                'foreground' = $this.Theme.GetColor("foreground")
-                'background' = $this.Theme.GetBgColor("background")
+                'foreground' = $this.Theme.GetColor('text.primary')
+                'background' = $this.Theme.GetBgColor('surface.background')
             }
         }
         $this.Invalidate()
     }
-    
-    
+
     # Public API
     [void] LoadDirectory([string]$path) {
         if (-not (Test-Path $path -PathType Container)) {
@@ -566,8 +565,7 @@ class FastFileTree : UIElement {
             $sb.Append($currentBorderColor)
             $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
-        
-        $sb.Append([VT]::Reset())
+
         $result = $sb.ToString()
         if (Get-Command -Name 'Return-PooledStringBuilder' -ErrorAction SilentlyContinue) {
             Return-PooledStringBuilder $sb  # Return to pool for reuse

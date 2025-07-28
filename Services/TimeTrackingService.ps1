@@ -275,4 +275,20 @@ class TimeTrackingService {
         }
         $this.SaveData()
     }
+    
+    # Delete a time entry
+    [void] DeleteTimeEntry([TimeEntry]$entry) {
+        if (-not $entry) { return }
+        
+        # Remove from collection
+        $this.TimeEntries.Remove($entry) | Out-Null
+        
+        # Save changes
+        $this.SaveData()
+        
+        # Publish event
+        if ($this.EventBus) {
+            $this.EventBus.Publish([EventNames]::TimeEntryDeleted, @{ TimeEntry = $entry })
+        }
+    }
 }

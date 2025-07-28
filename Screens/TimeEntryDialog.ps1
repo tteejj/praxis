@@ -41,8 +41,8 @@ class TimeEntryDialog : BaseDialog {
     [void] InitializeContent() {
         # Create input fields
         $this.DateTextBox = [MinimalTextBox]::new()
-        $this.DateTextBox.Title = "Date (MM/DD/YYYY)"
         $this.DateTextBox.ShowBorder = $true
+        $this.DateTextBox.Placeholder = "Date (MM/DD/YYYY)"
         
         # Set default date to today
         if (-not $this.IsEditMode) {
@@ -58,15 +58,14 @@ class TimeEntryDialog : BaseDialog {
         }
         
         $this.HoursTextBox = [MinimalTextBox]::new()
-        $this.HoursTextBox.Title = "Hours (e.g., 8.5)"
         $this.HoursTextBox.ShowBorder = $true
+        $this.HoursTextBox.Placeholder = "Hours (e.g., 8.5)"
         
         if ($this.IsEditMode -and $this.TimeEntry.Total) {
             $this.HoursTextBox.Text = $this.TimeEntry.Total
         }
         
         $this.DescriptionTextBox = [MinimalTextBox]::new()
-        $this.DescriptionTextBox.Title = "Description"
         $this.DescriptionTextBox.ShowBorder = $true
         $this.DescriptionTextBox.IsMultiline = $true
         

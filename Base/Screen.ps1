@@ -48,8 +48,17 @@ class Screen : Container {
     
     # Theme change handler
     [void] OnThemeChanged() {
-        # Use background color for screen background
-        $bgColor = $this.Theme.GetBgColor("background")
+        # Use standardized surface background color for screen
+        $bgColor = if ($this.Theme) {
+            # Try standardized key first, fall back to legacy
+            $color = $this.Theme.GetBgColor("surface.background")
+            if (-not $color -or $color -eq "") {
+                $color = $this.Theme.GetBgColor('surface.background')
+            }
+            $color
+        } else {
+            ""
+        }
         $this.SetBackgroundColor($bgColor)
         $this.InvalidateBackground()
         $this.Invalidate()

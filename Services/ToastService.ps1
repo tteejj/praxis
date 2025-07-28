@@ -248,8 +248,7 @@ class ToastService {
         # Bottom border
         $sb.Append([VT]::MoveTo($x, $y + 2))
         $sb.Append("╰─" + ("─" * ($width - 4)) + "─╯")
-        
-        $sb.Append([VT]::Reset())
+
     }
     
     [void] Clear() {

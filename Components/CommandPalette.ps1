@@ -78,9 +78,9 @@ class CommandPalette : Container {
             $this._colors = @{
                 'menu.background' = $this.Theme.GetBgColor("menu.background")
                 'border.focused' = $this.Theme.GetColor("border.focused")
-                'accent' = $this.Theme.GetColor("accent")
-                'foreground' = $this.Theme.GetColor("foreground")
-                'disabled' = $this.Theme.GetColor("disabled")
+                'accent' = $this.Theme.GetColor('color.primary')
+                'foreground' = $this.Theme.GetColor('text.primary')
+                'disabled' = $this.Theme.GetColor('text.disabled')
             }
             $this.SetBackgroundColor($this._colors['menu.background'])
         }
@@ -538,9 +538,7 @@ class CommandPalette : Container {
         $disabledColor = $this._colors['disabled']
         $sb.Append($disabledColor)
         $sb.Append("[Enter] Select  [Esc] Cancel")
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

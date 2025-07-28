@@ -646,7 +646,7 @@ class ProjectDetailScreen : Screen {
         $dialog = [ConfirmationDialog]::new($message)
         
         $screen = $this  # Capture reference for closure
-        $dialog.OnConfirm = {
+        $dialog.OnPrimary = {
             # Remove from local collection
             for ($i = $screen.TimeEntries.Count - 1; $i -ge 0; $i--) {
                 if ($screen.TimeEntries[$i].Date -eq $timeEntry.Date -and

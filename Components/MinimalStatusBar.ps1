@@ -59,11 +59,11 @@ class MinimalStatusBar : UIElement {
     [void] UpdateColors() {
         if ($this.Theme) {
             $this._colors = @{
-                background = $this.Theme.GetBgColor('header.background')
-                text = $this.Theme.GetColor('normal')
-                separator = $this.Theme.GetColor('border')
-                accent = $this.Theme.GetColor('accent')
-                dim = $this.Theme.GetColor('disabled')
+                background = $this.Theme.GetBgColor('list.header.background')
+                text = $this.Theme.GetColor('text.primary')
+                separator = $this.Theme.GetColor('border.normal')
+                accent = $this.Theme.GetColor('color.primary')
+                dim = $this.Theme.GetColor('text.disabled')
             }
         }
     }
@@ -216,8 +216,6 @@ class MinimalStatusBar : UIElement {
         }
         
         # No need to fill remaining space since we cleared the whole line at the beginning
-        
-        $sb.Append([VT]::Reset())
         
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb

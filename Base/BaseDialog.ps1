@@ -298,8 +298,7 @@ class BaseDialog : Screen {
         
         # Render children (content controls and buttons) only within dialog bounds
         $this.RenderDialogChildren($sb)
-        
-        $sb.Append([VT]::Reset())
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
         return $result
@@ -307,7 +306,7 @@ class BaseDialog : Screen {
     
     [void] RenderOverlay([System.Text.StringBuilder]$sb) {
         # Use theme background with slight transparency effect
-        $themeBg = $this.Theme.GetBgColor("background")
+        $themeBg = $this.Theme.GetBgColor('surface.background')
         if ($global:Logger) {
             $global:Logger.Debug("BaseDialog.RenderOverlay: Theme background color: '$themeBg'")
         }

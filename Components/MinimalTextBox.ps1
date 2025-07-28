@@ -44,7 +44,7 @@ class MinimalTextBox : FocusableComponent {
         if ($this.Theme) {
             $this._normalColor = $this.Theme.GetColor('input.foreground')
             $this._placeholderColor = $this.Theme.GetColor('input.placeholder')
-            $this._cursorColor = $this.Theme.GetColor('accent')
+            $this._cursorColor = $this.Theme.GetColor('color.primary')
             if ($global:Logger) {
                 $global:Logger.Debug("MinimalTextBox.UpdateColors: _cursorColor='$($this._cursorColor)', _normalColor='$($this._normalColor)'")
             }
@@ -73,7 +73,7 @@ class MinimalTextBox : FocusableComponent {
         
         # Fill background if focused for better visibility
         if ($this.IsFocused) {
-            $focusBg = $this.Theme.GetBgColor('focus.background')
+            $focusBg = $this.Theme.GetBgColor('state.focused')
             if ($this.Height -eq 1) {
                 # Single line - just fill the line
                 $sb.Append([VT]::MoveTo($this.X, $this.Y))
@@ -187,9 +187,7 @@ class MinimalTextBox : FocusableComponent {
         } else {
             $sb.Append($displayText)
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

@@ -584,9 +584,9 @@ class TextEditorScreen : Screen {
         $sb = Get-PooledStringBuilder 4096  # Text editor can have large content
         
         # Get theme colors
-        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor("background") } else { "" }
-        $fgColor = if ($this.Theme) { $this.Theme.GetColor("foreground") } else { "" }
-        $lineNumColor = if ($this.Theme) { $this.Theme.GetColor("linenumber") } else { $fgColor }
+        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor('surface.background') } else { "" }
+        $fgColor = if ($this.Theme) { $this.Theme.GetColor('text.primary') } else { "" }
+        $lineNumColor = if ($this.Theme) { $this.Theme.GetColor('editor.linenumber') } else { $fgColor }
         $statusBg = if ($this.Theme) { $this.Theme.GetBgColor("status") } else { $bgColor }
         $statusFg = if ($this.Theme) { $this.Theme.GetColor("status.foreground") } else { $fgColor }
         $cursorBg = if ($this.Theme) { $this.Theme.GetBgColor("cursor") } else { $fgColor }
@@ -682,8 +682,7 @@ class TextEditorScreen : Screen {
         }
         $statusText = $statusText.PadRight($this.Width).Substring(0, $this.Width)
         $sb.Append($statusText)
-        
-        $sb.Append([VT]::Reset())
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

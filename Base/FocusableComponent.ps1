@@ -34,24 +34,24 @@ class FocusableComponent : Container {
     [void] UpdateFocusStyle() {
         if (-not $this.Theme -or -not $this.ShowFocusIndicator) { return }
         
-        $focusColor = $this.Theme.GetColor('focus')
+        $focusColor = $this.Theme.GetColor('state.focused')
         $focusBg = $this.Theme.GetColor('focus.background')
         
         switch ($this.FocusStyle) {
             'minimal' {
                 # Subtle underline effect
                 $this._focusPrefix = [VT]::Underline() + $focusColor
-                $this._focusSuffix = [VT]::NoUnderline() + [VT]::Reset()
+                $this._focusSuffix = [VT]::NoUnderline() 
             }
             'border' {
                 # Clean border (handled in render)
                 $this._focusPrefix = $focusColor
-                $this._focusSuffix = [VT]::Reset()
+                $this._focusSuffix = "" 
             }
             'highlight' {
                 # Background highlight
                 $this._focusPrefix = $focusBg + $focusColor
-                $this._focusSuffix = [VT]::Reset()
+                $this._focusSuffix = "" 
             }
         }
     }

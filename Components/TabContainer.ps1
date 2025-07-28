@@ -31,11 +31,12 @@ class TabContainer : Container {
         if ($this.Theme) {
             $this._colors = @{
                 'tab.background' = $this.Theme.GetBgColor("tab.background")
-                'tab.active.background' = $this.Theme.GetBgColor("tab.active.background")
-                'tab.active.foreground' = $this.Theme.GetColor("tab.active.foreground")
-                'tab.active.accent' = $this.Theme.GetColor("tab.active.accent")
-                'tab.foreground' = $this.Theme.GetColor("tab.foreground")
-                'border' = $this.Theme.GetColor("border")
+                'tab.active.background' = $this.Theme.GetBgColor("tab.background.active")
+                'tab.active.foreground' = $this.Theme.GetColor("tab.text.active")
+                'tab.active.accent' = $this.Theme.GetColor("tab.border.active")
+                'tab.foreground' = $this.Theme.GetColor("tab.text")
+                'border' = $this.Theme.GetColor("border.normal")
+                'background' = $this.Theme.GetBgColor("surface.background")
             }
         }
         $this._tabBarInvalid = $true
@@ -125,9 +126,10 @@ class TabContainer : Container {
             $this.PositionContent($newTab.Content, $true)
             $this.AddChild($newTab.Content)
             if ($newTab.Content -is [Screen]) {
-                # Tab content should draw its own background to clear old content
+                # Tab content should draw its own background with theme background
                 $newTab.Content.DrawBackground = $true
-                $newTab.Content.SetBackgroundColor([VT]::Reset())
+                $bgColor = if ($this.Theme) { $this.Theme.GetBgColor("surface.background") } else { "" }
+                $newTab.Content.SetBackgroundColor($bgColor)
                 $newTab.Content.OnActivated()
             }
             # Force the new content to invalidate
@@ -212,8 +214,13 @@ class TabContainer : Container {
     hidden [void] RebuildTabBar() {
         $sb = Get-PooledStringBuilder 1024
         
-        # Tab bar background
+        # Tab bar background - ensure proper background color
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
+        $sb.Append($this._colors['tab.background'])
+        $sb.Append([StringCache]::GetSpaces($this.Width))
+        
+        # Also fill second line of tab bar
+        $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
         $sb.Append($this._colors['tab.background'])
         $sb.Append([StringCache]::GetSpaces($this.Width))
         
@@ -259,12 +266,10 @@ class TabContainer : Container {
             $x += $tabWidth + 1
         }
         
-        # Reset and draw separator line
-        $sb.Append([VT]::Reset())
+        # Draw separator line
         $sb.Append([VT]::MoveTo($this.X, $this.Y + 1))
         $sb.Append($this._colors['border'])
         $sb.Append([StringCache]::GetHorizontalLine($this.Width))
-        $sb.Append([VT]::Reset())
         
         $this._cachedTabBar = $sb.ToString()
         Return-PooledStringBuilder $sb

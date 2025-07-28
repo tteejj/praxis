@@ -87,13 +87,13 @@ class HelpOverlay : UIElement {
         # Draw semi-transparent background (dim the screen behind)
         for ($y = $this.Y; $y -lt $this.Y + $this.Height; $y++) {
             $sb.Append([VT]::MoveTo($this.X, $y))
-            $sb.Append($this.Theme.GetColor("disabled"))
+            $sb.Append($this.Theme.GetColor('text.disabled'))
             $sb.Append([StringCache]::GetSpaces($this.Width))
         }
         
         # Draw overlay box
         $borderColor = $this.Theme.GetColor("border.focused")
-        $bgColor = $this.Theme.GetBgColor("background")
+        $bgColor = $this.Theme.GetBgColor('surface.background')
         
         # Fill background
         for ($y = 0; $y -lt $overlayHeight; $y++) {
@@ -109,11 +109,11 @@ class HelpOverlay : UIElement {
         $titleText = " $($this.Title) - Press ESC to close "
         $titleX = $overlayX + [int](($overlayWidth - $titleText.Length) / 2)
         $sb.Append([VT]::MoveTo($titleX, $overlayY))
-        $sb.Append($this.Theme.GetColor("title"))
+        $sb.Append($this.Theme.GetColor('text.heading'))
         $sb.Append($titleText)
         
         # Draw help text
-        $textColor = $this.Theme.GetColor("normal")
+        $textColor = $this.Theme.GetColor('text.primary')
         $lines = $this.HelpText -split "`n"
         $contentY = $overlayY + 2
         $visibleLines = $overlayHeight - 4
@@ -125,13 +125,13 @@ class HelpOverlay : UIElement {
             if ($line -match '^\s*---+\s*$') {
                 # Horizontal rule
                 $sb.Append([VT]::MoveTo($overlayX + 1, $contentY + $i))
-                $sb.Append($this.Theme.GetColor("border"))
+                $sb.Append($this.Theme.GetColor('border.normal'))
                 $sb.Append([StringCache]::GetHorizontalLine($overlayWidth - 2))
             }
             elseif ($line -match '^#\s+(.+)') {
                 # Header
                 $sb.Append([VT]::MoveTo($overlayX + 2, $contentY + $i))
-                $sb.Append($this.Theme.GetColor("title"))
+                $sb.Append($this.Theme.GetColor('text.heading'))
                 $sb.Append($matches[1])
             }
             elseif ($line -match '^\s*(\w+)\s+-\s+(.+)') {
@@ -139,7 +139,7 @@ class HelpOverlay : UIElement {
                 $key = $matches[1]
                 $desc = $matches[2]
                 $sb.Append([VT]::MoveTo($overlayX + 2, $contentY + $i))
-                $sb.Append($this.Theme.GetColor("accent"))
+                $sb.Append($this.Theme.GetColor('color.primary'))
                 $sb.Append($key.PadRight(15))
                 $sb.Append($textColor)
                 $sb.Append("- $desc")
@@ -163,19 +163,17 @@ class HelpOverlay : UIElement {
             
             if ($this._scrollOffset -gt 0) {
                 $sb.Append([VT]::MoveTo($scrollX, $contentY))
-                $sb.Append($this.Theme.GetColor("accent"))
+                $sb.Append($this.Theme.GetColor('color.primary'))
                 $sb.Append("▲")
             }
             
             if ($this._scrollOffset -lt ($lines.Count - $visibleLines)) {
                 $sb.Append([VT]::MoveTo($scrollX, $contentY + $visibleLines - 1))
-                $sb.Append($this.Theme.GetColor("accent"))
+                $sb.Append($this.Theme.GetColor('color.primary'))
                 $sb.Append("▼")
             }
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

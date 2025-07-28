@@ -30,8 +30,8 @@ class MinimalTabContainer : Container {
             $this._colors = @{
                 'normal' = $this.Theme.GetColor("tab.foreground")
                 'active' = $this.Theme.GetColor("tab.active.foreground")
-                'accent' = $this.Theme.GetColor("accent")
-                'background' = $this.Theme.GetBgColor("background")
+                'accent' = $this.Theme.GetColor('color.primary')
+                'background' = $this.Theme.GetBgColor('surface.background')
             }
         }
         $this._tabBarInvalid = $true
@@ -177,7 +177,7 @@ class MinimalTabContainer : Container {
             if ($i -eq $this.ActiveTabIndex) {
                 $sb.Append($this._colors['accent'])
                 $sb.Append(" [$title] ")
-                $sb.Append([VT]::Reset())
+                
             } else {
                 $sb.Append($this._colors['normal'])
                 $sb.Append("  $title  ")
@@ -197,15 +197,12 @@ class MinimalTabContainer : Container {
                 break
             }
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         # Subtle separator line
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.TabBarHeight - 1))
         $sb.Append($this._colors['normal'])
         $sb.Append('─' * $this.Width)
-        $sb.Append([VT]::Reset())
-        
+
         $this._cachedTabBar = $sb.ToString()
         Return-PooledStringBuilder $sb
         $this._tabBarInvalid = $false

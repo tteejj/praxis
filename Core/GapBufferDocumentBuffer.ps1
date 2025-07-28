@@ -219,17 +219,71 @@ class GapBufferDocumentBuffer {
             throw "No file path specified for save"
         }
         
+        # Use atomic temp-file-swap pattern for safe saves
+        $tempFilePath = $saveFilePath + "_temp_" + [System.Guid]::NewGuid().ToString()
+        $backupFilePath = $saveFilePath + ".backup"
+        
         try {
             $content = $this._gapBuffer.GetText()
             # Remove trailing newline for cleaner file output
             if ($content.EndsWith("`n")) {
                 $content = $content.Substring(0, $content.Length - 1)
             }
-            Set-Content -Path $saveFilePath -Value $content -NoNewline
+            
+            # Step 1: Write to temporary file
+            Set-Content -Path $tempFilePath -Value $content -NoNewline -ErrorAction Stop
+            
+            # Step 2: Verify the temp file was written correctly
+            $tempContent = Get-Content -Path $tempFilePath -Raw -ErrorAction Stop
+            if ($tempContent -ne $content) {
+                throw "Content verification failed - temp file content doesn't match expected content"
+            }
+            
+            # Step 3: If original file exists, create backup
+            if (Test-Path $saveFilePath) {
+                if (Test-Path $backupFilePath) {
+                    Remove-Item -Path $backupFilePath -Force -ErrorAction Stop
+                }
+                Copy-Item -Path $saveFilePath -Destination $backupFilePath -Force -ErrorAction Stop
+            }
+            
+            # Step 4: Atomic rename/move - this is the critical moment
+            if (Test-Path $saveFilePath) {
+                Remove-Item -Path $saveFilePath -Force -ErrorAction Stop
+            }
+            Move-Item -Path $tempFilePath -Destination $saveFilePath -Force -ErrorAction Stop
+            
+            # Step 5: Success - clean up backup after a short delay
+            if (Test-Path $backupFilePath) {
+                Start-Sleep -Milliseconds 100  # Brief delay to ensure file system consistency
+                Remove-Item -Path $backupFilePath -Force -ErrorAction SilentlyContinue
+            }
+            
+            # Update document properties
             $this.FilePath = $saveFilePath
             $this.SetModified($false)
             $this.LastModified = [datetime]::Now
+            
         } catch {
+            # Cleanup temp file on any error
+            if (Test-Path $tempFilePath) {
+                Remove-Item -Path $tempFilePath -Force -ErrorAction SilentlyContinue
+            }
+            
+            # If we have a backup and the original is corrupted/missing, restore it
+            if ((Test-Path $backupFilePath) -and (-not (Test-Path $saveFilePath) -or (Get-Item $saveFilePath -ErrorAction SilentlyContinue).Length -eq 0)) {
+                try {
+                    Copy-Item -Path $backupFilePath -Destination $saveFilePath -Force -ErrorAction Stop
+                    if ($global:Logger) {
+                        $global:Logger.Info("Restored original file from backup after save failure")
+                    }
+                } catch {
+                    if ($global:Logger) {
+                        $global:Logger.Error("Failed to restore backup: $($_.Exception.Message)")
+                    }
+                }
+            }
+            
             throw "Failed to save file '$saveFilePath': $($_.Exception.Message)"
         }
     }

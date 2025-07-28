@@ -41,6 +41,15 @@ class TextEditorScreenNew : Screen {
     [int]$LineNumberWidth = 5
     [bool]$AutoSaveOnFocusLoss = $true
     
+    # Auto-save and crash recovery settings
+    [bool]$AutoSaveEnabled = $true
+    [int]$AutoSaveIntervalSeconds = 30  # Auto-save every 30 seconds
+    [string]$AutoSaveDirectory = ""     # Set during initialization
+    hidden [datetime]$_lastAutoSave = [datetime]::MinValue
+    hidden [datetime]$_lastModification = [datetime]::MinValue
+    hidden [System.Timers.Timer]$_autoSaveTimer
+    hidden [bool]$_needsAutoSave = $false
+    
     # Clipboard system
     hidden [string]$_clipboard = ""
     
@@ -88,6 +97,10 @@ class TextEditorScreenNew : Screen {
         
         # Load editor settings from config
         $this.LoadEditorSettings()
+        
+        # Initialize auto-save and crash recovery
+        $this.InitializeAutoSave()
+        $this.CheckForCrashRecovery()
         
         # Subscribe to configuration changes
         if ($this.EventBus) {
@@ -1366,7 +1379,7 @@ Switch to GapBufferDocumentBuffer for better performance.
     
     hidden [void] RenderWithCache([System.Text.StringBuilder]$sb) {
         # Clear the entire screen area first with background color
-        $bgColor = if ($this.ThemeManager) { $this.ThemeManager.GetBgColor("background") } else { "" }
+        $bgColor = if ($this.ThemeManager) { $this.ThemeManager.GetBgColor('surface.background') } else { "" }
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))
             $sb.Append($bgColor)
@@ -1427,9 +1440,9 @@ Switch to GapBufferDocumentBuffer for better performance.
         $sb = [System.Text.StringBuilder]::new()
         
         # Get colors
-        $textColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("normal") } else { "" }
-        $lineNumColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("linenumber") } else { $textColor }
-        $bgColor = if ($this.ThemeManager) { $this.ThemeManager.GetBgColor("background") } else { "" }
+        $textColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor('text.primary') } else { "" }
+        $lineNumColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor('editor.linenumber') } else { $textColor }
+        $bgColor = if ($this.ThemeManager) { $this.ThemeManager.GetBgColor('surface.background') } else { "" }
         $selectionBgColor = if ($this.ThemeManager) { $this.ThemeManager.GetBgColor("selection") } else { "\e[0;7m" }
         $selectionTextColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("selection.text") } else { "" }
         
@@ -1600,7 +1613,7 @@ Switch to GapBufferDocumentBuffer for better performance.
         $sb.Append($charUnderCursor)
         
         # Reset colors
-        $resetColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor("normal") } else { "\e[0m" }
+        $resetColor = if ($this.ThemeManager) { $this.ThemeManager.GetColor('text.primary') } else { "\e[0m" }
         $sb.Append($resetColor)
     }
     
@@ -1629,5 +1642,291 @@ Switch to GapBufferDocumentBuffer for better performance.
         }
         
         return $status
+    }
+    
+    # === AUTO-SAVE AND CRASH RECOVERY METHODS ===
+    
+    [void] InitializeAutoSave() {
+        # Set up auto-save directory within PRAXIS directory for portability
+        $praxisRoot = if ($global:PraxisRoot) { $global:PraxisRoot } else { (Get-Location).Path }
+        $this.AutoSaveDirectory = Join-Path $praxisRoot "_AutoSave"
+        if (-not (Test-Path $this.AutoSaveDirectory)) {
+            New-Item -ItemType Directory -Path $this.AutoSaveDirectory -Force | Out-Null
+        }
+        
+        # Set up auto-save timer if enabled
+        if ($this.AutoSaveEnabled) {
+            $this._autoSaveTimer = [System.Timers.Timer]::new()
+            $this._autoSaveTimer.Interval = $this.AutoSaveIntervalSeconds * 1000
+            $this._autoSaveTimer.AutoReset = $true
+            
+            # Timer event handler
+            $editor = $this
+            $this._autoSaveTimer.add_Elapsed({
+                $editor.PerformAutoSave()
+            })
+            
+            $this._autoSaveTimer.Start()
+        }
+        
+        # Hook into buffer content changes to track modifications
+        $this._buffer.OnContentChanged = {
+            $this.OnContentChangedForAutoSave()
+        }.GetNewClosure()
+    }
+    
+    [void] OnContentChangedForAutoSave() {
+        $this._lastModification = [datetime]::Now
+        $this._needsAutoSave = $true
+        
+        # Call original content changed handler if it exists
+        $this.OnBufferContentChanged()
+    }
+    
+    [void] PerformAutoSave() {
+        try {
+            # Only auto-save if there are unsaved changes and enough time has passed
+            if (-not $this._needsAutoSave -or $this._buffer.IsModified -eq $false) {
+                return
+            }
+            
+            # Check if enough time has passed since last modification (avoid excessive saves during active typing)
+            $timeSinceLastMod = ([datetime]::Now - $this._lastModification).TotalSeconds
+            if ($timeSinceLastMod -lt 5) {
+                return  # Wait at least 5 seconds after last keystroke
+            }
+            
+            $autoSaveFile = $this.GetAutoSaveFilePath()
+            if ([string]::IsNullOrEmpty($autoSaveFile)) {
+                return
+            }
+            
+            # Save content to auto-save file with metadata
+            $content = $this._buffer.GetText()
+            $metadata = @{
+                OriginalFile = $this._buffer.FilePath
+                SaveTime = [datetime]::Now
+                EditorVersion = "PRAXIS_v1"
+                PID = [System.Diagnostics.Process]::GetCurrentProcess().Id
+            } | ConvertTo-Json
+            
+            # Write with header
+            $autoSaveContent = "### PRAXIS AUTO-SAVE FILE ###`n$metadata`n### CONTENT BEGINS ###`n$content"
+            Set-Content -Path $autoSaveFile -Value $autoSaveContent -NoNewline
+            
+            $this._lastAutoSave = [datetime]::Now
+            $this._needsAutoSave = $false
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("Auto-saved to: $autoSaveFile")
+            }
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("Auto-save failed: $($_.Exception.Message)")
+            }
+        }
+    }
+    
+    [string] GetAutoSaveFilePath() {
+        if ([string]::IsNullOrEmpty($this._buffer.FilePath)) {
+            # For untitled files, use a generic name with timestamp
+            $timestamp = [datetime]::Now.ToString("yyyyMMdd_HHmmss")
+            return Join-Path $this.AutoSaveDirectory "Untitled_$timestamp.auto"
+        } else {
+            # For named files, use original name with .auto extension
+            $fileName = [System.IO.Path]::GetFileName($this._buffer.FilePath)
+            $safeFileName = $fileName -replace '[<>:"/\\|?*]', '_'  # Replace invalid chars
+            return Join-Path $this.AutoSaveDirectory "$safeFileName.auto"
+        }
+    }
+    
+    [void] CheckForCrashRecovery() {
+        try {
+            if (-not (Test-Path $this.AutoSaveDirectory)) {
+                return
+            }
+            
+            # Look for auto-save files
+            $autoSaveFiles = Get-ChildItem -Path $this.AutoSaveDirectory -Filter "*.auto" | Where-Object {
+                $_.LastWriteTime -gt ([datetime]::Now.AddDays(-1))  # Only check files from last 24 hours
+            }
+            
+            if ($autoSaveFiles.Count -eq 0) {
+                return
+            }
+            
+            # Check if any auto-save files are newer than their original files
+            $recoveryNeeded = @()
+            foreach ($autoFile in $autoSaveFiles) {
+                $metadata = $this.ParseAutoSaveMetadata($autoFile.FullName)
+                if ($metadata -and $metadata.OriginalFile) {
+                    if (-not (Test-Path $metadata.OriginalFile)) {
+                        # Original file is missing
+                        $recoveryNeeded += @{
+                            AutoSaveFile = $autoFile.FullName
+                            OriginalFile = $metadata.OriginalFile
+                            Reason = "Original file missing"
+                            SaveTime = $metadata.SaveTime
+                        }
+                    } elseif ($autoFile.LastWriteTime -gt (Get-Item $metadata.OriginalFile).LastWriteTime) {
+                        # Auto-save is newer than original
+                        $recoveryNeeded += @{
+                            AutoSaveFile = $autoFile.FullName
+                            OriginalFile = $metadata.OriginalFile
+                            Reason = "Auto-save newer than original"
+                            SaveTime = $metadata.SaveTime
+                        }
+                    }
+                }
+            }
+            
+            if ($recoveryNeeded.Count -gt 0) {
+                $this.ShowCrashRecoveryDialog($recoveryNeeded)
+            }
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("Crash recovery check failed: $($_.Exception.Message)")
+            }
+        }
+    }
+    
+    [hashtable] ParseAutoSaveMetadata([string]$filePath) {
+        try {
+            $content = Get-Content -Path $filePath -Raw
+            $lines = $content -split "`n"
+            
+            if ($lines.Count -lt 3 -or $lines[0] -ne "### PRAXIS AUTO-SAVE FILE ###") {
+                return $null
+            }
+            
+            # Find the metadata section
+            $metadataStart = 1
+            $metadataEnd = -1
+            for ($i = 1; $i -lt $lines.Count; $i++) {
+                if ($lines[$i] -eq "### CONTENT BEGINS ###") {
+                    $metadataEnd = $i - 1
+                    break
+                }
+            }
+            
+            if ($metadataEnd -eq -1) {
+                return $null
+            }
+            
+            $metadataJson = $lines[$metadataStart..$metadataEnd] -join "`n"
+            return $metadataJson | ConvertFrom-Json -AsHashtable
+            
+        } catch {
+            return $null
+        }
+    }
+    
+    [void] ShowCrashRecoveryDialog([array]$recoveryItems) {
+        $message = "Crash recovery available for $($recoveryItems.Count) file(s):`n`n"
+        foreach ($item in $recoveryItems) {
+            $fileName = [System.IO.Path]::GetFileName($item.OriginalFile)
+            $message += "• $fileName ($($item.Reason))`n"
+        }
+        $message += "`nRecover auto-saved changes?"
+        
+        try {
+            $dialog = [ConfirmationDialog]::new($message)
+            $dialog.ConfirmText = "Recover"
+            $dialog.CancelText = "Ignore"
+            
+            $screenManager = $this.ServiceContainer.GetService("ScreenManager")
+            $screenManager.Push($dialog)
+            
+            $editor = $this
+            $dialog.OnConfirm = {
+                $editor.RecoverAutoSaveFiles($recoveryItems)
+            }.GetNewClosure()
+            
+            $dialog.OnCancel = {
+                $editor.CleanupAutoSaveFiles($recoveryItems)
+            }.GetNewClosure()
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("Failed to show crash recovery dialog: $($_.Exception.Message)")
+            }
+        }
+    }
+    
+    [void] RecoverAutoSaveFiles([array]$recoveryItems) {
+        foreach ($item in $recoveryItems) {
+            try {
+                # Load the auto-saved content
+                $content = Get-Content -Path $item.AutoSaveFile -Raw
+                $lines = $content -split "`n"
+                
+                # Find content start
+                $contentStart = -1
+                for ($i = 0; $i -lt $lines.Count; $i++) {
+                    if ($lines[$i] -eq "### CONTENT BEGINS ###") {
+                        $contentStart = $i + 1
+                        break
+                    }
+                }
+                
+                if ($contentStart -ne -1) {
+                    $recoveredContent = $lines[$contentStart..($lines.Count-1)] -join "`n"
+                    
+                    # If this is the current file being edited, load the content
+                    if ($this._buffer.FilePath -eq $item.OriginalFile) {
+                        $this._buffer.SetText($recoveredContent)
+                        $this._buffer.SetModified($true)
+                        $this.StatusMessage = "Recovered from auto-save"
+                    } else {
+                        # Save recovered content to original file
+                        Set-Content -Path $item.OriginalFile -Value $recoveredContent -NoNewline
+                    }
+                }
+                
+                # Clean up the auto-save file
+                Remove-Item -Path $item.AutoSaveFile -Force -ErrorAction SilentlyContinue
+                
+            } catch {
+                if ($global:Logger) {
+                    $global:Logger.Error("Failed to recover file $($item.OriginalFile): $($_.Exception.Message)")
+                }
+            }
+        }
+    }
+    
+    [void] CleanupAutoSaveFiles([array]$recoveryItems) {
+        foreach ($item in $recoveryItems) {
+            try {
+                Remove-Item -Path $item.AutoSaveFile -Force -ErrorAction SilentlyContinue
+            } catch {
+                # Ignore cleanup errors
+            }
+        }
+    }
+    
+    [void] OnLostFocus() {
+        ([Screen]$this).OnLostFocus()
+        
+        # Auto-save on focus loss if enabled
+        if ($this.AutoSaveOnFocusLoss -and $this._buffer.IsModified) {
+            try {
+                if (-not [string]::IsNullOrEmpty($this._buffer.FilePath)) {
+                    $this._buffer.SaveToFile()
+                    $this.StatusMessage = "Auto-saved on focus loss"
+                }
+            } catch {
+                $this.StatusMessage = "Auto-save failed: $($_.Exception.Message)"
+            }
+        }
+    }
+    
+    # Cleanup on screen destruction
+    [void] Cleanup() {
+        if ($this._autoSaveTimer) {
+            $this._autoSaveTimer.Stop()
+            $this._autoSaveTimer.Dispose()
+        }
     }
 }

@@ -45,12 +45,12 @@ class Button : UIElement {
         if ($this.Theme) {
             $this._colors = @{
                 "button.background" = $this.Theme.GetBgColor("button.background")
-                "button.foreground" = $this.Theme.GetColor("button.foreground")
+                "button.foreground" = $this.Theme.GetColor('button.text')
                 "button.focused.background" = $this.Theme.GetBgColor("button.focused.background")
                 "button.focused.foreground" = $this.Theme.GetColor("button.focused.foreground")
-                "border" = $this.Theme.GetColor("border")
+                "border" = $this.Theme.GetColor('border.normal')
                 "border.focused" = $this.Theme.GetColor("border.focused")
-                "accent" = $this.Theme.GetColor("accent")
+                "accent" = $this.Theme.GetColor('color.primary')
             }
         }
         $this._cachedRender = ""
@@ -161,7 +161,7 @@ class Button : UIElement {
             $sb.Append([VT]::MoveTo($this.X + $this.Width - 1, $y))
             $sb.Append($borderColor)
             $sb.Append([VT]::V())
-            $sb.Append([VT]::Reset())
+            
         }
         
         # Bottom border
@@ -178,8 +178,7 @@ class Button : UIElement {
             $sb.Append($this._colors["accent"])
             $sb.Append("*")
         }
-        
-        $sb.Append([VT]::Reset())
+
         $this._cachedRender = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
     }

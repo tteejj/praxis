@@ -44,10 +44,10 @@ class MinimalListBox : FocusableComponent {
     
     [void] UpdateColors() {
         if ($this.Theme) {
-            $this._normalColor = $this.Theme.GetColor('normal')
-            $this._selectedColor = $this.Theme.GetColor('menu.selected.foreground')
-            $this._selectedBgColor = $this.Theme.GetBgColor('menu.selected.background')
-            $this._scrollbarColor = $this.Theme.GetColor('scrollbar')
+            $this._normalColor = $this.Theme.GetColor('text.primary')
+            $this._selectedColor = $this.Theme.GetColor('menu.text.selected')
+            $this._selectedBgColor = $this.Theme.GetBgColor('menu.background.selected')
+            $this._scrollbarColor = $this.Theme.GetColor('scrollbar.thumb')
         }
     }
     
@@ -110,6 +110,14 @@ class MinimalListBox : FocusableComponent {
                 $text = $text.Substring(0, $availableWidth - 1) + "…"
             }
             
+            # Clear line first with theme background
+            $bgColor = $this.Theme.GetBgColor('surface.background')
+            $lineWidth = $this.Width - 2
+            if ($this.ShowBorder) { $lineWidth -= 2 }
+            $sb.Append($bgColor)
+            $sb.Append(' ' * $lineWidth)
+            $sb.Append([VT]::MoveTo($this.X + 1, $y))
+            
             # Render with selection highlight
             if ($i -eq $this.SelectedIndex) {
                 $sb.Append($this._selectedBgColor)
@@ -119,13 +127,15 @@ class MinimalListBox : FocusableComponent {
                 } else {
                     $sb.Append("  ")
                 }
+                $sb.Append($text)
             } else {
+                # Normal row - ensure we have background color
+                $sb.Append($bgColor)
                 $sb.Append($this._normalColor)
                 $sb.Append("  ")
+                $sb.Append($text)
             }
             
-            $sb.Append($text)
-            $sb.Append([VT]::Reset())
         }
         
         # Minimal scrollbar
@@ -166,8 +176,7 @@ class MinimalListBox : FocusableComponent {
                 $sb.Append('│')  # Minimal scrollbar track
             }
         }
-        
-        $sb.Append([VT]::Reset())
+
     }
     
     [void] RenderMinimalBorder([System.Text.StringBuilder]$sb) {

@@ -34,7 +34,7 @@ class VerticalSplit : Container {
     [void] OnThemeChanged() {
         if ($this.Theme) {
             $this._colors = @{
-                'border' = $this.Theme.GetColor("border")
+                'border' = $this.Theme.GetColor('border.normal')
             }
         }
         $this.Invalidate()
@@ -132,7 +132,7 @@ class VerticalSplit : Container {
             $sb.Append([VT]::MoveTo($this.X, $this._cachedBottomY - 1))
             $sb.Append($borderColor)
             $sb.Append([StringCache]::GetHorizontalLine($this.Width))
-            $sb.Append([VT]::Reset())
+            
         }
         
         $result = $sb.ToString()

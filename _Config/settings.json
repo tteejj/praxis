@@ -1,66 +1,32 @@
 {
-  "Editor": {
-    "HighlightCurrentLine": true,
-    "TabSize": 4,
-    "AutoSaveInterval": 0,
-    "WordWrap": false,
-    "SyntaxHighlighting": true,
-    "ShowLineNumbers": true
+  "Projects": {
+    "AutoSave": true,
+    "BackupCount": 5,
+    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
+    "BackupEnabled": true
   },
-  "Performance": {
-    "EnableCaching": true,
-    "RenderOptimization": true,
-    "MaxCacheSize": 100
+  "UI": {
+    "ShowScrollbars": true,
+    "AnimationsEnabled": true,
+    "GradientType": "vertical",
+    "VerticalSpacing": 1,
+    "UseGradients": false,
+    "CompactMode": false
   },
   "FileBrowser": {
-    "ShowHiddenFiles": true,
     "ShowModifiedDate": false,
+    "DefaultPath": "/home/teej/projects/github/praxis",
+    "SortBy": "Name",
+    "ShowFileSize": true,
     "IgnoredExtensions": [
       ".tmp",
       ".cache",
       ".log"
     ],
-    "ShowFileSize": true,
-    "SortDescending": false,
-    "SortBy": "Name",
-    "DefaultPath": "/home/teej/projects/github/praxis"
-  },
-  "Logging": {
-    "MaxFiles": 5,
-    "Level": "Info",
-    "MaxFileSize": 10
-  },
-  "Projects": {
-    "BackupEnabled": true,
-    "BackupCount": 5,
-    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
-    "AutoSave": true
+    "ShowHiddenFiles": true,
+    "SortDescending": false
   },
   "Templates": {
-    "Commands": {
-      "Enabled": true,
-      "Items": [
-        {
-          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
-          "Name": "Export to CSV",
-          "Placeholders": [
-            "DATABASE",
-            "OUTPUT_FILE"
-          ],
-          "Description": "Export current database to CSV format"
-        },
-        {
-          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
-          "Name": "Join Databases",
-          "Placeholders": [
-            "PRIMARY",
-            "SECONDARY",
-            "KEY_FIELD"
-          ],
-          "Description": "Join two databases on a common field"
-        }
-      ]
-    },
     "Macros": {
       "Enabled": true,
       "Items": [
@@ -109,19 +75,58 @@
           "ProjectID": "Internal"
         }
       ]
+    },
+    "Commands": {
+      "Enabled": true,
+      "Items": [
+        {
+          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
+          "Name": "Export to CSV",
+          "Placeholders": [
+            "DATABASE",
+            "OUTPUT_FILE"
+          ],
+          "Description": "Export current database to CSV format"
+        },
+        {
+          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
+          "Name": "Join Databases",
+          "Placeholders": [
+            "PRIMARY",
+            "SECONDARY",
+            "KEY_FIELD"
+          ],
+          "Description": "Join two databases on a common field"
+        }
+      ]
     }
   },
-  "UI": {
-    "ShowScrollbars": true,
-    "CompactMode": false,
-    "VerticalSpacing": 1,
-    "AnimationsEnabled": true,
-    "UseGradients": false,
-    "GradientType": "vertical"
+  "Logging": {
+    "MaxFiles": 5,
+    "Level": "Info",
+    "MaxFileSize": 10
+  },
+  "Tasks": {
+    "CompletedTaskRetention": 30,
+    "ShowCompletedTasks": true,
+    "DefaultPriority": "Medium"
+  },
+  "Editor": {
+    "HighlightCurrentLine": true,
+    "WordWrap": false,
+    "TabSize": 4,
+    "ShowLineNumbers": true,
+    "SyntaxHighlighting": true,
+    "AutoSaveInterval": 0
+  },
+  "Performance": {
+    "MaxCacheSize": 100,
+    "RenderOptimization": true,
+    "EnableCaching": true
   },
   "Theme": {
-    "EditTheme": "[Click to open theme editor]",
-    "UserCustomizations": {},
+    "ShowThemePreview": true,
+    "CurrentTheme": "amber",
     "AvailableThemes": [
       "amber",
       "amber-black",
@@ -131,13 +136,8 @@
       "synthwave-84",
       "synthwave-outrun"
     ],
-    "ShowThemePreview": true,
-    "CurrentTheme": "amber",
-    "EnableLiveEdit": true
-  },
-  "Tasks": {
-    "DefaultPriority": "Medium",
-    "CompletedTaskRetention": 30,
-    "ShowCompletedTasks": true
+    "EditTheme": "[Click to open theme editor]",
+    "EnableLiveEdit": true,
+    "UserCustomizations": {}
   }
 }

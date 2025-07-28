@@ -118,7 +118,7 @@ class ScriptPreviewDialog : BaseDialog {
             
             # Show scroll position indicator
             $sb.Append([VT]::MoveTo($x, $y))
-            $sb.Append($this.Theme.GetColor("disabled"))
+            $sb.Append($this.Theme.GetColor('text.disabled'))
             
             if ($this._scrollOffset -gt 0) {
                 $sb.Append("▲")
@@ -134,12 +134,10 @@ class ScriptPreviewDialog : BaseDialog {
             
             # Show line numbers
             $sb.Append([VT]::MoveTo($this._dialogBounds.X + 2, $this._dialogBounds.Y + $this.DialogHeight - 3))
-            $sb.Append($this.Theme.GetColor("disabled"))
+            $sb.Append($this.Theme.GetColor('text.disabled'))
             $sb.Append("Lines: $($this._scrollOffset + 1)-$([Math]::Min($lines.Count, $this._scrollOffset + $visibleLines)) of $($lines.Count)")
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

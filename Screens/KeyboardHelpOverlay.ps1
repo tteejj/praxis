@@ -144,10 +144,9 @@ class KeyboardHelpOverlay : MinimalModal {
         
         # Header
         $sb.Append([VT]::MoveTo($this.ShortcutDisplay.X + 2, $this.ShortcutDisplay.Y))
-        $sb.Append($this.Theme.GetColor('accent'))
+        $sb.Append($this.Theme.GetColor('color.primary'))
         $sb.Append("═══ $selectedCategory ═══")
-        $sb.Append([VT]::Reset())
-        
+
         # Shortcuts
         $y = $this.ShortcutDisplay.Y + 2
         $maxY = $this.ShortcutDisplay.Y + $this.ShortcutDisplay.Height - 1
@@ -159,27 +158,26 @@ class KeyboardHelpOverlay : MinimalModal {
             
             # Key combination
             $keyText = $shortcut.GetDisplayText()
-            $sb.Append($this.Theme.GetColor('accent'))
+            $sb.Append($this.Theme.GetColor('color.primary'))
             $sb.Append($keyText.PadRight(20))
             
             # Description
-            $sb.Append($this.Theme.GetColor('normal'))
+            $sb.Append($this.Theme.GetColor('text.primary'))
             $desc = $shortcut.Description
             if ($desc.Length -gt 40) {
                 $desc = $desc.Substring(0, 37) + "..."
             }
             $sb.Append($desc)
-            
-            $sb.Append([VT]::Reset())
+
             $y++
         }
         
         # Footer hint
         if ($y -lt $maxY - 2) {
             $sb.Append([VT]::MoveTo($this.ShortcutDisplay.X + 2, $maxY - 2))
-            $sb.Append($this.Theme.GetColor('disabled'))
+            $sb.Append($this.Theme.GetColor('text.disabled'))
             $sb.Append("Use ↑/↓ to browse categories")
-            $sb.Append([VT]::Reset())
+            
         }
         
         $result = $sb.ToString()

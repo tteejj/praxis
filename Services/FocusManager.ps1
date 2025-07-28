@@ -26,24 +26,24 @@ class FocusManager {
     
     [void] UpdateFocusStyle() {
         # Pre-cache minimal focus indicators for speed
-        $focusColor = $this.ThemeManager.GetColor('focus')
+        $focusColor = $this.ThemeManager.GetColor('state.focused')
         
         switch ($this.FocusIndicatorStyle) {
             'minimal' {
                 # Subtle underline for minimal look
                 $this.CachedFocusPrefix = [VT]::Underline() + $focusColor
-                $this.CachedFocusSuffix = [VT]::NoUnderline() + [VT]::Reset()
+                $this.CachedFocusSuffix = [VT]::NoUnderline() 
             }
             'border' {
                 # Clean border focus (will be rendered by components)
                 $this.CachedFocusPrefix = $focusColor
-                $this.CachedFocusSuffix = [VT]::Reset()
+                $this.CachedFocusSuffix = "" 
             }
             'glow' {
                 # Bright background for high visibility
                 $bgColor = $this.ThemeManager.GetColor('focus.background')
                 $this.CachedFocusPrefix = $bgColor + $focusColor
-                $this.CachedFocusSuffix = [VT]::Reset()
+                $this.CachedFocusSuffix = "" 
             }
         }
     }

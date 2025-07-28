@@ -66,13 +66,13 @@ class MinimalContextMenu : UIElement {
         if ($this.Theme) {
             $this._colors = @{
                 background = $this.Theme.GetBgColor('menu.background')
-                text = $this.Theme.GetColor('menu.foreground')
-                selected = $this.Theme.GetColor('menu.selected.foreground')
-                selectedBg = $this.Theme.GetBgColor('menu.selected.background')
-                disabled = $this.Theme.GetColor('disabled')
-                border = $this.Theme.GetColor('border')
-                shortcut = $this.Theme.GetColor('accent')
-                separator = $this.Theme.GetColor('border')
+                text = $this.Theme.GetColor('menu.text')
+                selected = $this.Theme.GetColor('menu.text.selected')
+                selectedBg = $this.Theme.GetBgColor('menu.background.selected')
+                disabled = $this.Theme.GetColor('text.disabled')
+                border = $this.Theme.GetColor('border.normal')
+                shortcut = $this.Theme.GetColor('color.primary')
+                separator = $this.Theme.GetColor('border.normal')
             }
         }
     }
@@ -179,9 +179,7 @@ class MinimalContextMenu : UIElement {
             $this.RenderItem($sb, $this.Items[$i], $i, $y)
             $y++
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
@@ -201,8 +199,7 @@ class MinimalContextMenu : UIElement {
         $sb.Append([VT]::MoveTo($this.MenuX + 1, $this.MenuY + $this.MenuHeight))
         $sb.Append($shadowColor)
         $sb.Append(' ' * $this.MenuWidth)
-        
-        $sb.Append([VT]::Reset())
+
     }
     
     [void] RenderItem([System.Text.StringBuilder]$sb, [ContextMenuItem]$item, [int]$index, [int]$y) {
@@ -265,8 +262,7 @@ class MinimalContextMenu : UIElement {
             # Clear to end
             $sb.Append("  ")
         }
-        
-        $sb.Append([VT]::Reset())
+
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {

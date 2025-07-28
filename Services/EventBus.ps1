@@ -314,6 +314,11 @@ class EventNames {
     static [string]$TaskSelected = 'task.selected'
     static [string]$TaskStatusChanged = 'task.statusChanged'
     
+    # Time Entry Events
+    static [string]$TimeEntryCreated = 'timeentry.created'
+    static [string]$TimeEntryUpdated = 'timeentry.updated'
+    static [string]$TimeEntryDeleted = 'timeentry.deleted'
+    
     # Navigation Events
     static [string]$TabChanged = 'navigation.tabChanged'
     static [string]$ScreenChanged = 'navigation.screenChanged'

@@ -37,7 +37,6 @@ class EditTaskDialog : BaseDialog {
         
         # Create status list
         $this.StatusList = [MinimalListBox]::new()
-        $this.StatusList.Title = "Status"
         $this.StatusList.ShowBorder = $true
         $this.StatusList.BorderType = [BorderType]::Rounded
         $this.StatusList.SetItems(@(
@@ -46,11 +45,11 @@ class EditTaskDialog : BaseDialog {
             @{Name="Completed"; Value=[TaskStatus]::Completed},
             @{Name="Cancelled"; Value=[TaskStatus]::Cancelled}
         ))
-        $this.StatusList.ItemRenderer = { param($item) $item.Name }
+        $this.StatusList.ItemFormatter = { param($item) $item.Name }
         # Select current status
         for ($i = 0; $i -lt $this.StatusList.Items.Count; $i++) {
             if ($this.StatusList.Items[$i].Value -eq $this.Task.Status) {
-                $this.StatusList.SelectIndex($i)
+                $this.StatusList.SelectedIndex = $i
                 break
             }
         }
@@ -58,7 +57,6 @@ class EditTaskDialog : BaseDialog {
         
         # Create priority list
         $this.PriorityList = [MinimalListBox]::new()
-        $this.PriorityList.Title = "Priority"
         $this.PriorityList.ShowBorder = $true
         $this.PriorityList.BorderType = [BorderType]::Rounded
         $this.PriorityList.SetItems(@(
@@ -66,11 +64,11 @@ class EditTaskDialog : BaseDialog {
             @{Name="Medium"; Value=[TaskPriority]::Medium},
             @{Name="High"; Value=[TaskPriority]::High}
         ))
-        $this.PriorityList.ItemRenderer = { param($item) $item.Name }
+        $this.PriorityList.ItemFormatter = { param($item) $item.Name }
         # Select current priority
         for ($i = 0; $i -lt $this.PriorityList.Items.Count; $i++) {
             if ($this.PriorityList.Items[$i].Value -eq $this.Task.Priority) {
-                $this.PriorityList.SelectIndex($i)
+                $this.PriorityList.SelectedIndex = $i
                 break
             }
         }

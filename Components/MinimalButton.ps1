@@ -38,8 +38,8 @@ class MinimalButton : FocusableComponent {
     
     [void] UpdateColors() {
         if ($this.Theme) {
-            $this._normalColor = $this.Theme.GetColor('button.foreground')
-            $this._accentColor = $this.Theme.GetColor('accent')
+            $this._normalColor = $this.Theme.GetColor('button.text')
+            $this._accentColor = $this.Theme.GetColor('color.primary')
         }
     }
     
@@ -75,9 +75,7 @@ class MinimalButton : FocusableComponent {
         if ($this.IsDefault) {
             $sb.Append(' •')
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

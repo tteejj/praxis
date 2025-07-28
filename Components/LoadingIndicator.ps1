@@ -60,9 +60,9 @@ class LoadingIndicator : UIElement {
     [void] UpdateColors() {
         if ($this.Theme) {
             $this._colors = @{
-                accent = $this.Theme.GetColor('accent')
-                normal = $this.Theme.GetColor('normal')
-                disabled = $this.Theme.GetColor('disabled')
+                accent = $this.Theme.GetColor('color.primary')
+                normal = $this.Theme.GetColor('text.primary')
+                disabled = $this.Theme.GetColor('text.disabled')
                 background = $this.Theme.GetBgColor('panel.background')
             }
         }
@@ -222,9 +222,7 @@ class LoadingIndicator : UIElement {
                 $sb.Append($this.Message)
             }
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
@@ -284,10 +282,9 @@ class LoadingOverlay : Screen {
                 $titleY = $this.Y - 2
                 
                 $sb.Append([VT]::MoveTo($titleX, $titleY))
-                $sb.Append($theme.GetColor('accent'))
+                $sb.Append($theme.GetColor('color.primary'))
                 $sb.Append($this.Parent.Title)
-                $sb.Append([VT]::Reset())
-                
+
                 $result = $sb.ToString()
                 Return-PooledStringBuilder $sb
                 return $result
@@ -308,10 +305,9 @@ class LoadingOverlay : Screen {
                 $hintY = $this.Y + 3
                 
                 $sb.Append([VT]::MoveTo($hintX, $hintY))
-                $sb.Append($theme.GetColor('disabled'))
+                $sb.Append($theme.GetColor('text.disabled'))
                 $sb.Append($hint)
-                $sb.Append([VT]::Reset())
-                
+
                 $result = $sb.ToString()
                 Return-PooledStringBuilder $sb
                 return $result

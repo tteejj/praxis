@@ -187,8 +187,7 @@ class FilePickerDialog : BaseDialog {
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $this.DialogPadding, $this.PathBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Path:")
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

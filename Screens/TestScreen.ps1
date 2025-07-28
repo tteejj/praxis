@@ -50,21 +50,21 @@ class TestScreen : Screen {
         
         # Title
         $sb.Append([VT]::MoveTo($absoluteCenterX, $absoluteCenterY - 2))
-        $sb.Append($this.Theme.GetColor("accent"))
+        $sb.Append($this.Theme.GetColor('color.primary'))
         $sb.Append($this.Message)
         
         # Counter
         $counterText = "Counter: $($this.Counter)"
         $counterX = $this.X + [int](($this.Width - $counterText.Length) / 2)
         $sb.Append([VT]::MoveTo($counterX, $absoluteCenterY))
-        $sb.Append($this.Theme.GetColor("foreground"))
+        $sb.Append($this.Theme.GetColor('text.primary'))
         $sb.Append($counterText)
         
         # Instructions
         $instructionText = "Press SPACE to increment, Q to quit"
         $instructionX = $this.X + [int](($this.Width - $instructionText.Length) / 2)
         $sb.Append([VT]::MoveTo($instructionX, $absoluteCenterY + 2))
-        $sb.Append($this.Theme.GetColor("disabled"))
+        $sb.Append($this.Theme.GetColor('text.disabled'))
         $sb.Append($instructionText)
         
         # FPS counter (bottom right)
@@ -75,9 +75,7 @@ class TestScreen : Screen {
             $sb.Append($this.Theme.GetColor("success"))
             $sb.Append($fpsText)
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $this._cachedContent = $sb.ToString()
         Return-PooledStringBuilder $sb
     }

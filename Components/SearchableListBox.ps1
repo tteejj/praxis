@@ -54,13 +54,13 @@ class SearchableListBox : UIElement {
     [void] OnThemeChanged() {
         if ($this.Theme) {
             $this._colors = @{
-                'border' = $this.Theme.GetColor("border")
-                'title' = $this.Theme.GetColor("title")
-                'selected' = $this.Theme.GetBgColor("selected")
-                'normal' = $this.Theme.GetColor("normal")
-                'background' = $this.Theme.GetBgColor("background")
-                'search' = $this.Theme.GetColor("search")
-                'highlight' = $this.Theme.GetColor("highlight")
+                'border' = $this.Theme.GetColor('border.normal')
+                'title' = $this.Theme.GetColor('text.heading')
+                'selected' = $this.Theme.GetBgColor("menu.background.selected")
+                'normal' = $this.Theme.GetColor('text.primary')
+                'background' = $this.Theme.GetBgColor('surface.background')
+                'search' = $this.Theme.GetColor("search.background")
+                'highlight' = $this.Theme.GetColor("highlight.background")
                 'border.focused' = $this.Theme.GetColor("border.focused")
             }
         }
@@ -517,8 +517,7 @@ class SearchableListBox : UIElement {
             $sb.Append($currentBorderColor)
             $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
-        
-        $sb.Append([VT]::Reset())
+
         $this._cachedRender = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
     }

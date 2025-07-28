@@ -1,0 +1,35 @@
+# PRAXIS - Ignore temporary and generated files
+
+# Auto-save files
+_AutoSave/
+*.auto
+
+# Log files  
+_Logs/*.log
+_Logs/*.log.old
+
+# Temporary files
+*.tmp
+*.temp
+*_temp_*
+
+# Backup files (optional - may want to keep some)
+# _Backup/
+
+# User-specific configuration overrides
+_Config/user.json
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+
+# OS generated files  
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.code-workspace

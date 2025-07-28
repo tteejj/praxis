@@ -158,9 +158,7 @@ class TextBox : UIElement {
                 }
             }
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $this._cachedRender = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
         $this._needsRender = $false

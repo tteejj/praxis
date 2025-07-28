@@ -106,7 +106,7 @@ class GradientDemoScreen : Screen {
         
         # Clear background
         if ($this.DrawBackground) {
-            $bg = $this.Theme.GetBgColor('background')
+            $bg = $this.Theme.GetBgColor('surface.background')
             for ($y = 0; $y -lt $this.Height; $y++) {
                 $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))
                 $sb.Append($bg)
@@ -115,14 +115,14 @@ class GradientDemoScreen : Screen {
         }
         
         # Title
-        $titleColor = $this.Theme.GetColor('title')
+        $titleColor = $this.Theme.GetColor('text.heading')
         $titleX = $this.X + [Math]::Floor(($this.Width - $this.Title.Length) / 2)
         $sb.Append([VT]::MoveTo($titleX, $this.Y + 2))
         $sb.Append($titleColor)
         $sb.Append($this.Title)
         
         # Instructions
-        $infoColor = $this.Theme.GetColor('disabled')
+        $infoColor = $this.Theme.GetColor('text.disabled')
         $info = "Tab to navigate, Enter to click"
         $infoX = $this.X + [Math]::Floor(($this.Width - $info.Length) / 2)
         $sb.Append([VT]::MoveTo($infoX, $this.Y + 4))
@@ -131,9 +131,7 @@ class GradientDemoScreen : Screen {
         
         # Render children (buttons)
         $sb.Append(([Screen]$this).OnRender())
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

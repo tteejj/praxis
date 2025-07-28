@@ -227,9 +227,9 @@ class LayoutExamplesScreen : Screen {
             $sb = Get-PooledStringBuilder 256
             $theme = $this.ServiceContainer.GetService('ThemeManager')
             $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 1))
-            $sb.Append($theme.GetColor('accent'))
+            $sb.Append($theme.GetColor('color.primary'))
             $sb.Append("▌ $title")
-            $sb.Append([VT]::Reset())
+            
             $result = $sb.ToString()
             Return-PooledStringBuilder $sb
             return $result
@@ -244,11 +244,11 @@ class LayoutExamplesScreen : Screen {
             $y = $this.Y + 3
             foreach ($line in $lines) {
                 $sb.Append([VT]::MoveTo($this.X + 4, $y))
-                $sb.Append($theme.GetColor('normal'))
+                $sb.Append($theme.GetColor('text.primary'))
                 $sb.Append($line)
                 $y++
             }
-            $sb.Append([VT]::Reset())
+            
             $result = $sb.ToString()
             Return-PooledStringBuilder $sb
             return $result
@@ -264,7 +264,7 @@ class LayoutExamplesScreen : Screen {
                 $this.Parent.X, $this.Parent.Y, 
                 $this.Parent.Width, $this.Parent.Height,
                 [BorderType]::Rounded, 
-                $theme.GetColor('border')
+                $theme.GetColor('border.normal')
             )
         }.GetNewClosure()
         

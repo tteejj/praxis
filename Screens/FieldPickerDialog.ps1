@@ -40,7 +40,7 @@ class FieldPickerDialog : BaseDialog {
         $this.FieldList = $listType::new()
         $this.FieldList.ShowBorder = $true
         $this.FieldList.BorderType = [BorderType]::Rounded
-        $this.FieldList.ItemRenderer = {
+        $this.FieldList.ItemFormatter = {
             param($field)
             if ($field -is [hashtable]) {
                 return "$($field.Name) ($($field.Type))"
@@ -99,16 +99,14 @@ class FieldPickerDialog : BaseDialog {
         $legendY = $this._dialogBounds.Y + $this.DialogHeight - 3
         
         $sb.Append([VT]::MoveTo($legendX, $legendY))
-        $sb.Append($this.Theme.GetColor("disabled"))
+        $sb.Append($this.Theme.GetColor('text.disabled'))
         
         if ($this.AllowMultiple) {
             $sb.Append("Use Space to select multiple fields")
         } else {
             $sb.Append("Select a field and press Enter")
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

@@ -170,11 +170,11 @@ class KeyboardShortcutManager {
             
             # Category header
             if ($this.Theme) {
-                $sb.Append($this.Theme.GetColor('accent'))
+                $sb.Append($this.Theme.GetColor('color.primary'))
             }
             $sb.Append("${category}:")
             if ($this.Theme) {
-                $sb.Append([VT]::Reset())
+                
             }
             $sb.AppendLine()
             
@@ -184,17 +184,17 @@ class KeyboardShortcutManager {
                 $sb.Append("  ")
                 
                 if ($this.Theme) {
-                    $sb.Append($this.Theme.GetColor('normal'))
+                    $sb.Append($this.Theme.GetColor('text.primary'))
                 }
                 $sb.Append($keyText.PadRight(15))
                 
                 if ($this.Theme) {
-                    $sb.Append($this.Theme.GetColor('disabled'))
+                    $sb.Append($this.Theme.GetColor('text.disabled'))
                 }
                 $sb.Append($shortcut.Description)
                 
                 if ($this.Theme) {
-                    $sb.Append([VT]::Reset())
+                    
                 }
                 $sb.AppendLine()
             }
@@ -233,11 +233,11 @@ class KeyboardShortcutManager {
             $first = $false
             
             if ($this.Theme) {
-                $sb.Append($this.Theme.GetColor('accent'))
+                $sb.Append($this.Theme.GetColor('color.primary'))
             }
             $sb.Append($key)
             if ($this.Theme) {
-                $sb.Append($this.Theme.GetColor('disabled'))
+                $sb.Append($this.Theme.GetColor('text.disabled'))
             }
             $sb.Append(":$desc")
             
@@ -245,7 +245,7 @@ class KeyboardShortcutManager {
         }
         
         if ($this.Theme) {
-            $sb.Append([VT]::Reset())
+            
         }
         
         $result = $sb.ToString()

@@ -324,7 +324,7 @@ class ProjectsScreenEnhanced : Screen {
             $screen = $this
             $projectId = $selected.Id
             
-            $dialog.OnConfirm = {
+            $dialog.OnPrimary = {
                 $screen.ProjectService.DeleteProject($projectId)
                 
                 if ($screen.EventBus) {

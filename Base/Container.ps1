@@ -55,9 +55,7 @@ class Container : UIElement {
             $sb.Append($line)
         }
         
-        if ($this._cachedBgColor) {
-            $sb.Append([VT]::Reset())
-        }
+        
         
         $this._cachedBackground = $sb.ToString()
         Return-PooledStringBuilder $sb

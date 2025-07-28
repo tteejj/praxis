@@ -5,6 +5,7 @@ class ThemeManager {
     hidden [hashtable]$_themes = @{}
     hidden [string]$_currentTheme = "default"
     hidden [hashtable]$_cache = @{}
+    hidden [string]$_cachedThemeReset = ""
     hidden [System.Collections.Generic.List[scriptblock]]$_listeners
     hidden [EventBus]$EventBus
     
@@ -16,86 +17,109 @@ class ThemeManager {
     }
     
     [void] InitializeDefaultTheme() {
-        # Define default theme with RGB values
+        # Define default theme with ONLY standardized keys
         $defaultTheme = @{
-            # Base colors
-            "background" = @(24, 24, 24)        # Dark background
-            "foreground" = @(204, 204, 204)     # Light gray text
-            "accent" = @(0, 150, 255)           # Blue accent
-            "success" = @(0, 200, 83)           # Green
-            "warning" = @(255, 195, 0)          # Yellow
-            "error" = @(255, 85, 85)            # Red
+            # Standardized text colors
+            "text.primary" = @(204, 204, 204)   # Primary text
+            "text.secondary" = @(170, 170, 170) # Secondary text
+            "text.disabled" = @(128, 128, 128)  # Disabled text
+            "text.heading" = @(0, 150, 255)     # Headings/titles
+            "text.placeholder" = @(100, 100, 100) # Placeholder text
             
-            # UI elements
-            "border" = @(68, 68, 68)           # Dark gray
-            "border.focused" = @(0, 150, 255)   # Blue
-            "selection" = @(60, 60, 60)         # Selection background
-            "disabled" = @(128, 128, 128)       # Gray
+            # Standardized surface colors
+            "surface.background" = @(24, 24, 24) # Main background
+            "surface.elevated" = @(32, 32, 32)   # Elevated surfaces
+            "surface.dialog" = @(40, 40, 40)     # Dialog backgrounds
             
-            # Focus system colors
-            "focus" = @(0, 150, 255)            # Minimalist focus color
-            "focus.background" = @(40, 40, 40)  # Subtle focus background
-            "focus.accent" = @(0, 200, 255)     # Brighter focus accent
+            # Standardized color palette
+            "color.primary" = @(0, 150, 255)     # Primary brand color
+            "color.secondary" = @(128, 0, 255)   # Secondary accent
             
-            # Generic component colors (for backward compatibility)
-            "title" = @(0, 150, 255)              # Blue titles
-            "normal" = @(204, 204, 204)           # Normal text
-            "selected" = @(60, 60, 60)            # Alias for selection
+            # Standardized status colors
+            "status.success" = @(0, 200, 83)     # Success green
+            "status.warning" = @(255, 195, 0)    # Warning yellow
+            "status.error" = @(255, 85, 85)      # Error red
+            "status.info" = @(0, 150, 255)       # Info blue
             
-            # Component specific
+            # Standardized border colors
+            "border.normal" = @(68, 68, 68)     # Normal borders
+            "border.focused" = @(0, 150, 255)   # Focused borders
+            "border.dialog" = @(68, 68, 68)     # Dialog borders
+            "border.input" = @(68, 68, 68)      # Input borders
+            "border.input.focused" = @(0, 150, 255) # Focused input borders
+            
+            # Standardized interaction states
+            "state.selected" = @(60, 60, 60)    # Selected items
+            "state.hover" = @(48, 48, 48)       # Hover state
+            "state.pressed" = @(32, 32, 32)     # Pressed state
+            "state.focused" = @(0, 150, 255)    # Focus indicator
+            
+            # Button states
             "button.background" = @(48, 48, 48)
-            "button.foreground" = @(204, 204, 204)
-            "button.focused.background" = @(0, 150, 255)
-            "button.focused.foreground" = @(255, 255, 255)
+            "button.text" = @(204, 204, 204)
+            "button.background.hover" = @(64, 64, 64)
+            "button.background.pressed" = @(32, 32, 32)
+            "button.background.focused" = @(0, 150, 255)
+            "button.text.focused" = @(255, 255, 255)
             
+            # Input fields
             "input.background" = @(32, 32, 32)
-            "input.foreground" = @(204, 204, 204)
-            "input.focused.border" = @(0, 150, 255)
+            "input.text" = @(204, 204, 204)
+            "input.placeholder" = @(100, 100, 100)
             
+            # Menu colors
             "menu.background" = @(32, 32, 32)
-            "menu.foreground" = @(204, 204, 204)
-            "menu.selected.background" = @(0, 150, 255)
-            "menu.selected.foreground" = @(255, 255, 255)
+            "menu.text" = @(204, 204, 204)
+            "menu.background.selected" = @(0, 150, 255)
+            "menu.text.selected" = @(255, 255, 255)
             
+            # Tab colors
             "tab.background" = @(48, 48, 48)
-            "tab.foreground" = @(170, 170, 170)
-            "tab.active.background" = @(24, 24, 24)
-            "tab.active.foreground" = @(255, 255, 255)
-            "tab.active.accent" = @(0, 150, 255)
+            "tab.text" = @(170, 170, 170)
+            "tab.background.active" = @(24, 24, 24)
+            "tab.text.active" = @(255, 255, 255)
+            "tab.border.active" = @(0, 150, 255)
             
-            # DataGrid specific colors
-            "header.background" = @(48, 48, 48)
-            "header.foreground" = @(0, 150, 255)
-            "scrollbar" = @(68, 68, 68)
+            # List/Grid components
+            "list.header.background" = @(48, 48, 48)
+            "list.header.text" = @(0, 150, 255)
+            "list.background" = @(24, 24, 24)
+            "list.background.alternate" = @(32, 32, 32)
+            "scrollbar.track" = @(68, 68, 68)
             "scrollbar.thumb" = @(128, 128, 128)
             
-            # Additional component colors
-            "checkbox" = @(0, 150, 255)
-            "checkbox.selected" = @(0, 200, 255)
-            "search" = @(255, 195, 0)
-            "highlight" = @(255, 255, 0)
-            "directory" = @(0, 150, 255)
-            "file" = @(204, 204, 204)
-            "input.border" = @(68, 68, 68)
-            "input.placeholder" = @(128, 128, 128)
-            "progress.active" = @(0, 150, 255)
-            "progress.complete" = @(0, 200, 83)
+            # Checkbox/Radio
+            "checkbox.background" = @(32, 32, 32)
+            "checkbox.border" = @(68, 68, 68)
+            "checkbox.check" = @(0, 150, 255)
+            
+            # Search/Highlight
+            "search.background" = @(255, 195, 0)
+            "search.text" = @(0, 0, 0)
+            "highlight.background" = @(255, 255, 0)
+            "highlight.text" = @(0, 0, 0)
+            
+            # File browser
+            "file.directory" = @(0, 150, 255)
+            "file.normal" = @(204, 204, 204)
+            "file.executable" = @(0, 200, 83)
+            "file.symlink" = @(255, 195, 0)
+            
+            # Progress indicators
+            "progress.background" = @(48, 48, 48)
+            "progress.bar" = @(0, 150, 255)
+            "progress.bar.complete" = @(0, 200, 83)
             "progress.text" = @(204, 204, 204)
             
-            # Dialog colors
-            "dialog.background" = @(24, 24, 24)      # Same as background
-            "dialog.border" = @(68, 68, 68)          # Same as border
-            "dialog.title" = @(0, 150, 255)          # Same as accent/title
-            
-            # Additional border states
-            "border.normal" = @(68, 68, 68)          # Normal border (same as border)
-            
-            # Text editor cursor
-            "cursor" = @(255, 255, 255)              # White cursor background
-            "cursor.text" = @(0, 0, 0)               # Black text on cursor
-            "linenumber" = @(100, 100, 100)          # Dim line numbers
-            "selection.text" = @(255, 255, 255)      # White text on selection
-            "status" = @(204, 204, 204)              # Status bar text
+            # Editor specific
+            "editor.background" = @(24, 24, 24)
+            "editor.linenumber" = @(100, 100, 100)
+            "editor.cursor" = @(255, 255, 255)
+            "editor.cursor.text" = @(0, 0, 0)
+            "editor.selection" = @(60, 60, 60)
+            "editor.selection.text" = @(255, 255, 255)
+            "editor.status.background" = @(32, 32, 32)
+            "editor.status.text" = @(204, 204, 204)
             
             # Gradient endpoints
             "gradient.border.start" = @(0, 150, 255)      # Blue
@@ -106,86 +130,109 @@ class ThemeManager {
         
         $this.RegisterTheme("default", $defaultTheme)
         
-        # Define matrix theme - black background with green text
+        # Define matrix theme - ONLY standardized keys
         $matrixTheme = @{
-            # Base colors
-            "background" = @(0, 0, 0)             # Pure black background
-            "foreground" = @(0, 255, 0)           # Bright green text
-            "accent" = @(0, 200, 0)               # Darker green accent
-            "success" = @(0, 255, 0)              # Bright green
-            "warning" = @(255, 255, 0)            # Yellow
-            "error" = @(255, 0, 0)                # Red
+            # Standardized text colors
+            "text.primary" = @(0, 255, 0)         # Bright green text
+            "text.secondary" = @(0, 200, 0)       # Slightly dimmer green
+            "text.disabled" = @(0, 128, 0)        # Medium green
+            "text.heading" = @(0, 255, 0)         # Bright green headings
+            "text.placeholder" = @(0, 100, 0)     # Dark green placeholder
             
-            # UI elements
-            "border" = @(0, 100, 0)               # Dark green borders
+            # Standardized surface colors
+            "surface.background" = @(0, 0, 0)     # Pure black background
+            "surface.elevated" = @(0, 20, 0)      # Very dark green
+            "surface.dialog" = @(0, 30, 0)        # Slightly lighter for dialogs
+            
+            # Standardized color palette
+            "color.primary" = @(0, 255, 0)        # Matrix green
+            "color.secondary" = @(0, 200, 0)      # Darker green
+            
+            # Standardized status colors
+            "status.success" = @(0, 255, 0)       # Bright green
+            "status.warning" = @(255, 255, 0)     # Yellow
+            "status.error" = @(255, 0, 0)         # Red
+            "status.info" = @(0, 200, 255)        # Cyan
+            
+            # Standardized border colors
+            "border.normal" = @(0, 100, 0)        # Dark green borders
             "border.focused" = @(0, 255, 0)       # Bright green when focused
-            "selection" = @(0, 100, 0)            # Dark green selection - more visible
-            "disabled" = @(0, 128, 0)             # Medium green for disabled
+            "border.dialog" = @(0, 150, 0)        # Medium green for dialogs
+            "border.input" = @(0, 100, 0)         # Dark green for inputs
+            "border.input.focused" = @(0, 255, 0) # Bright green when focused
             
-            # Focus system colors
-            "focus" = @(0, 255, 0)                # Matrix green focus
-            "focus.background" = @(0, 40, 0)      # Subtle green focus background
-            "focus.accent" = @(100, 255, 100)     # Brighter green accent
+            # Standardized interaction states
+            "state.selected" = @(0, 100, 0)       # Dark green selection
+            "state.hover" = @(0, 80, 0)           # Slightly darker
+            "state.pressed" = @(0, 60, 0)         # Even darker when pressed
+            "state.focused" = @(0, 255, 0)        # Bright green focus
             
-            # Generic component colors (for backward compatibility)
-            "title" = @(0, 255, 0)                # Bright green for titles
-            "normal" = @(0, 200, 0)               # Normal text (slightly dimmer green)
-            "selected" = @(0, 100, 0)             # Alias for selection
-            
-            # Component specific
+            # Button states
             "button.background" = @(0, 20, 0)
-            "button.foreground" = @(0, 255, 0)
-            "button.focused.background" = @(0, 100, 0)
-            "button.focused.foreground" = @(0, 255, 0)
+            "button.text" = @(0, 255, 0)
+            "button.background.hover" = @(0, 40, 0)
+            "button.background.pressed" = @(0, 60, 0)
+            "button.background.focused" = @(0, 100, 0)
+            "button.text.focused" = @(0, 255, 0)
             
+            # Input fields
             "input.background" = @(0, 10, 0)
-            "input.foreground" = @(0, 255, 0)
-            "input.focused.border" = @(0, 255, 0)
+            "input.text" = @(0, 255, 0)
+            "input.placeholder" = @(0, 100, 0)
             
+            # Menu colors
             "menu.background" = @(0, 0, 0)
-            "menu.foreground" = @(0, 200, 0)
-            "menu.selected.background" = @(0, 80, 0)
-            "menu.selected.foreground" = @(0, 255, 0)
+            "menu.text" = @(0, 200, 0)
+            "menu.background.selected" = @(0, 80, 0)
+            "menu.text.selected" = @(0, 255, 0)
             
+            # Tab colors
             "tab.background" = @(0, 30, 0)
-            "tab.foreground" = @(0, 150, 0)
-            "tab.active.background" = @(0, 0, 0)
-            "tab.active.foreground" = @(0, 255, 0)
-            "tab.active.accent" = @(0, 255, 0)
+            "tab.text" = @(0, 150, 0)
+            "tab.background.active" = @(0, 0, 0)
+            "tab.text.active" = @(0, 255, 0)
+            "tab.border.active" = @(0, 255, 0)
             
-            # DataGrid specific colors
-            "header.background" = @(0, 30, 0)
-            "header.foreground" = @(0, 255, 0)
-            "scrollbar" = @(0, 100, 0)
+            # List/Grid components
+            "list.header.background" = @(0, 30, 0)
+            "list.header.text" = @(0, 255, 0)
+            "list.background" = @(0, 0, 0)
+            "list.background.alternate" = @(0, 10, 0)
+            "scrollbar.track" = @(0, 100, 0)
             "scrollbar.thumb" = @(0, 150, 0)
             
-            # Additional component colors
-            "checkbox" = @(0, 255, 0)
-            "checkbox.selected" = @(0, 255, 100)
-            "search" = @(255, 255, 0)
-            "highlight" = @(255, 255, 0)
-            "directory" = @(0, 255, 0)
-            "file" = @(0, 200, 0)
-            "input.border" = @(0, 100, 0)
-            "input.placeholder" = @(0, 128, 0)
-            "progress.active" = @(0, 255, 0)
-            "progress.complete" = @(0, 255, 0)
+            # Checkbox/Radio
+            "checkbox.background" = @(0, 10, 0)
+            "checkbox.border" = @(0, 100, 0)
+            "checkbox.check" = @(0, 255, 0)
+            
+            # Search/Highlight
+            "search.background" = @(255, 255, 0)
+            "search.text" = @(0, 0, 0)
+            "highlight.background" = @(255, 255, 0)
+            "highlight.text" = @(0, 0, 0)
+            
+            # File browser
+            "file.directory" = @(0, 255, 0)
+            "file.normal" = @(0, 200, 0)
+            "file.executable" = @(0, 255, 100)
+            "file.symlink" = @(255, 255, 0)
+            
+            # Progress indicators
+            "progress.background" = @(0, 30, 0)
+            "progress.bar" = @(0, 255, 0)
+            "progress.bar.complete" = @(0, 255, 0)
             "progress.text" = @(0, 200, 0)
             
-            # Dialog colors
-            "dialog.background" = @(0, 0, 0)
-            "dialog.border" = @(0, 150, 0)
-            "dialog.title" = @(0, 255, 0)
-            
-            # Additional border states
-            "border.normal" = @(0, 100, 0)
-            
-            # Text editor cursor
-            "cursor" = @(0, 255, 0)                  # Green cursor background
-            "cursor.text" = @(0, 0, 0)               # Black text on cursor
-            "linenumber" = @(0, 100, 0)              # Dim green line numbers
-            "selection.text" = @(0, 0, 0)            # Black text on green selection
-            "status" = @(0, 200, 0)                  # Status bar text
+            # Editor specific
+            "editor.background" = @(0, 0, 0)
+            "editor.linenumber" = @(0, 100, 0)
+            "editor.cursor" = @(0, 255, 0)
+            "editor.cursor.text" = @(0, 0, 0)
+            "editor.selection" = @(0, 100, 0)
+            "editor.selection.text" = @(0, 0, 0)
+            "editor.status.background" = @(0, 20, 0)
+            "editor.status.text" = @(0, 200, 0)
             
             # Gradient endpoints
             "gradient.border.start" = @(0, 255, 0)        # Bright green
@@ -196,79 +243,109 @@ class ThemeManager {
         
         $this.RegisterTheme("matrix", $matrixTheme)
         
-        # Define amber theme - classic amber terminal with amber background
+        # Define amber theme - ONLY standardized keys
         $amberTheme = @{
-            # Base colors
-            "background" = @(51, 34, 0)            # Dark amber background (not grey!)
-            "foreground" = @(255, 204, 0)          # Amber text
-            "accent" = @(255, 230, 77)             # Bright amber accent
-            "success" = @(0, 255, 0)               # Green
-            "warning" = @(255, 255, 0)             # Yellow
-            "error" = @(255, 85, 85)               # Red
+            # Standardized text colors
+            "text.primary" = @(255, 204, 0)       # Amber text
+            "text.secondary" = @(204, 163, 0)     # Darker amber
+            "text.disabled" = @(102, 82, 0)       # Dim amber
+            "text.heading" = @(255, 230, 77)      # Bright amber headings
+            "text.placeholder" = @(153, 122, 0)   # Medium amber placeholder
             
-            # UI elements
-            "border" = @(153, 102, 0)              # Darker amber borders
-            "border.focused" = @(255, 230, 77)     # Bright amber when focused
-            "selection" = @(51, 34, 0)             # Dark amber selection
-            "disabled" = @(102, 82, 0)             # Dim amber
+            # Standardized surface colors
+            "surface.background" = @(51, 34, 0)   # Dark amber background
+            "surface.elevated" = @(61, 49, 0)     # Slightly lighter amber
+            "surface.dialog" = @(71, 57, 0)       # Even lighter for dialogs
             
-            # Focus system colors
-            "focus" = @(255, 230, 77)              # Bright amber focus
-            "focus.background" = @(51, 41, 0)      # Dark amber focus bg
-            "focus.accent" = @(255, 255, 102)      # Very bright amber
+            # Standardized color palette
+            "color.primary" = @(255, 230, 77)     # Bright amber
+            "color.secondary" = @(255, 204, 0)    # Standard amber
             
-            # Generic component colors
-            "title" = @(255, 230, 77)              # Bright amber titles
-            "normal" = @(255, 204, 0)              # Normal amber text
-            "selected" = @(51, 34, 0)              # Dark amber selection
+            # Standardized status colors
+            "status.success" = @(0, 255, 0)       # Green
+            "status.warning" = @(255, 255, 0)     # Yellow
+            "status.error" = @(255, 85, 85)       # Red
+            "status.info" = @(100, 200, 255)      # Light blue
             
-            # Component specific
+            # Standardized border colors
+            "border.normal" = @(153, 102, 0)      # Darker amber borders
+            "border.focused" = @(255, 230, 77)    # Bright amber when focused
+            "border.dialog" = @(204, 136, 0)      # Medium amber for dialogs
+            "border.input" = @(153, 102, 0)       # Same as normal border
+            "border.input.focused" = @(255, 230, 77) # Bright when focused
+            
+            # Standardized interaction states
+            "state.selected" = @(102, 68, 0)      # Dark amber selection
+            "state.hover" = @(82, 55, 0)          # Slightly darker
+            "state.pressed" = @(61, 41, 0)        # Even darker when pressed
+            "state.focused" = @(255, 230, 77)     # Bright amber focus
+            
+            # Button states
             "button.background" = @(41, 33, 0)
-            "button.foreground" = @(255, 204, 0)
-            "button.focused.background" = @(255, 230, 77)
-            "button.focused.foreground" = @(20, 18, 12)
+            "button.text" = @(255, 204, 0)
+            "button.background.hover" = @(61, 49, 0)
+            "button.background.pressed" = @(31, 25, 0)
+            "button.background.focused" = @(255, 230, 77)
+            "button.text.focused" = @(20, 18, 12)
             
+            # Input fields
             "input.background" = @(31, 25, 0)
-            "input.foreground" = @(255, 204, 0)
-            "input.focused.border" = @(255, 230, 77)
+            "input.text" = @(255, 204, 0)
+            "input.placeholder" = @(153, 122, 0)
             
+            # Menu colors
             "menu.background" = @(31, 25, 0)
-            "menu.foreground" = @(255, 204, 0)
-            "menu.selected.background" = @(255, 230, 77)
-            "menu.selected.foreground" = @(20, 18, 12)
+            "menu.text" = @(255, 204, 0)
+            "menu.background.selected" = @(102, 68, 0)
+            "menu.text.selected" = @(255, 230, 77)
             
-            "tab.background" = @(61, 49, 0)        # Amber tab background
-            "tab.foreground" = @(204, 163, 0)
-            "tab.active.background" = @(51, 34, 0)  # Same as main background
-            "tab.active.foreground" = @(255, 230, 77)
-            "tab.active.accent" = @(255, 230, 77)
+            # Tab colors
+            "tab.background" = @(61, 49, 0)
+            "tab.text" = @(204, 163, 0)
+            "tab.background.active" = @(51, 34, 0)
+            "tab.text.active" = @(255, 230, 77)
+            "tab.border.active" = @(255, 230, 77)
             
-            # DataGrid specific colors
-            "header.background" = @(41, 33, 0)
-            "header.foreground" = @(255, 230, 77)
-            "scrollbar" = @(102, 82, 0)
+            # List/Grid components
+            "list.header.background" = @(41, 33, 0)
+            "list.header.text" = @(255, 230, 77)
+            "list.background" = @(51, 34, 0)
+            "list.background.alternate" = @(41, 33, 0)
+            "scrollbar.track" = @(102, 82, 0)
             "scrollbar.thumb" = @(153, 122, 0)
             
-            # Additional component colors
-            "checkbox" = @(255, 230, 77)
-            "checkbox.selected" = @(255, 255, 102)
-            "search" = @(255, 255, 0)
-            "highlight" = @(255, 255, 102)
-            "directory" = @(255, 230, 77)
-            "file" = @(255, 204, 0)
-            "input.border" = @(153, 102, 0)
-            "input.placeholder" = @(102, 82, 0)
-            "progress.active" = @(255, 230, 77)
-            "progress.complete" = @(255, 204, 0)
+            # Checkbox/Radio
+            "checkbox.background" = @(31, 25, 0)
+            "checkbox.border" = @(153, 102, 0)
+            "checkbox.check" = @(255, 230, 77)
+            
+            # Search/Highlight
+            "search.background" = @(255, 255, 0)
+            "search.text" = @(0, 0, 0)
+            "highlight.background" = @(255, 255, 102)
+            "highlight.text" = @(0, 0, 0)
+            
+            # File browser
+            "file.directory" = @(255, 230, 77)
+            "file.normal" = @(255, 204, 0)
+            "file.executable" = @(255, 255, 102)
+            "file.symlink" = @(255, 255, 0)
+            
+            # Progress indicators
+            "progress.background" = @(41, 33, 0)
+            "progress.bar" = @(255, 230, 77)
+            "progress.bar.complete" = @(255, 204, 0)
             "progress.text" = @(255, 204, 0)
             
-            # Dialog colors
-            "dialog.background" = @(51, 34, 0)     # Same amber background
-            "dialog.border" = @(153, 102, 0)
-            "dialog.title" = @(255, 230, 77)
-            
-            # Additional border states
-            "border.normal" = @(153, 102, 0)
+            # Editor specific
+            "editor.background" = @(51, 34, 0)
+            "editor.linenumber" = @(102, 82, 0)
+            "editor.cursor" = @(255, 204, 0)
+            "editor.cursor.text" = @(0, 0, 0)
+            "editor.selection" = @(102, 68, 0)
+            "editor.selection.text" = @(255, 255, 102)
+            "editor.status.background" = @(41, 33, 0)
+            "editor.status.text" = @(255, 204, 0)
             
             # Gradient endpoints
             "gradient.border.start" = @(255, 230, 77)     # Bright amber
@@ -279,86 +356,109 @@ class ThemeManager {
         
         $this.RegisterTheme("amber", $amberTheme)
         
-        # Define amber-black theme - amber terminal with pure black background
+        # Define amber-black theme - ONLY standardized keys
         $amberBlackTheme = @{
-            # Base colors
-            "background" = @(0, 0, 0)              # Pure black background
-            "foreground" = @(255, 204, 0)          # Amber text
-            "accent" = @(255, 230, 77)             # Bright amber accent
-            "success" = @(0, 255, 0)               # Green
-            "warning" = @(255, 255, 0)             # Yellow
-            "error" = @(255, 85, 85)               # Red
+            # Standardized text colors
+            "text.primary" = @(255, 204, 0)       # Amber text
+            "text.secondary" = @(204, 163, 0)     # Darker amber
+            "text.disabled" = @(102, 82, 0)       # Dim amber
+            "text.heading" = @(255, 230, 77)      # Bright amber headings
+            "text.placeholder" = @(153, 122, 0)   # Medium amber placeholder
             
-            # UI elements
-            "border" = @(153, 102, 0)              # Darker amber borders
-            "border.focused" = @(255, 230, 77)     # Bright amber when focused
-            "selection" = @(51, 34, 0)             # Dark amber selection
-            "disabled" = @(102, 82, 0)             # Dim amber
+            # Standardized surface colors
+            "surface.background" = @(0, 0, 0)     # Pure black background
+            "surface.elevated" = @(10, 8, 0)      # Very dark amber
+            "surface.dialog" = @(20, 16, 0)       # Slightly lighter
             
-            # Focus system colors
-            "focus" = @(255, 230, 77)              # Bright amber focus
-            "focus.background" = @(20, 16, 0)      # Very dark amber focus bg
-            "focus.accent" = @(255, 255, 102)      # Very bright amber
+            # Standardized color palette
+            "color.primary" = @(255, 230, 77)     # Bright amber
+            "color.secondary" = @(255, 204, 0)    # Standard amber
             
-            # Generic component colors
-            "title" = @(255, 230, 77)              # Bright amber titles
-            "normal" = @(255, 204, 0)              # Normal amber text
-            "selected" = @(51, 34, 0)              # Dark amber selection
+            # Standardized status colors
+            "status.success" = @(0, 255, 0)       # Green
+            "status.warning" = @(255, 255, 0)     # Yellow
+            "status.error" = @(255, 85, 85)       # Red
+            "status.info" = @(100, 200, 255)      # Light blue
             
-            # Component specific
+            # Standardized border colors
+            "border.normal" = @(153, 102, 0)      # Darker amber borders
+            "border.focused" = @(255, 230, 77)    # Bright amber when focused
+            "border.dialog" = @(204, 136, 0)      # Medium amber for dialogs
+            "border.input" = @(153, 102, 0)       # Same as normal border
+            "border.input.focused" = @(255, 230, 77) # Bright when focused
+            
+            # Standardized interaction states
+            "state.selected" = @(51, 34, 0)       # Dark amber selection
+            "state.hover" = @(41, 27, 0)          # Slightly darker
+            "state.pressed" = @(31, 20, 0)        # Even darker when pressed
+            "state.focused" = @(255, 230, 77)     # Bright amber focus
+            
+            # Button states
             "button.background" = @(10, 8, 0)
-            "button.foreground" = @(255, 204, 0)
-            "button.focused.background" = @(255, 230, 77)
-            "button.focused.foreground" = @(0, 0, 0)
+            "button.text" = @(255, 204, 0)
+            "button.background.hover" = @(20, 16, 0)
+            "button.background.pressed" = @(5, 4, 0)
+            "button.background.focused" = @(255, 230, 77)
+            "button.text.focused" = @(0, 0, 0)
             
+            # Input fields
             "input.background" = @(10, 8, 0)
-            "input.foreground" = @(255, 204, 0)
-            "input.focused.border" = @(255, 230, 77)
+            "input.text" = @(255, 204, 0)
+            "input.placeholder" = @(153, 122, 0)
             
+            # Menu colors
             "menu.background" = @(0, 0, 0)
-            "menu.foreground" = @(255, 204, 0)
-            "menu.selected.background" = @(255, 230, 77)
-            "menu.selected.foreground" = @(0, 0, 0)
+            "menu.text" = @(255, 204, 0)
+            "menu.background.selected" = @(102, 68, 0)
+            "menu.text.selected" = @(0, 0, 0)
             
-            "tab.background" = @(20, 16, 0)        # Very dark amber
-            "tab.foreground" = @(204, 163, 0)
-            "tab.active.background" = @(0, 0, 0)    # Black background
-            "tab.active.foreground" = @(255, 230, 77)
-            "tab.active.accent" = @(255, 230, 77)
+            # Tab colors
+            "tab.background" = @(20, 16, 0)
+            "tab.text" = @(204, 163, 0)
+            "tab.background.active" = @(0, 0, 0)
+            "tab.text.active" = @(255, 230, 77)
+            "tab.border.active" = @(255, 230, 77)
             
-            # DataGrid specific colors
-            "header.background" = @(20, 16, 0)
-            "header.foreground" = @(255, 230, 77)
-            "scrollbar" = @(102, 82, 0)
+            # List/Grid components
+            "list.header.background" = @(20, 16, 0)
+            "list.header.text" = @(255, 230, 77)
+            "list.background" = @(0, 0, 0)
+            "list.background.alternate" = @(10, 8, 0)
+            "scrollbar.track" = @(102, 82, 0)
             "scrollbar.thumb" = @(153, 122, 0)
             
-            # Additional component colors
-            "checkbox" = @(255, 230, 77)
-            "checkbox.selected" = @(255, 255, 102)
-            "search" = @(255, 255, 0)
-            "highlight" = @(255, 255, 102)
-            "directory" = @(255, 230, 77)
-            "file" = @(255, 204, 0)
-            "input.border" = @(153, 102, 0)
-            "input.placeholder" = @(102, 82, 0)
-            "progress.active" = @(255, 230, 77)
-            "progress.complete" = @(255, 204, 0)
+            # Checkbox/Radio
+            "checkbox.background" = @(10, 8, 0)
+            "checkbox.border" = @(153, 102, 0)
+            "checkbox.check" = @(255, 230, 77)
+            
+            # Search/Highlight
+            "search.background" = @(255, 255, 0)
+            "search.text" = @(0, 0, 0)
+            "highlight.background" = @(255, 255, 102)
+            "highlight.text" = @(0, 0, 0)
+            
+            # File browser
+            "file.directory" = @(255, 230, 77)
+            "file.normal" = @(255, 204, 0)
+            "file.executable" = @(255, 255, 102)
+            "file.symlink" = @(255, 255, 0)
+            
+            # Progress indicators
+            "progress.background" = @(20, 16, 0)
+            "progress.bar" = @(255, 230, 77)
+            "progress.bar.complete" = @(255, 204, 0)
             "progress.text" = @(255, 204, 0)
             
-            # Dialog colors
-            "dialog.background" = @(0, 0, 0)
-            "dialog.border" = @(153, 102, 0)
-            "dialog.title" = @(255, 230, 77)
-            
-            # Additional border states
-            "border.normal" = @(153, 102, 0)
-            
-            # Text editor cursor
-            "cursor" = @(255, 204, 0)              # Amber cursor
-            "cursor.text" = @(0, 0, 0)             # Black text on cursor
-            "linenumber" = @(102, 82, 0)          # Dim amber line numbers
-            "selection.text" = @(0, 0, 0)          # Black text on selection
-            "status" = @(255, 204, 0)              # Status bar text
+            # Editor specific
+            "editor.background" = @(0, 0, 0)
+            "editor.linenumber" = @(102, 82, 0)
+            "editor.cursor" = @(255, 204, 0)
+            "editor.cursor.text" = @(0, 0, 0)
+            "editor.selection" = @(51, 34, 0)
+            "editor.selection.text" = @(255, 255, 102)
+            "editor.status.background" = @(20, 16, 0)
+            "editor.status.text" = @(255, 204, 0)
             
             # Gradient endpoints
             "gradient.border.start" = @(255, 230, 77)     # Bright amber
@@ -369,86 +469,109 @@ class ThemeManager {
         
         $this.RegisterTheme("amber-black", $amberBlackTheme)
         
-        # Define matrix-rain theme - enhanced matrix with rain effect colors
+        # Define matrix-rain theme - ONLY standardized keys
         $matrixRainTheme = @{
-            # Base colors
-            "background" = @(0, 0, 0)             # Pure black background
-            "foreground" = @(0, 255, 0)           # Bright green text
-            "accent" = @(150, 255, 150)           # Light green accent
-            "success" = @(0, 255, 0)              # Bright green
-            "warning" = @(255, 255, 0)            # Yellow
-            "error" = @(255, 0, 0)                # Red
+            # Standardized text colors
+            "text.primary" = @(0, 255, 0)         # Bright green text
+            "text.secondary" = @(0, 200, 0)       # Slightly dimmer green
+            "text.disabled" = @(0, 100, 0)        # Dim green
+            "text.heading" = @(150, 255, 150)     # Light green headings
+            "text.placeholder" = @(0, 80, 0)      # Dark green placeholder
             
-            # UI elements
-            "border" = @(0, 150, 0)               # Medium green borders
+            # Standardized surface colors
+            "surface.background" = @(0, 0, 0)     # Pure black background
+            "surface.elevated" = @(0, 30, 0)      # Dark green
+            "surface.dialog" = @(0, 40, 0)        # Slightly lighter for dialogs
+            
+            # Standardized color palette
+            "color.primary" = @(150, 255, 150)    # Light green
+            "color.secondary" = @(0, 255, 0)      # Bright green
+            
+            # Standardized status colors
+            "status.success" = @(0, 255, 0)       # Bright green
+            "status.warning" = @(255, 255, 0)     # Yellow
+            "status.error" = @(255, 0, 0)         # Red
+            "status.info" = @(0, 200, 255)        # Cyan
+            
+            # Standardized border colors
+            "border.normal" = @(0, 150, 0)        # Medium green borders
             "border.focused" = @(150, 255, 150)   # Light green when focused
-            "selection" = @(0, 80, 0)             # Dark green selection
-            "disabled" = @(0, 100, 0)             # Dim green for disabled
+            "border.dialog" = @(0, 200, 0)        # Bright green for dialogs
+            "border.input" = @(0, 150, 0)         # Medium green for inputs
+            "border.input.focused" = @(150, 255, 150) # Light green when focused
             
-            # Focus system colors
-            "focus" = @(150, 255, 150)            # Light green focus
-            "focus.background" = @(0, 50, 0)      # Dark green focus background
-            "focus.accent" = @(200, 255, 200)     # Very light green accent
+            # Standardized interaction states
+            "state.selected" = @(0, 80, 0)        # Dark green selection
+            "state.hover" = @(0, 100, 0)          # Slightly lighter
+            "state.pressed" = @(0, 120, 0)        # Even lighter when pressed
+            "state.focused" = @(150, 255, 150)    # Light green focus
             
-            # Generic component colors (for backward compatibility)
-            "title" = @(150, 255, 150)            # Light green for titles
-            "normal" = @(0, 200, 0)               # Normal text (slightly dimmer green)
-            "selected" = @(0, 80, 0)              # Alias for selection
-            
-            # Component specific
+            # Button states
             "button.background" = @(0, 30, 0)
-            "button.foreground" = @(0, 255, 0)
-            "button.focused.background" = @(0, 150, 0)
-            "button.focused.foreground" = @(150, 255, 150)
+            "button.text" = @(0, 255, 0)
+            "button.background.hover" = @(0, 50, 0)
+            "button.background.pressed" = @(0, 70, 0)
+            "button.background.focused" = @(0, 150, 0)
+            "button.text.focused" = @(150, 255, 150)
             
+            # Input fields
             "input.background" = @(0, 20, 0)
-            "input.foreground" = @(0, 255, 0)
-            "input.focused.border" = @(150, 255, 150)
+            "input.text" = @(0, 255, 0)
+            "input.placeholder" = @(0, 100, 0)
             
+            # Menu colors
             "menu.background" = @(0, 0, 0)
-            "menu.foreground" = @(0, 200, 0)
-            "menu.selected.background" = @(0, 100, 0)
-            "menu.selected.foreground" = @(150, 255, 150)
+            "menu.text" = @(0, 200, 0)
+            "menu.background.selected" = @(0, 100, 0)
+            "menu.text.selected" = @(150, 255, 150)
             
+            # Tab colors
             "tab.background" = @(0, 40, 0)
-            "tab.foreground" = @(0, 180, 0)
-            "tab.active.background" = @(0, 0, 0)
-            "tab.active.foreground" = @(150, 255, 150)
-            "tab.active.accent" = @(0, 255, 0)
+            "tab.text" = @(0, 180, 0)
+            "tab.background.active" = @(0, 0, 0)
+            "tab.text.active" = @(150, 255, 150)
+            "tab.border.active" = @(0, 255, 0)
             
-            # DataGrid specific colors
-            "header.background" = @(0, 40, 0)
-            "header.foreground" = @(150, 255, 150)
-            "scrollbar" = @(0, 100, 0)
+            # List/Grid components
+            "list.header.background" = @(0, 40, 0)
+            "list.header.text" = @(150, 255, 150)
+            "list.background" = @(0, 0, 0)
+            "list.background.alternate" = @(0, 20, 0)
+            "scrollbar.track" = @(0, 100, 0)
             "scrollbar.thumb" = @(0, 200, 0)
             
-            # Additional component colors
-            "checkbox" = @(150, 255, 150)
-            "checkbox.selected" = @(200, 255, 200)
-            "search" = @(255, 255, 0)
-            "highlight" = @(255, 255, 0)
-            "directory" = @(150, 255, 150)
-            "file" = @(0, 200, 0)
-            "input.border" = @(0, 150, 0)
-            "input.placeholder" = @(0, 100, 0)
-            "progress.active" = @(150, 255, 150)
-            "progress.complete" = @(0, 255, 0)
+            # Checkbox/Radio
+            "checkbox.background" = @(0, 20, 0)
+            "checkbox.border" = @(0, 150, 0)
+            "checkbox.check" = @(150, 255, 150)
+            
+            # Search/Highlight
+            "search.background" = @(255, 255, 0)
+            "search.text" = @(0, 0, 0)
+            "highlight.background" = @(255, 255, 0)
+            "highlight.text" = @(0, 0, 0)
+            
+            # File browser
+            "file.directory" = @(150, 255, 150)
+            "file.normal" = @(0, 200, 0)
+            "file.executable" = @(0, 255, 100)
+            "file.symlink" = @(255, 255, 0)
+            
+            # Progress indicators
+            "progress.background" = @(0, 40, 0)
+            "progress.bar" = @(150, 255, 150)
+            "progress.bar.complete" = @(0, 255, 0)
             "progress.text" = @(0, 200, 0)
             
-            # Dialog colors
-            "dialog.background" = @(0, 0, 0)
-            "dialog.border" = @(0, 200, 0)
-            "dialog.title" = @(150, 255, 150)
-            
-            # Additional border states
-            "border.normal" = @(0, 150, 0)
-            
-            # Text editor cursor
-            "cursor" = @(0, 255, 0)                  # Green cursor background
-            "cursor.text" = @(0, 0, 0)               # Black text on cursor
-            "linenumber" = @(0, 100, 0)              # Dim green line numbers
-            "selection.text" = @(0, 0, 0)            # Black text on green selection
-            "status" = @(0, 200, 0)                  # Status bar text
+            # Editor specific
+            "editor.background" = @(0, 0, 0)
+            "editor.linenumber" = @(0, 100, 0)
+            "editor.cursor" = @(0, 255, 0)
+            "editor.cursor.text" = @(0, 0, 0)
+            "editor.selection" = @(0, 100, 0)
+            "editor.selection.text" = @(150, 255, 150)
+            "editor.status.background" = @(0, 30, 0)
+            "editor.status.text" = @(0, 200, 0)
             
             # Gradient endpoints - for matrix rain effect
             "gradient.border.start" = @(150, 255, 150)    # Light green
@@ -496,6 +619,7 @@ class ThemeManager {
         $oldTheme = $this._currentTheme
         $this._currentTheme = $name
         $this.RebuildCache()
+        $this.UpdateThemeResetCache()
         
         if ($global:Logger) {
             $global:Logger.Info("ThemeManager: Theme changed from '$oldTheme' to '$name'")
@@ -602,9 +726,31 @@ class ThemeManager {
         }
         
         # Add common combinations
-        $this._cache["reset"] = [VT]::Reset()
+        $this._cache["reset"] = 
         $this._cache["clear"] = [VT]::Clear()
         $this._cache["clearline"] = [VT]::ClearLine()
+        
+        # Update theme reset cache
+        $this.UpdateThemeResetCache()
+    }
+    
+    # Update cached theme reset sequence for performance
+    [void] UpdateThemeResetCache() {
+        # Get theme colors
+        $fgRgb = $this.GetRGB("text.primary")
+        $bgRgb = $this.GetRGB("surface.background")
+        
+        if ($fgRgb -and $bgRgb) {
+            # Pre-build the reset sequence
+            $this._cachedThemeReset = [VT]::RGB($fgRgb[0], $fgRgb[1], $fgRgb[2]) + [VT]::RGBBG($bgRgb[0], $bgRgb[1], $bgRgb[2])
+        } else {
+            $this._cachedThemeReset = ""
+        }
+    }
+    
+    # Get cached theme reset sequence (FAST - no computation)
+    [string] GetThemeReset() {
+        return $this._cachedThemeReset
     }
     
     # Subscribe to theme changes (legacy method - use EventBus instead)

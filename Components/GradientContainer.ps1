@@ -110,7 +110,7 @@ class GradientContainer : Container {
                 }
             }
         }
-        $sb.Append([VT]::Reset())
+        
     }
     
     hidden [void] RenderGradientBorder([System.Text.StringBuilder]$sb) {
@@ -130,7 +130,7 @@ class GradientContainer : Container {
                 }
                 
                 # Right border
-                if ($this.Width > $this.BorderThickness * 2) {
+                if ($this.Width -gt ($this.BorderThickness * 2)) {
                     $sb.Append([VT]::MoveTo($this.X + $this.Width - $this.BorderThickness, $this.Y + $y))
                     $sb.Append($color)
                     for ($i = 0; $i -lt $this.BorderThickness; $i++) {
@@ -181,8 +181,7 @@ class GradientContainer : Container {
             # Horizontal gradient across all borders
             $this.RenderHorizontalGradientBorder($sb)
         }
-        
-        $sb.Append([VT]::Reset())
+
     }
     
     hidden [void] RenderHorizontalGradientBorder([System.Text.StringBuilder]$sb) {
@@ -210,7 +209,7 @@ class GradientContainer : Container {
                 $sb.Append("█")
                 
                 # Right
-                if ($this.Width > 1) {
+                if ($this.Width -gt 1) {
                     $sb.Append([VT]::MoveTo($this.X + $this.Width - 1, $this.Y + $y))
                     $sb.Append($this._borderGradientColors[$rightColorIndex])
                     $sb.Append("█")

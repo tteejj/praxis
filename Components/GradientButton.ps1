@@ -45,12 +45,12 @@ class GradientButton : FocusableComponent {
     [void] UpdateColors() {
         if ($this.Theme) {
             $this._colors = @{
-                normal = $this.Theme.GetColor('button.foreground')
+                normal = $this.Theme.GetColor('button.text')
                 bg = $this.Theme.GetBgColor('button.background')
-                focused = $this.Theme.GetColor('button.focused.foreground')
-                focusedBg = $this.Theme.GetBgColor('button.focused.background')
-                border = $this.Theme.GetColor('border')
-                accent = $this.Theme.GetColor('accent')
+                focused = $this.Theme.GetColor('button.text.focused')
+                focusedBg = $this.Theme.GetBgColor('button.background.focused')
+                border = $this.Theme.GetColor('border.normal')
+                accent = $this.Theme.GetColor('color.primary')
             }
             
             # Get gradient colors
@@ -94,9 +94,7 @@ class GradientButton : FocusableComponent {
         if ($this.IsDefault) {
             $sb.Append(' •')
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

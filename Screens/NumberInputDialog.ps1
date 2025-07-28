@@ -134,7 +134,7 @@ class NumberInputDialog : BaseDialog {
                 $sb.Append([VT]::MoveTo($this._dialogBounds.X + $this.DialogPadding, $promptY))
                 $sb.Append($this.Theme.GetColor("dialog.title"))
                 $sb.Append($line)
-                $sb.Append([VT]::Reset())
+                
                 $promptY++
             }
         }
@@ -152,7 +152,7 @@ class NumberInputDialog : BaseDialog {
             } else {
                 $sb.Append("Invalid number")
             }
-            $sb.Append([VT]::Reset())
+            
         }
         
         $result = $sb.ToString()

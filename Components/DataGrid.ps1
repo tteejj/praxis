@@ -40,15 +40,15 @@ class DataGrid : UIElement {
     
     [void] OnThemeChanged() {
         # Cache all colors used by DataGrid
-        $this._colors['border'] = $this.Theme.GetColor('border')
+        $this._colors['border'] = $this.Theme.GetColor('border.normal')
         $this._colors['border.focused'] = $this.Theme.GetColor('border.focused')
-        $this._colors['accent'] = $this.Theme.GetColor('accent')
-        $this._colors['header.foreground'] = $this.Theme.GetColor('header.foreground')
-        $this._colors['header.background'] = $this.Theme.GetBgColor('header.background')
-        $this._colors['background'] = $this.Theme.GetBgColor('background')
-        $this._colors['foreground'] = $this.Theme.GetColor('foreground')
-        $this._colors['selection'] = $this.Theme.GetBgColor('selection')
-        $this._colors['scrollbar'] = $this.Theme.GetColor('scrollbar')
+        $this._colors['accent'] = $this.Theme.GetColor('color.primary')
+        $this._colors['header.foreground'] = $this.Theme.GetColor('list.header.text')
+        $this._colors['header.background'] = $this.Theme.GetBgColor('list.header.background')
+        $this._colors['background'] = $this.Theme.GetBgColor('surface.background')
+        $this._colors['foreground'] = $this.Theme.GetColor('text.primary')
+        $this._colors['selection'] = $this.Theme.GetBgColor('state.selected')
+        $this._colors['scrollbar'] = $this.Theme.GetColor('scrollbar.thumb')
         
         $this._dataVersion++  # Increment for theme change
         $this._layoutCacheValid = $false
@@ -321,7 +321,7 @@ class DataGrid : UIElement {
                 $sb.Append([StringCache]::GetVTHorizontal($bottomBorderWidth))
             }
             $sb.Append([VT]::BR())
-            $sb.Append([VT]::Reset())
+            
         } else {
             $contentX = $this.X
             $contentY = $this.Y
@@ -353,7 +353,7 @@ class DataGrid : UIElement {
             $sb.Append($this._colors['header.background'])
             $sb.Append($this._colors['header.foreground'])
             $sb.Append($this._cachedHeader)
-            $sb.Append([VT]::Reset())
+            
             $currentY++
             
             # Render header separator line
@@ -362,7 +362,7 @@ class DataGrid : UIElement {
                 $sb.Append([VT]::MoveTo($contentX, $currentY))
                 $sb.Append($this._colors['border'])
                 $sb.Append($this._cachedSeparator)
-                $sb.Append([VT]::Reset())
+                
                 $currentY++
             }
             
@@ -389,6 +389,13 @@ class DataGrid : UIElement {
             $rowY = $currentY + ($i * $rowHeight)
             
             # Render data row
+            $sb.Append([VT]::MoveTo($contentX, $rowY))
+            
+            # Clear entire row first
+            $rowBg = $this._colors["background"]
+            $clearWidth = $contentWidth
+            $sb.Append($rowBg)
+            $sb.Append(" " * $clearWidth)
             $sb.Append([VT]::MoveTo($contentX, $rowY))
             
             if ($isSelected) {
@@ -488,7 +495,7 @@ class DataGrid : UIElement {
                 if ($x -lt $contentWidth) {
                     $sb.Append([StringCache]::GetHorizontalLine($contentWidth - $x))
                 }
-                $sb.Append([VT]::Reset())
+                
             }
         }
         
@@ -509,8 +516,7 @@ class DataGrid : UIElement {
                 }
             }
         }
-        
-        $sb.Append([VT]::Reset())
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
         return $result

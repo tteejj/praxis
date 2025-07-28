@@ -97,7 +97,7 @@ class BorderStyle {
         $sb.Append($style.BR)
         
         # Reset color
-        if ($color) { $sb.Append([VT]::Reset()) }
+        if ($color) {  }
         
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
@@ -129,7 +129,7 @@ class BorderStyle {
         $sb.Append([VT]::MoveTo($titleStart, $y))
         if ($titleColor) { $sb.Append($titleColor) }
         $sb.Append($titleWithPadding)
-        if ($titleColor) { $sb.Append([VT]::Reset()) }
+        if ($titleColor) {  }
         if ($color) { $sb.Append($color) }
         
         $result = $sb.ToString()
@@ -161,7 +161,7 @@ class BorderedElement : UIElement {
         if ($this.ServiceContainer) {
             $theme = $this.ServiceContainer.GetService('ThemeManager')
             if ($theme) {
-                $this._borderColor = $theme.GetColor('border')
+                $this._borderColor = $theme.GetColor('border.normal')
                 $this._borderFocusColor = $theme.GetColor('border.focused')
             }
         }
@@ -182,7 +182,7 @@ class BorderedElement : UIElement {
         if ($this.BorderTitle) {
             $titleColor = if ($this.IsFocused -and $this.ServiceContainer) {
                 $theme = $this.ServiceContainer.GetService('ThemeManager')
-                if ($theme) { $theme.GetColor('accent') } else { "" }
+                if ($theme) { $theme.GetColor('color.primary') } else { "" }
             } else { "" }
             
             return [BorderStyle]::RenderBorderWithTitle(

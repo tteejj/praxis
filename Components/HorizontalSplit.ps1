@@ -34,7 +34,7 @@ class HorizontalSplit : Container {
     [void] OnThemeChanged() {
         if ($this.Theme) {
             $this._colors = @{
-                'border' = $this.Theme.GetColor("border")
+                'border' = $this.Theme.GetColor('border.normal')
             }
         }
         $this.Invalidate()
@@ -134,7 +134,7 @@ class HorizontalSplit : Container {
                 $sb.Append($borderColor)
                 $sb.Append("│")
             }
-            $sb.Append([VT]::Reset())
+            
         }
         
         $result = $sb.ToString()

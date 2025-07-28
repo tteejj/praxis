@@ -43,7 +43,6 @@ class ActionPropertiesDialog : BaseDialog {
                     $dialog = $this
                     $control.OnClick = {
                         $fieldPicker = [FieldPickerDialog]::new()
-                        $fieldPicker.Title = "Select $($param.Label)"
                         $fieldPicker.AllowMultiple = $false
                         $fieldPicker.Initialize($dialog.ServiceContainer)
                         
@@ -68,7 +67,6 @@ class ActionPropertiesDialog : BaseDialog {
                     $dialog = $this
                     $control.OnClick = {
                         $fieldPicker = [FieldPickerDialog]::new()
-                        $fieldPicker.Title = "Select $($param.Label)"
                         $fieldPicker.AllowMultiple = $true
                         $fieldPicker.Initialize($dialog.ServiceContainer)
                         
@@ -92,7 +90,7 @@ class ActionPropertiesDialog : BaseDialog {
                     if ($currentValue -ne $null) {
                         $boolValue = [bool]::Parse($currentValue.ToString())
                         $index = if ($boolValue) { 0 } else { 1 }
-                        $control.SelectIndex($index)
+                        $control.SelectedIndex = $index
                     }
                 }
                 "Choice" {
@@ -104,7 +102,7 @@ class ActionPropertiesDialog : BaseDialog {
                     if ($currentValue) {
                         $index = [array]::IndexOf($param.Options, $currentValue)
                         if ($index -ge 0) {
-                            $control.SelectIndex($index)
+                            $control.SelectedIndex = $index
                         }
                     }
                 }
@@ -205,8 +203,7 @@ class ActionPropertiesDialog : BaseDialog {
             $sb.Append([VT]::MoveTo($dialogX + $this.DialogPadding, $currentY - 1))
             $sb.Append($this.Theme.GetColor("dialog.title"))
             $sb.Append($label + ":")
-            $sb.Append([VT]::Reset())
-            
+
             $control = $controlInfo.Control
             $currentY += $control.Height + 2
         }

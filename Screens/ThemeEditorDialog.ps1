@@ -29,7 +29,6 @@ class ThemeEditorDialog : BaseDialog {
         
         # Create color list
         $this.ColorList = [MinimalListBox]::new()
-        $this.ColorList.Title = "Theme Colors"
         $this.ColorList.ShowBorder = $true
         $this.ColorList.Height = 20
         $this.ColorList.OnSelectionChanged = {
@@ -40,7 +39,6 @@ class ThemeEditorDialog : BaseDialog {
         
         # Create preview box
         $this.PreviewBox = [MinimalTextBox]::new()
-        $this.PreviewBox.Title = "Preview"
         $this.PreviewBox.ShowBorder = $true
         $this.PreviewBox.ReadOnly = $true
         $this.PreviewBox.MultiLine = $true
@@ -90,7 +88,7 @@ class ThemeEditorDialog : BaseDialog {
         $this.ColorList.SetItems($allColors)
         
         # Custom renderer
-        $this.ColorList.ItemRenderer = {
+        $this.ColorList.ItemFormatter = {
             param($item)
             $rgb = $item.RGB
             $preview = "█"
@@ -100,7 +98,7 @@ class ThemeEditorDialog : BaseDialog {
             $colorCode = [VT]::RGB($rgb[0], $rgb[1], $rgb[2])
             $prefix = if ($item.IsSemantic) { "◆ " } else { "  " }
             
-            return "$prefix$colorCode$preview$preview [VT]::Reset() $label ($($rgb[0]),$($rgb[1]),$($rgb[2]))"
+            return "$prefix$colorCode$preview$preview  $label ($($rgb[0]),$($rgb[1]),$($rgb[2]))"
         }
     }
     
@@ -132,8 +130,8 @@ class ThemeEditorDialog : BaseDialog {
         $color = [VT]::RGB($this.RedValue, $this.GreenValue, $this.BlueValue)
         $bg = [VT]::RGBBG($this.RedValue, $this.GreenValue, $this.BlueValue)
         $preview.AppendLine("Preview:")
-        $preview.AppendLine("  $color████████[VT]::Reset() Foreground")
-        $preview.AppendLine("  $bg    [VT]::Reset() Background")
+        $preview.AppendLine("  $color████████ Foreground")
+        $preview.AppendLine("  $bg     Background")
         
         $this.PreviewBox.Text = $preview.ToString()
     }
@@ -249,7 +247,7 @@ class ThemeEditorDialog : BaseDialog {
         $helpX = $this._dialogBounds.X + $this.DialogWidth - 30
         
         $sb.Append([VT]::MoveTo($helpX, $helpY))
-        $sb.Append($this.Theme.GetColor("disabled"))
+        $sb.Append($this.Theme.GetColor('text.disabled'))
         $sb.Append("R/G/B: -10  Shift+R/G/B: +10")
         
         $sb.Append([VT]::MoveTo($helpX, $helpY + 1))
@@ -261,9 +259,7 @@ class ThemeEditorDialog : BaseDialog {
             $sb.Append($this.Theme.GetColor("info"))
             $sb.Append("◆ Semantic color - affects multiple components")
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

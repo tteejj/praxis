@@ -129,8 +129,7 @@ class SettingsScreen : Screen {
         
         return $false
     }
-    
-    
+
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
         
@@ -377,7 +376,7 @@ class SettingsScreen : Screen {
             }
             "Number" {
                 $dialog = [NumberInputDialog]::new("Edit $($selected.Setting)", "Enter new value:", $currentValue)
-                $dialog.OnConfirm = {
+                $dialog.OnPrimary = {
                     param($result)
                     $this.ConfigService.Set($path, $result)
                     
@@ -438,7 +437,7 @@ class SettingsScreen : Screen {
         
         $message = "Reset all settings in '$($this.CurrentCategory)' to defaults?"
         $dialog = [ConfirmationDialog]::new($message)
-        $dialog.OnConfirm = {
+        $dialog.OnPrimary = {
             $this.ConfigService.ResetSection($this.CurrentCategory)
             $this.LoadCategorySettings()
             # Don't call Pop() - BaseDialog handles that
@@ -455,7 +454,7 @@ class SettingsScreen : Screen {
         $message = "Reset ALL settings to defaults?`n`nThis cannot be undone!"
         $dialog = [ConfirmationDialog]::new($message)
         $dialog.ConfirmText = "Reset All"
-        $dialog.OnConfirm = {
+        $dialog.OnPrimary = {
             $this.ConfigService.Reset()
             $this.LoadCategories()
             # Don't call Pop() - BaseDialog handles that
@@ -532,7 +531,7 @@ class SettingsScreen : Screen {
         $message = "Restore from backup?`n`nBackup: $($latestBackup.Name)`nDate: $($latestBackup.Timestamp)`n`nThis will replace all current data!"
         $dialog = [ConfirmationDialog]::new($message)
         $dialog.ConfirmText = "Restore"
-        $dialog.OnConfirm = {
+        $dialog.OnPrimary = {
             try {
                 $backupService.RestoreBackup($latestBackup.Name)
                 
@@ -565,8 +564,7 @@ class SettingsScreen : Screen {
             $global:ScreenManager.Push($dialog)
         }
     }
-    
-    
+
     hidden [string] FormatCategoryName([string]$name) {
         # Convert PascalCase to Title Case
         $formatted = $name -creplace '([A-Z])', ' $1'
@@ -672,8 +670,7 @@ This will add the following themes:
         
         $global:ScreenManager.Push($dialog)
     }
-    
-    
+
     [void] ShowTemplateEditor([string]$templateType, $currentTemplates) {
         # Create template list editor dialog
         $dialog = [BaseDialog]::new("Edit $templateType Templates")
@@ -950,16 +947,16 @@ This will add the following themes:
         # Draw outer border
         $theme = $this.ServiceContainer.GetService('ThemeManager')
         if ($theme) {
-            $borderColor = $theme.GetColor('border')
+            $borderColor = $theme.GetColor('border.normal')
             $sb.Append([BorderStyle]::RenderBorderWithTitle(
                 $this.X, $this.Y, $this.Width, $this.Height,
                 [BorderType]::Rounded, $borderColor,
-                "Settings", $theme.GetColor('accent')
+                "Settings", $theme.GetColor('color.primary')
             ))
             
             # Draw vertical separator
             $separatorX = $this.X + 29  # After category list
-            $separatorColor = $theme.GetColor('border')
+            $separatorColor = $theme.GetColor('border.normal')
             $sb.Append($separatorColor)
             
             # Draw vertical line
@@ -975,8 +972,7 @@ This will add the following themes:
             # Connect to bottom border
             $sb.Append([VT]::MoveTo($separatorX, $this.Y + $this.Height - 1))
             $sb.Append('┴')
-            
-            $sb.Append([VT]::Reset())
+
         }
         
         # Render children (category list and settings grid)

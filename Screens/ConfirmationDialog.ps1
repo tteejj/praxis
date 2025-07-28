@@ -96,13 +96,13 @@ class ConfirmationDialog : BaseDialog {
             $title = " ⚠ Confirm "
             $titleX = $x + [int](($w - $title.Length) / 2)
             $sb.Append([VT]::MoveTo($titleX, $y))
-            $sb.Append($this.Theme.GetColor("warning"))
+            $sb.Append($this.Theme.GetColorSafe("status.warning"))
             $sb.Append($title)
             
             # Draw message
             $messageLines = $this.Message -split "`n"
             $messageY = $y + 2
-            $sb.Append($this.Theme.GetColor("foreground"))
+            $sb.Append($this.Theme.GetColorSafe("text.primary"))
             foreach ($line in $messageLines) {
                 $lineX = $x + [int](($w - $line.Length) / 2)
                 $sb.Append([VT]::MoveTo($lineX, $messageY))
@@ -114,11 +114,10 @@ class ConfirmationDialog : BaseDialog {
             $hint = "[Y/N] or use Tab to select"
             $hintX = $x + [int](($w - $hint.Length) / 2)
             $sb.Append([VT]::MoveTo($hintX, $y + $h - 2))
-            $sb.Append($this.Theme.GetColor("disabled"))
+            $sb.Append($this.Theme.GetColorSafe("text.disabled"))
             $sb.Append($hint)
         }
-        
-        $sb.Append([VT]::Reset())
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

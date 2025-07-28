@@ -4,229 +4,238 @@ class ThemeSynthwave {
     static [void] CreateSynthwave84() {
         [ThemeBuilder]::new("synthwave-84").
             BasedOn("dark").
-            # Core synthwave colors
-            WithPrimary(255, 0, 144).         # Hot pink/magenta - main accent
-            WithSecondary(0, 255, 255).       # Electric cyan - secondary accent
-            WithBackground(15, 0, 25).        # Deep purple-black - night sky
-            WithSurface(35, 15, 55).          # Dark purple - elevated surfaces
-            WithError(255, 30, 70).           # Neon red
-            WithWarning(255, 255, 0).         # Neon yellow
-            WithSuccess(0, 255, 127).         # Neon green
-            WithColor("info", 0, 191, 255).   # Electric blue
             
-            # Text colors for contrast
-            WithColor("on-primary", 255, 255, 255).      # White on pink
-            WithColor("on-secondary", 0, 0, 0).          # Black on cyan
-            WithColor("on-background", 255, 100, 200).   # Pink-tinted white
-            WithColor("on-surface", 200, 150, 255).      # Light purple
-            WithColor("on-error", 255, 255, 255).        # White on red
+            # Standardized text colors
+            WithColor("text.primary", 255, 100, 200).     # Pink-tinted white (main text)
+            WithColor("text.secondary", 200, 150, 255).   # Light purple (secondary text)
+            WithColor("text.disabled", 100, 50, 120).     # Dim purple (disabled text)
+            WithColor("text.heading", 255, 0, 144).       # Hot pink (headings/titles)
+            WithColor("text.placeholder", 120, 60, 140).  # Dim pink (placeholder text)
             
-            # UI element colors
-            WithColor("border", 255, 0, 144).             # Hot pink borders
+            # Standardized surface colors
+            WithColor("surface.background", 15, 0, 25).   # Deep purple-black
+            WithColor("surface.elevated", 35, 15, 55).    # Dark purple
+            WithColor("surface.dialog", 45, 20, 65).      # Lighter purple for dialogs
+            
+            # Standardized color palette
+            WithColor("color.primary", 255, 0, 144).      # Hot pink
+            WithColor("color.secondary", 0, 255, 255).    # Electric cyan
+            
+            # Standardized status colors
+            WithColor("status.success", 0, 255, 127).     # Neon green
+            WithColor("status.warning", 255, 255, 0).     # Neon yellow
+            WithColor("status.error", 255, 30, 70).       # Neon red
+            WithColor("status.info", 0, 191, 255).        # Electric blue
+            
+            # Standardized border colors
+            WithColor("border.normal", 255, 0, 144).      # Hot pink borders
             WithColor("border.focused", 0, 255, 255).     # Cyan when focused
-            WithColor("selection", 255, 0, 144).          # Pink selection
-            WithColor("disabled", 100, 50, 120).          # Dim purple
+            WithColor("border.dialog", 255, 0, 144).      # Hot pink for dialogs
+            WithColor("border.input", 150, 0, 100).       # Darker pink for inputs
+            WithColor("border.input.focused", 0, 255, 255). # Cyan when input focused
             
-            # Focus system colors with neon glow
-            WithColor("focus", 0, 255, 255).              # Cyan focus
-            WithColor("focus.background", 50, 0, 80).     # Purple glow background
-            WithColor("focus.accent", 255, 100, 200).     # Pink accent
+            # Standardized interaction states
+            WithColor("state.selected", 100, 0, 150).     # Deep pink for selected items
+            WithColor("state.hover", 80, 30, 100).        # Purple for hover
+            WithColor("state.pressed", 120, 40, 140).     # Brighter purple for pressed
+            WithColor("state.focused", 0, 255, 255).      # Cyan for focused
             
-            # Component specific - neon styling
-            WithColor("title", 255, 0, 144).              # Hot pink titles
-            WithColor("normal", 200, 150, 255).           # Light purple text
-            WithColor("selected", 255, 0, 144).           # Pink selected
-            
-            # Buttons with gradient potential
+            # Button states
             WithColor("button.background", 50, 20, 70).
-            WithColor("button.foreground", 255, 100, 200).
-            WithColor("button.focused.background", 100, 0, 150).
-            WithColor("button.focused.foreground", 0, 255, 255).
-            WithColor("button.hover.background", 80, 30, 100).
-            WithColor("button.pressed.background", 120, 40, 140).
+            WithColor("button.text", 255, 100, 200).
+            WithColor("button.background.hover", 70, 30, 90).
+            WithColor("button.background.pressed", 90, 40, 110).
+            WithColor("button.background.focused", 100, 0, 150).
+            WithColor("button.text.focused", 0, 255, 255).
             
-            # Inputs with neon borders
+            # Input fields
             WithColor("input.background", 20, 10, 30).
-            WithColor("input.foreground", 255, 100, 200).
-            WithColor("input.focused.border", 0, 255, 255).
-            WithColor("input.border", 100, 50, 120).
-            WithColor("input.placeholder", 100, 70, 130).
+            WithColor("input.text", 255, 100, 200).
+            WithColor("input.placeholder", 120, 60, 140).
             
-            # Menus with synthwave styling
+            # Menu colors
             WithColor("menu.background", 15, 0, 25).
-            WithColor("menu.foreground", 200, 150, 255).
-            WithColor("menu.selected.background", 100, 0, 150).
-            WithColor("menu.selected.foreground", 0, 255, 255).
+            WithColor("menu.text", 200, 150, 255).
+            WithColor("menu.background.selected", 100, 0, 150).
+            WithColor("menu.text.selected", 0, 255, 255).
             
-            # Tabs with gradient potential
+            # Tab colors
             WithColor("tab.background", 30, 10, 50).
-            WithColor("tab.foreground", 150, 100, 200).
-            WithColor("tab.active.background", 50, 0, 80).
-            WithColor("tab.active.foreground", 255, 0, 144).
-            WithColor("tab.active.accent", 0, 255, 255).
+            WithColor("tab.text", 150, 100, 200).
+            WithColor("tab.background.active", 50, 0, 80).
+            WithColor("tab.text.active", 255, 0, 144).
+            WithColor("tab.border.active", 0, 255, 255).
             
-            # DataGrid with neon styling
-            WithColor("header.background", 50, 20, 70).
-            WithColor("header.foreground", 255, 0, 144).
-            WithColor("scrollbar", 100, 50, 120).
+            # List/Grid components
+            WithColor("list.header.background", 50, 20, 70).
+            WithColor("list.header.text", 255, 0, 144).
+            WithColor("list.background", 15, 0, 25).
+            WithColor("list.background.alternate", 25, 5, 35).
+            WithColor("scrollbar.track", 100, 50, 120).
             WithColor("scrollbar.thumb", 255, 0, 144).
             
-            # Additional neon effects
-            WithColor("checkbox", 0, 255, 255).
-            WithColor("checkbox.selected", 255, 0, 144).
-            WithColor("search", 255, 255, 0).
-            WithColor("highlight", 255, 255, 0).
-            WithColor("directory", 0, 255, 255).
-            WithColor("file", 200, 150, 255).
+            # Checkbox/Radio
+            WithColor("checkbox.background", 20, 10, 30).
+            WithColor("checkbox.border", 150, 0, 100).
+            WithColor("checkbox.check", 0, 255, 255).
             
-            # Progress bars with neon
-            WithColor("progress.active", 0, 255, 255).
-            WithColor("progress.complete", 255, 0, 144).
+            # Search/Highlight
+            WithColor("search.background", 255, 255, 0).
+            WithColor("search.text", 0, 0, 0).
+            WithColor("highlight.background", 255, 255, 0).
+            WithColor("highlight.text", 0, 0, 0).
+            
+            # File browser
+            WithColor("file.directory", 0, 255, 255).
+            WithColor("file.normal", 200, 150, 255).
+            
+            # File browser
+            WithColor("file.executable", 0, 255, 127).
+            WithColor("file.symlink", 255, 255, 0).
+            
+            # Progress indicators
+            WithColor("progress.background", 50, 20, 70).
+            WithColor("progress.bar", 0, 255, 255).
+            WithColor("progress.bar.complete", 255, 0, 144).
             WithColor("progress.text", 255, 100, 200).
             
-            # Dialog neon borders
-            WithColor("dialog.background", 25, 10, 40).
-            WithColor("dialog.border", 255, 0, 144).
-            WithColor("dialog.title", 0, 255, 255).
+            # Editor specific
+            WithColor("editor.background", 15, 0, 25).
+            WithColor("editor.linenumber", 100, 50, 120).
+            WithColor("editor.cursor", 255, 255, 255).
+            WithColor("editor.cursor.text", 0, 0, 0).
+            WithColor("editor.selection", 100, 0, 150).
+            WithColor("editor.selection.text", 255, 255, 255).
+            WithColor("editor.status.background", 35, 15, 55).
+            WithColor("editor.status.text", 200, 150, 255).
             
-            # Additional border states
-            WithColor("border.normal", 255, 0, 144).
-            
-            # GRADIENT ENDPOINTS for amazing neon effects
-            # Border gradients - hot pink to cyan for that neon glow
+            # Gradient endpoints for neon effects
             WithColor("gradient.border.start", 255, 0, 144).     # Hot pink
             WithColor("gradient.border.end", 0, 255, 255).       # Electric cyan
-            
-            # Background gradients - deep purple fade
             WithColor("gradient.bg.start", 50, 0, 80).           # Purple
             WithColor("gradient.bg.end", 15, 0, 25).             # Deep purple-black
-            
-            # Special neon glow gradients
-            WithColor("gradient.glow.start", 255, 100, 200).     # Light pink
-            WithColor("gradient.glow.end", 100, 0, 150).         # Deep purple
-            
-            # Accent gradients for special effects
             WithColor("gradient.accent.start", 0, 255, 255).     # Cyan
             WithColor("gradient.accent.end", 255, 0, 144).       # Pink
-            
-            # Status gradients
-            WithColor("gradient.error.start", 255, 30, 70).      # Neon red
-            WithColor("gradient.error.end", 150, 0, 50).         # Dark red
-            
-            WithColor("gradient.success.start", 0, 255, 127).    # Neon green
-            WithColor("gradient.success.end", 0, 150, 80).       # Dark green
-            
-            # State modifiers would need to be stored differently
-            # For now, we'll use predefined color variations
             
             Build()
     }
     
     static [void] CreateSynthwaveOutrun() {
-        # Alternative synthwave theme with more orange/purple tones
+        # Alternative synthwave theme with sunset orange/purple tones
         [ThemeBuilder]::new("synthwave-outrun").
             BasedOn("dark").
-            # Outrun variant colors
-            WithPrimary(255, 106, 0).         # Orange - sunset accent
-            WithSecondary(138, 43, 226).      # Blue violet - secondary
-            WithBackground(10, 0, 20).        # Almost black with purple tint
-            WithSurface(40, 10, 60).          # Dark purple surface
-            WithError(255, 0, 60).            # Hot red
-            WithWarning(255, 200, 0).         # Golden yellow
-            WithSuccess(0, 255, 100).         # Lime green
-            WithColor("info", 100, 149, 237). # Cornflower blue
             
-            # UI element colors needed before AutoGenerateTextColors
-            WithColor("border", 255, 106, 0).             # Orange borders
+            # Standardized text colors
+            WithColor("text.primary", 255, 180, 120).     # Orange-tinted white (main text)
+            WithColor("text.secondary", 200, 150, 255).   # Light purple (secondary text)
+            WithColor("text.disabled", 80, 40, 100).      # Dim purple (disabled text)
+            WithColor("text.heading", 255, 106, 0).       # Orange (headings/titles)
+            WithColor("text.placeholder", 120, 80, 140).  # Dim orange (placeholder text)
+            
+            # Standardized surface colors
+            WithColor("surface.background", 10, 0, 20).   # Almost black with purple tint
+            WithColor("surface.elevated", 40, 10, 60).    # Dark purple surface
+            WithColor("surface.dialog", 50, 20, 70).      # Lighter purple for dialogs
+            
+            # Standardized color palette
+            WithColor("color.primary", 255, 106, 0).      # Orange
+            WithColor("color.secondary", 138, 43, 226).   # Blue violet
+            
+            # Standardized status colors
+            WithColor("status.success", 0, 255, 100).     # Lime green
+            WithColor("status.warning", 255, 200, 0).     # Golden yellow
+            WithColor("status.error", 255, 0, 60).        # Hot red
+            WithColor("status.info", 100, 149, 237).      # Cornflower blue
+            
+            # Standardized border colors
+            WithColor("border.normal", 255, 106, 0).      # Orange borders
             WithColor("border.focused", 138, 43, 226).    # Purple when focused
-            WithColor("selection", 255, 106, 0).          # Orange selection
-            WithColor("disabled", 80, 40, 100).           # Dim purple
+            WithColor("border.dialog", 255, 106, 0).      # Orange for dialogs
+            WithColor("border.input", 200, 80, 0).        # Darker orange for inputs
+            WithColor("border.input.focused", 138, 43, 226). # Purple when input focused
             
-            # Focus system colors
-            WithColor("focus", 138, 43, 226).             # Purple focus
-            WithColor("focus.background", 60, 20, 80).    # Purple glow background
-            WithColor("focus.accent", 255, 150, 50).      # Orange accent
+            # Standardized interaction states
+            WithColor("state.selected", 180, 60, 0).      # Deep orange for selected items
+            WithColor("state.hover", 100, 40, 150).       # Purple for hover
+            WithColor("state.pressed", 120, 50, 140).     # Brighter purple for pressed
+            WithColor("state.focused", 138, 43, 226).     # Purple for focused
             
-            # Component specific
-            WithColor("title", 255, 106, 0).              # Orange titles
-            WithColor("normal", 200, 150, 255).           # Light purple text
-            WithColor("selected", 255, 106, 0).           # Orange selected
-            
-            # Buttons
+            # Button states
             WithColor("button.background", 50, 20, 70).
-            WithColor("button.foreground", 255, 150, 100).
-            WithColor("button.focused.background", 100, 40, 150).
-            WithColor("button.focused.foreground", 138, 43, 226).
-            WithColor("button.hover.background", 80, 30, 100).
-            WithColor("button.pressed.background", 120, 50, 140).
+            WithColor("button.text", 255, 150, 100).
+            WithColor("button.background.hover", 70, 30, 90).
+            WithColor("button.background.pressed", 90, 40, 110).
+            WithColor("button.background.focused", 100, 40, 150).
+            WithColor("button.text.focused", 138, 43, 226).
             
-            # Inputs
+            # Input fields
             WithColor("input.background", 20, 10, 30).
-            WithColor("input.foreground", 255, 150, 100).
-            WithColor("input.focused.border", 138, 43, 226).
-            WithColor("input.border", 100, 50, 120).
-            WithColor("input.placeholder", 100, 70, 130).
+            WithColor("input.text", 255, 150, 100).
+            WithColor("input.placeholder", 120, 80, 140).
             
-            # Menus
+            # Menu colors
             WithColor("menu.background", 10, 0, 20).
-            WithColor("menu.foreground", 200, 150, 255).
-            WithColor("menu.selected.background", 100, 40, 150).
-            WithColor("menu.selected.foreground", 255, 106, 0).
+            WithColor("menu.text", 200, 150, 255).
+            WithColor("menu.background.selected", 100, 40, 150).
+            WithColor("menu.text.selected", 255, 106, 0).
             
-            # Tabs
+            # Tab colors
             WithColor("tab.background", 30, 10, 50).
-            WithColor("tab.foreground", 150, 100, 200).
-            WithColor("tab.active.background", 50, 20, 80).
-            WithColor("tab.active.foreground", 255, 106, 0).
-            WithColor("tab.active.accent", 138, 43, 226).
+            WithColor("tab.text", 150, 100, 200).
+            WithColor("tab.background.active", 50, 20, 80).
+            WithColor("tab.text.active", 255, 106, 0).
+            WithColor("tab.border.active", 138, 43, 226).
             
-            # DataGrid
-            WithColor("header.background", 50, 20, 70).
-            WithColor("header.foreground", 255, 106, 0).
-            WithColor("scrollbar", 100, 50, 120).
+            # List/Grid components
+            WithColor("list.header.background", 50, 20, 70).
+            WithColor("list.header.text", 255, 106, 0).
+            WithColor("list.background", 10, 0, 20).
+            WithColor("list.background.alternate", 20, 5, 30).
+            WithColor("scrollbar.track", 100, 50, 120).
             WithColor("scrollbar.thumb", 255, 106, 0).
             
-            # Additional
-            WithColor("checkbox", 138, 43, 226).
-            WithColor("checkbox.selected", 255, 106, 0).
-            WithColor("search", 255, 200, 0).
-            WithColor("highlight", 255, 255, 0).
-            WithColor("directory", 138, 43, 226).
-            WithColor("file", 200, 150, 255).
+            # Checkbox/Radio
+            WithColor("checkbox.background", 20, 10, 30).
+            WithColor("checkbox.border", 200, 80, 0).
+            WithColor("checkbox.check", 138, 43, 226).
             
-            # Progress bars
-            WithColor("progress.active", 138, 43, 226).
-            WithColor("progress.complete", 255, 106, 0).
+            # Search/Highlight
+            WithColor("search.background", 255, 200, 0).
+            WithColor("search.text", 0, 0, 0).
+            WithColor("highlight.background", 255, 255, 0).
+            WithColor("highlight.text", 0, 0, 0).
+            
+            # File browser
+            WithColor("file.directory", 138, 43, 226).
+            WithColor("file.normal", 200, 150, 255).
+            
+            # File browser
+            WithColor("file.executable", 0, 255, 100).
+            WithColor("file.symlink", 255, 200, 0).
+            
+            # Progress indicators
+            WithColor("progress.background", 50, 20, 70).
+            WithColor("progress.bar", 138, 43, 226).
+            WithColor("progress.bar.complete", 255, 106, 0).
             WithColor("progress.text", 255, 150, 100).
             
-            # Dialogs
-            WithColor("dialog.background", 25, 10, 40).
-            WithColor("dialog.border", 255, 106, 0).
-            WithColor("dialog.title", 138, 43, 226).
-            
-            # Border states
-            WithColor("border.normal", 255, 106, 0).
+            # Editor specific
+            WithColor("editor.background", 10, 0, 20).
+            WithColor("editor.linenumber", 80, 40, 100).
+            WithColor("editor.cursor", 255, 255, 255).
+            WithColor("editor.cursor.text", 0, 0, 0).
+            WithColor("editor.selection", 180, 60, 0).
+            WithColor("editor.selection.text", 255, 255, 255).
+            WithColor("editor.status.background", 40, 10, 60).
+            WithColor("editor.status.text", 200, 150, 255).
             
             # Gradient endpoints for sunset effect
             WithColor("gradient.border.start", 255, 106, 0).     # Orange
             WithColor("gradient.border.end", 138, 43, 226).      # Purple
             WithColor("gradient.bg.start", 60, 20, 90).          # Purple
             WithColor("gradient.bg.end", 10, 0, 20).             # Almost black
-            
-            # Special sunset gradient
-            WithColor("gradient.sunset.start", 255, 94, 77).     # Coral
-            WithColor("gradient.sunset.mid", 255, 0, 144).       # Hot pink
-            WithColor("gradient.sunset.end", 138, 43, 226).      # Blue violet
-            
-            # Gradient effects
-            WithColor("gradient.glow.start", 255, 150, 100).     # Light orange
-            WithColor("gradient.glow.end", 100, 40, 150).        # Deep purple
             WithColor("gradient.accent.start", 138, 43, 226).    # Purple
             WithColor("gradient.accent.end", 255, 106, 0).       # Orange
-            WithColor("gradient.error.start", 255, 0, 60).       # Hot red
-            WithColor("gradient.error.end", 150, 0, 30).         # Dark red
-            WithColor("gradient.success.start", 0, 255, 100).    # Lime green
-            WithColor("gradient.success.end", 0, 150, 60).       # Dark green
             
             Build()
     }

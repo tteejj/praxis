@@ -1,6 +1,5 @@
 [
   {
-    "Id": "17a623b0-3630-4561-99ac-5e67608aabeb",
     "Title": "Implement user authentication",
     "Description": "Add login/logout functionality with session management",
     "Status": 1,
@@ -9,12 +8,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "17a623b0-3630-4561-99ac-5e67608aabeb",
     "CreatedAt": "2025-07-21T21:35:32.8645472-06:00",
     "UpdatedAt": "2025-07-21T21:35:32.8645472-06:00",
     "Deleted": false
   },
   {
-    "Id": "95107c00-8efd-4541-86c0-5f81d90d04a4",
     "Title": "Write API documentation",
     "Description": "",
     "Status": 0,
@@ -23,12 +22,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "95107c00-8efd-4541-86c0-5f81d90d04a4",
     "CreatedAt": "2025-07-21T21:35:33.0891796-06:00",
     "UpdatedAt": "2025-07-21T21:35:33.0891796-06:00",
     "Deleted": false
   },
   {
-    "Id": "d8402df2-eae9-4d2f-b11f-a1e12f59ee0a",
     "Title": "1",
     "Description": "2",
     "Status": 3,
@@ -37,26 +36,26 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "d8402df2-eae9-4d2f-b11f-a1e12f59ee0a",
     "CreatedAt": "2025-07-22T07:22:08.7533461-06:00",
     "UpdatedAt": "2025-07-22T14:43:26.6617552-06:00",
     "Deleted": true
   },
   {
-    "Id": "82908b56-2c5e-4e12-a3f9-e951d799569c",
     "Title": "11",
     "Description": "22",
-    "Status": 0,
+    "Status": 1,
     "Priority": 2,
     "Progress": 0,
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "82908b56-2c5e-4e12-a3f9-e951d799569c",
     "CreatedAt": "2025-07-22T12:51:13.6946109-06:00",
-    "UpdatedAt": "2025-07-22T12:51:13.6946109-06:00",
+    "UpdatedAt": "2025-07-27T23:30:33.0890862-06:00",
     "Deleted": false
   },
   {
-    "Id": "4e42dca6-6823-40bb-bc57-ccc61b81008e",
     "Title": "Test Parent Task",
     "Description": "A task to test subtask functionality",
     "Status": 0,
@@ -65,12 +64,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "4e42dca6-6823-40bb-bc57-ccc61b81008e",
     "CreatedAt": "2025-07-22T22:11:28.9335662-06:00",
     "UpdatedAt": "2025-07-22T22:11:28.9335662-06:00",
     "Deleted": false
   },
   {
-    "Id": "211cb37e-f96b-454b-9d52-5981cd8955f4",
     "Title": "Frontend Development",
     "Description": "Build the user interface",
     "Status": 0,
@@ -79,12 +78,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "211cb37e-f96b-454b-9d52-5981cd8955f4",
     "CreatedAt": "2025-07-22T22:11:57.5215935-06:00",
     "UpdatedAt": "2025-07-22T22:11:57.5215935-06:00",
     "Deleted": false
   },
   {
-    "Id": "a0cc27c5-c5c7-432f-a1c1-6063478128b0",
     "Title": "Backend API",
     "Description": "Implement REST endpoints",
     "Status": 0,
@@ -93,12 +92,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "a0cc27c5-c5c7-432f-a1c1-6063478128b0",
     "CreatedAt": "2025-07-22T22:11:57.6549719-06:00",
     "UpdatedAt": "2025-07-22T22:11:57.6549719-06:00",
     "Deleted": false
   },
   {
-    "Id": "c1f5df2b-797f-410b-9130-1c2dfda48698",
     "Title": "Frontend Development",
     "Description": "Build the user interface",
     "Status": 0,
@@ -107,12 +106,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "c1f5df2b-797f-410b-9130-1c2dfda48698",
     "CreatedAt": "2025-07-22T22:12:26.9463342-06:00",
     "UpdatedAt": "2025-07-22T22:12:26.9463342-06:00",
     "Deleted": false
   },
   {
-    "Id": "67e1fa8c-1875-4374-b2b6-6750095c0e56",
     "Title": "Backend API",
     "Description": "Implement REST endpoints",
     "Status": 0,
@@ -121,12 +120,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "67e1fa8c-1875-4374-b2b6-6750095c0e56",
     "CreatedAt": "2025-07-22T22:12:27.0810913-06:00",
     "UpdatedAt": "2025-07-22T22:12:27.0810913-06:00",
     "Deleted": false
   },
   {
-    "Id": "8e7ee8fe-e197-417e-ba07-b37fc0774027",
     "Title": "Test Parent Task",
     "Description": "A task to test subtask functionality",
     "Status": 0,
@@ -135,12 +134,12 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "8e7ee8fe-e197-417e-ba07-b37fc0774027",
     "CreatedAt": "2025-07-22T22:12:42.8287207-06:00",
     "UpdatedAt": "2025-07-22T22:12:42.8287207-06:00",
     "Deleted": false
   },
   {
-    "Id": "29f22806-c40e-4f5a-b257-2906bc699e9c",
     "Title": "Test Task",
     "Description": "Testing null reference handling",
     "Status": 0,
@@ -149,6 +148,7 @@
     "ProjectId": "",
     "Tags": [],
     "DueDate": "0001-01-01T00:00:00",
+    "Id": "29f22806-c40e-4f5a-b257-2906bc699e9c",
     "CreatedAt": "2025-07-22T22:53:32.1775757-06:00",
     "UpdatedAt": "2025-07-22T22:53:32.1775757-06:00",
     "Deleted": false

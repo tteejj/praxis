@@ -253,8 +253,7 @@ class TaskScreen : Screen {
         # Load tasks
         $this.LoadTasks()
     }
-    
-    
+
     [void] OnActivated() {
         # Call base to manage focus scope and shortcuts
         ([Screen]$this).OnActivated()
@@ -416,7 +415,7 @@ class TaskScreen : Screen {
         # Capture references
         $screen = $this
         $itemId = $selected.Id
-        $dialog.OnConfirm = {
+        $dialog.OnPrimary = {
             if ($isSubtask) {
                 # Delete subtask
                 $screen.SubtaskService.DeleteSubtask($itemId)
@@ -639,8 +638,8 @@ class TaskScreen : Screen {
             }
         }
         
-        # Handle Shift+A for adding subtask
-        if (($key.Modifiers -band [ConsoleModifiers]::Shift) -and $key.KeyChar -eq 'A') {
+        # Handle 'a' for adding subtask
+        if (-not $key.Modifiers -and $key.KeyChar -eq 'a') {
             $this.AddSubtask()
             return $true
         }
@@ -653,9 +652,7 @@ class TaskScreen : Screen {
         
         # Render base (background and children)
         $sb.Append(([Container]$this).OnRender())
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

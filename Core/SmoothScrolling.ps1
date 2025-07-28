@@ -371,9 +371,7 @@ class SmoothScrollListBox : MinimalListBox {
                 }
             }
         }
-        
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

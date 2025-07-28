@@ -234,6 +234,73 @@ class TimeEntryScreen : Screen {
         }
     }
     
+    [void] NewTimeEntry() {
+        # Show project selection dialog
+        $projects = $this.ProjectService.GetAllProjects() | Where-Object { -not $_.Deleted }
+        if ($projects.Count -eq 0) {
+            if ($global:Logger) {
+                $global:Logger.Warning("No projects available for time entry")
+            }
+            return
+        }
+        
+        $dialog = [SelectionDialog]::new("Select Project", "Choose a project for time entry:")
+        $dialog.SetItems($projects)
+        $dialog.ItemRenderer = { param($p) "$($p.FullProjectName) [$($p.ID2)]" }
+        
+        $screen = $this
+        $dialog.OnSelect = {
+            param($project)
+            # Create time entry dialog for selected project
+            $entryDialog = [TimeEntryDialog]::new($project)
+            $entryDialog.Title = "New Time Entry - $($project.FullProjectName)"
+            
+            $entryDialog.OnSave = {
+                param($timeEntry)
+                # Add to time service
+                $screen.TimeService.AddTimeEntry($timeEntry)
+                $screen.RefreshGrid()
+            }.GetNewClosure()
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($entryDialog)
+            }
+        }.GetNewClosure()
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    [void] DeleteSelectedEntry() {
+        $selected = $this.TimeGrid.GetSelectedItem()
+        if (-not $selected) { return }
+        
+        # Show confirmation dialog
+        $message = "Delete time entry for $($selected.Name)?`n`nDate: $($selected.Day)`nHours: $($selected.Total)"
+        $dialog = [ConfirmationDialog]::new($message)
+        
+        $screen = $this
+        $projectId = $selected.ID2
+        $date = $selected.FullDate
+        
+        $dialog.OnPrimary = {
+            # Find and delete the entry
+            $entries = $screen.TimeService.GetTimeEntriesByProject($projectId)
+            foreach ($entry in $entries) {
+                if ($entry.Date.Date -eq $date.Date) {
+                    $screen.TimeService.DeleteTimeEntry($entry)
+                    break
+                }
+            }
+            $screen.RefreshGrid()
+        }.GetNewClosure()
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
     [void] EditSelectedEntry() {
         $selected = $this.TimeGrid.GetSelectedItem()
         if (-not $selected) { return }
@@ -355,6 +422,30 @@ class TimeEntryScreen : Screen {
                     $screen.CurrentWeekFriday = $screen.TimeService.GetCurrentWeekFriday()
                     $screen.RefreshGrid()
                 }.GetNewClosure()
+            })
+            
+            # N - New entry
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.new"
+                Name = "New Entry"
+                Description = "Add new time entry"
+                KeyChar = 'n'
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = { $screen.NewTimeEntry() }.GetNewClosure()
+            })
+            
+            # D - Delete entry
+            $shortcutManager.RegisterShortcut(@{
+                Id = "time.delete"
+                Name = "Delete Entry"
+                Description = "Delete selected time entry"
+                KeyChar = 'd'
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "TimeEntryScreen"
+                Priority = 50
+                Action = { $screen.DeleteSelectedEntry() }.GetNewClosure()
             })
         }
     }

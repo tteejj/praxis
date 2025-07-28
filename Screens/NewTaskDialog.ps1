@@ -23,10 +23,9 @@ class NewTaskDialog : BaseDialog {
         
         # Create priority list
         $this.PriorityList = [MinimalListBox]::new()
-        $this.PriorityList.Title = "Priority"
         $this.PriorityList.ShowBorder = $true
         $this.PriorityList.SetItems(@("Low", "Medium", "High"))
-        $this.PriorityList.SelectIndex(1)  # Default to Medium
+        $this.PriorityList.SelectedIndex = 1  # Default to Medium
         $this.AddContentControl($this.PriorityList, 3)
         
         # Set up primary action

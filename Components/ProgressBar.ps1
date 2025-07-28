@@ -47,9 +47,9 @@ class ProgressBar : UIElement {
             $this._colors["progress.active"] = $this.Theme.GetColor("progress.active")
             $this._colors["progress.complete"] = $this.Theme.GetColor("progress.complete")
             $this._colors["progress.text"] = $this.Theme.GetColor("progress.text")
-            $this._colors["border"] = $this.Theme.GetColor("border")
-            $this._colors["title"] = $this.Theme.GetColor("title")
-            $this._colors["normal"] = $this.Theme.GetColor("normal")
+            $this._colors["border"] = $this.Theme.GetColor('border.normal')
+            $this._colors["title"] = $this.Theme.GetColor('text.heading')
+            $this._colors["normal"] = $this.Theme.GetColor('text.primary')
             
             # Set default colors if not already set
             if ([string]::IsNullOrEmpty($this.ProgressColor)) {
@@ -230,8 +230,7 @@ class ProgressBar : UIElement {
             $sb.Append($borderColor)
             $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
-        
-        $sb.Append([VT]::Reset())
+
         $this._cachedRender = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
     }

@@ -221,43 +221,36 @@ class SubtaskDialog : BaseDialog {
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.TitleTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Title:")
-        $sb.Append([VT]::Reset())
-        
+
         # Description label
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.DescriptionTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Description:")
-        $sb.Append([VT]::Reset())
-        
+
         # Priority and Progress labels
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.PriorityTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Priority:")
-        $sb.Append([VT]::Reset())
-        
+
         $halfWidth = [int](($this.DialogWidth - ($padding * 2) - 2) / 2)
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding + $halfWidth + 2, $this.ProgressTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Progress (%):")
-        $sb.Append([VT]::Reset())
-        
+
         # Estimated and Actual time labels
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.EstimatedTimeTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Estimated (min):")
-        $sb.Append([VT]::Reset())
-        
+
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding + $halfWidth + 2, $this.ActualTimeTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Actual (min):")
-        $sb.Append([VT]::Reset())
-        
+
         # Due date label
         $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.DueDateTextBox.Y - 1))
         $sb.Append($labelColor)
         $sb.Append("Due Date (MM/DD/YYYY):")
-        $sb.Append([VT]::Reset())
-        
+
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result

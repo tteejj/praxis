@@ -359,7 +359,7 @@ class ProjectsScreen : Screen {
             
             $screen = $this
             $projectId = $selected.Id
-            $dialog.OnConfirm = {
+            $dialog.OnPrimary = {
                 # Delete the project
                 $screen.ProjectService.DeleteProject($projectId)
                 

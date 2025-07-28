@@ -156,8 +156,7 @@ class VisualMacroFactoryScreen : Screen {
             $this.EditAction($sequenceItem)
         }
     }
-    
-    
+
     [void] EditAction($sequenceItem) {
         # Create action properties dialog
         $dialog = [ActionPropertiesDialog]::new($sequenceItem.Instance)
@@ -187,8 +186,7 @@ class VisualMacroFactoryScreen : Screen {
         $this.UpdateMacroSequence()
         $this.UpdateContext()
     }
-    
-    
+
     [void] UpdateContext() {
         $this.UpdateContextPanel()
     }
@@ -481,8 +479,7 @@ class VisualMacroFactoryScreen : Screen {
             $this.ContextPanel.Title = "🎯 Full Macro Context"
         }
     }
-    
-    
+
     [void] NewMacro() {
         if ($this._sequenceData.Count -gt 0) {
             # Confirm before clearing
@@ -664,8 +661,7 @@ class VisualMacroFactoryScreen : Screen {
             }
         }
     }
-    
-    
+
     [string] OnRender() {
         # Get base rendering
         $baseRender = ([Screen]$this).OnRender()
@@ -677,7 +673,7 @@ class VisualMacroFactoryScreen : Screen {
         # Get theme for colors
         $theme = $this.ServiceContainer.GetService('ThemeManager')
         if ($theme) {
-            $borderColor = $theme.GetColor('border')
+            $borderColor = $theme.GetColor('border.normal')
             $sb.Append($borderColor)
             
             # Calculate separator positions (must match OnBoundsChanged calculations)
@@ -711,8 +707,7 @@ class VisualMacroFactoryScreen : Screen {
             $sb.Append('┬')
             $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y + $this.Height - 1))
             $sb.Append('┴')
-            
-            $sb.Append([VT]::Reset())
+
         }
         
         $result = $sb.ToString()

@@ -45,10 +45,10 @@ class MultiSelectListBox : UIElement {
     [void] OnThemeChanged() {
         if ($this.Theme) {
             $this._colors = @{
-                'border' = $this.Theme.GetColor("border")
-                'title' = $this.Theme.GetColor("title")
-                'selected' = $this.Theme.GetBgColor("selected")
-                'normal' = $this.Theme.GetColor("normal")
+                'border' = $this.Theme.GetColor('border.normal')
+                'title' = $this.Theme.GetColor('text.heading')
+                'selected' = $this.Theme.GetBgColor("menu.background.selected")
+                'normal' = $this.Theme.GetColor('text.primary')
                 'checkbox' = $this.Theme.GetColor("checkbox")
                 'checkbox.selected' = $this.Theme.GetColor("checkbox.selected")
                 'border.focused' = $this.Theme.GetColor("border.focused")
@@ -425,8 +425,7 @@ class MultiSelectListBox : UIElement {
             $sb.Append($currentBorderColor)
             $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
         }
-        
-        $sb.Append([VT]::Reset())
+
         $this._cachedRender = $sb.ToString()
         Return-PooledStringBuilder $sb  # Return to pool for reuse
     }

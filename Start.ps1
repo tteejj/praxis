@@ -42,14 +42,17 @@ $loadOrder = @(
     "Services/EventBus.ps1"
     "Services/ConfigurationService.ps1"
     "Services/ThemeManager.ps1"
+    "Core/VT100_Extensions.ps1"
     "Services/ThemeSystem.ps1"
     "Utils/ThemeBuilder.ps1"
+    "Utils/ThemeStandardizer.ps1"
     "Themes/ThemeSynthwave.ps1"
     
     # Base classes
     "Base/UIElement.ps1"
     "Base/Container.ps1"
     "Base/FocusableComponent.ps1"
+    "Base/ThemedComponent.ps1"
     
     # Core UI systems (needed by components and screens)
     "Core/BorderStyle.ps1"
@@ -102,7 +105,7 @@ $loadOrder = @(
     "Components/Button.ps1"
     "Components/MinimalButton.ps1"
     "Components/GradientButton.ps1"
-    # "Components/GradientContainer.ps1"
+    "Components/GradientContainer.ps1"
     "Components/MinimalListBox.ps1"
     "Components/MinimalTextBox.ps1"
     "Components/MinimalDataGrid.ps1"
@@ -132,6 +135,7 @@ $loadOrder = @(
     "Screens/TextInputDialog.ps1",
     "Screens/NumberInputDialog.ps1",
     "Screens/ConfirmationDialog.ps1",
+    "Screens/DestructiveActionDialog.ps1",
     "Screens/NewProjectDialog.ps1",
     "Screens/EditProjectDialog.ps1",
     "Screens/NewTaskDialog.ps1",
@@ -228,6 +232,8 @@ $themeManager.SetEventBus($eventBus)
 # NOW initialize synthwave themes - ThemeManager is registered and ready!
 [ThemeSynthwave]::CreateSynthwave84()
 [ThemeSynthwave]::CreateSynthwaveOutrun()
+
+# All themes now use standardized keys - no legacy fallback needed
 
 if ($global:Logger) {
     $allThemes = $themeManager.GetThemeNames()

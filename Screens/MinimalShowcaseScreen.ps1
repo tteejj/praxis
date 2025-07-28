@@ -270,7 +270,7 @@ class MinimalShowcaseScreen : Screen {
                 $sb.Append($color.name.PadRight(12))
                 $sb.Append($theme.GetColor($color.key))
                 $sb.Append("████████")
-                $sb.Append([VT]::Reset())
+                
                 $y += 2
             }
             
@@ -289,11 +289,11 @@ class MinimalShowcaseScreen : Screen {
             $sb = Get-PooledStringBuilder 256
             $theme = $this.ServiceContainer.GetService('ThemeManager')
             $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 1))
-            $sb.Append($theme.GetColor('accent'))
+            $sb.Append($theme.GetColor('color.primary'))
             $sb.Append("═══ ")
             $sb.Append($text)
             $sb.Append(" ═══")
-            $sb.Append([VT]::Reset())
+            
             $result = $sb.ToString()
             Return-PooledStringBuilder $sb
             return $result
