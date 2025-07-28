@@ -133,6 +133,50 @@ class MainScreen : Screen {
     
     # Override to handle global shortcuts
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Theme cycling with just 'T' (no modifier needed for testing)
+        if ($keyInfo.KeyChar -eq 't' -or $keyInfo.KeyChar -eq 'T') {
+            if ($global:Logger) {
+                $global:Logger.Info("MainScreen: Theme cycle key pressed")
+            }
+            
+            # Get theme manager and cycle
+            $themeManager = $this.ServiceContainer.GetService('ThemeManager')
+            if ($themeManager) {
+                $themes = $themeManager.GetThemeNames()
+                $current = $themeManager.GetCurrentTheme()
+                $currentIndex = [Array]::IndexOf($themes, $current)
+                $nextIndex = ($currentIndex + 1) % $themes.Count
+                $nextTheme = $themes[$nextIndex]
+                
+                if ($global:Logger) {
+                    $global:Logger.Info("MainScreen: Changing theme from '$current' to '$nextTheme'")
+                }
+                
+                # Set theme
+                $themeManager.SetTheme($nextTheme)
+                
+                # Update config
+                $configService = $this.ServiceContainer.GetService('ConfigurationService')
+                if ($configService) {
+                    $configService.Set("Theme.CurrentTheme", $nextTheme)
+                    $configService.Save()
+                }
+                
+                # Force full screen refresh
+                $this.Invalidate()
+                if ($this.TabContainer) {
+                    $this.TabContainer.Invalidate()
+                }
+                
+                # Show toast
+                $toastService = $this.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.ShowToast("Theme: $nextTheme", [ToastType]::Success, 1500)
+                }
+            }
+            return $true
+        }
+        
         # Global shortcuts
         switch ($keyInfo.Key) {
             ([System.ConsoleKey]::Q) {
@@ -140,6 +184,33 @@ class MainScreen : Screen {
                 # This prevents conflict with child screens using 'q'
                 if ($keyInfo.Modifiers -eq [System.ConsoleModifiers]::Control) {
                     $this.Active = $false  # Exit the main loop
+                    return $true
+                }
+            }
+            ([System.ConsoleKey]::T) {
+                # Global theme switcher (Ctrl+T)
+                if ($keyInfo.Modifiers -eq [System.ConsoleModifiers]::Control) {
+                    # Simple theme cycling
+                    $themeManager = $this.ServiceContainer.GetService('ThemeManager')
+                    if ($themeManager) {
+                        $themes = $themeManager.GetThemeNames()
+                        $current = $themeManager.GetCurrentTheme()
+                        $currentIndex = [Array]::IndexOf($themes, $current)
+                        $nextIndex = ($currentIndex + 1) % $themes.Count
+                        $nextTheme = $themes[$nextIndex]
+                        
+                        if ($global:Logger) {
+                            $global:Logger.Info("MainScreen: Changing theme from '$current' to '$nextTheme'")
+                        }
+                        
+                        $themeManager.SetTheme($nextTheme)
+                        
+                        # Show toast
+                        $toastService = $this.ServiceContainer.GetService('ToastService')
+                        if ($toastService) {
+                            $toastService.ShowToast("Theme: $nextTheme", [ToastType]::Success, 1500)
+                        }
+                    }
                     return $true
                 }
             }

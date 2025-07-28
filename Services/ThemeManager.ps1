@@ -196,10 +196,10 @@ class ThemeManager {
         
         $this.RegisterTheme("matrix", $matrixTheme)
         
-        # Define amber theme - classic amber terminal
+        # Define amber theme - classic amber terminal with amber background
         $amberTheme = @{
             # Base colors
-            "background" = @(20, 18, 12)           # Very dark amber/brown background
+            "background" = @(51, 34, 0)            # Dark amber background (not grey!)
             "foreground" = @(255, 204, 0)          # Amber text
             "accent" = @(255, 230, 77)             # Bright amber accent
             "success" = @(0, 255, 0)               # Green
@@ -237,9 +237,9 @@ class ThemeManager {
             "menu.selected.background" = @(255, 230, 77)
             "menu.selected.foreground" = @(20, 18, 12)
             
-            "tab.background" = @(41, 33, 0)
+            "tab.background" = @(61, 49, 0)        # Amber tab background
             "tab.foreground" = @(204, 163, 0)
-            "tab.active.background" = @(20, 18, 12)
+            "tab.active.background" = @(51, 34, 0)  # Same as main background
             "tab.active.foreground" = @(255, 230, 77)
             "tab.active.accent" = @(255, 230, 77)
             
@@ -263,7 +263,7 @@ class ThemeManager {
             "progress.text" = @(255, 204, 0)
             
             # Dialog colors
-            "dialog.background" = @(20, 18, 12)
+            "dialog.background" = @(51, 34, 0)     # Same amber background
             "dialog.border" = @(153, 102, 0)
             "dialog.title" = @(255, 230, 77)
             
@@ -278,6 +278,194 @@ class ThemeManager {
         }
         
         $this.RegisterTheme("amber", $amberTheme)
+        
+        # Define amber-black theme - amber terminal with pure black background
+        $amberBlackTheme = @{
+            # Base colors
+            "background" = @(0, 0, 0)              # Pure black background
+            "foreground" = @(255, 204, 0)          # Amber text
+            "accent" = @(255, 230, 77)             # Bright amber accent
+            "success" = @(0, 255, 0)               # Green
+            "warning" = @(255, 255, 0)             # Yellow
+            "error" = @(255, 85, 85)               # Red
+            
+            # UI elements
+            "border" = @(153, 102, 0)              # Darker amber borders
+            "border.focused" = @(255, 230, 77)     # Bright amber when focused
+            "selection" = @(51, 34, 0)             # Dark amber selection
+            "disabled" = @(102, 82, 0)             # Dim amber
+            
+            # Focus system colors
+            "focus" = @(255, 230, 77)              # Bright amber focus
+            "focus.background" = @(20, 16, 0)      # Very dark amber focus bg
+            "focus.accent" = @(255, 255, 102)      # Very bright amber
+            
+            # Generic component colors
+            "title" = @(255, 230, 77)              # Bright amber titles
+            "normal" = @(255, 204, 0)              # Normal amber text
+            "selected" = @(51, 34, 0)              # Dark amber selection
+            
+            # Component specific
+            "button.background" = @(10, 8, 0)
+            "button.foreground" = @(255, 204, 0)
+            "button.focused.background" = @(255, 230, 77)
+            "button.focused.foreground" = @(0, 0, 0)
+            
+            "input.background" = @(10, 8, 0)
+            "input.foreground" = @(255, 204, 0)
+            "input.focused.border" = @(255, 230, 77)
+            
+            "menu.background" = @(0, 0, 0)
+            "menu.foreground" = @(255, 204, 0)
+            "menu.selected.background" = @(255, 230, 77)
+            "menu.selected.foreground" = @(0, 0, 0)
+            
+            "tab.background" = @(20, 16, 0)        # Very dark amber
+            "tab.foreground" = @(204, 163, 0)
+            "tab.active.background" = @(0, 0, 0)    # Black background
+            "tab.active.foreground" = @(255, 230, 77)
+            "tab.active.accent" = @(255, 230, 77)
+            
+            # DataGrid specific colors
+            "header.background" = @(20, 16, 0)
+            "header.foreground" = @(255, 230, 77)
+            "scrollbar" = @(102, 82, 0)
+            "scrollbar.thumb" = @(153, 122, 0)
+            
+            # Additional component colors
+            "checkbox" = @(255, 230, 77)
+            "checkbox.selected" = @(255, 255, 102)
+            "search" = @(255, 255, 0)
+            "highlight" = @(255, 255, 102)
+            "directory" = @(255, 230, 77)
+            "file" = @(255, 204, 0)
+            "input.border" = @(153, 102, 0)
+            "input.placeholder" = @(102, 82, 0)
+            "progress.active" = @(255, 230, 77)
+            "progress.complete" = @(255, 204, 0)
+            "progress.text" = @(255, 204, 0)
+            
+            # Dialog colors
+            "dialog.background" = @(0, 0, 0)
+            "dialog.border" = @(153, 102, 0)
+            "dialog.title" = @(255, 230, 77)
+            
+            # Additional border states
+            "border.normal" = @(153, 102, 0)
+            
+            # Text editor cursor
+            "cursor" = @(255, 204, 0)              # Amber cursor
+            "cursor.text" = @(0, 0, 0)             # Black text on cursor
+            "linenumber" = @(102, 82, 0)          # Dim amber line numbers
+            "selection.text" = @(0, 0, 0)          # Black text on selection
+            "status" = @(255, 204, 0)              # Status bar text
+            
+            # Gradient endpoints
+            "gradient.border.start" = @(255, 230, 77)     # Bright amber
+            "gradient.border.end" = @(102, 82, 0)         # Dim amber
+            "gradient.bg.start" = @(20, 16, 0)            # Very dark amber
+            "gradient.bg.end" = @(0, 0, 0)                # Black
+        }
+        
+        $this.RegisterTheme("amber-black", $amberBlackTheme)
+        
+        # Define matrix-rain theme - enhanced matrix with rain effect colors
+        $matrixRainTheme = @{
+            # Base colors
+            "background" = @(0, 0, 0)             # Pure black background
+            "foreground" = @(0, 255, 0)           # Bright green text
+            "accent" = @(150, 255, 150)           # Light green accent
+            "success" = @(0, 255, 0)              # Bright green
+            "warning" = @(255, 255, 0)            # Yellow
+            "error" = @(255, 0, 0)                # Red
+            
+            # UI elements
+            "border" = @(0, 150, 0)               # Medium green borders
+            "border.focused" = @(150, 255, 150)   # Light green when focused
+            "selection" = @(0, 80, 0)             # Dark green selection
+            "disabled" = @(0, 100, 0)             # Dim green for disabled
+            
+            # Focus system colors
+            "focus" = @(150, 255, 150)            # Light green focus
+            "focus.background" = @(0, 50, 0)      # Dark green focus background
+            "focus.accent" = @(200, 255, 200)     # Very light green accent
+            
+            # Generic component colors (for backward compatibility)
+            "title" = @(150, 255, 150)            # Light green for titles
+            "normal" = @(0, 200, 0)               # Normal text (slightly dimmer green)
+            "selected" = @(0, 80, 0)              # Alias for selection
+            
+            # Component specific
+            "button.background" = @(0, 30, 0)
+            "button.foreground" = @(0, 255, 0)
+            "button.focused.background" = @(0, 150, 0)
+            "button.focused.foreground" = @(150, 255, 150)
+            
+            "input.background" = @(0, 20, 0)
+            "input.foreground" = @(0, 255, 0)
+            "input.focused.border" = @(150, 255, 150)
+            
+            "menu.background" = @(0, 0, 0)
+            "menu.foreground" = @(0, 200, 0)
+            "menu.selected.background" = @(0, 100, 0)
+            "menu.selected.foreground" = @(150, 255, 150)
+            
+            "tab.background" = @(0, 40, 0)
+            "tab.foreground" = @(0, 180, 0)
+            "tab.active.background" = @(0, 0, 0)
+            "tab.active.foreground" = @(150, 255, 150)
+            "tab.active.accent" = @(0, 255, 0)
+            
+            # DataGrid specific colors
+            "header.background" = @(0, 40, 0)
+            "header.foreground" = @(150, 255, 150)
+            "scrollbar" = @(0, 100, 0)
+            "scrollbar.thumb" = @(0, 200, 0)
+            
+            # Additional component colors
+            "checkbox" = @(150, 255, 150)
+            "checkbox.selected" = @(200, 255, 200)
+            "search" = @(255, 255, 0)
+            "highlight" = @(255, 255, 0)
+            "directory" = @(150, 255, 150)
+            "file" = @(0, 200, 0)
+            "input.border" = @(0, 150, 0)
+            "input.placeholder" = @(0, 100, 0)
+            "progress.active" = @(150, 255, 150)
+            "progress.complete" = @(0, 255, 0)
+            "progress.text" = @(0, 200, 0)
+            
+            # Dialog colors
+            "dialog.background" = @(0, 0, 0)
+            "dialog.border" = @(0, 200, 0)
+            "dialog.title" = @(150, 255, 150)
+            
+            # Additional border states
+            "border.normal" = @(0, 150, 0)
+            
+            # Text editor cursor
+            "cursor" = @(0, 255, 0)                  # Green cursor background
+            "cursor.text" = @(0, 0, 0)               # Black text on cursor
+            "linenumber" = @(0, 100, 0)              # Dim green line numbers
+            "selection.text" = @(0, 0, 0)            # Black text on green selection
+            "status" = @(0, 200, 0)                  # Status bar text
+            
+            # Gradient endpoints - for matrix rain effect
+            "gradient.border.start" = @(150, 255, 150)    # Light green
+            "gradient.border.end" = @(0, 100, 0)          # Dark green
+            "gradient.bg.start" = @(0, 60, 0)             # Medium dark green
+            "gradient.bg.end" = @(0, 0, 0)                # Black
+            "gradient.rain.start" = @(200, 255, 200)      # Almost white green
+            "gradient.rain.mid" = @(0, 255, 0)            # Bright green
+            "gradient.rain.end" = @(0, 100, 0)            # Dark green
+        }
+        
+        $this.RegisterTheme("matrix-rain", $matrixRainTheme)
+        
+        if ($global:Logger) {
+            $global:Logger.Info("ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain")
+        }
+        
         $this.SetTheme("default")
     }
     
@@ -293,13 +481,25 @@ class ThemeManager {
     
     # Switch to a different theme
     [void] SetTheme([string]$name) {
+        if ($global:Logger) {
+            $global:Logger.Info("ThemeManager.SetTheme: Attempting to set theme to '$name'")
+            $global:Logger.Debug("  Available themes: $($this._themes.Keys -join ', ')")
+        }
+        
         if (-not $this._themes.ContainsKey($name)) {
+            if ($global:Logger) {
+                $global:Logger.Error("Theme '$name' not found! Available: $($this._themes.Keys -join ', ')")
+            }
             throw "Theme '$name' not found"
         }
         
         $oldTheme = $this._currentTheme
         $this._currentTheme = $name
         $this.RebuildCache()
+        
+        if ($global:Logger) {
+            $global:Logger.Info("ThemeManager: Theme changed from '$oldTheme' to '$name'")
+        }
         
         # Notify via EventBus if available
         if ($this.EventBus) {
@@ -416,14 +616,12 @@ class ThemeManager {
     
     # Notify all listeners of theme change (legacy method)
     hidden [void] NotifyListeners() {
-        # Only notify legacy listeners if EventBus is not available
-        if (-not $this.EventBus) {
-            foreach ($listener in $this._listeners) {
-                try {
-                    & $listener
-                } catch {
-                    # Ignore listener errors
-                }
+        # ALWAYS notify legacy listeners - components still use Subscribe()
+        foreach ($listener in $this._listeners) {
+            try {
+                & $listener
+            } catch {
+                # Ignore listener errors
             }
         }
     }

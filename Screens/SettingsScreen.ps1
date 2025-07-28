@@ -110,7 +110,18 @@ class SettingsScreen : Screen {
             'b' { $this.CreateBackup(); return $true }
             'B' { $this.RestoreBackup(); return $true }
             't' { 
+                if ($global:Logger) {
+                    $global:Logger.Info("SettingsScreen: 't' key pressed - cycling theme")
+                }
                 # Quick theme selector - navigate to Theme category and show theme selector
+                $this.SelectThemeCategory()
+                return $true 
+            }
+            'T' { 
+                # Also handle uppercase T
+                if ($global:Logger) {
+                    $global:Logger.Info("SettingsScreen: 'T' key pressed - cycling theme")
+                }
                 $this.SelectThemeCategory()
                 return $true 
             }
@@ -325,10 +336,10 @@ class SettingsScreen : Screen {
         # Special handling for theme selection
         if ($path -eq "Theme.CurrentTheme") {
             if ($global:Logger) {
-                $global:Logger.Debug("SettingsScreen.EditSetting: Showing theme selection dialog")
+                $global:Logger.Info("SettingsScreen.EditSetting: Cycling theme")
             }
-            # Show theme selection dialog
-            $this.ShowThemeSelectionDialog($currentValue)
+            # Just cycle to next theme
+            $this.SelectThemeCategory()
             return
         }
         
@@ -603,87 +614,13 @@ class SettingsScreen : Screen {
     }
     
     [void] ShowThemeSelectionDialog([string]$currentTheme) {
-        $themeManager = $global:ServiceContainer.GetService("ThemeManager")
-        if (-not $themeManager) { return }
-        
-        $themes = $themeManager.GetThemeNames()
-        
-        # Create selection dialog
-        $dialog = [SelectionDialog]::new()
-        $dialog.Title = "Select Theme"
-        $dialog.Prompt = "Choose a theme:"
-        
-        # Format theme list with preview
-        $items = @()
-        foreach ($theme in $themes) {
-            $items += @{
-                Name = $theme
-                Display = if ($theme -eq $currentTheme) { "● $theme (current)" } else { "  $theme" }
-            }
-        }
-        
-        # Add option to install more themes
-        $items += @{
-            Name = "_install"
-            Display = "↓ Install More Themes..."
-        }
-        
-        # Add option to edit themes
-        $items += @{
-            Name = "_edit"
-            Display = "✎ Edit Current Theme..."
-        }
-        
-        $dialog.SetItems($items)
-        $dialog.Initialize($this.ServiceContainer)
-        # Set ItemFormatter after Initialize for MinimalListBox
-        if ($dialog.ListBox) {
-            $dialog.ListBox.ItemFormatter = { param($item) $item.Display }
-        }
-        
-        $screen = $this
-        $dialog.OnSelect = {
-            param($item)
-            
-            if ($item.Name -eq "_install") {
-                $screen.InstallThemeTemplates()
-            }
-            elseif ($item.Name -eq "_edit") {
-                $screen.ShowThemeEditor()
-            }
-            else {
-                # Apply selected theme
-                $screen.ConfigService.Set("Theme.CurrentTheme", $item.Name)
-                $themeManager.SetTheme($item.Name)
-                
-                # Publish event
-                if ($screen.EventBus) {
-                    $screen.EventBus.Publish([EventNames]::ConfigChanged, @{
-                        Path = "Theme.CurrentTheme"
-                        OldValue = $currentTheme
-                        NewValue = $item.Name
-                        Category = "Theme"
-                    })
-                }
-                
-                $screen.LoadCategorySettings()
-            }
-        }.GetNewClosure()
-        
-        $global:ScreenManager.Push($dialog)
+        # Just cycle themes
+        $this.SelectThemeCategory()
     }
     
     [void] ShowThemeEditor() {
-        $editor = [ThemeEditorDialog]::new()
-        $editor.Initialize($this.ServiceContainer)
-        
-        $screen = $this
-        $editor.OnPrimary = {
-            # Refresh settings after editing
-            $screen.LoadCategorySettings()
-        }.GetNewClosure()
-        
-        $global:ScreenManager.Push($editor)
+        # Just cycle themes for now
+        $this.SelectThemeCategory()
     }
     
     [void] InstallThemeTemplates() {
@@ -1051,41 +988,55 @@ This will add the following themes:
     }
     
     [void] SelectThemeCategory() {
-        # Find the Theme category in the list
-        $themeIndex = -1
-        for ($i = 0; $i -lt $this.CategoryList.Items.Count; $i++) {
-            if ($this.CategoryList.Items[$i].Name -eq "Theme") {
-                $themeIndex = $i
-                break
-            }
+        if ($global:Logger) {
+            $global:Logger.Info("SettingsScreen: Cycling to next theme")
         }
         
-        if ($themeIndex -ge 0) {
-            # Select the Theme category
-            $this.CategoryList.SelectedIndex = $themeIndex
-            $this.LoadCategorySettings()
-            
-            # Focus on the settings grid
-            $this.SettingsGrid.Focus()
-            
-            # CurrentTheme should be at index 0 after LoadCategorySettings
-            if ($this.SettingsGrid.Items.Count -gt 0) {
-                $this.SettingsGrid.SelectedIndex = 0
-                # Verify it's CurrentTheme
-                if ($this.SettingsGrid.Items[0].Key -eq "CurrentTheme") {
-                    # Directly show theme selection dialog
-                    $this.ShowThemeSelectionDialog($this.SettingsGrid.Items[0].RawValue)
-                } else {
-                    # Search for CurrentTheme if not at index 0
-                    for ($i = 0; $i -lt $this.SettingsGrid.Items.Count; $i++) {
-                        if ($this.SettingsGrid.Items[$i].Key -eq "CurrentTheme") {
-                            $this.SettingsGrid.SelectedIndex = $i
-                            $this.ShowThemeSelectionDialog($this.SettingsGrid.Items[$i].RawValue)
-                            break
-                        }
-                    }
-                }
-            }
+        # Simple theme cycling
+        $themeManager = $this.ServiceContainer.GetService('ThemeManager')
+        if (-not $themeManager) { return }
+        
+        $themes = $themeManager.GetThemeNames()
+        $current = $themeManager.GetCurrentTheme()
+        $currentIndex = [Array]::IndexOf($themes, $current)
+        $nextIndex = ($currentIndex + 1) % $themes.Count
+        $nextTheme = $themes[$nextIndex]
+        
+        if ($global:Logger) {
+            $global:Logger.Info("SettingsScreen: Changing theme from '$current' to '$nextTheme'")
+        }
+        
+        # Apply the theme
+        $themeManager.SetTheme($nextTheme)
+        
+        # Update config
+        $this.ConfigService.Set("Theme.CurrentTheme", $nextTheme)
+        
+        # Save immediately
+        $this.ConfigService.Save()
+        
+        # Publish event
+        if ($this.EventBus) {
+            $this.EventBus.Publish([EventNames]::ConfigChanged, @{
+                Path = "Theme.CurrentTheme"
+                OldValue = $current
+                NewValue = $nextTheme
+                Category = "Theme"
+            })
+        }
+        
+        # Force full application refresh
+        $screenManager = $this.ServiceContainer.GetService('ScreenManager')
+        if ($screenManager) {
+            $screenManager.Invalidate()
+        }
+        
+        # Update display
+        $this.LoadSettings()
+        
+        # Force parent to redraw
+        if ($this.Parent) {
+            $this.Parent.Invalidate()
         }
     }
 }

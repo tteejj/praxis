@@ -102,6 +102,7 @@ $loadOrder = @(
     "Components/Button.ps1"
     "Components/MinimalButton.ps1"
     "Components/GradientButton.ps1"
+    # "Components/GradientContainer.ps1"
     "Components/MinimalListBox.ps1"
     "Components/MinimalTextBox.ps1"
     "Components/MinimalDataGrid.ps1"
@@ -224,6 +225,15 @@ if ($Debug) {
 # Connect ThemeManager to EventBus
 $themeManager.SetEventBus($eventBus)
 
+# NOW initialize synthwave themes - ThemeManager is registered and ready!
+[ThemeSynthwave]::CreateSynthwave84()
+[ThemeSynthwave]::CreateSynthwaveOutrun()
+
+if ($global:Logger) {
+    $allThemes = $themeManager.GetThemeNames()
+    $global:Logger.Info("Start.ps1: Registered themes: $($allThemes -join ', ')")
+}
+
 # Subscribe to configuration changes
 $eventBus.Subscribe([EventNames]::ConfigChanged, {
     param($sender, $eventData)
@@ -322,9 +332,7 @@ $fileOperationService = [FileOperationService]::new()
 $fileOperationService.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("FileOperationService", $fileOperationService)
 
-# Initialize synthwave themes
-[ThemeSynthwave]::CreateSynthwave84()
-[ThemeSynthwave]::CreateSynthwaveOutrun()
+# Synthwave themes already initialized after EventBus setup
 
 # Apply theme from configuration
 $currentTheme = $configService.Get("Theme.CurrentTheme", "matrix")
