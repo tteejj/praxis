@@ -258,31 +258,16 @@ class TaskScreen : Screen {
         # Load tasks
         $this.LoadTasks()
         
+        # Register screen-specific shortcuts
+        $this.RegisterShortcuts()
+        
         # Critical debug for freeze investigation
         if ($global:Logger) {
             $global:Logger.Info("TaskScreen.OnInitialize: COMPLETED")
         }
     }
 
-    [void] OnActivated() {
-        # Critical debug for freeze investigation
-        if ($global:Logger) {
-            $global:Logger.Info("TaskScreen.OnActivated: START")
-        }
-        
-        # Call base to manage focus scope and shortcuts
-        ([Screen]$this).OnActivated()
-        
-        # Focus the grid
-        if ($this.TaskGrid -and $this.TaskGrid.Items.Count -gt 0) {
-            $this.TaskGrid.Focus()
-        }
-        
-        # Critical debug for freeze investigation
-        if ($global:Logger) {
-            $global:Logger.Info("TaskScreen.OnActivated: COMPLETED")
-        }
-    }
+    # Remove OnActivated override - base Screen class handles focus properly now
     
     [void] OnBoundsChanged() {
         # Only update bounds if TaskGrid exists
@@ -336,6 +321,10 @@ class TaskScreen : Screen {
     }
     
     [void] NewTask() {
+        if ($global:Logger) {
+            $global:Logger.Info("TaskScreen.NewTask: Creating new task dialog")
+        }
+        
         # Create new task dialog
         $dialog = [NewTaskDialog]::new()
         
@@ -603,67 +592,153 @@ class TaskScreen : Screen {
         $this.LoadTasks()
     }
     
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.HandleScreenInput: Key=$($key.Key) Char='$($key.KeyChar)'")
-        }
-        
-        # Handle Enter and Delete keys
-        if ($key.Key -eq [System.ConsoleKey]::Enter) {
-            $this.EditTask()
-            return $true
-        }
-        if ($key.Key -eq [System.ConsoleKey]::Delete) {
-            $this.DeleteTask()
-            return $true
-        }
-        if ($key.Key -eq [System.ConsoleKey]::F5) {
-            $this.LoadTasks()
-            return $true
-        }
-        
-        # Handle character shortcuts using KeyChar
-        if (-not $key.Modifiers) {
-            switch ($key.KeyChar) {
-                'n' {
-                    $this.NewTask()
-                    return $true
-                }
-                'e' {
-                    $this.EditTask()
-                    return $true
-                }
-                'd' {
-                    $this.DeleteTask()
-                    return $true
-                }
-                'r' {
-                    $this.LoadTasks()
-                    return $true
-                }
-                's' {
-                    $this.CycleStatus()
-                    return $true
-                }
-                'p' {
-                    $this.CyclePriority()
-                    return $true
-                }
-                't' {
-                    # Toggle subtask view
-                    $this.ToggleSubtaskView()
-                    return $true
-                }
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("TaskScreen: ShortcutManager not found")
             }
+            return 
         }
         
-        # Handle 'a' for adding subtask
-        if (-not $key.Modifiers -and $key.KeyChar -eq 'a') {
-            $this.AddSubtask()
-            return $true
-        }
+        # Capture screen reference for closures
+        $screen = $this
         
-        return $false
+        # Enter: Edit task
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.edit_enter"
+            Name = "Edit Task"
+            Description = "Edit the selected task"
+            Key = [System.ConsoleKey]::Enter
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.EditTask() }.GetNewClosure()
+        })
+        
+        # Delete: Delete task
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.delete"
+            Name = "Delete Task"
+            Description = "Delete the selected task"
+            Key = [System.ConsoleKey]::Delete
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.DeleteTask() }.GetNewClosure()
+        })
+        
+        # F5: Refresh
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.refresh"
+            Name = "Refresh"
+            Description = "Refresh the task list"
+            Key = [System.ConsoleKey]::F5
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.LoadTasks() }.GetNewClosure()
+        })
+        
+        # n: New task
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.new"
+            Name = "New Task"
+            Description = "Create a new task"
+            KeyChar = 'n'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.NewTask() }.GetNewClosure()
+        })
+        
+        # e: Edit task
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.edit"
+            Name = "Edit Task"
+            Description = "Edit the selected task"
+            KeyChar = 'e'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.EditTask() }.GetNewClosure()
+        })
+        
+        # d: Delete task
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.delete_key"
+            Name = "Delete Task"
+            Description = "Delete the selected task"
+            KeyChar = 'd'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.DeleteTask() }.GetNewClosure()
+        })
+        
+        # r: Refresh
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.refresh_key"
+            Name = "Refresh"
+            Description = "Refresh the task list"
+            KeyChar = 'r'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.LoadTasks() }.GetNewClosure()
+        })
+        
+        # s: Cycle status
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.cycle_status"
+            Name = "Cycle Status"
+            Description = "Cycle task status"
+            KeyChar = 's'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.CycleStatus() }.GetNewClosure()
+        })
+        
+        # p: Cycle priority
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.cycle_priority"
+            Name = "Cycle Priority"
+            Description = "Cycle task priority"
+            KeyChar = 'p'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.CyclePriority() }.GetNewClosure()
+        })
+        
+        # t: Toggle subtask view
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.toggle_subtasks"
+            Name = "Toggle Subtasks"
+            Description = "Toggle subtask view"
+            KeyChar = 't'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.ToggleSubtaskView() }.GetNewClosure()
+        })
+        
+        # a: Add subtask
+        $shortcutManager.RegisterShortcut(@{
+            Id = "task.add_subtask"
+            Name = "Add Subtask"
+            Description = "Add subtask to selected task"
+            KeyChar = 'a'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "TaskScreen"
+            Priority = 10
+            Action = { $screen.AddSubtask() }.GetNewClosure()
+        })
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("TaskScreen.RegisterShortcuts: Registered all shortcuts")
+        }
     }
     
     [string] OnRender() {

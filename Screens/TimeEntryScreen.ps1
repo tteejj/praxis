@@ -100,13 +100,11 @@ class TimeEntryScreen : Screen {
     }
     
     [void] OnActivated() {
+        # Call base - this now handles focus via FocusFirst()
         ([Screen]$this).OnActivated()
         
-        # Refresh data when activated
+        # Refresh data when activated (this will also select first item via SetItems)
         $this.RefreshGrid()
-        if ($this.TimeGrid) {
-            $this.TimeGrid.Focus()
-        }
     }
     
     [string] GetWeekTitle() {
@@ -362,11 +360,9 @@ class TimeEntryScreen : Screen {
     [void] RegisterShortcuts() {
         $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
         if ($shortcutManager) {
-            $screen = $this
+            # DO NOT use a temp variable - use $this directly in Actions to avoid closure issues
             
             # Q - Quick entry
-            $quickAction = { $screen.ShowQuickEntry() }.GetNewClosure()
-            
             $shortcutManager.RegisterShortcut(@{
                 Id = "time.quick"
                 Name = "Quick Entry"
@@ -375,7 +371,7 @@ class TimeEntryScreen : Screen {
                 Scope = [ShortcutScope]::Screen
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
-                Action = $quickAction
+                Action = { $this.ShowQuickEntry() }.GetNewClosure()
             })
             
             # E - Edit entry
@@ -387,7 +383,7 @@ class TimeEntryScreen : Screen {
                 Scope = [ShortcutScope]::Screen
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
-                Action = { $screen.EditSelectedEntry() }.GetNewClosure()
+                Action = { $this.EditSelectedEntry() }.GetNewClosure()
             })
             
             # Left/Right arrows for week navigation
@@ -400,8 +396,8 @@ class TimeEntryScreen : Screen {
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
                 Action = {
-                    $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(-7)
-                    $screen.RefreshGrid()
+                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(-7)
+                    $this.RefreshGrid()
                 }.GetNewClosure()
             })
             
@@ -414,8 +410,8 @@ class TimeEntryScreen : Screen {
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
                 Action = {
-                    $screen.CurrentWeekFriday = $screen.CurrentWeekFriday.AddDays(7)
-                    $screen.RefreshGrid()
+                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(7)
+                    $this.RefreshGrid()
                 }.GetNewClosure()
             })
             
@@ -442,7 +438,7 @@ class TimeEntryScreen : Screen {
                 Scope = [ShortcutScope]::Screen
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
-                Action = { $screen.NewTimeEntry() }.GetNewClosure()
+                Action = { $this.NewTimeEntry() }.GetNewClosure()
             })
             
             # D - Delete entry
@@ -454,7 +450,7 @@ class TimeEntryScreen : Screen {
                 Scope = [ShortcutScope]::Screen
                 ScreenType = "TimeEntryScreen"
                 Priority = 50
-                Action = { $screen.DeleteSelectedEntry() }.GetNewClosure()
+                Action = { $this.DeleteSelectedEntry() }.GetNewClosure()
             })
         }
     }

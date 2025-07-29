@@ -154,6 +154,10 @@ class UIElement {
     
     # Fast focus management using FocusManager
     [void] Focus() {
+        if ($global:Logger) {
+            $global:Logger.Debug("UIElement.Focus: $($this.GetType().Name) requesting focus (IsFocusable=$($this.IsFocusable))")
+        }
+        
         $focusManager = $null
         if ($this.ServiceContainer) {
             $focusManager = $this.ServiceContainer.GetService('FocusManager')
@@ -163,6 +167,9 @@ class UIElement {
             [void]$focusManager.SetFocus($this)
         } else {
             # Fallback for initialization phase
+            if ($global:Logger) {
+                $global:Logger.Debug("UIElement.Focus: No FocusManager, using fallback")
+            }
             $this.IsFocused = $true
             $this.OnGotFocus()
             $this.InvalidateFocusOnly()

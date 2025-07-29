@@ -23,22 +23,19 @@ class EditTaskDialog : BaseDialog {
         $this.TitleBox = [MinimalTextBox]::new()
         $this.TitleBox.Text = $this.Task.Title
         $this.TitleBox.Placeholder = "Enter task title..."
-        $this.TitleBox.ShowBorder = $true
-        $this.TitleBox.BorderType = [BorderType]::Rounded
+        $this.TitleBox.ShowBorder = $false  # Dialog provides the border
         $this.AddContentControl($this.TitleBox, 1)
         
         # Create description textbox
         $this.DescriptionBox = [MinimalTextBox]::new()
         $this.DescriptionBox.Text = $this.Task.Description
         $this.DescriptionBox.Placeholder = "Enter description (optional)..."
-        $this.DescriptionBox.ShowBorder = $true
-        $this.DescriptionBox.BorderType = [BorderType]::Rounded
+        $this.DescriptionBox.ShowBorder = $false  # Dialog provides the border
         $this.AddContentControl($this.DescriptionBox, 2)
         
         # Create status list
         $this.StatusList = [MinimalListBox]::new()
-        $this.StatusList.ShowBorder = $true
-        $this.StatusList.BorderType = [BorderType]::Rounded
+        $this.StatusList.ShowBorder = $false  # Dialog provides the border
         $this.StatusList.SetItems(@(
             @{Name="Pending"; Value=[TaskStatus]::Pending},
             @{Name="In Progress"; Value=[TaskStatus]::InProgress},
@@ -57,8 +54,7 @@ class EditTaskDialog : BaseDialog {
         
         # Create priority list
         $this.PriorityList = [MinimalListBox]::new()
-        $this.PriorityList.ShowBorder = $true
-        $this.PriorityList.BorderType = [BorderType]::Rounded
+        $this.PriorityList.ShowBorder = $false  # Dialog provides the border
         $this.PriorityList.SetItems(@(
             @{Name="Low"; Value=[TaskPriority]::Low},
             @{Name="Medium"; Value=[TaskPriority]::Medium},
@@ -78,8 +74,7 @@ class EditTaskDialog : BaseDialog {
         $this.ProgressBox = [MinimalTextBox]::new()
         $this.ProgressBox.Text = $this.Task.Progress.ToString()
         $this.ProgressBox.Placeholder = "0-100"
-        $this.ProgressBox.ShowBorder = $true
-        $this.ProgressBox.BorderType = [BorderType]::Rounded
+        $this.ProgressBox.ShowBorder = $false  # Dialog provides the border
         $this.AddContentControl($this.ProgressBox, 5)
         
         # Set up primary action (Save)

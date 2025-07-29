@@ -6,7 +6,6 @@ class Screen : Container {
     [bool]$Active = $true
     hidden [hashtable]$_keyBindings = @{}
     hidden [ThemeManager]$Theme
-    hidden [HelpOverlay]$_helpOverlay
     
     # Protected service container for dependency injection
     hidden [ServiceContainer]$ServiceContainer
@@ -40,10 +39,7 @@ class Screen : Container {
     
     # Override for custom initialization
     [void] OnInitialize() {
-        # Create help overlay
-        $this._helpOverlay = [HelpOverlay]::new()
-        $this._helpOverlay.Initialize($this.ServiceContainer)
-        $this.AddChild($this._helpOverlay)
+        # Override in derived classes
     }
     
     # Theme change handler
@@ -71,42 +67,14 @@ class Screen : Container {
     
     # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
-        # CRITICAL DEBUG: Track freeze-causing keys
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($global:Logger) {
-                $global:Logger.Info("Screen.HandleInput: START processing key '$($keyInfo.KeyChar)'")
-            }
-        }
         
-        # Check if help overlay is visible and let it handle input first
-        if ($this._helpOverlay -and $this._helpOverlay.IsVisible) {
-            return $this._helpOverlay.HandleInput($keyInfo)
-        }
-        
-        # Handle F1 for help
-        if ($keyInfo.Key -eq [System.ConsoleKey]::F1) {
-            $this.ShowHelp()
-            return $true
-        }
         
         # Debug logging removed for performance
         
-        # CRITICAL DEBUG: Before Container.HandleInput
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($global:Logger) {
-                $global:Logger.Info("Screen.HandleInput: About to call Container.HandleInput for key '$($keyInfo.KeyChar)'")
-            }
-        }
         
         # 1. Let focused child handle first (components get priority)
         $handled = ([Container]$this).HandleInput($keyInfo)
         
-        # CRITICAL DEBUG: After Container.HandleInput
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($global:Logger) {
-                $global:Logger.Info("Screen.HandleInput: Container.HandleInput returned $handled for key '$($keyInfo.KeyChar)'")
-            }
-        }
         
         if ($global:Logger) {
             $global:Logger.Debug("Screen base handled: $handled")
@@ -125,8 +93,20 @@ class Screen : Container {
     
     # Lifecycle methods - simple and fast
     [void] OnActivated() {
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen.OnActivated: $($this.GetType().Name) activating")
+        }
+        
         # Force a render when screen is activated
         $this.Invalidate()
+        
+        # Ensure first focusable child gets focus
+        # This ensures consistent behavior across all screens
+        $this.FocusFirst()
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("Screen.OnActivated: $($this.GetType().Name) activation complete")
+        }
     }
     
     [void] OnDeactivated() {
@@ -140,33 +120,9 @@ class Screen : Container {
         ([Container]$this).FocusFirst()
     }
 
-    # Get help text for this screen - override in derived classes
-    [string] GetHelpText() {
-        return @"
-No help available for this screen.
-
-Press F1 to toggle help.
-Press ESC to close help.
-"@
-    }
-    
-    # Show help overlay
-    [void] ShowHelp() {
-        if ($this._helpOverlay) {
-            $helpText = $this.GetHelpText()
-            $this._helpOverlay.Show($helpText)
-        }
-    }
-    
-    
-    # Override OnBoundsChanged to update help overlay
+    # Override OnBoundsChanged
     [void] OnBoundsChanged() {
         ([Container]$this).OnBoundsChanged()
-        
-        # Make help overlay cover the entire screen
-        if ($this._helpOverlay) {
-            $this._helpOverlay.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
-        }
     }
     
     # Request a re-render

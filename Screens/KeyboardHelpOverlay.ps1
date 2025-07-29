@@ -1,206 +1,276 @@
-# KeyboardHelpOverlay.ps1 - Minimal keyboard shortcut help overlay
+# KeyboardHelpOverlay.ps1 - Keyboard shortcut help overlay
 
-class KeyboardHelpOverlay : MinimalModal {
+class KeyboardHelpOverlay : Screen {
     hidden [string]$Context = ""
     hidden [MinimalListBox]$CategoryList
-    hidden [UIElement]$ShortcutDisplay
-    hidden [KeyboardShortcutManager]$ShortcutManager
+    hidden [MinimalListBox]$ShortcutList
+    hidden [hashtable]$ShortcutsByCategory = @{}
     hidden [hashtable]$CategorizedShortcuts = @{}
     
     KeyboardHelpOverlay([string]$context = "") : base() {
         $this.Title = "Keyboard Shortcuts"
         $this.Context = $context
-        $this.ModalWidth = 70
-        $this.ModalHeight = 24
-        $this.BorderType = [BorderType]::Rounded
-        
-        # Add close hint
-        $this.AddButton("Close (ESC/F1)", { $this.Close() }, $true)
+        $this.DrawBackground = $true
     }
     
     [void] OnInitialize() {
-        # Get shortcut manager
-        $this.ShortcutManager = $this.ServiceContainer.GetService('KeyboardShortcutManager')
-        if (-not $this.ShortcutManager) {
-            $this.ShortcutManager = [KeyboardShortcutManager]::new()
-            $this.ShortcutManager.Initialize($this.ServiceContainer)
+        ([Screen]$this).OnInitialize()
+        
+        # Get services
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        $themeManager = $this.ServiceContainer.GetService('ThemeManager')
+        
+        if ($themeManager) {
+            # Set dark overlay background
+            $overlayColor = [VT]::RGBBG(20, 20, 20)  # Dark gray overlay
+            $this.SetBackgroundColor($overlayColor)
         }
         
-        # Create main container with horizontal split
-        $mainSplit = [HorizontalSplit]::new()
-        $mainSplit.SplitPosition = 30  # 30% for categories
-        
-        # Left: Category list
+        # Create category list (left panel)
         $this.CategoryList = [MinimalListBox]::new()
-        $this.CategoryList.ShowBorder = $false
-        $this.CategoryList.OnSelectionChanged = {
-            $this.UpdateShortcutDisplay()
-        }.GetNewClosure()
+        $this.CategoryList.Title = "Categories"
+        $this.CategoryList.Initialize($this.ServiceContainer)
         
-        # Right: Shortcut display
-        $this.ShortcutDisplay = [UIElement]::new()
-        $this.ShortcutDisplay.OnRender = {
-            $this.Parent.Parent.RenderShortcuts()
-        }.GetNewClosure()
-        
-        $mainSplit.SetLeftChild($this.CategoryList)
-        $mainSplit.SetRightChild($this.ShortcutDisplay)
-        
-        $this.Content = $mainSplit
+        # Create shortcut list (right panel)
+        $this.ShortcutList = [MinimalListBox]::new()
+        $this.ShortcutList.Title = "Shortcuts"
+        $this.ShortcutList.SelectionEnabled = $false
+        $this.ShortcutList.Initialize($this.ServiceContainer)
         
         # Load shortcuts
         $this.LoadShortcuts()
         
-        ([MinimalModal]$this).OnInitialize()
+        # Set up category selection handler
+        $this.CategoryList.OnSelectionChanged = {
+            $this.UpdateShortcutDisplay()
+        }.GetNewClosure()
+        
+        # Add children
+        $this.AddChild($this.CategoryList)
+        $this.AddChild($this.ShortcutList)
+        
+        # Register shortcuts for this overlay
+        $this.RegisterShortcuts()
+        
+        # Initial display
+        $this.UpdateShortcutDisplay()
+    }
+    
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { return }
+        
+        # ESC or F1 to close
+        $shortcutManager.RegisterShortcut(@{
+            Id = "help.close"
+            Name = "Close Help"
+            Description = "Close help overlay"
+            Key = [System.ConsoleKey]::Escape
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "KeyboardHelpOverlay"
+            Priority = 100
+            Action = { 
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "help.close_f1"
+            Name = "Close Help"
+            Description = "Close help overlay"
+            Key = [System.ConsoleKey]::F1
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "KeyboardHelpOverlay"
+            Priority = 100
+            Action = { 
+                if ($global:ScreenManager) {
+                    $global:ScreenManager.Pop()
+                }
+            }
+        })
+    }
+    
+    [void] OnBoundsChanged() {
+        ([Screen]$this).OnBoundsChanged()
+        
+        if (-not $this.CategoryList -or -not $this.ShortcutList) { return }
+        
+        # Calculate modal dimensions
+        $modalWidth = [Math]::Min(80, $this.Width - 10)
+        $modalHeight = [Math]::Min(30, $this.Height - 6)
+        $modalX = [Math]::Floor(($this.Width - $modalWidth) / 2)
+        $modalY = [Math]::Floor(($this.Height - $modalHeight) / 2)
+        
+        # Title and border take up space
+        $contentHeight = $modalHeight - 4
+        $categoryWidth = [Math]::Floor($modalWidth * 0.3)
+        $shortcutWidth = $modalWidth - $categoryWidth - 2
+        
+        # Position category list (left side)
+        $this.CategoryList.SetBounds(
+            $this.X + $modalX + 1,
+            $this.Y + $modalY + 2,
+            $categoryWidth,
+            $contentHeight
+        )
+        
+        # Position shortcut list (right side)
+        $this.ShortcutList.SetBounds(
+            $this.X + $modalX + $categoryWidth + 2,
+            $this.Y + $modalY + 2,
+            $shortcutWidth,
+            $contentHeight
+        )
     }
     
     [void] LoadShortcuts() {
-        # Get all shortcuts for context
-        $allShortcuts = $this.ShortcutManager.GetShortcuts($this.Context)
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { return }
         
-        # Add some additional help shortcuts
-        $this.AddHelpShortcuts($allShortcuts)
+        # Get all shortcuts
+        $allShortcuts = $shortcutManager.GetAllShortcuts()
+        
+        # Clear existing data
+        $this.ShortcutsByCategory.Clear()
+        $this.CategorizedShortcuts.Clear()
         
         # Categorize shortcuts
-        $this.CategorizedShortcuts.Clear()
         foreach ($shortcut in $allShortcuts) {
-            $category = $shortcut.Category
-            if (-not $this.CategorizedShortcuts.ContainsKey($category)) {
-                $this.CategorizedShortcuts[$category] = @()
+            if (-not $shortcut.Enabled) { continue }
+            
+            $category = switch ($shortcut.Scope) {
+                ([ShortcutScope]::Global) { "Global" }
+                ([ShortcutScope]::Screen) { 
+                    if ($shortcut.ScreenType) {
+                        $shortcut.ScreenType -replace 'Screen$', ''
+                    } else {
+                        "Screen"
+                    }
+                }
+                default { "Other" }
             }
-            $this.CategorizedShortcuts[$category] += $shortcut
-        }
-        
-        # Populate category list
-        $categories = $this.CategorizedShortcuts.Keys | Sort-Object
-        $this.CategoryList.SetItems($categories)
-        
-        if ($categories.Count -gt 0) {
-            $this.CategoryList.SelectedIndex = 0
-        }
-    }
-    
-    [void] AddHelpShortcuts([System.Collections.Generic.List[KeyboardShortcut]]$shortcuts) {
-        # Add context-specific shortcuts based on current screen
-        $currentScreen = $null
-        if ($global:ScreenManager) {
-            $currentScreen = $global:ScreenManager.GetActiveScreen()
-        }
-        
-        if ($currentScreen) {
-            # Add screen-specific shortcuts
-            switch ($currentScreen.GetType().Name) {
-                "ProjectsScreen" {
-                    $this.AddShortcut($shortcuts, "N", "New project", "Projects")
-                    $this.AddShortcut($shortcuts, "E", "Edit project", "Projects")
-                    $this.AddShortcut($shortcuts, "D", "Delete project", "Projects")
-                    $this.AddShortcut($shortcuts, "Enter", "View project details", "Projects")
-                }
-                "TaskScreen" {
-                    $this.AddShortcut($shortcuts, "N", "New task", "Tasks")
-                    $this.AddShortcut($shortcuts, "E", "Edit task", "Tasks")
-                    $this.AddShortcut($shortcuts, "D", "Delete task", "Tasks")
-                    $this.AddShortcut($shortcuts, "Space", "Toggle task completion", "Tasks")
-                }
-                "FileBrowserScreen" {
-                    $this.AddShortcut($shortcuts, "H/←", "Parent directory", "File Browser")
-                    $this.AddShortcut($shortcuts, "L/→", "Enter directory", "File Browser")
-                    $this.AddShortcut($shortcuts, "J/↓", "Next file", "File Browser")
-                    $this.AddShortcut($shortcuts, "K/↑", "Previous file", "File Browser")
-                }
+            
+            if (-not $this.ShortcutsByCategory.ContainsKey($category)) {
+                $this.ShortcutsByCategory[$category] = @()
+            }
+            
+            $this.ShortcutsByCategory[$category] += @{
+                Key = $shortcut.GetDisplayText()
+                Name = $shortcut.Name
+                Description = $shortcut.Description
             }
         }
         
-        # Add application-wide shortcuts
-        $this.AddShortcut($shortcuts, "Ctrl+P", "Command palette", "Application")
-        $this.AddShortcut($shortcuts, "Ctrl+Q", "Quit application", "Application")
-        $this.AddShortcut($shortcuts, "1-9", "Switch tabs", "Application")
-        $this.AddShortcut($shortcuts, "Ctrl+Tab", "Next tab", "Application")
-        $this.AddShortcut($shortcuts, "Ctrl+Shift+Tab", "Previous tab", "Application")
-    }
-    
-    [void] AddShortcut($shortcuts, [string]$keyDisplay, [string]$description, [string]$category) {
-        $shortcut = [KeyboardShortcut]::new()
-        $shortcut.Key = [System.ConsoleKey]::F1  # Dummy key
-        $shortcut.Description = $description
-        $shortcut.Category = $category
-        
-        # Override display text
-        $shortcut | Add-Member -MemberType ScriptMethod -Name GetDisplayText -Value {
-            return $keyDisplay
-        }.GetNewClosure() -Force
-        
-        $shortcuts.Add($shortcut)
-    }
-    
-    [string] RenderShortcuts() {
-        $selectedCategory = $this.CategoryList.GetSelectedItem()
-        if (-not $selectedCategory -or -not $this.CategorizedShortcuts.ContainsKey($selectedCategory)) {
-            return ""
+        # Create category items
+        $categories = @("Global") + ($this.ShortcutsByCategory.Keys | Where-Object { $_ -ne "Global" } | Sort-Object)
+        $categoryItems = $categories | ForEach-Object { 
+            "$_ ($($this.ShortcutsByCategory[$_].Count))"
         }
         
-        $sb = Get-PooledStringBuilder 2048
-        $shortcuts = $this.CategorizedShortcuts[$selectedCategory]
+        $this.CategoryList.SetItems($categoryItems)
         
-        # Header
-        $sb.Append([VT]::MoveTo($this.ShortcutDisplay.X + 2, $this.ShortcutDisplay.Y))
-        $sb.Append($this.Theme.GetColor('color.primary'))
-        $sb.Append("═══ $selectedCategory ═══")
-
-        # Shortcuts
-        $y = $this.ShortcutDisplay.Y + 2
-        $maxY = $this.ShortcutDisplay.Y + $this.ShortcutDisplay.Height - 1
-        
-        foreach ($shortcut in $shortcuts) {
-            if ($y -ge $maxY) { break }
-            
-            $sb.Append([VT]::MoveTo($this.ShortcutDisplay.X + 2, $y))
-            
-            # Key combination
-            $keyText = $shortcut.GetDisplayText()
-            $sb.Append($this.Theme.GetColor('color.primary'))
-            $sb.Append($keyText.PadRight(20))
-            
-            # Description
-            $sb.Append($this.Theme.GetColor('text.primary'))
-            $desc = $shortcut.Description
-            if ($desc.Length -gt 40) {
-                $desc = $desc.Substring(0, 37) + "..."
-            }
-            $sb.Append($desc)
-
-            $y++
-        }
-        
-        # Footer hint
-        if ($y -lt $maxY - 2) {
-            $sb.Append([VT]::MoveTo($this.ShortcutDisplay.X + 2, $maxY - 2))
-            $sb.Append($this.Theme.GetColor('text.disabled'))
-            $sb.Append("Use ↑/↓ to browse categories")
-            
-        }
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
+        # Store the actual category names for lookup
+        $this.CategorizedShortcuts = $this.ShortcutsByCategory
     }
     
     [void] UpdateShortcutDisplay() {
-        $this.ShortcutDisplay.Invalidate()
-    }
-    
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # F1 also closes help
-        if ($key.Key -eq [System.ConsoleKey]::F1) {
-            $this.Close()
-            return $true
+        if (-not $this.CategoryList -or -not $this.ShortcutList) { return }
+        
+        $selectedItem = $this.CategoryList.GetSelectedItem()
+        if (-not $selectedItem) { 
+            $this.ShortcutList.SetItems(@())
+            return 
         }
         
-        return ([MinimalModal]$this).HandleInput($key)
+        # Extract category name (remove count)
+        $categoryName = $selectedItem -replace ' \(\d+\)$', ''
+        
+        if ($this.CategorizedShortcuts.ContainsKey($categoryName)) {
+            $shortcuts = $this.CategorizedShortcuts[$categoryName]
+            
+            # Format shortcuts for display
+            $items = $shortcuts | ForEach-Object {
+                $key = $_.Key.PadRight(15)
+                "$key $($_.Name)"
+            }
+            
+            $this.ShortcutList.SetItems($items)
+        } else {
+            $this.ShortcutList.SetItems(@())
+        }
+    }
+    
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        
+        # Focus the category list
+        if ($this.CategoryList) {
+            $this.CategoryList.Focus()
+        }
+    }
+    
+    [string] OnRender() {
+        $sb = [System.Text.StringBuilder]::new()
+        
+        # Render base screen (background)
+        [void]$sb.Append(([Screen]$this).OnRender())
+        
+        # Calculate modal bounds
+        $modalWidth = [Math]::Min(80, $this.Width - 10)
+        $modalHeight = [Math]::Min(30, $this.Height - 6)
+        $modalX = [Math]::Floor(($this.Width - $modalWidth) / 2) + $this.X
+        $modalY = [Math]::Floor(($this.Height - $modalHeight) / 2) + $this.Y
+        
+        # Draw modal box
+        if ($this.Theme) {
+            $borderColor = $this.Theme.GetFgColor('border')
+            $bgColor = $this.Theme.GetBgColor('surface.background')
+            $titleColor = $this.Theme.GetFgColor('primary')
+            
+            # Draw background
+            for ($y = 0; $y -lt $modalHeight; $y++) {
+                [void]$sb.Append([VT]::MoveTo($modalX, $modalY + $y))
+                [void]$sb.Append($bgColor)
+                [void]$sb.Append(' ' * $modalWidth)
+            }
+            
+            # Draw border
+            [void]$sb.Append($borderColor)
+            [void]$sb.Append([BorderStyle]::DrawBorder(
+                [BorderType]::Rounded,
+                $modalX,
+                $modalY,
+                $modalWidth,
+                $modalHeight
+            ))
+            
+            # Draw title
+            $title = " $($this.Title) "
+            if ($this.Context) {
+                $title = " $($this.Title) - $($this.Context) "
+            }
+            $titleX = $modalX + [Math]::Floor(($modalWidth - $title.Length) / 2)
+            [void]$sb.Append([VT]::MoveTo($titleX, $modalY))
+            [void]$sb.Append($titleColor)
+            [void]$sb.Append($title)
+            
+            # Draw help text at bottom
+            $helpText = " ESC/F1: Close "
+            $helpX = $modalX + $modalWidth - $helpText.Length - 2
+            [void]$sb.Append([VT]::MoveTo($helpX, $modalY + $modalHeight - 1))
+            [void]$sb.Append($borderColor)
+            [void]$sb.Append($helpText)
+            
+            [void]$sb.Append([VT]::Reset())
+        }
+        
+        return $sb.ToString()
     }
 }
 
-# Quick help function for screens
+# Helper class for easy access
 class HelpManager {
     static [void] ShowHelp([string]$context = "") {
         $help = [KeyboardHelpOverlay]::new($context)

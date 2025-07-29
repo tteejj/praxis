@@ -62,7 +62,7 @@ $loadOrder = @(
     "Core/CommandParser.ps1"
     
     # HelpOverlay (after BorderStyle)
-    "Screens/HelpOverlay.ps1"
+    # "Screens/HelpOverlay.ps1"  # Moved to backup - unused
     
     "Base/Screen.ps1"
     "Base/BaseModel.ps1"
@@ -102,9 +102,9 @@ $loadOrder = @(
     "Services/FileOperationService.ps1"
     
     # Components
-    "Components/ListBox.ps1"
-    "Components/TextBox.ps1"
-    "Components/Button.ps1"
+    # "Components/ListBox.ps1"  # Moved to backup - unused
+    # "Components/TextBox.ps1"  # Moved to backup - unused
+    # "Components/Button.ps1"  # Moved to backup - unused
     "Components/MinimalButton.ps1"
     "Components/GradientButton.ps1"
     "Components/GradientContainer.ps1"
@@ -112,28 +112,28 @@ $loadOrder = @(
     "Components/MinimalTextBox.ps1"
     "Components/MinimalDataGrid.ps1"
     "Components/MinimalStatusBar.ps1"
-    "Components/MinimalModal.ps1"
+    # "Components/MinimalModal.ps1"  # Moved to backup - unused
     "Components/MinimalContextMenu.ps1"
-    "Components/DataGrid.ps1"
+    # "Components/DataGrid.ps1"  # Moved to backup - unused
     "Components/ProgressBar.ps1"
     "Components/FastFileTree.ps1"
     "Components/RangerFileTree.ps1"
     "Components/SearchableListBox.ps1"
     "Components/MultiSelectListBox.ps1"
     "Components/TabContainer.ps1"
-    "Components/MinimalTabContainer.ps1"
+    # "Components/MinimalTabContainer.ps1"  # Moved to backup - unused
     
     # Layout Components (NEW!)
     "Components/HorizontalSplit.ps1"
     "Components/VerticalSplit.ps1"
-    "Components/GridPanel.ps1"
-    "Components/DockPanel.ps1"
+    # "Components/GridPanel.ps1"  # Moved to backup - unused
+    # "Components/DockPanel.ps1"  # Moved to backup - unused
     
     # BaseDialog (after components are loaded)
     "Base/BaseDialog.ps1"
     
     # Context popup (after BaseDialog)
-    "Components/ContextPopup.ps1"
+    # "Components/ContextPopup.ps1"  # Moved to backup - unused
     
     # Dialogs (must be loaded before screens that use them)
     "Screens/FilePickerDialog.ps1",
@@ -155,24 +155,24 @@ $loadOrder = @(
     "Screens/FieldPickerDialog.ps1",
     "Screens/ScriptPreviewDialog.ps1",
     "Screens/ActionPropertiesDialog.ps1",
-    "Screens/EventBusMonitor.ps1",
+    # "Screens/EventBusMonitor.ps1",  # Moved to backup - unused
     "Screens/SelectionDialog.ps1",
     "Screens/ThemeEditorDialog.ps1",
     
     # Screens (after dialogs they depend on)
-    "Screens/TestScreen.ps1",
+    # "Screens/TestScreen.ps1",  # Moved to backup - unused
     "Screens/ProjectDetailScreen.ps1",
     "Screens/ProjectsScreen.ps1",
     "Screens/TaskScreen.ps1",
-    "Screens/DashboardScreen.ps1",
+    # "Screens/DashboardScreen.ps1",  # Moved to backup - unused
     "Screens/SettingsScreen.ps1",
     "Screens/FileBrowserScreen.ps1",
     "Screens/TextEditorScreenNew.ps1",
     "Screens/TimeEntryScreen.ps1",
     "Screens/CommandLibraryScreen.ps1",
     "Screens/VisualMacroFactoryScreen.ps1",
-    "Screens/MinimalShowcaseScreen.ps1",
-    "Screens/LayoutExamplesScreen.ps1",
+    # "Screens/MinimalShowcaseScreen.ps1",  # Moved to backup - unused
+    # "Screens/LayoutExamplesScreen.ps1",  # Moved to backup - unused
     "Screens/KeyboardHelpOverlay.ps1",
     
     # Core systems (after KeyboardHelpOverlay)

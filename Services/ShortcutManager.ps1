@@ -170,36 +170,18 @@ class ShortcutManager {
     }
     
     [bool] HandleKeyPress([System.ConsoleKeyInfo]$keyInfo, [string]$currentScreen, [string]$currentContext) {
-        # CRITICAL DEBUG: Track specific freeze-causing keys
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($this.Logger) {
-                $this.Logger.Info("ShortcutManager.HandleKeyPress: START processing key '$($keyInfo.KeyChar)'")
-            }
-        }
         
         if ($this.Logger) {
             $this.Logger.Debug("ShortcutManager.HandleKeyPress: Key=$($keyInfo.Key) Char='$($keyInfo.KeyChar)' Screen=$currentScreen Context=$currentContext")
             $this.Logger.Debug("ShortcutManager: Total shortcuts registered: $($this.Shortcuts.Count)")
         }
         
-        # CRITICAL DEBUG: Before finding candidates
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($this.Logger) {
-                $this.Logger.Info("ShortcutManager: About to find matching shortcuts for key '$($keyInfo.KeyChar)'")
-            }
-        }
         
         # Find matching shortcuts
         $candidates = $this.Shortcuts | Where-Object {
             $_.Enabled -and $_.Matches($keyInfo)
         }
         
-        # CRITICAL DEBUG: After finding candidates
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($this.Logger) {
-                $this.Logger.Info("ShortcutManager: Found $($candidates.Count) candidates for key '$($keyInfo.KeyChar)'")
-            }
-        }
         
         if ($this.Logger -and $candidates.Count -gt 0) {
             $this.Logger.Debug("ShortcutManager: Found $($candidates.Count) matching shortcuts")
@@ -272,12 +254,6 @@ class ShortcutManager {
             }
         }
         
-        # CRITICAL DEBUG: Track completion for freeze-causing keys
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($this.Logger) {
-                $this.Logger.Info("ShortcutManager.HandleKeyPress: COMPLETED processing key '$($keyInfo.KeyChar)', returning false")
-            }
-        }
         
         return $false
     }

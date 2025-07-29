@@ -130,9 +130,18 @@ class MinimalDataGrid : FocusableComponent {
                 $this.Items.Add($item)
             }
         }
-        if ($this.SelectedIndex -ge $this.Items.Count) {
-            $this.SelectedIndex = $this.Items.Count - 1
+        
+        # Adjust selection
+        if ($this.Items.Count -gt 0) {
+            # If no selection or selection out of bounds, select first item
+            if ($this.SelectedIndex -lt 0 -or $this.SelectedIndex -ge $this.Items.Count) {
+                $this.SelectedIndex = 0
+            }
+        } else {
+            # No items, no selection
+            $this.SelectedIndex = -1
         }
+        
         $this.AutoSizeColumns()
         $this._rowsInvalid = $true
         $this._lastItemCount = $this.Items.Count

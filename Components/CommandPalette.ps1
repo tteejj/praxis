@@ -2,7 +2,7 @@
 
 class CommandPalette : Container {
     [string]$SearchText = ""
-    [ListBox]$ResultsList
+    [MinimalListBox]$ResultsList
     [System.Collections.ArrayList]$AllCommands
     [System.Collections.ArrayList]$FilteredCommands
     [scriptblock]$OnCommandSelected = {}
@@ -27,19 +27,9 @@ class CommandPalette : Container {
         $this.DrawBackground = $true
         
         # Create results list
-        $this.ResultsList = [ListBox]::new()
-        $this.ResultsList.ShowBorder = $false
-        $this.ResultsList.ShowScrollbar = $true
-        $this.ResultsList.ItemRenderer = {
-            param($cmd)
-            $name = $cmd.Name.PadRight(20)
-            $desc = if ($cmd.Description.Length -gt 35) {
-                $cmd.Description.Substring(0, 32) + "..."
-            } else {
-                $cmd.Description
-            }
-            return "$name $desc"
-        }
+        $this.ResultsList = [MinimalListBox]::new()
+        # MinimalListBox doesn't support these properties
+        # Custom rendering will be handled by formatting items before setting them
         $this.AddChild($this.ResultsList)
     }
     
@@ -351,16 +341,17 @@ class CommandPalette : Container {
             }
         }.GetNewClosure())
         
-        $this.AddCommand("eventbus monitor", "Open EventBus monitor", {
-            if ($global:Logger) {
-                $global:Logger.Debug("CommandPalette: EventBus monitor command executed")
-            }
-            # Open EventBus monitor dialog
-            $monitor = [EventBusMonitor]::new()
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Push($monitor)
-            }
-        }.GetNewClosure())
+        # EventBusMonitor moved to unused - command disabled
+        # $this.AddCommand("eventbus monitor", "Open EventBus monitor", {
+        #     if ($global:Logger) {
+        #         $global:Logger.Debug("CommandPalette: EventBus monitor command executed")
+        #     }
+        #     # Open EventBus monitor dialog
+        #     $monitor = [EventBusMonitor]::new()
+        #     if ($global:ScreenManager) {
+        #         $global:ScreenManager.Push($monitor)
+        #     }
+        # }.GetNewClosure())
         
         $this.AddCommand("reload", "Reload configuration", {
             if ($global:Logger) {
@@ -457,8 +448,17 @@ class CommandPalette : Container {
             }
         }
         
-        # Update list
-        $this.ResultsList.SetItems($this.FilteredCommands.ToArray())
+        # Update list - format commands as strings for MinimalListBox
+        $formattedItems = $this.FilteredCommands | ForEach-Object {
+            $name = $_.Name.PadRight(20)
+            $desc = if ($_.Description.Length -gt 35) {
+                $_.Description.Substring(0, 32) + "..."
+            } else {
+                $_.Description
+            }
+            "$name $desc"
+        }
+        $this.ResultsList.SetItems($formattedItems)
     }
     
     [void] OnBoundsChanged() {
@@ -480,8 +480,7 @@ class CommandPalette : Container {
             $this.Height - 6
         )
         
-        # Recalculate visible items
-        $this.ResultsList.VisibleItems = [Math]::Min($this.MaxResults, $this.Height - 6)
+        # MinimalListBox doesn't have VisibleItems property - it handles this internally
         
         ([Container]$this).OnBoundsChanged()
     }
@@ -574,9 +573,10 @@ class CommandPalette : Container {
                     return $true
                 }
                 
-                # Regular command selection
-                $selected = $this.ResultsList.GetSelectedItem()
-                if ($selected) {
+                # Regular command selection - get by index since we're storing strings
+                $selectedIndex = $this.ResultsList.SelectedIndex
+                if ($selectedIndex -ge 0 -and $selectedIndex -lt $this.FilteredCommands.Count) {
+                    $selected = $this.FilteredCommands[$selectedIndex]
                     if ($global:Logger) {
                         $global:Logger.Debug("CommandPalette: Executing command '$($selected.Name)'")
                     }

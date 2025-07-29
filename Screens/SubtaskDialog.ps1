@@ -16,31 +16,30 @@ class SubtaskDialog : BaseDialog {
     [MinimalTextBox]$PriorityTextBox
     [MinimalTextBox]$ProgressTextBox
     
-    SubtaskDialog() : base("Add Subtask", 60, 24) {
-        $this.PrimaryButtonText = "Add Subtask"
+    SubtaskDialog() : base("Add Subtask", 50, 16) {
+        $this.PrimaryButtonText = "Create"
         $this.SecondaryButtonText = "Cancel"
     }
     
-    SubtaskDialog([Task]$parentTask) : base("Add Subtask - $($parentTask.Title)", 60, 24) {
+    SubtaskDialog([Task]$parentTask) : base("Add Subtask", 50, 16) {
         $this.ParentTask = $parentTask
-        $this.PrimaryButtonText = "Add Subtask"
+        $this.PrimaryButtonText = "Create"
         $this.SecondaryButtonText = "Cancel"
     }
     
-    SubtaskDialog([Task]$parentTask, $subtask) : base("Edit Subtask", 60, 24) {
+    SubtaskDialog([Task]$parentTask, $subtask) : base("Edit Subtask", 50, 16) {
         $this.ParentTask = $parentTask
         $this.Subtask = $subtask
         $this.IsEditMode = $true
-        $this.PrimaryButtonText = "Update Subtask"
+        $this.PrimaryButtonText = "Save"
         $this.SecondaryButtonText = "Cancel"
     }
     
     [void] InitializeContent() {
         # Create input fields
         $this.TitleTextBox = [MinimalTextBox]::new()
-        $this.TitleTextBox.Placeholder = "Title"
+        $this.TitleTextBox.Placeholder = "Enter subtask title..."
         $this.TitleTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.TitleTextBox.Height = 1
         
         if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Title']) {
             $this.TitleTextBox.Text = $this.Subtask.Title
@@ -48,14 +47,13 @@ class SubtaskDialog : BaseDialog {
         $this.AddContentControl($this.TitleTextBox, 1)
         
         $this.DescriptionTextBox = [MinimalTextBox]::new()
-        $this.DescriptionTextBox.Placeholder = "Description"
+        $this.DescriptionTextBox.Placeholder = "Enter description (optional)..."
         $this.DescriptionTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.DescriptionTextBox.Height = 3  # Multi-line
         
         if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Description']) {
             $this.DescriptionTextBox.Text = $this.Subtask.Description
         }
-        $this.AddContentControl($this.DescriptionTextBox, 3)
+        $this.AddContentControl($this.DescriptionTextBox, 2)
         
         $this.PriorityTextBox = [MinimalTextBox]::new()
         $this.PriorityTextBox.Placeholder = "Priority (Low/Medium/High)"

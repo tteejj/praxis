@@ -5,7 +5,7 @@ class NewTaskDialog : BaseDialog {
     [MinimalTextBox]$DescriptionBox
     [MinimalListBox]$PriorityList
     
-    NewTaskDialog() : base("New Task", 50, 18) {
+    NewTaskDialog() : base("New Task", 50, 20) {
         $this.PrimaryButtonText = "Create"
         $this.SecondaryButtonText = "Cancel"
     }
@@ -14,11 +14,13 @@ class NewTaskDialog : BaseDialog {
         # Create title textbox
         $this.TitleBox = [MinimalTextBox]::new()
         $this.TitleBox.Placeholder = "Enter task title..."
+        $this.TitleBox.ShowBorder = $false  # Dialog provides the border
         $this.AddContentControl($this.TitleBox, 1)
         
         # Create description textbox
         $this.DescriptionBox = [MinimalTextBox]::new()
         $this.DescriptionBox.Placeholder = "Enter description (optional)..."
+        $this.DescriptionBox.ShowBorder = $false  # Dialog provides the border
         $this.AddContentControl($this.DescriptionBox, 2)
         
         # Create priority list
@@ -95,7 +97,7 @@ class NewTaskDialog : BaseDialog {
         # Custom positioning for task dialog controls
         $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
         
-        # Title box
+        # Title box (leave space for dialog title)
         $this.TitleBox.SetBounds(
             $dialogX + $this.DialogPadding, 
             $dialogY + 2, 
@@ -111,12 +113,12 @@ class NewTaskDialog : BaseDialog {
             3
         )
         
-        # Priority list
+        # Priority list (make it smaller to leave room for buttons)
         $this.PriorityList.SetBounds(
             $dialogX + $this.DialogPadding, 
             $dialogY + 10, 
             $controlWidth, 
-            5
+            4
         )
     }
 }

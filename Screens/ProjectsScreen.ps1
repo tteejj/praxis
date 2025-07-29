@@ -168,6 +168,17 @@ class ProjectsScreen : Screen {
         })
         
         $shortcutManager.RegisterShortcut(@{
+            Id = "projects.view_details"
+            Name = "View Details"
+            Description = "View project details"
+            Key = [System.ConsoleKey]::Enter
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.ViewProjectDetails() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
             Id = "projects.edit"
             Name = "Edit Project"
             Description = "Edit the selected project"
@@ -194,6 +205,28 @@ class ProjectsScreen : Screen {
             Name = "Refresh"
             Description = "Refresh the project list"
             Key = [System.ConsoleKey]::F5
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.LoadProjects() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.view_details_v"
+            Name = "View Details (v)"
+            Description = "View project details"
+            KeyChar = 'v'
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "ProjectsScreen"
+            Priority = 50
+            Action = { $screen.ViewProjectDetails() }.GetNewClosure()
+        })
+        
+        $shortcutManager.RegisterShortcut(@{
+            Id = "projects.refresh_r"
+            Name = "Refresh (r)"
+            Description = "Refresh the project list"
+            KeyChar = 'r'
             Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
@@ -406,53 +439,7 @@ class ProjectsScreen : Screen {
     }
     
     # Using parent-delegated focus model - Tab handled by ScreenManager/Container
-    
-    # Override HandleScreenInput instead of HandleInput to work with base Screen class
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
-        # Debug logging disabled for performance
-        
-        # Screen-specific shortcuts - only called as fallback by base Screen class
-        # Handle Enter key
-        if ($key.Key -eq [System.ConsoleKey]::Enter) {
-            $this.ViewProjectDetails()
-            return $true
-        }
-        
-        # Handle Space key for context popup - check both Key and Char
-        if ($key.Key -eq [System.ConsoleKey]::Spacebar -or $key.KeyChar -eq ' ') {
-            $this.ShowContextPopup()
-            return $true
-        }
-        
-        # Handle character shortcuts using KeyChar
-        if (-not $key.Modifiers) {
-            switch ($key.KeyChar) {
-                'n' {
-                    $this.NewProject()
-                    return $true
-                }
-                'e' {
-                    $this.EditProject()
-                    return $true
-                }
-                'v' {
-                    $this.ViewProjectDetails()
-                    return $true
-                }
-                'd' {
-                    $this.DeleteProject()
-                    return $true
-                }
-                'r' {
-                    $this.LoadProjects()
-                    return $true
-                }
-            }
-        }
-        
-        # If no shortcut matched, return false (let base Screen handle it)
-        return $false
-    }
+    # All shortcuts now handled by ShortcutManager in RegisterShortcuts()
     
     [void] ShowContextPopup() {
         if ($global:Logger) {
@@ -474,21 +461,22 @@ class ProjectsScreen : Screen {
             @{ Text = "Command Mode"; Action = { $this.ShowCommandMode() }.GetNewClosure() }
         )
         
-        # Create and show popup
-        $popup = [ContextPopup]::new("ProjectsScreen", $menuItems)
-        $popup.SetSourcePosition($gridX, $gridY)
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("ProjectsScreen.ShowContextPopup: Pushing popup to ScreenManager at position ($gridX, $gridY)")
-        }
-        
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($popup)
-        } else {
-            if ($global:Logger) {
-                $global:Logger.Error("ProjectsScreen.ShowContextPopup: ScreenManager not available")
-            }
-        }
+        # ContextPopup feature disabled - moved to unused
+        # # Create and show popup
+        # $popup = [ContextPopup]::new("ProjectsScreen", $menuItems)
+        # $popup.SetSourcePosition($gridX, $gridY)
+        # 
+        # if ($global:Logger) {
+        #     $global:Logger.Debug("ProjectsScreen.ShowContextPopup: Pushing popup to ScreenManager at position ($gridX, $gridY)")
+        # }
+        # 
+        # if ($global:ScreenManager) {
+        #     $global:ScreenManager.Push($popup)
+        # } else {
+        #     if ($global:Logger) {
+        #         $global:Logger.Error("ProjectsScreen.ShowContextPopup: ScreenManager not available")
+        #     }
+        # }
     }
     
     [void] ShowCommandMode() {

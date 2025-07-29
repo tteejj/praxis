@@ -166,5 +166,19 @@
     "CreatedAt": "2025-07-29T00:04:04.4845543-06:00",
     "UpdatedAt": "2025-07-29T00:04:04.4845543-06:00",
     "Deleted": false
+  },
+  {
+    "Title": "yesy",
+    "Description": "desc",
+    "Status": 0,
+    "Priority": 2,
+    "Progress": 0,
+    "ProjectId": "",
+    "Tags": [],
+    "DueDate": "0001-01-01T00:00:00",
+    "Id": "203ec1ae-32c6-47aa-8b72-0d1e1f019714",
+    "CreatedAt": "2025-07-29T08:02:15.4588056-06:00",
+    "UpdatedAt": "2025-07-29T08:02:15.4588056-06:00",
+    "Deleted": false
   }
 ]

@@ -17,6 +17,9 @@ class TimeEntryOptionsDialog : BaseDialog {
         $this.OptionsBox.ShowBorder = $true
         $this.OptionsBox.BorderType = [BorderType]::Rounded
         
+        # Store reference to dialog
+        $dialog = $this
+        
         # Set up options
         $options = @(
             [PSCustomObject]@{
@@ -39,8 +42,15 @@ class TimeEntryOptionsDialog : BaseDialog {
         $this.OptionsBox.SetItems($options)
         $this.AddContentControl($this.OptionsBox, 1)
         
+        # Handle Enter key on list item - this is called by MinimalListBox on Enter
+        $this.OptionsBox.OnSelectionChanged = {
+            $selectedOption = $dialog.OptionsBox.GetSelectedItem()
+            if ($selectedOption -and $dialog.OnOptionSelected) {
+                & $dialog.OnOptionSelected $selectedOption
+            }
+        }.GetNewClosure()
+        
         # Configure primary button action
-        $dialog = $this
         $this.OnPrimary = {
             $selectedOption = $dialog.OptionsBox.GetSelectedItem()
             if ($selectedOption -and $dialog.OnOptionSelected) {
@@ -62,25 +72,4 @@ class TimeEntryOptionsDialog : BaseDialog {
         )
     }
     
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
-        # Handle Enter key for selection when ListBox has focus
-        if ($key.Key -eq [System.ConsoleKey]::Enter -and -not $key.Modifiers) {
-            $focusManager = $this.ServiceContainer.GetService('FocusManager')
-            if ($focusManager) {
-                $focused = $focusManager.GetFocused()
-                if ($focused -eq $this.OptionsBox) {
-                    # ListBox has focus, trigger selection
-                    $selectedOption = $this.OptionsBox.GetSelectedItem()
-                    if ($selectedOption -and $this.OnOptionSelected) {
-                        & $this.OnOptionSelected $selectedOption
-                        # Don't close here - let the callback handle navigation
-                    }
-                    return $true
-                }
-            }
-        }
-        
-        # Let base class handle other keys
-        return ([BaseDialog]$this).HandleScreenInput($key)
-    }
 }

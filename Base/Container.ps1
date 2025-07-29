@@ -219,9 +219,42 @@ class Container : UIElement {
     
     # Focus first focusable child
     [void] FocusFirst() {
-        $focusable = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible } | Select-Object -First 1
-        if ($focusable) {
-            $focusable.Focus()
+        if ($global:Logger) {
+            $global:Logger.Debug("Container.FocusFirst: Looking for focusable child in $($this.GetType().Name)")
+        }
+        
+        # Try to use FocusManager for proper focus handling
+        $focusManager = $null
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        }
+        
+        if ($focusManager) {
+            # Use FocusManager to find and focus first focusable in tree
+            $focusables = $focusManager.GetFocusableChildren($this)
+            if ($focusables.Count -gt 0) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container.FocusFirst: Found $($focusables.Count) focusables, focusing first: $($focusables[0].GetType().Name)")
+                }
+                [void]$focusManager.SetFocus($focusables[0])
+            } else {
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container.FocusFirst: No focusable children found in tree")
+                }
+            }
+        } else {
+            # Fallback to simple approach
+            $focusable = $this.Children | Where-Object { $_.IsFocusable -and $_.Visible } | Select-Object -First 1
+            if ($focusable) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container.FocusFirst: Fallback - focusing $($focusable.GetType().Name)")
+                }
+                $focusable.Focus()
+            } else {
+                if ($global:Logger) {
+                    $global:Logger.Debug("Container.FocusFirst: Fallback - no focusable children found")
+                }
+            }
         }
     }
     

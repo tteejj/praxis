@@ -65,18 +65,34 @@ class FocusManager {
     
     # Set focus with O(1) performance
     [bool] SetFocus([UIElement] $element) {
+        if ($global:Logger) {
+            $global:Logger.Debug("FocusManager.SetFocus: Request to focus $($element.GetType().Name) (IsFocusable=$($element.IsFocusable))")
+        }
+        
         if ($this.NavigationLocked) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("FocusManager.SetFocus: Navigation locked, ignoring")
+            }
             return $false 
         }
         if (-not $element -or -not $element.IsFocusable) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("FocusManager.SetFocus: Element null or not focusable")
+            }
             return $false 
         }
         if ($this.CurrentFocused -eq $element) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("FocusManager.SetFocus: Element already focused")
+            }
             return $true 
         }
         
         # Clear previous focus
         if ($this.CurrentFocused) {
+            if ($global:Logger) {
+                $global:Logger.Debug("FocusManager.SetFocus: Clearing focus from $($this.CurrentFocused.GetType().Name)")
+            }
             $this.CurrentFocused.IsFocused = $false
             $this.CurrentFocused.OnLostFocus()
             $this.CurrentFocused.InvalidateFocusOnly()
@@ -87,6 +103,10 @@ class FocusManager {
         $element.IsFocused = $true
         $element.OnGotFocus()
         $element.InvalidateFocusOnly()
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("FocusManager.SetFocus: Successfully focused $($element.GetType().Name)")
+        }
         
         # Maintain history (keep last 10)
         $this.FocusHistory.Enqueue($element)

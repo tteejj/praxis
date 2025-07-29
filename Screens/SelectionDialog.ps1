@@ -44,8 +44,16 @@ class SelectionDialog : BaseDialog {
         $this.ListBox.SetItems($this.Items)
         $this.AddContentControl($this.ListBox, 1)
         
-        # Don't use OnSelectionChanged here as it triggers on arrow keys
+        # Store dialog reference
         $dialog = $this
+        
+        # Handle Enter key - MinimalListBox only calls this on Enter, not arrow keys
+        $this.ListBox.OnSelectionChanged = {
+            $selectedItem = $dialog.ListBox.GetSelectedItem()
+            if ($selectedItem -and $dialog.OnSelect) {
+                & $dialog.OnSelect $selectedItem
+            }
+        }.GetNewClosure()
         
         # Configure primary button action
         $this.OnPrimary = {
@@ -92,25 +100,4 @@ class SelectionDialog : BaseDialog {
         return $result
     }
     
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
-        # Handle Enter key for selection when ListBox has focus
-        if ($key.Key -eq [System.ConsoleKey]::Enter -and -not $key.Modifiers) {
-            $focusManager = $this.ServiceContainer.GetService('FocusManager')
-            if ($focusManager) {
-                $focused = $focusManager.GetFocused()
-                if ($focused -eq $this.ListBox) {
-                    # ListBox has focus, trigger selection
-                    $selectedItem = $this.ListBox.GetSelectedItem()
-                    if ($selectedItem -and $this.OnSelect) {
-                        & $this.OnSelect $selectedItem
-                        # Don't close here - let the callback handle navigation
-                    }
-                    return $true
-                }
-            }
-        }
-        
-        # Let base class handle other keys
-        return ([BaseDialog]$this).HandleScreenInput($key)
-    }
 }

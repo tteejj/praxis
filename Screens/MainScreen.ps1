@@ -81,6 +81,9 @@ class MainScreen : Screen {
             # Start update timer
             $this.StartTimer()
             
+            # Register shortcuts
+            $this.RegisterShortcuts()
+            
             # Initial status update
             $this.UpdateStatusBar()
             
@@ -121,6 +124,105 @@ class MainScreen : Screen {
         $this.UpdateTimer.Start()
     }
     
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("MainScreen: ShortcutManager not found")
+            }
+            return 
+        }
+        
+        $screen = $this
+        
+        # F1: Help
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.help"
+            Name = "Show Help"
+            Description = "Show keyboard help overlay"
+            Key = [System.ConsoleKey]::F1
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { 
+                $helpOverlay = [KeyboardHelpOverlay]::new()
+                $helpOverlay.Initialize($global:ServiceContainer)
+                $global:ScreenManager.Push($helpOverlay)
+            }
+        })
+        
+        # Ctrl+Tab: Next tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.next_tab"
+            Name = "Next Tab"
+            Description = "Switch to next tab"
+            Key = [System.ConsoleKey]::Tab
+            Modifiers = [System.ConsoleModifiers]::Control
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.NextTab() }
+        })
+        
+        # Ctrl+Shift+Tab: Previous tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.prev_tab"
+            Name = "Previous Tab"
+            Description = "Switch to previous tab"
+            Key = [System.ConsoleKey]::Tab
+            Modifiers = [System.ConsoleModifiers]::Control -bor [System.ConsoleModifiers]::Shift
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.PreviousTab() }
+        })
+        
+        # Alt+Right: Next tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.next_tab_alt"
+            Name = "Next Tab (Alt)"
+            Description = "Switch to next tab"
+            Key = [System.ConsoleKey]::RightArrow
+            Modifiers = [System.ConsoleModifiers]::Alt
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.NextTab() }
+        })
+        
+        # Alt+Left: Previous tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.prev_tab_alt"
+            Name = "Previous Tab (Alt)"
+            Description = "Switch to previous tab"
+            Key = [System.ConsoleKey]::LeftArrow
+            Modifiers = [System.ConsoleModifiers]::Alt
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.PreviousTab() }
+        })
+        
+        # Alt+Number keys 1-9 for quick tab access (to avoid interfering with text input)
+        for ($i = 1; $i -le 9; $i++) {
+            $tabIndex = $i - 1
+            $shortcutManager.RegisterShortcut(@{
+                Id = "main.tab_$i"
+                Name = "Go to Tab $i"
+                Description = "Switch to tab $i (Alt+$i)"
+                KeyChar = [char]"$i"
+                Modifiers = [System.ConsoleModifiers]::Alt
+                Scope = [ShortcutScope]::Global
+                Priority = 15
+                Action = { $screen.TabContainer.ActivateTab($tabIndex) }.GetNewClosure()
+            })
+        }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.RegisterShortcuts: Registered all shortcuts")
+        }
+    }
+    
     [void] OnBoundsChanged() {
         if ($global:Logger) {
             $global:Logger.Debug("MainScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
@@ -154,85 +256,6 @@ class MainScreen : Screen {
         ([Screen]$this).OnDeactivated()
     }
     
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # CRITICAL DEBUG: Track freeze-causing keys
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($global:Logger) {
-                $global:Logger.Info("MainScreen.HandleScreenInput: START processing key '$($keyInfo.KeyChar)'")
-            }
-        }
-        
-        # F1 for help
-        if ($keyInfo.Key -eq [System.ConsoleKey]::F1) {
-            $helpOverlay = [KeyboardHelpOverlay]::new()
-            $helpOverlay.Initialize($global:ServiceContainer)
-            $global:ScreenManager.Push($helpOverlay)
-            return $true
-        }
-        
-        # Let TabContainer handle its input first
-        if ($this.TabContainer -and $this.TabContainer.HandleInput($keyInfo)) {
-            if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-                if ($global:Logger) {
-                    $global:Logger.Info("MainScreen.HandleScreenInput: TabContainer handled key '$($keyInfo.KeyChar)'")
-                }
-            }
-            return $true
-        }
-        
-        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
-            if ($global:Logger) {
-                $global:Logger.Info("MainScreen.HandleScreenInput: COMPLETED processing key '$($keyInfo.KeyChar)', returning false")
-            }
-        }
-        
-        return $false
-    }
-    
-    [hashtable] GetShortcutBindings() {
-        $bindings = @{
-            # Tab navigation
-            'Ctrl+Tab' = @{
-                Action = { $this.TabContainer.NextTab() }
-                Description = "Next tab"
-            }
-            'Ctrl+Shift+Tab' = @{
-                Action = { $this.TabContainer.PreviousTab() }
-                Description = "Previous tab"
-            }
-            'Alt+Right' = @{
-                Action = { $this.TabContainer.NextTab() }
-                Description = "Next tab"
-            }
-            'Alt+Left' = @{
-                Action = { $this.TabContainer.PreviousTab() }
-                Description = "Previous tab"
-            }
-            
-            # Quick tab access (1-9)
-            '1' = @{ Action = { $this.TabContainer.ActivateTab(0) }; Description = "Go to tab 1" }
-            '2' = @{ Action = { $this.TabContainer.ActivateTab(1) }; Description = "Go to tab 2" }
-            '3' = @{ Action = { $this.TabContainer.ActivateTab(2) }; Description = "Go to tab 3" }
-            '4' = @{ Action = { $this.TabContainer.ActivateTab(3) }; Description = "Go to tab 4" }
-            '5' = @{ Action = { $this.TabContainer.ActivateTab(4) }; Description = "Go to tab 5" }
-            '6' = @{ Action = { $this.TabContainer.ActivateTab(5) }; Description = "Go to tab 6" }
-            '7' = @{ Action = { $this.TabContainer.ActivateTab(6) }; Description = "Go to tab 7" }
-            '8' = @{ Action = { $this.TabContainer.ActivateTab(7) }; Description = "Go to tab 8" }
-            '9' = @{ Action = { $this.TabContainer.ActivateTab(8) }; Description = "Go to tab 9" }
-            
-            # Help
-            'F1' = @{
-                Action = { 
-                    $helpOverlay = [KeyboardHelpOverlay]::new()
-                    $helpOverlay.Initialize($global:ServiceContainer)
-                    $global:ScreenManager.Push($helpOverlay)
-                }
-                Description = "Show keyboard help"
-            }
-        }
-        
-        return $bindings
-    }
     
     [void] UpdateStatusBar() {
         if (-not $this.StatusBar -or -not $this.TabContainer) { return }
@@ -258,6 +281,24 @@ class MainScreen : Screen {
         $this.StatusBar.CenterText = $middleStatus
         $this.StatusBar.RightText = $rightStatus
         $this.StatusBar.Invalidate()
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # Check if we're the top-level screen (no dialogs on top)
+        $screenManager = $this.ServiceContainer.GetService('ScreenManager')
+        if ($screenManager) {
+            $activeScreen = $screenManager.GetActiveScreen()
+            # If there's a dialog on top of us, don't handle tab switching
+            if ($activeScreen -and $activeScreen -ne $this) {
+                return ([Screen]$this).HandleInput($key)
+            }
+        }
+        
+        # Number key tab switching is now handled via shortcuts with Alt modifier
+        # This prevents interference with text input
+        
+        # Let base class handle other input
+        return ([Screen]$this).HandleInput($key)
     }
     
     [string] OnRender() {
