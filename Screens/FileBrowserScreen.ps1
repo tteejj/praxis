@@ -10,10 +10,6 @@ class FileBrowserScreen : Screen {
     }
     
     [void] OnInitialize() {
-        if ($global:Logger) {
-            $global:Logger.Debug("FileBrowserScreen.OnInitialize: Starting initialization")
-        }
-        
         # Get configuration service
         $configService = $this.ServiceContainer.GetService("ConfigurationService")
         $defaultPath = (Get-Location).Path
@@ -29,12 +25,6 @@ class FileBrowserScreen : Screen {
         # Create and configure the ranger-style file tree
         $this.FileTree = [RangerFileTree]::new()
         $this.FileTree.CurrentPath = $defaultPath
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("FileBrowserScreen: Created RangerFileTree with path: $($this.FileTree.CurrentPath)")
-            $global:Logger.Debug("FileBrowserScreen: FileTree IsFocusable: $($this.FileTree.IsFocusable)")
-        }
-        
         # Add the file tree as a child component BEFORE initializing
         # This ensures Parent is set correctly
         $this.AddChild($this.FileTree)
@@ -69,10 +59,6 @@ class FileBrowserScreen : Screen {
                 $screen.OpenFileInEditor($node.FullPath)
             }
         }.GetNewClosure()
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("FileBrowserScreen.OnInitialize: Completed, Children.Count=$($this.Children.Count)")
-        }
     }
     
     [void] OnBoundsChanged() {
@@ -82,10 +68,6 @@ class FileBrowserScreen : Screen {
         # Set the file tree to fill the entire screen
         if ($this.FileTree -and $this.Width -gt 0 -and $this.Height -gt 0) {
             $this.FileTree.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
-            
-            if ($global:Logger) {
-                $global:Logger.Debug("FileBrowserScreen.OnBoundsChanged: Set FileTree bounds to ($($this.X),$($this.Y),$($this.Width),$($this.Height))")
-            }
         } elseif ($global:Logger) {
             $global:Logger.Warning("FileBrowserScreen.OnBoundsChanged: Invalid bounds - FileTree=$($this.FileTree -ne $null), Width=$($this.Width), Height=$($this.Height)")
         }
@@ -120,12 +102,6 @@ class FileBrowserScreen : Screen {
     # Override OnActivated to ensure FileTree gets focus
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("FileBrowserScreen.OnActivated: Screen activated")
-            $global:Logger.Debug("  Children.Count = $($this.Children.Count)")
-        }
-        
         # Use FocusFirst to focus the first focusable child (should be FileTree)
         $this.FocusFirst()
         
@@ -145,9 +121,7 @@ class FileBrowserScreen : Screen {
                     $focusedChild = $this.FindFocusedChild()
                     if ($focusedChild) {
                         $global:Logger.Debug("  After direct focus: Found $($focusedChild.GetType().Name)")
-                    } else {
-                        $global:Logger.Debug("  Still no focused child!")
-                    }
+                    } else {                    }
                 }
             }
         }
@@ -155,11 +129,6 @@ class FileBrowserScreen : Screen {
     
     # Override HandleInput to debug input routing
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("FileBrowserScreen.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)'")
-            $global:Logger.Debug("  FileTree.IsFocused = $($this.FileTree.IsFocused)")
-        }
-        
         # Call base implementation
         return ([Screen]$this).HandleInput($key)
     }

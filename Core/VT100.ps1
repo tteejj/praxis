@@ -1,6 +1,10 @@
 # VT100/ANSI Core for BOLT-AXIOM with True Color Support
 
 class VT {
+    # Gradient cache for performance optimization
+    static [hashtable]$_gradientCache = @{}
+    static [int]$_maxCacheSize = 100  # Prevent unbounded growth
+    
     # Cursor movement (ANSI uses 1-based coordinates)
     static [string] MoveTo([int]$x, [int]$y) { return "`e[$($y + 1);$($x + 1)H" }
     static [string] SavePos() { return "`e[s" }
@@ -75,13 +79,32 @@ class VT {
     }
     
     static [string[]] VerticalGradient([int[]]$startRGB, [int[]]$endRGB, [int]$steps) {
-        $gradient = [string[]]::new($steps)
+        # Create cache key
+        $key = "$($startRGB -join ',')_$($endRGB -join ',')_$steps"
         
+        # Check cache first
+        if ([VT]::_gradientCache.ContainsKey($key)) {
+            return [VT]::_gradientCache[$key]
+        }
+        
+        # Prevent cache from growing too large
+        if ([VT]::_gradientCache.Count -ge [VT]::_maxCacheSize) {
+            # Clear oldest entries (simple approach - clear half the cache)
+            $keysToRemove = [VT]::_gradientCache.Keys | Select-Object -First ([VT]::_maxCacheSize / 2)
+            foreach ($oldKey in $keysToRemove) {
+                [VT]::_gradientCache.Remove($oldKey)
+            }
+        }
+        
+        # Compute gradient
+        $gradient = [string[]]::new($steps)
         for ($i = 0; $i -lt $steps; $i++) {
             $position = $i / [double]($steps - 1)
             $gradient[$i] = [VT]::InterpolateRGB($startRGB, $endRGB, $position)
         }
         
+        # Cache result
+        [VT]::_gradientCache[$key] = $gradient
         return $gradient
     }
     

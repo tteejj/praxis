@@ -2,7 +2,6 @@
 
 class Project : BaseModel {
     [string]$FullProjectName
-    [string]$Nickname
     [string]$ID1
     [string]$ID2
     [DateTime]$DateAssigned
@@ -81,7 +80,6 @@ class Project : BaseModel {
     # Default constructor
     Project() : base() {
         $this.FullProjectName = ""
-        $this.Nickname = ""
         $this.ID1 = ""
         $this.ID2 = ""
         $this.DateAssigned = [DateTime]::Now
@@ -113,9 +111,8 @@ class Project : BaseModel {
         # BaseModel handles Id, CreatedAt, UpdatedAt, Deleted initialization
     }
     
-    Project([string]$fullName, [string]$nickname) : base() {
+    Project([string]$fullName) : base() {
         $this.FullProjectName = $fullName
-        $this.Nickname = $nickname
         $this.ID1 = ""
         $this.ID2 = ""
         $this.DateAssigned = [DateTime]::Now
@@ -147,10 +144,9 @@ class Project : BaseModel {
         # BaseModel handles Id, CreatedAt, UpdatedAt, Deleted initialization
     }
     
-    # Legacy constructor for backward compatibility
-    Project([string]$name) : base() {
+    # Additional constructor overload
+    Project([string]$name, [bool]$unused) : base() {
         $this.FullProjectName = $name
-        $this.Nickname = $name
         $this.ID1 = ""
         $this.ID2 = ""
         $this.DateAssigned = [DateTime]::Now

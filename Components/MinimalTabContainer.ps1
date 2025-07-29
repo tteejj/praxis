@@ -21,7 +21,16 @@ class MinimalTabContainer : Container {
     
     [void] OnInitialize() {
         $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
-        $this.Theme.Subscribe({ $this.OnThemeChanged() })
+        
+        # Subscribe to EventBus theme changes instead of legacy ThemeManager subscription
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $component = $this
+            $eventBus.Subscribe('theme.changed', {
+                $component.OnThemeChanged()
+            }.GetNewClosure())
+        }
+        
         $this.OnThemeChanged()
     }
     
@@ -198,10 +207,10 @@ class MinimalTabContainer : Container {
             }
         }
 
-        # Subtle separator line
+        # Island Components: NO separator lines - just use space for visual separation
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.TabBarHeight - 1))
         $sb.Append($this._colors['normal'])
-        $sb.Append('─' * $this.Width)
+        $sb.Append(' ' * $this.Width)
 
         $this._cachedTabBar = $sb.ToString()
         Return-PooledStringBuilder $sb

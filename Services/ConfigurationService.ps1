@@ -162,10 +162,6 @@ class ConfigurationService {
         try {
             $json = $this.Config | ConvertTo-Json -Depth 10 -Compress:$false
             Set-Content -Path $this.ConfigPath -Value $json -Encoding UTF8
-            
-            if ($global:Logger) {
-                $global:Logger.Debug("Configuration saved to: $($this.ConfigPath)")
-            }
         } catch {
             Write-Warning "Failed to save configuration: $_"
         }

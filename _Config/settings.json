@@ -1,51 +1,71 @@
 {
-  "Projects": {
-    "AutoSave": true,
-    "BackupCount": 5,
-    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
-    "BackupEnabled": true
-  },
   "UI": {
+    "CompactMode": false,
     "ShowScrollbars": true,
-    "AnimationsEnabled": true,
-    "GradientType": "vertical",
     "VerticalSpacing": 1,
+    "AnimationsEnabled": true,
     "UseGradients": false,
-    "CompactMode": false
+    "GradientType": "vertical"
+  },
+  "Logging": {
+    "Level": "Debug",
+    "MaxFileSize": 10,
+    "MaxFiles": 5
+  },
+  "Tasks": {
+    "DefaultPriority": "Medium",
+    "ShowCompletedTasks": true,
+    "CompletedTaskRetention": 30
+  },
+  "Projects": {
+    "BackupCount": 5,
+    "BackupEnabled": true,
+    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
+    "AutoSave": true
   },
   "FileBrowser": {
-    "ShowModifiedDate": false,
-    "DefaultPath": "/home/teej/projects/github/praxis",
-    "SortBy": "Name",
-    "ShowFileSize": true,
     "IgnoredExtensions": [
       ".tmp",
       ".cache",
       ".log"
     ],
-    "ShowHiddenFiles": true,
-    "SortDescending": false
+    "SortDescending": false,
+    "ShowModifiedDate": false,
+    "SortBy": "Name",
+    "DefaultPath": "/home/teej/projects/github/praxis",
+    "ShowFileSize": true,
+    "ShowHiddenFiles": true
+  },
+  "Editor": {
+    "ShowLineNumbers": true,
+    "AutoSaveInterval": 0,
+    "WordWrap": false,
+    "SyntaxHighlighting": true,
+    "HighlightCurrentLine": true,
+    "TabSize": 4
   },
   "Templates": {
-    "Macros": {
+    "Commands": {
       "Enabled": true,
       "Items": [
         {
-          "Actions": [
-            {
-              "Fields": [
-                "Amount",
-                "Category"
-              ],
-              "Type": "Summarization"
-            },
-            {
-              "FileName": "analysis_results.xlsx",
-              "Type": "ExportToExcel"
-            }
+          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
+          "Name": "Export to CSV",
+          "Placeholders": [
+            "DATABASE",
+            "OUTPUT_FILE"
           ],
-          "Name": "Basic Analysis",
-          "Description": "Standard analysis workflow"
+          "Description": "Export current database to CSV format"
+        },
+        {
+          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
+          "Name": "Join Databases",
+          "Placeholders": [
+            "PRIMARY",
+            "SECONDARY",
+            "KEY_FIELD"
+          ],
+          "Description": "Join two databases on a common field"
         }
       ]
     },
@@ -76,57 +96,30 @@
         }
       ]
     },
-    "Commands": {
+    "Macros": {
       "Enabled": true,
       "Items": [
         {
-          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
-          "Name": "Export to CSV",
-          "Placeholders": [
-            "DATABASE",
-            "OUTPUT_FILE"
+          "Actions": [
+            {
+              "Fields": [
+                "Amount",
+                "Category"
+              ],
+              "Type": "Summarization"
+            },
+            {
+              "FileName": "analysis_results.xlsx",
+              "Type": "ExportToExcel"
+            }
           ],
-          "Description": "Export current database to CSV format"
-        },
-        {
-          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
-          "Name": "Join Databases",
-          "Placeholders": [
-            "PRIMARY",
-            "SECONDARY",
-            "KEY_FIELD"
-          ],
-          "Description": "Join two databases on a common field"
+          "Name": "Basic Analysis",
+          "Description": "Standard analysis workflow"
         }
       ]
     }
   },
-  "Logging": {
-    "MaxFiles": 5,
-    "Level": "Info",
-    "MaxFileSize": 10
-  },
-  "Tasks": {
-    "CompletedTaskRetention": 30,
-    "ShowCompletedTasks": true,
-    "DefaultPriority": "Medium"
-  },
-  "Editor": {
-    "HighlightCurrentLine": true,
-    "WordWrap": false,
-    "TabSize": 4,
-    "ShowLineNumbers": true,
-    "SyntaxHighlighting": true,
-    "AutoSaveInterval": 0
-  },
-  "Performance": {
-    "MaxCacheSize": 100,
-    "RenderOptimization": true,
-    "EnableCaching": true
-  },
   "Theme": {
-    "ShowThemePreview": true,
-    "CurrentTheme": "amber",
     "AvailableThemes": [
       "amber",
       "amber-black",
@@ -136,8 +129,15 @@
       "synthwave-84",
       "synthwave-outrun"
     ],
+    "ShowThemePreview": true,
+    "CurrentTheme": "amber",
+    "UserCustomizations": {},
     "EditTheme": "[Click to open theme editor]",
-    "EnableLiveEdit": true,
-    "UserCustomizations": {}
+    "EnableLiveEdit": true
+  },
+  "Performance": {
+    "RenderOptimization": true,
+    "MaxCacheSize": 100,
+    "EnableCaching": true
   }
 }

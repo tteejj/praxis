@@ -59,6 +59,7 @@ $loadOrder = @(
     "Core/KeyboardShortcuts.ps1"
     "Core/AnimationHelper.ps1"
     "Core/SpacingSystem.ps1"
+    "Core/CommandParser.ps1"
     
     # HelpOverlay (after BorderStyle)
     "Screens/HelpOverlay.ps1"
@@ -92,6 +93,7 @@ $loadOrder = @(
     "Services/SubtaskService.ps1"
     "Services/TimeTrackingService.ps1"
     "Services/CommandService.ps1"
+    "Services/ProjectCommandHandler.ps1"
     "Services/StateManager.ps1"
     "Services/FunctionRegistry.ps1"
     "Services/MacroContextManager.ps1"
@@ -130,6 +132,9 @@ $loadOrder = @(
     # BaseDialog (after components are loaded)
     "Base/BaseDialog.ps1"
     
+    # Context popup (after BaseDialog)
+    "Components/ContextPopup.ps1"
+    
     # Dialogs (must be loaded before screens that use them)
     "Screens/FilePickerDialog.ps1",
     "Screens/TextInputDialog.ps1",
@@ -143,6 +148,8 @@ $loadOrder = @(
     "Screens/SubtaskDialog.ps1",
     "Screens/TimeEntryDialog.ps1",
     "Screens/QuickTimeEntryDialog.ps1",
+    "Screens/TimeEntryOptionsDialog.ps1",
+    "Screens/ManualTimeEntryDialog.ps1",
     "Screens/CommandEditDialog.ps1",
     "Screens/FindReplaceDialog.ps1",
     "Screens/FieldPickerDialog.ps1",
@@ -222,6 +229,30 @@ $global:ServiceContainer.Register("EventBus", $eventBus)
 $shortcutManager = [ShortcutManager]::new()
 $shortcutManager.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("ShortcutManager", $shortcutManager)
+
+# Register global F1 help shortcut
+$shortcutManager.RegisterShortcut(@{
+    Id = "global_help"
+    Name = "Help"
+    Description = "Show keyboard help overlay"
+    Key = [System.ConsoleKey]::F1
+    Modifiers = [System.ConsoleModifiers]::None
+    Scope = [ShortcutScope]::Global
+    Action = {
+        param($screenManager)
+        try {
+            $helpOverlay = [KeyboardHelpOverlay]::new("")
+            if ($screenManager.GetActiveScreen()) {
+                $helpOverlay = [KeyboardHelpOverlay]::new($screenManager.GetActiveScreen().GetType().Name)
+            }
+            $screenManager.Push($helpOverlay)
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Debug("F1 help not available: $_")
+            }
+        }
+    }
+})
 if ($Debug) {
     Write-Host "  EventBus initialized" -ForegroundColor DarkGray
 }
@@ -359,9 +390,12 @@ $stateManager.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("StateManager", $stateManager)
 
 # Screen manager
+if ($Debug) { Write-Host "  Creating ScreenManager..." -ForegroundColor DarkGray }
 $screenManager = [ScreenManager]::new($global:ServiceContainer)
+if ($Debug) { Write-Host "  ScreenManager created" -ForegroundColor DarkGray }
 $global:ScreenManager = $screenManager
 $global:ServiceContainer.Register("ScreenManager", $screenManager)
+if ($Debug) { Write-Host "  ScreenManager registered" -ForegroundColor DarkGray }
 
 # Create main screen with tabs
 Write-Host "Creating main interface..." -ForegroundColor Cyan

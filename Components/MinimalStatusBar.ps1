@@ -26,7 +26,7 @@ class MinimalStatusBar : UIElement {
     hidden [KeyboardShortcutManager]$ShortcutManager
     
     MinimalStatusBar() : base() {
-        $this.Height = 1  # Single line for minimalism
+        $this.Height = 1  # Single line status bar
     }
     
     [void] OnInitialize() {
@@ -88,35 +88,34 @@ class MinimalStatusBar : UIElement {
     [string] OnRender() {
         $sb = Get-PooledStringBuilder 512
         
-        # Move to position
+        # Simple status bar - just background color, no borders
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         
-        # Background and clear line
-        if ($this._colors.background -and -not $this.UseMinimalStyle) {
+        # Use status bar background color
+        if ($this._colors.background) {
             $sb.Append($this._colors.background)
         }
         
-        # Clear the entire line first to prevent artifacts
-        # Note: StatusBar width already accounts for being inside the border
+        # Clear the line first
         $clearWidth = $this.Width
         $sb.Append(' ' * $clearWidth)
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         
         # Calculate sections
-        $availableWidth = $this.Width
-        $leftWidth = [Math]::Min($this.LeftText.Length, [int]($availableWidth * 0.3))
-        $rightWidth = [Math]::Min($this.RightText.Length, [int]($availableWidth * 0.3))
+        $availableWidth = [Math]::Max(10, $this.Width)  # Minimum width of 10
+        $leftWidth = [Math]::Max(0, [Math]::Min($this.LeftText.Length, [int]($availableWidth * 0.3)))
+        $rightWidth = [Math]::Max(0, [Math]::Min($this.RightText.Length, [int]($availableWidth * 0.3)))
         # Always account for 6 separator spaces (3 on each side)
         $separatorSpace = 6
-        $centerWidth = $availableWidth - $leftWidth - $rightWidth - $separatorSpace
+        $centerWidth = [Math]::Max(0, $availableWidth - $leftWidth - $rightWidth - $separatorSpace)
         
-        # Ensure centerWidth is not negative
-        if ($centerWidth -lt 0) {
+        # Ensure widths fit in available space
+        if ($leftWidth + $rightWidth + $separatorSpace -gt $availableWidth) {
+            # Recalculate to fit
+            $totalSideWidth = [Math]::Max(0, $availableWidth - $separatorSpace)
+            $leftWidth = [Math]::Max(0, [Math]::Min($leftWidth, [int]($totalSideWidth / 2)))
+            $rightWidth = [Math]::Max(0, [Math]::Min($rightWidth, $totalSideWidth - $leftWidth))
             $centerWidth = 0
-            # Recalculate left and right to fit
-            $totalSideWidth = $availableWidth - $separatorSpace
-            $leftWidth = [Math]::Min($leftWidth, [int]($totalSideWidth / 2))
-            $rightWidth = [Math]::Min($rightWidth, $totalSideWidth - $leftWidth)
         }
         
         # Left section
@@ -223,6 +222,9 @@ class MinimalStatusBar : UIElement {
     }
     
     [string] TruncateText([string]$text, [int]$maxLength) {
+        if ($maxLength -le 0) {
+            return ""
+        }
         if ($text.Length -le $maxLength) {
             return $text
         }

@@ -24,9 +24,30 @@ class ScreenManager {
         $this._services = $services
         $this._renderTimer = [System.Diagnostics.Stopwatch]::new()
         
-        # Get managers
-        $this._shortcutManager = $services.GetService('ShortcutManager')
-        $this._focusManager = $services.GetService('FocusManager')
+        # Get managers - with protection against initialization order issues
+        try {
+            $this._shortcutManager = $services.GetService('ShortcutManager')
+            if ($global:Logger) {
+                $global:Logger.Debug("ScreenManager: ShortcutManager loaded successfully")
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.LogWarning("ScreenManager: ShortcutManager not available during construction: $_")
+            }
+            $this._shortcutManager = $null
+        }
+        
+        try {
+            $this._focusManager = $services.GetService('FocusManager')
+            if ($global:Logger) {
+                $global:Logger.Debug("ScreenManager: FocusManager loaded successfully")
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.LogWarning("ScreenManager: FocusManager not available during construction: $_")
+            }
+            $this._focusManager = $null
+        }
     }
     
     # Push a new screen
@@ -160,10 +181,7 @@ class ScreenManager {
         
         try {
             while ($this._activeScreen -and $this._activeScreen.Active -and -not $this._exitRequested) {
-                if ($global:Logger -and $this._frameCount % 100 -eq 0) {
-                    $global:Logger.Debug("ScreenManager: In main loop iteration, activeScreen = " + $(if ($this._activeScreen) { $this._activeScreen.GetType().Name } else { "null" }))
-                    $global:Logger.Debug("ScreenManager: needsRender = $($this._needsRender), frameCount = $($this._frameCount)")
-                }
+                # Debug logging removed for performance
                 
                 # Check for window resize
                 $currentWidth = [Console]::WindowWidth
@@ -191,15 +209,7 @@ class ScreenManager {
                 
                 # Render if needed
                 if ($this._needsRender -or $this._activeScreen._cacheInvalid) {
-                    if ($global:Logger) {
-                        $global:Logger.Debug("ScreenManager: Rendering (needsRender=$($this._needsRender), cacheInvalid=$($this._activeScreen._cacheInvalid))")
-                    }
                     $this.Render()
-                } else {
-                    # Log occasionally why we're not rendering
-                    if ($this._frameCount % 100 -eq 0 -and $global:Logger) {
-                        $global:Logger.Debug("ScreenManager: Not rendering (needsRender=$($this._needsRender), cacheInvalid=$($this._activeScreen._cacheInvalid))")
-                    }
                 }
                 
                 # Handle input
@@ -218,115 +228,12 @@ class ScreenManager {
                         $this._lastKey = $key
                         $handled = $false
                         
-                        # Log key press for debugging
-                        if ($global:Logger) {
-                            $global:Logger.Debug("Key pressed: $($key.Key) Char: '$($key.KeyChar)' Modifiers: $($key.Modifiers)")
-                        }
+                        # Standard key processing
                         
-                        # PARENT-DELEGATED INPUT MODEL - Simple routing only
-                        $handled = $false
+                        # SIMPLIFIED INPUT CHAIN - Clean priority order
+                        $handled = $this.ProcessInputChain($key)
                         
-                        # 1. Check ShortcutManager for global shortcuts first
-                        if ($this._shortcutManager) {
-                            # Get the actual active screen (e.g., ProjectsScreen within MainScreen's TabContainer)
-                            $currentScreenType = ""
-                            if ($this._activeScreen) {
-                                if ($this._activeScreen.GetType().Name -eq "MainScreen" -and $this._activeScreen.TabContainer) {
-                                    $activeTab = $this._activeScreen.TabContainer.GetActiveTab()
-                                    if ($activeTab -and $activeTab.Content) {
-                                        $currentScreenType = $activeTab.Content.GetType().Name
-                                    }
-                                } else {
-                                    $currentScreenType = $this._activeScreen.GetType().Name
-                                }
-                            }
-                            
-                            $currentContext = if ($this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) { "CommandPalette" } else { "" }
-                            
-                            if ($global:Logger) {
-                                $global:Logger.Debug("ShortcutManager.HandleKeyPress: Key=$($key.Key) Char='$($key.KeyChar)' ScreenType=$currentScreenType Context=$currentContext")
-                            }
-                            
-                            $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, $currentContext)
-                            
-                            if ($global:Logger) {
-                                $global:Logger.Debug("ShortcutManager handled=$handled")
-                            }
-                        }
-                        
-                        # 2. Global F1 for help
-                        if (-not $handled -and $key.Key -eq [System.ConsoleKey]::F1) {
-                            # Show keyboard help overlay
-                            try {
-                                # Check if HelpManager is available
-                                $helpOverlay = [KeyboardHelpOverlay]::new("")
-                                if ($this._activeScreen) {
-                                    $helpOverlay = [KeyboardHelpOverlay]::new($this._activeScreen.GetType().Name)
-                                }
-                                $this.Push($helpOverlay)
-                                $handled = $true
-                            } catch {
-                                # HelpManager not available yet
-                                if ($global:Logger) {
-                                    $global:Logger.Debug("F1 help not available: $_")
-                                }
-                            }
-                        }
-                        
-                        # 3. Command Palette override (when visible) - only if not handled by shortcuts
-                        if (-not $handled -and $this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
-                            $handled = $this._activeScreen.CommandPalette.HandleInput($key)
-                            if ($global:Logger) {
-                                $global:Logger.Debug("Key routed to CommandPalette")
-                            }
-                        }
-                        # 3. Fallback to hardcoded shortcuts if ShortcutManager not available
-                        elseif (-not $this._shortcutManager) {
-                            if ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':') {
-                                # Show command palette
-                                if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
-                                    $this._activeScreen.CommandPalette.Show()
-                                    $handled = $true
-                                    if ($global:Logger) {
-                                        $global:Logger.Debug("Key handled: Command palette opened")
-                                    }
-                                }
-                            } 
-                            # Tab navigation now handled by Container/Screen hierarchy
-                            elseif ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
-                                # Ctrl+Q for quit
-                                if ($key.Key -eq [System.ConsoleKey]::Q) {
-                                    $this.RequestExit()
-                                    $handled = $true
-                                    if ($global:Logger) {
-                                        $global:Logger.Debug("Key handled: Quit application")
-                                    }
-                                }
-                            }
-                            # Ctrl+Arrows for focus navigation
-                            elseif ($key.Key -eq [System.ConsoleKey]::RightArrow -or $key.Key -eq [System.ConsoleKey]::LeftArrow) {
-                                if ($this._activeScreen) {
-                                    $handled = $this.HandleTabNavigation($key)
-                                }
-                            }
-                        }
-                        
-                        # 4. Tab navigation now handled by Container/Screen hierarchy
-                        # Removed duplicate Tab handling here
-                        
-                        # 5. If not handled by global shortcuts, let screen handle it
-                        if (-not $handled -and $this._activeScreen) {
-                            try {
-                                $handled = $this._activeScreen.HandleInput($key)
-                                if ($handled -and $global:Logger) {
-                                    $global:Logger.Debug("Key handled by screen: $($this._activeScreen.GetType().Name)")
-                                }
-                            } catch {
-                                if ($global:Logger) {
-                                    $global:Logger.LogException($_.Exception, "Error in screen input handling")
-                                }
-                            }
-                        }
+                        # Input chain completed
                         
                         if ($handled) {
                             $this._needsRender = $true
@@ -367,16 +274,8 @@ class ScreenManager {
     hidden [void] Render() {
         $this._renderTimer.Restart()
         
-        if ($global:Logger) {
-            $global:Logger.Debug("ScreenManager.Render: Starting render")
-        }
-        
         # Get rendered content
         $content = $this._activeScreen.Render()
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("ScreenManager.Render: Content length = $($content.Length)")
-        }
         
         # Clear screen if content changed significantly (like dialog closing)
         if ($this._lastContent -eq "") {
@@ -425,7 +324,12 @@ class ScreenManager {
     
     # Fast Tab navigation using FocusManager
     [bool] HandleTabNavigation([System.ConsoleKeyInfo]$key) {
-        if (-not $this._focusManager) { return $false }
+        if (-not $this._focusManager) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("HandleTabNavigation: FocusManager not available")
+            }
+            return $false 
+        }
         
         $isReverse = ($key.Modifiers -band [System.ConsoleModifiers]::Shift) -ne 0
         
@@ -463,6 +367,91 @@ class ScreenManager {
         if ($this._activeScreen -and $this._activeScreen.CommandPalette) {
             $this._activeScreen.CommandPalette.Show()
         }
+    }
+    
+    # Simplified input processing chain - clean priority order
+    hidden [bool] ProcessInputChain([System.ConsoleKeyInfo]$key) {
+        # Process input through priority chain
+        
+        # PRIORITY 1: CommandPalette gets absolute priority when visible
+        if ($this._activeScreen -and $this._activeScreen.CommandPalette -and $this._activeScreen.CommandPalette.IsVisible) {
+            $handled = $this._activeScreen.CommandPalette.HandleInput($key)
+            return $handled
+        }
+        
+        # PRIORITY 2: ShortcutManager for global and screen-specific shortcuts
+        if ($this._shortcutManager) {
+            $currentScreenType = $this.GetCurrentScreenType()
+            $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, "")
+            
+            if ($handled) {
+                if ($global:Logger) {
+                    $global:Logger.Debug("ShortcutManager handled: $handled")
+                }
+                return $true
+            }
+        } else {
+            if ($global:Logger -and $this._frameCount % 100 -eq 0) {
+                $global:Logger.Debug("ProcessInputChain: ShortcutManager not available")
+            }
+        }
+        
+        # PRIORITY 3: Screen and component input handling
+        
+        if ($this._activeScreen) {
+            try {
+                $handled = $this._activeScreen.HandleInput($key)
+                return $handled
+            } catch {
+                if ($global:Logger) {
+                    $global:Logger.LogException($_.Exception, "Error in screen input handling")
+                }
+            }
+        }
+        
+        # PRIORITY 4: Emergency fallbacks
+        return $this.HandleEmergencyInput($key)
+    }
+    
+    # Get current screen type for ShortcutManager
+    hidden [string] GetCurrentScreenType() {
+        if (-not $this._activeScreen) { return "" }
+        
+        # Handle MainScreen with TabContainer specially
+        if ($this._activeScreen.GetType().Name -eq "MainScreen" -and $this._activeScreen.TabContainer) {
+            $activeTab = $this._activeScreen.TabContainer.GetActiveTab()
+            if ($activeTab -and $activeTab.Content) {
+                return $activeTab.Content.GetType().Name
+            }
+        }
+        
+        return $this._activeScreen.GetType().Name
+    }
+    
+    # Emergency input handling (Ctrl+Esc, basic fallbacks)
+    hidden [bool] HandleEmergencyInput([System.ConsoleKeyInfo]$key) {
+        # Emergency exit (Ctrl+Esc) - always available
+        if ($key.Key -eq [System.ConsoleKey]::Escape -and 
+            ($key.Modifiers -band [System.ConsoleModifiers]::Control)) {
+            $this.RequestExit()
+            return $true
+        }
+        
+        # Ctrl+Q fallback if ShortcutManager unavailable
+        if (-not $this._shortcutManager -and 
+            $key.Key -eq [System.ConsoleKey]::Q -and 
+            ($key.Modifiers -band [System.ConsoleModifiers]::Control)) {
+            $this.RequestExit()
+            return $true
+        }
+        
+        # Command palette fallback
+        if (-not $this._shortcutManager -and ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':')) {
+            $this.ShowCommandPalette()
+            return $true
+        }
+        
+        return $false
     }
 }
 

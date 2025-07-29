@@ -140,6 +140,9 @@ class SettingsScreen : Screen {
     }
     
     [void] OnBoundsChanged() {
+        # Only update bounds if components exist
+        if (-not $this.CategoryList -or -not $this.SettingsGrid) { return }
+        
         # Account for border
         $innerX = $this.X + 1
         $innerY = $this.Y + 1

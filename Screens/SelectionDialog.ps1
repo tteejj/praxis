@@ -15,6 +15,14 @@ class SelectionDialog : BaseDialog {
         $this.SecondaryButtonText = "Cancel"
     }
     
+    SelectionDialog([string]$title, [string]$prompt) : base($title) {
+        $this.Prompt = $prompt
+        $this.DialogWidth = 60
+        $this.DialogHeight = 20
+        $this.PrimaryButtonText = "Select"
+        $this.SecondaryButtonText = "Cancel"
+    }
+    
     [void] SetItems([array]$items) {
         $this.Items = $items
         if ($this.ListBox) {
@@ -34,20 +42,10 @@ class SelectionDialog : BaseDialog {
         
         $this.ListBox.Initialize($this.ServiceContainer)
         $this.ListBox.SetItems($this.Items)
-        $this.AddContentControl($this.ListBox)
+        $this.AddContentControl($this.ListBox, 1)
         
-        # Configure list box to handle Enter key
+        # Don't use OnSelectionChanged here as it triggers on arrow keys
         $dialog = $this
-        $this.ListBox.OnSelectionChanged = {
-            $selectedItem = $dialog.ListBox.GetSelectedItem()
-            if ($selectedItem -and $dialog.OnSelect) {
-                & $dialog.OnSelect $selectedItem
-                # Close the dialog after selection
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }
-        }.GetNewClosure()
         
         # Configure primary button action
         $this.OnPrimary = {
@@ -92,5 +90,27 @@ class SelectionDialog : BaseDialog {
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb
         return $result
+    }
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
+        # Handle Enter key for selection when ListBox has focus
+        if ($key.Key -eq [System.ConsoleKey]::Enter -and -not $key.Modifiers) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                $focused = $focusManager.GetFocused()
+                if ($focused -eq $this.ListBox) {
+                    # ListBox has focus, trigger selection
+                    $selectedItem = $this.ListBox.GetSelectedItem()
+                    if ($selectedItem -and $this.OnSelect) {
+                        & $this.OnSelect $selectedItem
+                        # Don't close here - let the callback handle navigation
+                    }
+                    return $true
+                }
+            }
+        }
+        
+        # Let base class handle other keys
+        return ([BaseDialog]$this).HandleScreenInput($key)
     }
 }

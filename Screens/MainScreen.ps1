@@ -6,297 +6,274 @@ class MainScreen : Screen {
     [MinimalStatusBar]$StatusBar
     [EventBus]$EventBus
     hidden [string]$TabChangedSubscription
+    hidden [bool]$_needsDeferredInit = $false
+    hidden [System.Timers.Timer]$UpdateTimer
     
     MainScreen() : base() {
         $this.Title = "PRAXIS"
     }
     
     [void] OnInitialize() {
-        # Get EventBus
-        $this.EventBus = $global:ServiceContainer.GetService('EventBus')
-        
-        # Subscribe to tab change events  
-        if ($this.EventBus) {
-            # Use string directly to avoid potential class loading issues
-            $this.TabChangedSubscription = $this.EventBus.Subscribe('navigation.tabChanged', {
-                param($sender, $eventData)
-                if ($eventData.TabIndex -ne $null -and $this.TabContainer) {
-                    $this.TabContainer.ActivateTab($eventData.TabIndex)
-                    $this.RequestRender()
-                    # Update status bar for new tab
-                    $this.UpdateStatusBar()
-                }
-            }.GetNewClosure())
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.OnInitialize: Starting simplified initialization")
         }
         
-        # Create tab container
+        # Create tab container immediately but don't initialize tabs yet
         $this.TabContainer = [TabContainer]::new()
         $this.TabContainer.Initialize($global:ServiceContainer)
         $this.AddChild($this.TabContainer)
         
-        # Add real screens as tabs
-        if ($global:Logger) {
-            $global:Logger.Debug("MainScreen: Adding tabs to TabContainer")
-        }
-        
-        $projectsScreen = [ProjectsScreen]::new()
-        $this.TabContainer.AddTab("Projects", $projectsScreen)
-        
-        $taskScreen = [TaskScreen]::new()
-        $this.TabContainer.AddTab("Tasks", $taskScreen)
-        
-        $timeEntryScreen = [TimeEntryScreen]::new()
-        $this.TabContainer.AddTab("Time", $timeEntryScreen)
-        
-        $fileBrowserScreen = [FileBrowserScreen]::new()
-        $this.TabContainer.AddTab("Files", $fileBrowserScreen)
-        
-        $textEditorScreen = [TextEditorScreenNew]::new()
-        $this.TabContainer.AddTab("Editor", $textEditorScreen)
-        
-        $commandLibraryScreen = [CommandLibraryScreen]::new()
-        $this.TabContainer.AddTab("Commands", $commandLibraryScreen)
-        
-        $macroFactoryScreen = [VisualMacroFactoryScreen]::new()
-        $this.TabContainer.AddTab("Macro Factory", $macroFactoryScreen)
-        
-        $settingsScreen = [SettingsScreen]::new()
-        $this.TabContainer.AddTab("Settings", $settingsScreen)
+        # Defer heavy initialization to OnActivated
+        $this._needsDeferredInit = $true
         
         if ($global:Logger) {
-            $global:Logger.Debug("MainScreen: Added $($this.TabContainer.Tabs.Count) tabs")
+            $global:Logger.Debug("MainScreen.OnInitialize: Completed simplified initialization")
         }
-        
-        # Create command palette (overlay)
-        $this.CommandPalette = [CommandPalette]::new()
-        $this.CommandPalette.Initialize($global:ServiceContainer)
-        $this.AddChild($this.CommandPalette)
-        
-        # Create status bar
-        $this.StatusBar = [MinimalStatusBar]::new()
-        $this.StatusBar.Initialize($global:ServiceContainer)
-        
-        # Update status bar based on active tab
-        $this.UpdateStatusBar()
-        
-        $this.AddChild($this.StatusBar)
-        
-        # Ensure bounds are set if we already have them
-        if ($this.Width -gt 0 -and $this.Height -gt 0) {
-            $this.OnBoundsChanged()
-        }
-        
-        # Key bindings now handled by GetShortcutBindings() method
     }
     
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        
+        if ($this._needsDeferredInit) {
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.OnActivated: Starting deferred initialization")
+            }
+            
+            # Get EventBus
+            $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+            
+            # Subscribe to tab change events
+            if ($this.EventBus) {
+                $screen = $this
+                $this.TabChangedSubscription = $this.EventBus.Subscribe('navigation.tabChanged', {
+                    param($sender, $eventData)
+                    if ($eventData.TabIndex -ne $null -and $screen.TabContainer) {
+                        $screen.TabContainer.ActivateTab($eventData.TabIndex)
+                        $screen.RequestRender()
+                        $screen.UpdateStatusBar()
+                    }
+                }.GetNewClosure())
+            }
+            
+            # Add tabs - these will be lazy-initialized when activated
+            $this.TabContainer.AddTab("Projects", [ProjectsScreen]::new())
+            $this.TabContainer.AddTab("Tasks", [TaskScreen]::new())
+            $this.TabContainer.AddTab("Time", [TimeEntryScreen]::new())
+            $this.TabContainer.AddTab("Files", [FileBrowserScreen]::new())
+            $this.TabContainer.AddTab("Editor", [TextEditorScreenNew]::new())
+            $this.TabContainer.AddTab("Commands", [CommandLibraryScreen]::new())
+            $this.TabContainer.AddTab("Macro Factory", [VisualMacroFactoryScreen]::new())
+            $this.TabContainer.AddTab("Settings", [SettingsScreen]::new())
+            
+            # Create status bar
+            $this.StatusBar = [MinimalStatusBar]::new()
+            $this.StatusBar.Height = 1
+            $this.AddChild($this.StatusBar)
+            
+            # Create command palette
+            $this.CommandPalette = [CommandPalette]::new()
+            $this.CommandPalette.Initialize($global:ServiceContainer)
+            $this.AddChild($this.CommandPalette)
+            
+            # Subscribe to events
+            $this.SetupEventHandlers()
+            
+            # Start update timer
+            $this.StartTimer()
+            
+            # Initial status update
+            $this.UpdateStatusBar()
+            
+            $this._needsDeferredInit = $false
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.OnActivated: Completed deferred initialization")
+            }
+        }
+    }
+    
+    hidden [void] SetupEventHandlers() {
+        # Subscribe to timer events
+        if ($global:ServiceContainer.GetService('EventBus')) {
+            $mainScreen = $this
+            $global:ServiceContainer.GetService('EventBus').Subscribe('time.changed', {
+                param($sender, $eventData)
+                $mainScreen.UpdateStatusBar()
+            }.GetNewClosure())
+        }
+    }
+    
+    hidden [void] StartTimer() {
+        # Create timer for status bar updates
+        $this.UpdateTimer = [System.Timers.Timer]::new()
+        $this.UpdateTimer.Interval = 30000  # 30 seconds
+        $this.UpdateTimer.AutoReset = $true
+        
+        $timer = $this.UpdateTimer
+        $screen = $this
+        
+        Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {
+            if ($screen.Active) {
+                $screen.UpdateStatusBar()
+            }
+        } | Out-Null
+        
+        $this.UpdateTimer.Start()
+    }
     
     [void] OnBoundsChanged() {
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
+        }
         if ($this.TabContainer) {
             # TabContainer gets full screen except status bar
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen: TabContainer bounds before: ($($this.TabContainer.X),$($this.TabContainer.Y),$($this.TabContainer.Width),$($this.TabContainer.Height))")
+            }
             $this.TabContainer.SetBounds($this.X, $this.Y, $this.Width, $this.Height - 1)
-        }
-        if ($this.CommandPalette) {
-            # Command palette uses full screen for centering
-            $this.CommandPalette.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen: TabContainer bounds after: ($($this.TabContainer.X),$($this.TabContainer.Y),$($this.TabContainer.Width),$($this.TabContainer.Height))")
+            }
         }
         if ($this.StatusBar) {
             # Status bar at bottom
             $this.StatusBar.SetBounds($this.X, $this.Y + $this.Height - 1, $this.Width, 1)
         }
-    }
-    
-    [void] OnActivated() {
-        # Call base to trigger render
-        ([Screen]$this).OnActivated()
-        
-        # Make sure bounds are set
-        if ($this.Width -eq 0 -or $this.Height -eq 0) {
-            $this.SetBounds(0, 0, [Console]::WindowWidth, [Console]::WindowHeight)
-        }
-        
-        # Update status bar for current tab
-        $this.UpdateStatusBar()
-        
-        # Activate the active tab's content screen
-        if ($this.TabContainer) {
-            $activeTab = $this.TabContainer.GetActiveTab()
-            if ($activeTab -and $activeTab.Content) {
-                # Screens are not focusable - call OnActivated instead
-                if ($activeTab.Content -is [Screen]) {
-                    $activeTab.Content.OnActivated()
-                } else {
-                    $activeTab.Content.Focus()
-                }
-            }
+        if ($this.CommandPalette) {
+            # Command palette overlays when visible
+            $paletteHeight = [Math]::Min(20, [Math]::Max(10, $this.Height - 4))
+            $paletteY = $this.Y + 2
+            $this.CommandPalette.SetBounds($this.X + 2, $paletteY, $this.Width - 4, $paletteHeight)
         }
     }
     
-    # Override to handle global shortcuts
+    [void] OnDeactivated() {
+        if ($this.UpdateTimer) {
+            $this.UpdateTimer.Stop()
+        }
+        ([Screen]$this).OnDeactivated()
+    }
+    
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Theme cycling with just 'T' (no modifier needed for testing)
-        if ($keyInfo.KeyChar -eq 't' -or $keyInfo.KeyChar -eq 'T') {
+        # CRITICAL DEBUG: Track freeze-causing keys
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
             if ($global:Logger) {
-                $global:Logger.Info("MainScreen: Theme cycle key pressed")
+                $global:Logger.Info("MainScreen.HandleScreenInput: START processing key '$($keyInfo.KeyChar)'")
             }
-            
-            # Get theme manager and cycle
-            $themeManager = $this.ServiceContainer.GetService('ThemeManager')
-            if ($themeManager) {
-                $themes = $themeManager.GetThemeNames()
-                $current = $themeManager.GetCurrentTheme()
-                $currentIndex = [Array]::IndexOf($themes, $current)
-                $nextIndex = ($currentIndex + 1) % $themes.Count
-                $nextTheme = $themes[$nextIndex]
-                
+        }
+        
+        # F1 for help
+        if ($keyInfo.Key -eq [System.ConsoleKey]::F1) {
+            $helpOverlay = [KeyboardHelpOverlay]::new()
+            $helpOverlay.Initialize($global:ServiceContainer)
+            $global:ScreenManager.Push($helpOverlay)
+            return $true
+        }
+        
+        # Let TabContainer handle its input first
+        if ($this.TabContainer -and $this.TabContainer.HandleInput($keyInfo)) {
+            if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
                 if ($global:Logger) {
-                    $global:Logger.Info("MainScreen: Changing theme from '$current' to '$nextTheme'")
-                }
-                
-                # Set theme
-                $themeManager.SetTheme($nextTheme)
-                
-                # Update config
-                $configService = $this.ServiceContainer.GetService('ConfigurationService')
-                if ($configService) {
-                    $configService.Set("Theme.CurrentTheme", $nextTheme)
-                    $configService.Save()
-                }
-                
-                # Force full screen refresh
-                $this.Invalidate()
-                if ($this.TabContainer) {
-                    $this.TabContainer.Invalidate()
-                }
-                
-                # Show toast
-                $toastService = $this.ServiceContainer.GetService('ToastService')
-                if ($toastService) {
-                    $toastService.ShowToast("Theme: $nextTheme", [ToastType]::Success, 1500)
+                    $global:Logger.Info("MainScreen.HandleScreenInput: TabContainer handled key '$($keyInfo.KeyChar)'")
                 }
             }
             return $true
         }
         
-        # Global shortcuts
-        switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::Q) {
-                # Only handle Q for quit if Ctrl is pressed
-                # This prevents conflict with child screens using 'q'
-                if ($keyInfo.Modifiers -eq [System.ConsoleModifiers]::Control) {
-                    $this.Active = $false  # Exit the main loop
-                    return $true
-                }
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($global:Logger) {
+                $global:Logger.Info("MainScreen.HandleScreenInput: COMPLETED processing key '$($keyInfo.KeyChar)', returning false")
             }
-            ([System.ConsoleKey]::T) {
-                # Global theme switcher (Ctrl+T)
-                if ($keyInfo.Modifiers -eq [System.ConsoleModifiers]::Control) {
-                    # Simple theme cycling
-                    $themeManager = $this.ServiceContainer.GetService('ThemeManager')
-                    if ($themeManager) {
-                        $themes = $themeManager.GetThemeNames()
-                        $current = $themeManager.GetCurrentTheme()
-                        $currentIndex = [Array]::IndexOf($themes, $current)
-                        $nextIndex = ($currentIndex + 1) % $themes.Count
-                        $nextTheme = $themes[$nextIndex]
-                        
-                        if ($global:Logger) {
-                            $global:Logger.Info("MainScreen: Changing theme from '$current' to '$nextTheme'")
-                        }
-                        
-                        $themeManager.SetTheme($nextTheme)
-                        
-                        # Show toast
-                        $toastService = $this.ServiceContainer.GetService('ToastService')
-                        if ($toastService) {
-                            $toastService.ShowToast("Theme: $nextTheme", [ToastType]::Success, 1500)
-                        }
-                    }
-                    return $true
-                }
-            }
-            # Remove Escape handling - let child screens handle it
-        }
-        
-        # Let TabContainer handle tab switching shortcuts (numbers, Ctrl+Tab, etc)
-        # This is safe because TabContainer is not focusable, so it won't be in the normal input chain
-        if ($this.TabContainer) {
-            return $this.TabContainer.HandleInput($keyInfo)
         }
         
         return $false
+    }
+    
+    [hashtable] GetShortcutBindings() {
+        $bindings = @{
+            # Tab navigation
+            'Ctrl+Tab' = @{
+                Action = { $this.TabContainer.NextTab() }
+                Description = "Next tab"
+            }
+            'Ctrl+Shift+Tab' = @{
+                Action = { $this.TabContainer.PreviousTab() }
+                Description = "Previous tab"
+            }
+            'Alt+Right' = @{
+                Action = { $this.TabContainer.NextTab() }
+                Description = "Next tab"
+            }
+            'Alt+Left' = @{
+                Action = { $this.TabContainer.PreviousTab() }
+                Description = "Previous tab"
+            }
+            
+            # Quick tab access (1-9)
+            '1' = @{ Action = { $this.TabContainer.ActivateTab(0) }; Description = "Go to tab 1" }
+            '2' = @{ Action = { $this.TabContainer.ActivateTab(1) }; Description = "Go to tab 2" }
+            '3' = @{ Action = { $this.TabContainer.ActivateTab(2) }; Description = "Go to tab 3" }
+            '4' = @{ Action = { $this.TabContainer.ActivateTab(3) }; Description = "Go to tab 4" }
+            '5' = @{ Action = { $this.TabContainer.ActivateTab(4) }; Description = "Go to tab 5" }
+            '6' = @{ Action = { $this.TabContainer.ActivateTab(5) }; Description = "Go to tab 6" }
+            '7' = @{ Action = { $this.TabContainer.ActivateTab(6) }; Description = "Go to tab 7" }
+            '8' = @{ Action = { $this.TabContainer.ActivateTab(7) }; Description = "Go to tab 8" }
+            '9' = @{ Action = { $this.TabContainer.ActivateTab(8) }; Description = "Go to tab 9" }
+            
+            # Help
+            'F1' = @{
+                Action = { 
+                    $helpOverlay = [KeyboardHelpOverlay]::new()
+                    $helpOverlay.Initialize($global:ServiceContainer)
+                    $global:ScreenManager.Push($helpOverlay)
+                }
+                Description = "Show keyboard help"
+            }
+        }
+        
+        return $bindings
     }
     
     [void] UpdateStatusBar() {
         if (-not $this.StatusBar -or -not $this.TabContainer) { return }
         
         $activeTab = $this.TabContainer.GetActiveTab()
-        if ($activeTab) {
-            $this.StatusBar.LeftText = "PRAXIS - $($activeTab.Title)"
-            
-            # Set context-specific hints based on active tab
-            switch ($activeTab.Title) {
-                "Tasks" {
-                    $this.StatusBar.SetHints(@(
-                        @{Key="N"; Action="New"}
-                        @{Key="E"; Action="Edit"}
-                        @{Key="D"; Action="Delete"}
-                        @{Key="S"; Action="Status"}
-                        @{Key="P"; Action="Priority"}
-                        @{Key="Tab"; Action="Navigate"}
-                    ))
-                }
-                "Projects" {
-                    $this.StatusBar.SetHints(@(
-                        @{Key="N"; Action="New"}
-                        @{Key="E"; Action="Edit"}
-                        @{Key="D"; Action="Delete"}
-                        @{Key="Enter"; Action="Details"}
-                        @{Key="Tab"; Action="Navigate"}
-                    ))
-                }
-                "Time" {
-                    $this.StatusBar.SetHints(@(
-                        @{Key="Q"; Action="Quick Entry"}
-                        @{Key="N"; Action="New"}
-                        @{Key="E"; Action="Edit"}
-                        @{Key="D"; Action="Delete"}
-                        @{Key="Tab"; Action="Navigate"}
-                    ))
-                }
-                "Commands" {
-                    $this.StatusBar.SetHints(@(
-                        @{Key="N"; Action="New"}
-                        @{Key="E"; Action="Edit"}
-                        @{Key="D"; Action="Delete"}
-                        @{Key="Enter"; Action="Execute"}
-                        @{Key="Tab"; Action="Navigate"}
-                    ))
-                }
-                "Settings" {
-                    $this.StatusBar.SetHints(@(
-                        @{Key="←→/Tab"; Action="Switch Panel"}
-                        @{Key="Enter"; Action="Edit"}
-                        @{Key="T"; Action="Quick Theme"}
-                        @{Key="R"; Action="Reset"}
-                        @{Key="B"; Action="Backup"}
-                    ))
-                }
-                default {
-                    # Default hints
-                    $this.StatusBar.SetHints(@(
-                        @{Key="Tab"; Action="Switch Tab"}
-                        @{Key="Ctrl+P"; Action="Command"}
-                        @{Key="F1"; Action="Help"}
-                        @{Key="Ctrl+Q"; Action="Quit"}
-                    ))
-                }
-            }
-        } else {
-            $this.StatusBar.LeftText = "PRAXIS"
+        if (-not $activeTab) { return }
+        
+        # Build status info
+        $leftStatus = "Tab: $($activeTab.Title)"
+        
+        # Get tab-specific status
+        $middleStatus = ""
+        if ($activeTab.Content -and $activeTab.Content.PSObject.Methods['GetStatusInfo']) {
+            $middleStatus = $activeTab.Content.GetStatusInfo()
         }
+        
+        # Time and memory
+        $time = Get-Date -Format "HH:mm"
+        $memoryMB = [Math]::Round((Get-Process -Id $global:PID).WorkingSet64 / 1MB, 0)
+        $rightStatus = "Mem: ${memoryMB}MB | $time"
+        
+        $this.StatusBar.LeftText = $leftStatus
+        $this.StatusBar.CenterText = $middleStatus
+        $this.StatusBar.RightText = $rightStatus
+        $this.StatusBar.Invalidate()
     }
     
-    # Override render to add border
-    # MainScreen no longer draws its own border - let child screens handle their own rendering
-    # This was causing double borders and layout issues
+    [string] OnRender() {
+        $sb = Get-PooledStringBuilder 2048
+        
+        # Clear background
+        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor('surface.background') } else { [VT]::BgRgb(16, 16, 16) }
+        $sb.Append([VT]::Clear())
+        $sb.Append($bgColor)
+        
+        # Let base class render children (TabContainer, StatusBar, etc)
+        $baseRender = ([Screen]$this).OnRender()
+        $sb.Append($baseRender)
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
+    }
 }

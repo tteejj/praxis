@@ -71,6 +71,13 @@ class Screen : Container {
     
     # PARENT-DELEGATED INPUT MODEL
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
+        # CRITICAL DEBUG: Track freeze-causing keys
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($global:Logger) {
+                $global:Logger.Info("Screen.HandleInput: START processing key '$($keyInfo.KeyChar)'")
+            }
+        }
+        
         # Check if help overlay is visible and let it handle input first
         if ($this._helpOverlay -and $this._helpOverlay.IsVisible) {
             return $this._helpOverlay.HandleInput($keyInfo)
@@ -84,8 +91,23 @@ class Screen : Container {
         
         # Debug logging removed for performance
         
+        # CRITICAL DEBUG: Before Container.HandleInput
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($global:Logger) {
+                $global:Logger.Info("Screen.HandleInput: About to call Container.HandleInput for key '$($keyInfo.KeyChar)'")
+            }
+        }
+        
         # 1. Let focused child handle first (components get priority)
         $handled = ([Container]$this).HandleInput($keyInfo)
+        
+        # CRITICAL DEBUG: After Container.HandleInput
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($global:Logger) {
+                $global:Logger.Info("Screen.HandleInput: Container.HandleInput returned $handled for key '$($keyInfo.KeyChar)'")
+            }
+        }
+        
         if ($global:Logger) {
             $global:Logger.Debug("Screen base handled: $handled")
         }

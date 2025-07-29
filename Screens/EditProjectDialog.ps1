@@ -3,7 +3,6 @@
 class EditProjectDialog : BaseDialog {
     [Project]$Project
     [MinimalTextBox]$NameBox
-    [MinimalTextBox]$NicknameBox
     [MinimalTextBox]$ID1Box
     [MinimalTextBox]$ID2Box
     [MinimalTextBox]$NoteBox
@@ -17,7 +16,7 @@ class EditProjectDialog : BaseDialog {
         $this.PrimaryButtonText = "Save"
         $this.SecondaryButtonText = "Cancel"
         $this.DialogWidth = 70
-        $this.DialogHeight = 26
+        $this.DialogHeight = 24
     }
     
     [void] InitializeContent() {
@@ -29,61 +28,54 @@ class EditProjectDialog : BaseDialog {
         $this.NameBox.Height = 1
         $this.AddContentControl($this.NameBox, 1)
         
-        $this.NicknameBox = [MinimalTextBox]::new()
-        $this.NicknameBox.Text = $this.Project.Nickname
-        $this.NicknameBox.Placeholder = "Enter project nickname..."
-        $this.NicknameBox.ShowBorder = $false
-        $this.NicknameBox.Height = 1
-        $this.AddContentControl($this.NicknameBox, 2)
-        
         $this.ID1Box = [MinimalTextBox]::new()
         $this.ID1Box.Text = $this.Project.ID1
         $this.ID1Box.Placeholder = "Enter ID1..."
         $this.ID1Box.ShowBorder = $false
         $this.ID1Box.Height = 1
-        $this.AddContentControl($this.ID1Box, 3)
+        $this.AddContentControl($this.ID1Box, 2)
         
         $this.ID2Box = [MinimalTextBox]::new()
         $this.ID2Box.Text = $this.Project.ID2
         $this.ID2Box.Placeholder = "Enter ID2..."
         $this.ID2Box.ShowBorder = $false
         $this.ID2Box.Height = 1
-        $this.AddContentControl($this.ID2Box, 4)
+        $this.AddContentControl($this.ID2Box, 3)
         
         $this.NoteBox = [MinimalTextBox]::new()
         $this.NoteBox.Text = $this.Project.Note
         $this.NoteBox.Placeholder = "Enter notes..."
         $this.NoteBox.ShowBorder = $false
         $this.NoteBox.Height = 1
-        $this.AddContentControl($this.NoteBox, 5)
+        $this.AddContentControl($this.NoteBox, 4)
         
         $this.CAAPathBox = [MinimalTextBox]::new()
         $this.CAAPathBox.Text = $this.Project.CAAPath
         $this.CAAPathBox.Placeholder = "Enter CAA path..."
         $this.CAAPathBox.ShowBorder = $false
         $this.CAAPathBox.Height = 1
-        $this.AddContentControl($this.CAAPathBox, 6)
+        $this.AddContentControl($this.CAAPathBox, 5)
         
         $this.RequestPathBox = [MinimalTextBox]::new()
         $this.RequestPathBox.Text = $this.Project.RequestPath
         $this.RequestPathBox.Placeholder = "Enter request path..."
         $this.RequestPathBox.ShowBorder = $false
         $this.RequestPathBox.Height = 1
-        $this.AddContentControl($this.RequestPathBox, 7)
+        $this.AddContentControl($this.RequestPathBox, 6)
         
         $this.T2020PathBox = [MinimalTextBox]::new()
         $this.T2020PathBox.Text = $this.Project.T2020Path
         $this.T2020PathBox.Placeholder = "Enter T2020 path..."
         $this.T2020PathBox.ShowBorder = $false
         $this.T2020PathBox.Height = 1
-        $this.AddContentControl($this.T2020PathBox, 8)
+        $this.AddContentControl($this.T2020PathBox, 7)
         
         $this.DueDateBox = [MinimalTextBox]::new()
         $this.DueDateBox.Text = $this.Project.DateDue.ToString("MM/dd/yyyy")
         $this.DueDateBox.Placeholder = "Enter due date (MM/DD/YYYY)..."
         $this.DueDateBox.ShowBorder = $false
         $this.DueDateBox.Height = 1
-        $this.AddContentControl($this.DueDateBox, 9)
+        $this.AddContentControl($this.DueDateBox, 8)
         
         # Set up primary action (Save)
         $dialog = $this
@@ -101,7 +93,6 @@ class EditProjectDialog : BaseDialog {
                 
                 # Update project properties
                 $dialog.Project.FullProjectName = $dialog.NameBox.Text
-                $dialog.Project.Nickname = $dialog.NicknameBox.Text
                 $dialog.Project.ID1 = $dialog.ID1Box.Text
                 $dialog.Project.ID2 = $dialog.ID2Box.Text
                 $dialog.Project.Note = $dialog.NoteBox.Text
@@ -149,9 +140,6 @@ class EditProjectDialog : BaseDialog {
         $currentY = $dialogY + 2
         
         $this.NameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
-        $currentY += 2
-        
-        $this.NicknameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
         $currentY += 2
         
         # Split ID fields horizontally

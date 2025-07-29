@@ -2,6 +2,7 @@
 
 class TaskService {
     [System.Collections.Generic.List[Task]]$Tasks
+    hidden [hashtable]$_taskIndex = @{}  # Fast ID-based lookup
     hidden [string]$DataPath
     hidden [bool]$_isDirty = $false
     
@@ -47,7 +48,8 @@ class TaskService {
     }
     
     [Task] GetTask([string]$id) {
-        return $this.Tasks | Where-Object { $_.Id -eq $id } | Select-Object -First 1
+        # Fast O(1) hashtable lookup instead of O(n) Where-Object
+        return $this._taskIndex[$id]
     }
     
     [Task[]] GetAllTasks() {
@@ -124,9 +126,8 @@ class TaskService {
             $json | Set-Content -Path $this.DataPath -Encoding UTF8
             $this._isDirty = $false
             
-            if ($global:Logger) {
-                $global:Logger.Debug("TaskService: Saved $($this.Tasks.Count) tasks")
-            }
+            # Rebuild index after saving (in case tasks were modified)
+            $this.RebuildTaskIndex()
         } catch {
             if ($global:Logger) {
                 $global:Logger.Error("TaskService: Failed to save tasks: $_")
@@ -160,10 +161,8 @@ class TaskService {
                     
                     $this.Tasks.Add($task)
                 }
-                
-                if ($global:Logger) {
-                    $global:Logger.Debug("TaskService: Loaded $($this.Tasks.Count) tasks")
-                }
+                # Rebuild performance index after loading
+                $this.RebuildTaskIndex()
             } catch {
                 if ($global:Logger) {
                     $global:Logger.Error("TaskService: Failed to load tasks: $_")
@@ -174,6 +173,15 @@ class TaskService {
         } else {
             # Create sample tasks for testing
             $this.CreateSampleTasks()
+        }
+    }
+    
+    # Rebuild performance index for fast lookups  
+    hidden [void] RebuildTaskIndex() {
+        $this._taskIndex.Clear()
+        
+        foreach ($task in $this.Tasks) {
+            $this._taskIndex[$task.Id] = $task
         }
     }
     

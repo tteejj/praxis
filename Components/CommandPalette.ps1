@@ -500,12 +500,13 @@ class CommandPalette : Container {
         # Top border with title
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($borderColor)
-        $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal(2))
+        # Island Components: use spaces instead of horizontal lines
+        $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontalNoLines(2))
         $accentColor = $this._colors['accent']
         $sb.Append($accentColor)
         $sb.Append(" Command Palette ")
         $sb.Append($borderColor)
-        $sb.Append([StringCache]::GetVTHorizontal($this.Width - 19) + [VT]::TR())
+        $sb.Append([StringCache]::GetVTHorizontalNoLines($this.Width - 19) + [VT]::TR())
         
         # Sides
         for ($y = 1; $y -lt $this.Height - 1; $y++) {
@@ -517,7 +518,7 @@ class CommandPalette : Container {
         
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
-        $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
+        $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontalNoLines($this.Width - 2) + [VT]::BR())
         
         # Search box
         $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + 2))
@@ -531,7 +532,8 @@ class CommandPalette : Container {
         # Separator
         $sb.Append([VT]::MoveTo($this.X + 1, $this.Y + 3))
         $sb.Append($borderColor)
-        $sb.Append([StringCache]::GetVTHorizontal($this.Width - 2))
+        # Island Components: separator uses spaces
+        $sb.Append([StringCache]::GetVTHorizontalNoLines($this.Width - 2))
         
         # Help text
         $sb.Append([VT]::MoveTo($this.X + 2, $this.Y + $this.Height - 2))
@@ -562,6 +564,17 @@ class CommandPalette : Container {
                 return $true
             }
             ([System.ConsoleKey]::Enter) {
+                # Check if this is a colon command
+                if ($this.SearchText.StartsWith(':')) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("CommandPalette: Executing colon command: $($this.SearchText)")
+                    }
+                    $this.Hide()
+                    $this.ExecuteColonCommand($this.SearchText)
+                    return $true
+                }
+                
+                # Regular command selection
                 $selected = $this.ResultsList.GetSelectedItem()
                 if ($selected) {
                     if ($global:Logger) {
@@ -598,8 +611,10 @@ class CommandPalette : Container {
                     return $true
                 }
                 
-                # Add character to search
-                if ($key.KeyChar -and [char]::IsLetterOrDigit($key.KeyChar) -or $key.KeyChar -eq ' ') {
+                # Add character to search - allow colon and special chars for commands
+                if ($key.KeyChar -and ([char]::IsLetterOrDigit($key.KeyChar) -or 
+                    $key.KeyChar -eq ' ' -or $key.KeyChar -eq ':' -or $key.KeyChar -eq '-' -or 
+                    $key.KeyChar -eq '_' -or $key.KeyChar -eq '.' -or [char]::IsNumber($key.KeyChar))) {
                     $this.SearchText += $key.KeyChar
                     $this.UpdateFilter()
                     $this.Invalidate()
@@ -609,5 +624,60 @@ class CommandPalette : Container {
         }
         
         return $false
+    }
+    
+    [void] ExecuteColonCommand([string]$commandText) {
+        try {
+            # Get the current active screen to determine context
+            $activeScreen = $null
+            if ($global:ScreenManager) {
+                $activeScreen = $global:ScreenManager.GetActiveScreen()
+            }
+            
+            if (-not $activeScreen) {
+                if ($this.Logger) {
+                    $this.Logger.Warning("CommandPalette: No active screen found for command execution")
+                }
+                return
+            }
+            
+            $screenType = $activeScreen.GetType().Name
+            
+            # Route command to appropriate handler based on screen type
+            $executed = $false
+            switch ($screenType) {
+                'ProjectsScreen' {
+                    if ($activeScreen.PSObject.Methods['ExecuteCommand']) {
+                        $executed = $activeScreen.ExecuteCommand($commandText)
+                    }
+                }
+                'TaskScreen' {
+                    # TODO: Implement TaskScreen command execution
+                    if ($global:Logger) {
+                        $global:Logger.Info("TaskScreen command execution not yet implemented")
+                    }
+                }
+                'TimeEntryScreen' {
+                    # TODO: Implement TimeEntryScreen command execution  
+                    if ($global:Logger) {
+                        $global:Logger.Info("TimeEntryScreen command execution not yet implemented")
+                    }
+                }
+                default {
+                    if ($global:Logger) {
+                        $global:Logger.Warning("CommandPalette: Command execution not supported for screen type: $screenType")
+                    }
+                }
+            }
+            
+            if (-not $executed -and $global:Logger) {
+                $global:Logger.Warning("CommandPalette: Failed to execute command: $commandText")
+            }
+        }
+        catch {
+            if ($global:Logger) {
+                $global:Logger.Error("CommandPalette: Error executing colon command '$commandText': $_")
+            }
+        }
     }
 }

@@ -23,7 +23,8 @@ class Container : UIElement {
         # Render all visible children
         foreach ($child in $this.Children) {
             if ($child.Visible) {
-                $sb.Append($child.Render())
+                $childOutput = $child.Render()
+                $sb.Append($childOutput)
             }
         }
         
@@ -112,11 +113,10 @@ class Container : UIElement {
     # Route input to focused child
     # PARENT-DELEGATED INPUT MODEL with FocusManager optimization
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # Route input to focused child
+        
         # Handle Tab navigation first
         if ($key.Key -eq [System.ConsoleKey]::Tab) {
-            if ($global:Logger) {
-                $global:Logger.Debug("Container.HandleInput: Tab key pressed in $($this.GetType().Name)")
-            }
             
             $focusManager = $null
             if ($this.ServiceContainer) {
@@ -124,11 +124,6 @@ class Container : UIElement {
             }
             
             if ($focusManager) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("Container: Using FocusManager for Tab navigation")
-                    $global:Logger.Debug("Container: Passing container=$($this.GetType().Name) with $($this.Children.Count) children")
-                }
-                
                 $result = $false
                 if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
                     $result = $focusManager.FocusPrevious($this)
@@ -136,18 +131,11 @@ class Container : UIElement {
                     $result = $focusManager.FocusNext($this)
                 }
                 
-                if ($global:Logger) {
-                    $global:Logger.Debug("Container: FocusManager.FocusNext/Previous returned: $result")
-                }
-                
                 $this.Invalidate()
                 return $true
-            } else {
-                if ($global:Logger) {
-                    $global:Logger.Warning("Container: No FocusManager available for Tab handling!")
-                }
             }
         }
+        
         
         # Fast path: Use FocusManager to get current focus
         $focusManager = $null
@@ -156,9 +144,17 @@ class Container : UIElement {
         }
         
         if ($focusManager) {
+            
             $focused = $focusManager.GetFocused()
+            $focusedType = if ($focused) { $focused.GetType().Name } else { 'null' }
+            
+            
             if ($focused -and $this.ContainsElement($focused)) {
-                return $focused.HandleInput($key)
+                
+                $result = $focused.HandleInput($key)
+                
+                
+                return $result
             }
         }
         
@@ -167,6 +163,7 @@ class Container : UIElement {
         if ($focused) {
             return $focused.HandleInput($key)
         }
+        
         
         return $false
     }
@@ -185,14 +182,8 @@ class Container : UIElement {
     [UIElement] FindFocusedChild() {
         foreach ($child in $this.Children) {
             if ($child.Visible -and $child.IsFocused) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("Container.FindFocusedChild: Found focused child $($child.GetType().Name)")
-                }
                 return $child
             }
-        }
-        if ($global:Logger) {
-            $global:Logger.Debug("Container.FindFocusedChild: No focused child found among $($this.Children.Count) children")
         }
         return $null
     }

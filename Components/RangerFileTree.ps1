@@ -82,12 +82,6 @@ class RangerFileTree : Container {
     }
     
     [void] OnInitialize() {
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.OnInitialize: Starting initialization")
-            $global:Logger.Debug("  IsFocusable: $($this.IsFocusable)")
-            $global:Logger.Debug("  CurrentPath: $($this.CurrentPath)")
-        }
-        
         # Initialize theme
         $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
         
@@ -97,28 +91,12 @@ class RangerFileTree : Container {
         # Initialize child panes
         $this.ParentPane.ServiceContainer = $this.ServiceContainer
         $this.ParentPane.OnInitialize()
-        if ($global:Logger) {
-            $global:Logger.Debug("  ParentPane initialized, IsFocusable=$($this.ParentPane.IsFocusable)")
-        }
-        
         $this.CurrentPane.ServiceContainer = $this.ServiceContainer
         $this.CurrentPane.OnInitialize()
-        if ($global:Logger) {
-            $global:Logger.Debug("  CurrentPane initialized, IsFocusable=$($this.CurrentPane.IsFocusable)")
-        }
-        
         $this.PreviewPane.ServiceContainer = $this.ServiceContainer
         $this.PreviewPane.OnInitialize()
-        if ($global:Logger) {
-            $global:Logger.Debug("  PreviewPane initialized, IsFocusable=$($this.PreviewPane.IsFocusable)")
-        }
-        
         # Load initial directory
         $this.NavigateToDirectory($this.CurrentPath)
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.OnInitialize: Completed")
-        }
     }
     
     [void] NavigateToDirectory([string]$path) {
@@ -152,9 +130,6 @@ class RangerFileTree : Container {
         $this.CurrentPane.Title = ""  # No title needed - path shows in status
         if ($this.CurrentPane._flatView.Count -gt 0) {
             $this.CurrentPane.SelectIndex(0)
-            if ($global:Logger) {
-                $global:Logger.Debug("RangerFileTree: Selected first item in current pane")
-            }
         } else {
             if ($global:Logger) {
                 $global:Logger.Warning("RangerFileTree: No items in current directory")
@@ -198,10 +173,6 @@ class RangerFileTree : Container {
     }
     
     [void] OnBoundsChanged() {
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
-        }
-        
         # Calculate pane widths
         $totalWidth = $this.Width
         if ($totalWidth -le 0) {
@@ -214,11 +185,6 @@ class RangerFileTree : Container {
         $leftWidth = [int]($totalWidth * $this.LeftPaneWidth)
         $centerWidth = [int]($totalWidth * $this.CenterPaneWidth)
         $rightWidth = $totalWidth - $leftWidth - $centerWidth
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("  Pane widths: left=$leftWidth, center=$centerWidth, right=$rightWidth")
-        }
-        
         # Position panes
         $this.ParentPane.SetBounds($this.X, $this.Y, $leftWidth, $this.Height)
         $this.CurrentPane.SetBounds($this.X + $leftWidth, $this.Y, $centerWidth, $this.Height)
@@ -227,10 +193,6 @@ class RangerFileTree : Container {
     
     [string] OnRender() {
         # Debug rendering to ensure we're actually drawing
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.OnRender: Rendering with IsFocused=$($this.IsFocused)")
-        }
-        
         # Get base rendering from Container
         $baseRender = ([Container]$this).OnRender()
         
@@ -291,12 +253,6 @@ class RangerFileTree : Container {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.HandleInput: Key=$($key.Key) Char='$($key.KeyChar)' Modifiers=$($key.Modifiers)")
-            $global:Logger.Debug("  IsFocused: $($this.IsFocused)")
-            $global:Logger.Debug("  CurrentPane IsFocused: $($this.CurrentPane.IsFocused)")
-        }
-        
         # Handle vim-style navigation keys
         if (-not $key.Modifiers) {
             switch ($key.KeyChar) {
@@ -438,23 +394,13 @@ class RangerFileTree : Container {
     [void] OnGotFocus() {
         ([UIElement]$this).OnGotFocus()
         # Don't automatically focus child pane - we'll handle input and delegate as needed
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.OnGotFocus: Got focus")
-        }
     }
     
     [void] Focus() {
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.Focus: Setting focus")
-        }
-        
         # Call base Focus to set IsFocused = true
         ([UIElement]$this).Focus()
         
         # Don't focus child panes - we'll handle the input routing ourselves
-        if ($global:Logger) {
-            $global:Logger.Debug("RangerFileTree.Focus: IsFocused = $($this.IsFocused)")
-        }
     }
     
     # Helper methods for file operations

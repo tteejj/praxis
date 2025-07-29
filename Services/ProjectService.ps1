@@ -3,6 +3,8 @@
 
 class ProjectService {
     hidden [System.Collections.ArrayList]$Projects = [System.Collections.ArrayList]::new()
+    hidden [hashtable]$_projectIndex = @{}  # Fast ID-based lookup
+    hidden [hashtable]$_nameIndex = @{}     # Fast name-based lookup
     hidden [string]$DataFile
     
     ProjectService() {
@@ -138,6 +140,23 @@ class ProjectService {
             $this.Projects.Add($default) | Out-Null
             $this.SaveProjects()
         }
+        
+        # Rebuild performance indexes
+        $this.RebuildIndexes()
+    }
+    
+    # Rebuild performance indexes for fast lookups
+    hidden [void] RebuildIndexes() {
+        $this._projectIndex.Clear()
+        $this._nameIndex.Clear()
+        
+        foreach ($project in $this.Projects) {
+            # ID-based index
+            $this._projectIndex[$project.Id] = $project
+            
+            # Name-based index
+            $this._nameIndex[$project.FullProjectName] = $project
+        }
     }
     
     [void] SaveProjects() {
@@ -151,7 +170,6 @@ class ProjectService {
             $data += @{
                 Id = $project.Id
                 FullProjectName = $project.FullProjectName
-                Nickname = $project.Nickname
                 ID1 = $project.ID1
                 ID2 = $project.ID2
                 DateAssigned = $project.DateAssigned.ToString("yyyy-MM-ddTHH:mm:ss")
@@ -169,6 +187,9 @@ class ProjectService {
         
         $json = $data | ConvertTo-Json -Depth 10
         Set-Content -Path $this.DataFile -Value $json
+        
+        # Rebuild indexes after saving
+        $this.RebuildIndexes()
     }
     
     [Project[]] GetAllProjects() {
@@ -176,11 +197,13 @@ class ProjectService {
     }
     
     [Project] GetProject([string]$id) {
-        return $this.Projects | Where-Object { $_.Id -eq $id } | Select-Object -First 1
+        # Fast O(1) hashtable lookup instead of O(n) Where-Object
+        return $this._projectIndex[$id]
     }
     
     [Project] GetProjectByName([string]$name) {
-        return $this.Projects | Where-Object { $_.Nickname -eq $name -or $_.FullProjectName -eq $name } | Select-Object -First 1
+        # Fast O(1) hashtable lookup instead of O(n) Where-Object
+        return $this._nameIndex[$name]
     }
     
     [Project] AddProject([string]$name) {
@@ -196,22 +219,9 @@ class ProjectService {
         return $project
     }
     
-    [Project] AddProject([string]$fullName, [string]$nickname) {
-        # Check if already exists
-        $existing = $this.GetProjectByName($nickname)
-        if ($existing) {
-            return $existing
-        }
-        
-        $project = [Project]::new($fullName, $nickname)
-        $this.Projects.Add($project) | Out-Null
-        $this.SaveProjects()
-        return $project
-    }
-    
     [Project] AddProject([Project]$project) {
-        # Check if already exists by nickname
-        $existing = $this.GetProjectByName($project.Nickname)
+        # Check if already exists by name
+        $existing = $this.GetProjectByName($project.FullProjectName)
         if ($existing) {
             return $existing
         }
@@ -227,7 +237,7 @@ class ProjectService {
     
     [void] DeleteProject([string]$id) {
         $project = $this.GetProject($id)
-        if ($project -and $project.Nickname -ne "Default") {
+        if ($project -and $project.FullProjectName -ne "Default") {
             $this.Projects.Remove($project)
             $this.SaveProjects()
         }
@@ -237,13 +247,13 @@ class ProjectService {
         $result = @()
         
         foreach ($project in $this.Projects) {
-            $tasks = $taskService.GetTasksByProject($project.Nickname)
+            $tasks = $taskService.GetTasksByProject($project.FullProjectName)
             $completed = ($tasks | Where-Object { $_.Status -eq "Done" }).Count
             $total = $tasks.Count
             
             $result += @{
                 Project = $project
-                Name = $project.Nickname  # Use nickname for compatibility
+                Name = $project.FullProjectName
                 FullName = $project.FullProjectName
                 TaskCount = $total
                 CompletedCount = $completed

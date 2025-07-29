@@ -73,7 +73,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateComponentLibrary() {
         $this.ComponentLibrary = [SearchableListBox]::new()
         $this.ComponentLibrary.Title = "📚 Component Library"
-        $this.ComponentLibrary.ShowBorder = $false  # MainScreen draws the border
+        $this.ComponentLibrary.ShowBorder = $true   # Component responsible for own visual boundaries
         $this.ComponentLibrary.SearchPrompt = "Search actions... (category:core type:export)"
         
         # Custom renderer for actions
@@ -99,7 +99,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateMacroSequence() {
         $this.MacroSequence = [MinimalDataGrid]::new()
         $this.MacroSequence.Title = "🔧 Macro Sequence"
-        $this.MacroSequence.ShowBorder = $false  # MainScreen draws the border
+        $this.MacroSequence.ShowBorder = $true   # Component responsible for own visual boundaries
         $this.MacroSequence.ShowTitle = $true
         
         # Define columns for macro sequence
@@ -228,7 +228,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateContextPanel() {
         $this.ContextPanel = [MinimalDataGrid]::new()
         $this.ContextPanel.Title = "🎯 Macro Context"
-        $this.ContextPanel.ShowBorder = $false  # MainScreen draws the border
+        $this.ContextPanel.ShowBorder = $true   # Component responsible for own visual boundaries
         $this.ContextPanel.ShowTitle = $true
         
         # Define columns for context variables
@@ -764,34 +764,34 @@ Press ESC to close help
             return 
         }
         
-        # Three-pane layout: 30% | 40% | 30%
-        # Account for 2 separators (1 char each)
-        $separatorWidth = 1
-        $totalSeparatorWidth = $separatorWidth * 2
+        # Island Components Layout: 30% | 40% | 30% with gaps between islands
+        $gap = 2  # Standard island separation
+        $totalGapWidth = $gap * 2  # Gaps between 3 components
+        $availableWidth = $this.Width - $totalGapWidth
         
-        $leftWidth = [int]($this.Width * 0.3) - $separatorWidth
-        $centerWidth = [int]($this.Width * 0.4) - $separatorWidth
-        $rightWidth = $this.Width - $leftWidth - $centerWidth - $totalSeparatorWidth
+        $leftWidth = [int]($availableWidth * 0.3)
+        $centerWidth = [int]($availableWidth * 0.4)
+        $rightWidth = $availableWidth - $leftWidth - $centerWidth
         
-        $contentHeight = $this.Height  # Use full height
+        $contentHeight = $this.Height
         
         if ($global:Logger) {
-            $global:Logger.Debug("VisualMacroFactoryScreen.OnBoundsChanged: leftWidth=$leftWidth centerWidth=$centerWidth rightWidth=$rightWidth contentHeight=$contentHeight")
+            $global:Logger.Debug("VisualMacroFactoryScreen.OnBoundsChanged: ISLAND LAYOUT - leftWidth=$leftWidth centerWidth=$centerWidth rightWidth=$rightWidth gap=$gap")
         }
         
-        # Position Component Library (left pane)
+        # Position Component Library Island (left)
         if ($this.ComponentLibrary) {
             $this.ComponentLibrary.SetBounds($this.X, $this.Y, $leftWidth, $contentHeight)
         }
         
-        # Position Macro Sequence (center pane)
+        # Position Macro Sequence Island (center) - with gap
         if ($this.MacroSequence) {
-            $this.MacroSequence.SetBounds($this.X + $leftWidth + $separatorWidth, $this.Y, $centerWidth, $contentHeight)
+            $this.MacroSequence.SetBounds($this.X + $leftWidth + $gap, $this.Y, $centerWidth, $contentHeight)
         }
         
-        # Position Context Panel (right pane)
+        # Position Context Panel Island (right) - with gap  
         if ($this.ContextPanel) {
-            $this.ContextPanel.SetBounds($this.X + $leftWidth + $centerWidth + $totalSeparatorWidth, $this.Y, $rightWidth, $contentHeight)
+            $this.ContextPanel.SetBounds($this.X + $leftWidth + $gap + $centerWidth + $gap, $this.Y, $rightWidth, $contentHeight)
         }
     }
     

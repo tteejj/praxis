@@ -7,6 +7,7 @@ enum BorderType {
     Rounded = 3
     Minimal = 4  # Just corners
     Dotted = 5
+    RoundedNoLines = 6  # Rounded corners with vertical sides only
 }
 
 class BorderStyle {
@@ -42,6 +43,12 @@ class BorderStyle {
             LT = '┊'; RT = '┊'; TT = '·'; BT = '·'
             Cross = '·'
         }
+        RoundedNoLines = @{
+            TL = '╭'; TR = '╮'; BL = '╰'; BR = '╯'
+            H = ' '; V = '│'  # NO HORIZONTAL LINES - just spaces
+            LT = '│'; RT = '│'; TT = ' '; BT = ' '
+            Cross = ' '
+        }
     }
     
     # Pre-render border for a given size and style
@@ -56,6 +63,11 @@ class BorderStyle {
         $style = [BorderStyle]::Styles[$type.ToString()]
         if (-not $style) { return "" }
         
+        # DEBUG: Log what style is being used
+        if ($type -eq [BorderType]::RoundedNoLines) {
+            Write-Host "DEBUG: Using RoundedNoLines style, H='$($style.H)' (should be space)" -ForegroundColor Yellow
+        }
+        
         $sb = Get-PooledStringBuilder (($width + 10) * $height)
         
         # Apply color if specified
@@ -65,7 +77,8 @@ class BorderStyle {
         $sb.Append([VT]::MoveTo($x, $y))
         $sb.Append($style.TL)
         if ($width -gt 2) {
-            $sb.Append($style.H * ($width - 2))
+            $horizontalLine = $style.H * ($width - 2)
+            $sb.Append($horizontalLine)
         }
         $sb.Append($style.TR)
         
@@ -91,7 +104,8 @@ class BorderStyle {
                 # Minimal - just corners
                 $sb.Append(' ' * ($width - 2))
             } else {
-                $sb.Append($style.H * ($width - 2))
+                $bottomLine = $style.H * ($width - 2)
+                $sb.Append($bottomLine)
             }
         }
         $sb.Append($style.BR)

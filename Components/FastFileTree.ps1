@@ -157,7 +157,14 @@ class FastFileTree : UIElement {
     [void] OnInitialize() {
         $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
         if ($this.Theme) {
-            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            # Subscribe to EventBus theme changes instead of legacy ThemeManager subscription
+            $eventBus = $this.ServiceContainer.GetService('EventBus')
+            if ($eventBus) {
+                $component = $this
+                $eventBus.Subscribe('theme.changed', {
+                    $component.OnThemeChanged()
+                }.GetNewClosure())
+            }
             $this.OnThemeChanged()
         }
         
@@ -430,7 +437,8 @@ class FastFileTree : UIElement {
             # Top border - safe to render since we validated Width >= 3
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
+            # Island Components: use spaces instead of horizontal lines
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontalNoLines($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -563,7 +571,8 @@ class FastFileTree : UIElement {
             $bottomY = $this.Y + $this.Height - 1
             $sb.Append([VT]::MoveTo($this.X, $bottomY))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
+            # Island Components: use spaces instead of horizontal lines
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontalNoLines($this.Width - 2) + [VT]::BR())
         }
 
         $result = $sb.ToString()

@@ -100,19 +100,20 @@ class ShortcutManager {
             }
         })
         
-        $this.RegisterShortcut(@{
-            Id = "global.command_palette"
-            Name = "Command Palette"
-            Description = "Open the command palette"
-            KeyChar = ':'
-            Scope = [ShortcutScope]::Global
-            Priority = 90
-            Action = {
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.ShowCommandPalette()
-                }
-            }
-        })
+# Removed colon shortcut to avoid conflict with colon commands
+        # $this.RegisterShortcut(@{
+        #     Id = "global.command_palette"
+        #     Name = "Command Palette"
+        #     Description = "Open the command palette"
+        #     KeyChar = ':'
+        #     Scope = [ShortcutScope]::Global
+        #     Priority = 90
+        #     Action = {
+        #         if ($global:ScreenManager) {
+        #             $global:ScreenManager.ShowCommandPalette()
+        #         }
+        #     }
+        # })
         
         $this.RegisterShortcut(@{
             Id = "global.command_palette_alt"
@@ -169,14 +170,35 @@ class ShortcutManager {
     }
     
     [bool] HandleKeyPress([System.ConsoleKeyInfo]$keyInfo, [string]$currentScreen, [string]$currentContext) {
+        # CRITICAL DEBUG: Track specific freeze-causing keys
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($this.Logger) {
+                $this.Logger.Info("ShortcutManager.HandleKeyPress: START processing key '$($keyInfo.KeyChar)'")
+            }
+        }
+        
         if ($this.Logger) {
             $this.Logger.Debug("ShortcutManager.HandleKeyPress: Key=$($keyInfo.Key) Char='$($keyInfo.KeyChar)' Screen=$currentScreen Context=$currentContext")
             $this.Logger.Debug("ShortcutManager: Total shortcuts registered: $($this.Shortcuts.Count)")
         }
         
+        # CRITICAL DEBUG: Before finding candidates
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($this.Logger) {
+                $this.Logger.Info("ShortcutManager: About to find matching shortcuts for key '$($keyInfo.KeyChar)'")
+            }
+        }
+        
         # Find matching shortcuts
         $candidates = $this.Shortcuts | Where-Object {
             $_.Enabled -and $_.Matches($keyInfo)
+        }
+        
+        # CRITICAL DEBUG: After finding candidates
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($this.Logger) {
+                $this.Logger.Info("ShortcutManager: Found $($candidates.Count) candidates for key '$($keyInfo.KeyChar)'")
+            }
         }
         
         if ($this.Logger -and $candidates.Count -gt 0) {
@@ -247,6 +269,13 @@ class ShortcutManager {
                     $this.Logger.Error("Error executing shortcut $($shortcut.Id): $_")
                 }
                 return $false
+            }
+        }
+        
+        # CRITICAL DEBUG: Track completion for freeze-causing keys
+        if ($keyInfo.KeyChar -eq '2' -or $keyInfo.KeyChar -eq '3') {
+            if ($this.Logger) {
+                $this.Logger.Info("ShortcutManager.HandleKeyPress: COMPLETED processing key '$($keyInfo.KeyChar)', returning false")
             }
         }
         

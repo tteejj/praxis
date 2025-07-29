@@ -20,7 +20,7 @@ class CommandLibraryScreen : Screen {
         # Create command list using SearchableListBox
         $this.CommandList = [SearchableListBox]::new()
         $this.CommandList.Title = "Commands"
-        $this.CommandList.ShowBorder = $false  # MainScreen draws the border
+        $this.CommandList.ShowBorder = $true   # Component responsible for own visual boundaries
         $this.CommandList.SearchPrompt = "Search commands... (t:tag d:desc g:group +and |or)"
         
         # Set custom search filter for advanced syntax

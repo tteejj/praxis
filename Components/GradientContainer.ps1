@@ -22,7 +22,16 @@ class GradientContainer : Container {
     
     [void] OnInitialize() {
         $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
-        $this.Theme.Subscribe({ $this.OnThemeChanged() })
+        
+        # Subscribe to EventBus theme changes instead of legacy ThemeManager subscription
+        $eventBus = $this.ServiceContainer.GetService('EventBus')
+        if ($eventBus) {
+            $component = $this
+            $eventBus.Subscribe('theme.changed', {
+                $component.OnThemeChanged()
+            }.GetNewClosure())
+        }
+        
         $this.OnThemeChanged()
     }
     

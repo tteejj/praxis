@@ -208,7 +208,7 @@ class MinimalContextMenu : UIElement {
         if ($item.IsSeparator) {
             # Render separator
             $sb.Append($this._colors.separator)
-            $sb.Append('─' * ($this.MenuWidth - 2))
+            $sb.Append(' ' * ($this.MenuWidth - 2))
         } else {
             # Selection highlight
             if ($index -eq $this.SelectedIndex) {

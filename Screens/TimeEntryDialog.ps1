@@ -1,282 +1,204 @@
 # TimeEntryDialog - Dialog for adding/editing time entries
-# Based on tracker.txt time tracking structure
+# Properly integrated with BaseDialog
 
 class TimeEntryDialog : BaseDialog {
     [Project]$Project = $null
     [PSCustomObject]$TimeEntry = $null  # For editing existing entries
     [bool]$IsEditMode = $false
+    [TimeTrackingService]$TimeService
     
     # Input fields
     [MinimalTextBox]$DateTextBox
     [MinimalTextBox]$HoursTextBox
     [MinimalTextBox]$DescriptionTextBox
     
-    # Buttons
-    [MinimalButton]$SaveButton
-    [MinimalButton]$CancelButton
-    
-    # Callbacks
+    # Callbacks for legacy compatibility
     [scriptblock]$OnSave = {}
     [scriptblock]$OnCancel = {}
     
     TimeEntryDialog() : base("Add Time Entry") {
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
+        $this.DialogWidth = 50
+        $this.DialogHeight = 16
     }
     
     TimeEntryDialog([Project]$project) : base("Add Time Entry") {
         $this.Project = $project
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
+        $this.DialogWidth = 50
+        $this.DialogHeight = 16
     }
     
     TimeEntryDialog([Project]$project, [PSCustomObject]$timeEntry) : base("Edit Time Entry") {
         $this.Project = $project
         $this.TimeEntry = $timeEntry
         $this.IsEditMode = $true
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
+        $this.DialogWidth = 50
+        $this.DialogHeight = 16
     }
     
     [void] InitializeContent() {
+        # Get TimeTrackingService
+        $this.TimeService = $this.ServiceContainer.GetService("TimeTrackingService")
+        
         # Create input fields
         $this.DateTextBox = [MinimalTextBox]::new()
-        $this.DateTextBox.ShowBorder = $true
+        $this.DateTextBox.ShowBorder = $false  # Dialog provides border
         $this.DateTextBox.Placeholder = "Date (MM/DD/YYYY)"
+        $this.DateTextBox.Height = 1
         
         # Set default date to today
         if (-not $this.IsEditMode) {
             $this.DateTextBox.Text = (Get-Date).ToString("MM/dd/yyyy")
         } else {
-            # Convert from YYYYMMDD format to MM/dd/yyyy
-            try {
-                $entryDate = [DateTime]::ParseExact($this.TimeEntry.Date, "yyyyMMdd", $null)
-                $this.DateTextBox.Text = $entryDate.ToString("MM/dd/yyyy")
-            } catch {
-                $this.DateTextBox.Text = (Get-Date).ToString("MM/dd/yyyy")
+            # Use the date from time entry if available
+            if ($this.TimeEntry.Date) {
+                if ($this.TimeEntry.Date -is [DateTime]) {
+                    $this.DateTextBox.Text = $this.TimeEntry.Date.ToString("MM/dd/yyyy")
+                } else {
+                    # Try to parse string date
+                    try {
+                        $entryDate = [DateTime]::ParseExact($this.TimeEntry.Date, "yyyyMMdd", $null)
+                        $this.DateTextBox.Text = $entryDate.ToString("MM/dd/yyyy")
+                    } catch {
+                        $this.DateTextBox.Text = (Get-Date).ToString("MM/dd/yyyy")
+                    }
+                }
             }
         }
+        $this.AddContentControl($this.DateTextBox, 1)
         
         $this.HoursTextBox = [MinimalTextBox]::new()
-        $this.HoursTextBox.ShowBorder = $true
+        $this.HoursTextBox.ShowBorder = $false
         $this.HoursTextBox.Placeholder = "Hours (e.g., 8.5)"
+        $this.HoursTextBox.Height = 1
         
-        if ($this.IsEditMode -and $this.TimeEntry.Total) {
-            $this.HoursTextBox.Text = $this.TimeEntry.Total
+        if ($this.IsEditMode -and $this.TimeEntry.Hours) {
+            $this.HoursTextBox.Text = $this.TimeEntry.Hours.ToString()
         }
+        $this.AddContentControl($this.HoursTextBox, 2)
         
         $this.DescriptionTextBox = [MinimalTextBox]::new()
-        $this.DescriptionTextBox.ShowBorder = $true
-        $this.DescriptionTextBox.IsMultiline = $true
+        $this.DescriptionTextBox.ShowBorder = $false
+        $this.DescriptionTextBox.Placeholder = "Description (optional)"
+        $this.DescriptionTextBox.Height = 3
         
         if ($this.IsEditMode -and $this.TimeEntry.Description) {
             $this.DescriptionTextBox.Text = $this.TimeEntry.Description
         }
+        $this.AddContentControl($this.DescriptionTextBox, 3)
         
-        # Create buttons
-        $saveText = if ($this.IsEditMode) { "Update Entry" } else { "Add Entry" }
-        $this.SaveButton = [MinimalButton]::new($saveText)
-        $this.SaveButton.IsDefault = $true
-        $this.SaveButton.OnClick = { $this.HandleSave() }
+        # Set up primary action
+        $dialog = $this
+        $this.OnPrimary = {
+            # Validate inputs
+            $validationError = $dialog.ValidateInputs()
+            if ($validationError) {
+                # TODO: Show error dialog
+                return
+            }
+            
+            # Create time entry data
+            $timeEntryData = $dialog.CreateTimeEntryData()
+            
+            # Save using TimeTrackingService
+            if ($dialog.TimeService) {
+                if ($dialog.IsEditMode) {
+                    $dialog.TimeService.UpdateTimeEntry($timeEntryData)
+                } else {
+                    $dialog.TimeService.AddTimeEntry($timeEntryData)
+                }
+            }
+            
+            # Call legacy callback if set
+            if ($dialog.OnSave) {
+                & $dialog.OnSave $timeEntryData
+            }
+            
+            # Publish event if EventBus available
+            if ($dialog.EventBus) {
+                $eventName = if ($dialog.IsEditMode) { 'timeentry.updated' } else { 'timeentry.created' }
+                $dialog.EventBus.Publish($eventName, @{ 
+                    TimeEntry = $timeEntryData 
+                })
+            }
+        }.GetNewClosure()
         
-        $this.CancelButton = [MinimalButton]::new("Cancel")
-        $this.CancelButton.OnClick = { $this.HandleCancel() }
-        
-        # Add children
-        $this.AddChild($this.DateTextBox)
-        $this.AddChild($this.HoursTextBox)
-        $this.AddChild($this.DescriptionTextBox)
-        $this.AddChild($this.SaveButton)
-        $this.AddChild($this.CancelButton)
-        
-        # Set initial focus
-        $this.DateTextBox.Focus()
+        # Set up secondary action
+        $this.OnSecondary = {
+            # Call legacy callback if set
+            if ($dialog.OnCancel) {
+                & $dialog.OnCancel
+            }
+        }.GetNewClosure()
     }
     
-    [void] OnBoundsChanged() {
-        # Layout: Stack inputs vertically with buttons at bottom
-        $margin = 2
-        $buttonHeight = 3
-        $inputHeight = 3
-        $descriptionHeight = 5
+    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
+        # Custom positioning for time entry fields
+        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+        $currentY = $dialogY + 2
         
-        $currentY = $this.Y + $margin
-        $inputWidth = $this.Width - ($margin * 2)
+        # Date field
+        $this.DateTextBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
+        $currentY += 2
         
-        # Date input
-        $this.DateTextBox.SetBounds(
-            $this.X + $margin,
-            $currentY,
-            $inputWidth,
-            $inputHeight
-        )
-        $currentY += $inputHeight + 1
+        # Hours field
+        $this.HoursTextBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
+        $currentY += 2
         
-        # Hours input
-        $this.HoursTextBox.SetBounds(
-            $this.X + $margin,
-            $currentY,
-            $inputWidth,
-            $inputHeight
-        )
-        $currentY += $inputHeight + 1
-        
-        # Description input (taller)
-        $this.DescriptionTextBox.SetBounds(
-            $this.X + $margin,
-            $currentY,
-            $inputWidth,
-            $descriptionHeight
-        )
-        $currentY += $descriptionHeight + 2
-        
-        # Buttons at bottom
-        $buttonWidth = 15
-        $buttonSpacing = 4
-        $totalButtonWidth = ($buttonWidth * 2) + $buttonSpacing
-        $buttonStartX = $this.X + [int](($this.Width - $totalButtonWidth) / 2)
-        $buttonY = $this.Y + $this.Height - $buttonHeight - 1
-        
-        $this.SaveButton.SetBounds(
-            $buttonStartX,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
-        
-        $this.CancelButton.SetBounds(
-            $buttonStartX + $buttonWidth + $buttonSpacing,
-            $buttonY,
-            $buttonWidth,
-            $buttonHeight
-        )
-    }
-    
-    [void] HandleSave() {
-        # Validate inputs
-        $validationError = $this.ValidateInputs()
-        if ($validationError) {
-            # In a real implementation, show error dialog
-            # For now, just return
-            return
-        }
-        
-        # Create time entry data
-        $timeEntryData = $this.CreateTimeEntryData()
-        
-        if ($this.OnSave) {
-            & $this.OnSave $timeEntryData
-        }
-    }
-    
-    [void] HandleCancel() {
-        if ($this.OnCancel) {
-            & $this.OnCancel
-        }
+        # Description field (taller)
+        $this.DescriptionTextBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 3)
     }
     
     [string] ValidateInputs() {
         # Validate date
-        $dateStr = $this.DateTextBox.Text.Trim()
-        if ([string]::IsNullOrEmpty($dateStr)) {
+        if (-not $this.DateTextBox.Text) {
             return "Date is required"
         }
         
         try {
-            [DateTime]::Parse($dateStr) | Out-Null
+            [DateTime]::Parse($this.DateTextBox.Text) | Out-Null
         } catch {
             return "Invalid date format. Use MM/DD/YYYY"
         }
         
         # Validate hours
-        $hoursStr = $this.HoursTextBox.Text.Trim()
-        if ([string]::IsNullOrEmpty($hoursStr)) {
-            return "Hours is required"
+        if (-not $this.HoursTextBox.Text) {
+            return "Hours are required"
         }
         
-        $hours = 0.0
-        if (-not [double]::TryParse($hoursStr, [ref]$hours) -or $hours -le 0) {
-            return "Hours must be a positive number"
+        try {
+            $hours = [decimal]::Parse($this.HoursTextBox.Text)
+            if ($hours -le 0 -or $hours -gt 24) {
+                return "Hours must be between 0 and 24"
+            }
+        } catch {
+            return "Invalid hours format. Use a number like 8 or 8.5"
         }
         
-        return $null  # No validation errors
+        return $null
     }
     
     [PSCustomObject] CreateTimeEntryData() {
-        # Parse and format date to YYYYMMDD
-        $entryDate = [DateTime]::Parse($this.DateTextBox.Text.Trim())
-        $internalDate = $entryDate.ToString("yyyyMMdd")
+        $date = [DateTime]::Parse($this.DateTextBox.Text)
+        $hours = [decimal]::Parse($this.HoursTextBox.Text)
         
-        # Parse hours
-        $hours = [double]::Parse($this.HoursTextBox.Text.Trim())
-        
-        # Get day of week for hour distribution
-        $dayOfWeek = $entryDate.DayOfWeek
-        
-        # Create time entry following tracker.txt structure
-        $newTimeEntry = [PSCustomObject]@{
-            Date = $internalDate
-            Nickname = $this.Project.Nickname
-            ID1 = if ($this.Project.ID1) { $this.Project.ID1 } else { "" }
-            ID2 = $this.FormatID2($this.Project.ID2)
-            MonHours = if ($dayOfWeek -eq "Monday") { $hours.ToString("F2") } else { "" }
-            TueHours = if ($dayOfWeek -eq "Tuesday") { $hours.ToString("F2") } else { "" }
-            WedHours = if ($dayOfWeek -eq "Wednesday") { $hours.ToString("F2") } else { "" }
-            ThuHours = if ($dayOfWeek -eq "Thursday") { $hours.ToString("F2") } else { "" }
-            FriHours = if ($dayOfWeek -eq "Friday") { $hours.ToString("F2") } else { "" }
-            Total = $hours.ToString("F2")
-            Description = $this.DescriptionTextBox.Text.Trim()
-        }
-        
-        return $newTimeEntry
-    }
-    
-    [string] FormatID2([string]$id2) {
-        # Format ID2 with V0 prefix, S suffix, padded to 12 characters
-        # Following tracker.txt format
-        if ([string]::IsNullOrWhiteSpace($id2)) {
-            return ""
-        }
-        
-        $id2Text = $id2.Trim()
-        $paddingNeeded = 12 - ($id2Text.Length + 2)
-        
-        if ($paddingNeeded > 0) {
-            return "V" + ("0" * $paddingNeeded) + $id2Text + "S"
+        if ($this.IsEditMode) {
+            # Update existing entry
+            $this.TimeEntry.Date = $date
+            $this.TimeEntry.Hours = $hours
+            $this.TimeEntry.Description = $this.DescriptionTextBox.Text
+            return $this.TimeEntry
         } else {
-            return "V" + $id2Text + "S"
-        }
-    }
-    
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::Enter) {
-                if ($keyInfo.Modifiers -band [ConsoleModifiers]::Control) {
-                    $this.HandleSave()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::Escape) {
-                $this.HandleCancel()
-                return $true
-            }
-            ([System.ConsoleKey]::Tab) {
-                # Handle tab navigation between fields
-                $focused = $this.FindFocused()
-                if ($focused -eq $this.DateTextBox) {
-                    $this.HoursTextBox.Focus()
-                } elseif ($focused -eq $this.HoursTextBox) {
-                    $this.DescriptionTextBox.Focus()
-                } elseif ($focused -eq $this.DescriptionTextBox) {
-                    $this.SaveButton.Focus()
-                } else {
-                    $this.DateTextBox.Focus()
-                }
-                return $true
+            # Create new entry
+            return [PSCustomObject]@{
+                Id = [Guid]::NewGuid().ToString()
+                ProjectId = $this.Project.Id
+                ProjectName = $this.Project.FullProjectName
+                Date = $date
+                Hours = $hours
+                Description = $this.DescriptionTextBox.Text
+                CreatedAt = [DateTime]::Now
+                UpdatedAt = [DateTime]::Now
             }
         }
-        
-        # Let base class handle other input
-        return $false
     }
 }

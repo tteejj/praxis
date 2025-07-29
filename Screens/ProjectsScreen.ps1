@@ -5,6 +5,7 @@ class ProjectsScreen : Screen {
     # Buttons removed - using keyboard shortcuts only
     [ProjectService]$ProjectService
     [EventBus]$EventBus
+    [ProjectCommandHandler]$CommandHandler
     hidden [hashtable]$EventSubscriptions = @{}
     
     # Layout - buttons removed
@@ -17,6 +18,7 @@ class ProjectsScreen : Screen {
         # Get services
         $this.ProjectService = $global:ServiceContainer.GetService("ProjectService")
         $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+        $this.CommandHandler = [ProjectCommandHandler]::new($global:ServiceContainer)
         
         # Subscribe to events
         if ($this.EventBus) {
@@ -64,9 +66,12 @@ class ProjectsScreen : Screen {
         
         # Create MinimalDataGrid with columns
         $this.ProjectGrid = [MinimalDataGrid]::new()
-        $this.ProjectGrid.Title = "Projects"
-        $this.ProjectGrid.ShowBorder = $false  # MainScreen draws the border
-        $this.ProjectGrid.BorderType = [BorderType]::None
+        $this.ProjectGrid.Title = ""  # Don't show title in grid since screen has title
+        $this.ProjectGrid.ShowBorder = $true   # Show border but with no horizontal lines
+        $this.ProjectGrid.BorderType = [BorderType]::Rounded
+        $this.ProjectGrid.ShowTitle = $false  # Disable title rendering
+        
+        $this.ProjectGrid.ShowGridLines = $false
         
         # Define columns with proper formatting
         $columns = @(
@@ -239,6 +244,9 @@ class ProjectsScreen : Screen {
             $global:Logger.Debug("ProjectsScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
         }
         
+        # Only update bounds if ProjectGrid exists
+        if (-not $this.ProjectGrid) { return }
+        
         # Grid takes full space now that buttons are removed
         $this.ProjectGrid.SetBounds(
             $this.X, 
@@ -401,9 +409,7 @@ class ProjectsScreen : Screen {
     
     # Override HandleScreenInput instead of HandleInput to work with base Screen class
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
-        if ($global:Logger) {
-            $global:Logger.Debug("ProjectsScreen.HandleScreenInput: Key=$($key.Key) Char='$($key.KeyChar)'")
-        }
+        # Debug logging disabled for performance
         
         # Screen-specific shortcuts - only called as fallback by base Screen class
         # Handle Enter key
@@ -412,20 +418,20 @@ class ProjectsScreen : Screen {
             return $true
         }
         
+        # Handle Space key for context popup - check both Key and Char
+        if ($key.Key -eq [System.ConsoleKey]::Spacebar -or $key.KeyChar -eq ' ') {
+            $this.ShowContextPopup()
+            return $true
+        }
+        
         # Handle character shortcuts using KeyChar
         if (-not $key.Modifiers) {
             switch ($key.KeyChar) {
                 'n' {
-                    if ($global:Logger) {
-                        $global:Logger.Debug("ProjectsScreen: 'n' key pressed, calling NewProject")
-                    }
                     $this.NewProject()
                     return $true
                 }
                 'e' {
-                    if ($global:Logger) {
-                        $global:Logger.Debug("ProjectsScreen: 'e' key pressed, calling EditProject")
-                    }
                     $this.EditProject()
                     return $true
                 }
@@ -434,9 +440,6 @@ class ProjectsScreen : Screen {
                     return $true
                 }
                 'd' {
-                    if ($global:Logger) {
-                        $global:Logger.Debug("ProjectsScreen: 'd' key pressed, calling DeleteProject")
-                    }
                     $this.DeleteProject()
                     return $true
                 }
@@ -449,5 +452,74 @@ class ProjectsScreen : Screen {
         
         # If no shortcut matched, return false (let base Screen handle it)
         return $false
+    }
+    
+    [void] ShowContextPopup() {
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.ShowContextPopup: Creating context popup")
+        }
+        
+        # Get current selection position for popup positioning
+        $selectedIndex = if ($this.ProjectGrid.SelectedIndex -ge 0) { $this.ProjectGrid.SelectedIndex } else { 0 }
+        $gridY = $this.ProjectGrid.Y + $selectedIndex + 2  # +2 for header and border
+        $gridX = $this.ProjectGrid.X + ($this.ProjectGrid.Width / 2)
+        
+        # Create context menu items
+        $menuItems = @(
+            @{ Text = "New Project"; Action = { $this.NewProject() }.GetNewClosure() }
+            @{ Text = "Edit Project"; Action = { $this.EditProject() }.GetNewClosure() }
+            @{ Text = "Delete Project"; Action = { $this.DeleteProject() }.GetNewClosure() }
+            @{ Text = "View Details"; Action = { $this.ViewProjectDetails() }.GetNewClosure() }
+            @{ Text = "Refresh"; Action = { $this.LoadProjects() }.GetNewClosure() }
+            @{ Text = "Command Mode"; Action = { $this.ShowCommandMode() }.GetNewClosure() }
+        )
+        
+        # Create and show popup
+        $popup = [ContextPopup]::new("ProjectsScreen", $menuItems)
+        $popup.SetSourcePosition($gridX, $gridY)
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("ProjectsScreen.ShowContextPopup: Pushing popup to ScreenManager at position ($gridX, $gridY)")
+        }
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($popup)
+        } else {
+            if ($global:Logger) {
+                $global:Logger.Error("ProjectsScreen.ShowContextPopup: ScreenManager not available")
+            }
+        }
+    }
+    
+    [void] ShowCommandMode() {
+        # Show command palette with project context
+        if ($global:ScreenManager) {
+            $global:ScreenManager.ShowCommandPalette()
+        }
+    }
+    
+    [bool] ExecuteCommand([string]$commandText) {
+        if ([string]::IsNullOrEmpty($commandText) -or -not $commandText.StartsWith(':')) {
+            return $false
+        }
+        
+        try {
+            $command = [CommandParser]::ParseProjectCommand($commandText)
+            if (-not $command -or [string]::IsNullOrEmpty($command.Verb)) {
+                if ($global:Logger) {
+                    $global:Logger.Warning("ProjectsScreen: Failed to parse command: $commandText")
+                }
+                return $false
+            }
+            
+            # Execute through command handler
+            return $this.CommandHandler.ExecuteCommand($command)
+        }
+        catch {
+            if ($global:Logger) {
+                $global:Logger.Error("ProjectsScreen: Error executing command '$commandText': $_")
+            }
+            return $false
+        }
     }
 }

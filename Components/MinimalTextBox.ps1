@@ -45,9 +45,6 @@ class MinimalTextBox : FocusableComponent {
             $this._normalColor = $this.Theme.GetColor('input.foreground')
             $this._placeholderColor = $this.Theme.GetColor('input.placeholder')
             $this._cursorColor = $this.Theme.GetColor('color.primary')
-            if ($global:Logger) {
-                $global:Logger.Debug("MinimalTextBox.UpdateColors: _cursorColor='$($this._cursorColor)', _normalColor='$($this._normalColor)'")
-            }
         }
     }
     
@@ -71,23 +68,8 @@ class MinimalTextBox : FocusableComponent {
     [string] RenderContent() {
         $sb = Get-PooledStringBuilder 512
         
-        # Fill background if focused for better visibility
-        if ($this.IsFocused) {
-            $focusBg = $this.Theme.GetBgColor('state.focused')
-            if ($this.Height -eq 1) {
-                # Single line - just fill the line
-                $sb.Append([VT]::MoveTo($this.X, $this.Y))
-                $sb.Append($focusBg)
-                $sb.Append([StringCache]::GetSpaces($this.Width))
-            } else {
-                # Multi-line - fill all lines
-                for ($i = 0; $i -lt $this.Height; $i++) {
-                    $sb.Append([VT]::MoveTo($this.X, $this.Y + $i))
-                    $sb.Append($focusBg)
-                    $sb.Append([StringCache]::GetSpaces($this.Width))
-                }
-            }
-        }
+        # Skip background fill to ensure text visibility
+        # The dialog already provides background
         
         # Render border if enabled OR if focused
         if ($this.ShowBorder -or $this.IsFocused) {
@@ -142,17 +124,18 @@ class MinimalTextBox : FocusableComponent {
             $displayText = $displayText.PadRight($availableWidth)
         }
         
-        # Render text
+        # Render text with proper color
         if ($this.Text.Length -eq 0 -and -not $this.IsFocused) {
             # Placeholder is already colored
         } else {
+            # Ensure we have a visible color
+            if (-not $this._normalColor) {
+                $this._normalColor = $this.Theme.GetColor('text.primary')
+            }
             $sb.Append($this._normalColor)
         }
         
         if ($this.IsFocused) {
-            if ($global:Logger) {
-                $global:Logger.Debug("MinimalTextBox.RenderContent: IsFocused=true, _showCursor=$($this._showCursor), cursorPos=$($this._cursorPosition), viewportStart=$($this._viewportStart)")
-            }
             # Show text with cursor
             $cursorPos = $this._cursorPosition - $this._viewportStart
             if ($cursorPos -ge 0 -and $cursorPos -le $displayText.Length) {
@@ -187,6 +170,9 @@ class MinimalTextBox : FocusableComponent {
         } else {
             $sb.Append($displayText)
         }
+        
+        # Reset colors to prevent bleed
+        $sb.Append([VT]::Reset())
 
         $result = $sb.ToString()
         Return-PooledStringBuilder $sb

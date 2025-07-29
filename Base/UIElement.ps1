@@ -111,6 +111,7 @@ class UIElement {
             return  # No change
         }
         
+        
         $this.X = $x
         $this.Y = $y
         $this.Width = $width

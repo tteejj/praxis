@@ -10,10 +10,6 @@ class TestScreen : Screen {
     }
     
     [void] OnInitialize() {
-        if ($global:Logger) {
-            $global:Logger.Debug("TestScreen.OnInitialize: $($this.Title)")
-        }
-        
         # No more BindKey - use HandleScreenInput instead
         
         # Don't rebuild content here - wait until we have bounds
@@ -81,10 +77,6 @@ class TestScreen : Screen {
     }
     
     [string] OnRender() {
-        if ($global:Logger) {
-            $global:Logger.Debug("TestScreen.OnRender: Bounds X=$($this.X) Y=$($this.Y) W=$($this.Width) H=$($this.Height)")
-        }
-        
         # Check if we need to rebuild
         if ([string]::IsNullOrEmpty($this._cachedContent)) {
             $this.RebuildContent()

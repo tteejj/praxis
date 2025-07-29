@@ -19,13 +19,13 @@ class FocusableComponent : Container {
         # Get theme manager for colors
         $this.Theme = $this.ServiceContainer.GetService('ThemeManager')
         if ($this.Theme) {
-            $this.UpdateFocusStyle()
+            $this.ApplyCompleteTheme()
             # Subscribe to theme changes via EventBus
             $eventBus = $this.ServiceContainer.GetService('EventBus')
             if ($eventBus) {
                 $eventBus.Subscribe('theme.changed', {
                     param($sender, $eventData)
-                    $this.UpdateFocusStyle()
+                    $this.ApplyCompleteTheme()
                 }.GetNewClosure())
             }
         }
@@ -54,6 +54,39 @@ class FocusableComponent : Container {
                 $this._focusSuffix = "" 
             }
         }
+    }
+    
+    # Island Components Theme Interface - Standard method for complete theme application
+    [void] ApplyCompleteTheme() {
+        if (-not $this.Theme) { return }
+        
+        # Update focus styling first
+        $this.UpdateFocusStyle()
+        
+        # Pre-cache all theme colors that this component might use
+        $this.CacheThemeColors()
+        
+        # Mark for complete re-render
+        $this.Invalidate()
+        
+        # Propagate to children for island components
+        foreach ($child in $this.Children) {
+            if ($child -is [FocusableComponent]) {
+                $child.ApplyCompleteTheme()
+            }
+        }
+    }
+    
+    # Override in derived classes to cache component-specific theme colors
+    [void] CacheThemeColors() {
+        # Base implementation - derived classes should override
+        # Example implementation pattern:
+        # $this._colors = @{
+        #     primary = $this.Theme.GetColor('text.primary')
+        #     secondary = $this.Theme.GetColor('text.secondary')
+        #     background = $this.Theme.GetBgColor('surface.background')
+        #     border = $this.Theme.GetColor('border.normal')
+        # }
     }
     
     # Render with focus indication
@@ -94,7 +127,7 @@ class FocusableComponent : Container {
         # Top border
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
         $sb.Append($this._focusPrefix)
-        $sb.Append('─' * $this.Width)
+        $sb.Append(' ' * $this.Width)
         
         # Side borders (minimal - just corners)
         $sb.Append([VT]::MoveTo($this.X, $this.Y))
@@ -105,7 +138,7 @@ class FocusableComponent : Container {
         # Bottom border
         $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Height - 1))
         $sb.Append('└')
-        $sb.Append('─' * ($this.Width - 2))
+        $sb.Append(' ' * ($this.Width - 2))
         $sb.Append('┘')
         $sb.Append($this._focusSuffix)
         

@@ -152,5 +152,19 @@
     "CreatedAt": "2025-07-22T22:53:32.1775757-06:00",
     "UpdatedAt": "2025-07-22T22:53:32.1775757-06:00",
     "Deleted": false
+  },
+  {
+    "Title": "new",
+    "Description": "desc",
+    "Status": 0,
+    "Priority": 1,
+    "Progress": 0,
+    "ProjectId": "",
+    "Tags": [],
+    "DueDate": "0001-01-01T00:00:00",
+    "Id": "3b27381f-8be6-4b58-ae67-5cd46afbe4e1",
+    "CreatedAt": "2025-07-29T00:04:04.4845543-06:00",
+    "UpdatedAt": "2025-07-29T00:04:04.4845543-06:00",
+    "Deleted": false
   }
 ]

@@ -1,485 +1,733 @@
-# MinimalDataGrid.ps1 - Clean, minimalist data grid component
+# MinimalDataGrid.ps1 - High-performance table with connected borders and all features
 
 class MinimalDataGrid : FocusableComponent {
+    # Public properties
     [System.Collections.Generic.List[object]]$Items
     [System.Collections.Generic.List[GridColumn]]$Columns
     [int]$SelectedIndex = -1
     [string]$Title = ""
     [bool]$ShowBorder = $true
-    [bool]$ShowTitle = $true  # Show title even without border
+    [BorderType]$BorderType = [BorderType]::Rounded
+    [bool]$ShowTitle = $true
     [bool]$ShowHeader = $true
-    [bool]$ShowGridLines = $false  # Minimal style - no grid lines by default
-    [bool]$ShowColumnSeparators = $true  # Show vertical separators between columns
+    [bool]$ShowGridLines = $false
+    [bool]$ShowColumnSeparators = $true
     [bool]$ShowRowNumbers = $false
     [bool]$AlternateRowColors = $false
-    [BorderType]$BorderType = [BorderType]::Rounded
+    [int]$RowSpacing = 0  # Extra lines between rows
+    [scriptblock]$OnItemSelected = $null
     
-    # Selection callback
-    [scriptblock]$OnItemSelected = {}
-    
-    # Scrolling
+    # Layout properties
+    hidden [int]$_contentX
+    hidden [int]$_contentY
+    hidden [int]$_contentWidth
+    hidden [int]$_contentHeight
+    hidden [int]$_headerY
+    hidden [int]$_dataY
     hidden [int]$_scrollOffset = 0
-    hidden [int]$_viewportHeight = 0
-    hidden [int]$_headerHeight = 0
+    hidden [int]$_viewportRows = 0
+    hidden [int]$_titleHeight = 0
     
-    # Cached rendering
+    # Cached colors - pre-computed ANSI sequences
+    hidden [hashtable]$_colors = @{}
+    hidden [ThemeManager]$Theme
+    hidden [hashtable]$_borderChars = @{}
+    
+    # Track previous bounds to know when to clear
+    hidden [int]$_lastX = -1
+    hidden [int]$_lastY = -1
+    hidden [int]$_lastWidth = -1
+    hidden [int]$_lastHeight = -1
+    
+    # Cached render components
     hidden [string]$_cachedHeader = ""
     hidden [bool]$_headerInvalid = $true
-    
-    # Colors
-    hidden [hashtable]$_colors = @{}
+    hidden [string]$_cachedRows = ""
+    hidden [bool]$_rowsInvalid = $true
+    hidden [int]$_lastItemCount = -1
+    hidden [int]$_lastSelectedIndex = -1
     
     MinimalDataGrid() : base() {
         $this.Items = [System.Collections.Generic.List[object]]::new()
         $this.Columns = [System.Collections.Generic.List[GridColumn]]::new()
-        $this.FocusStyle = 'minimal'
+        $this.IsFocusable = $true
+        $this._colors = @{}
     }
     
     [void] OnInitialize() {
         ([FocusableComponent]$this).OnInitialize()
-        $this.UpdateColors()
+        $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
         if ($this.Theme) {
-            # Subscribe to theme changes via EventBus
-            $eventBus = $this.ServiceContainer.GetService('EventBus')
-            if ($eventBus) {
-                $eventBus.Subscribe('theme.changed', {
-                    param($sender, $eventData)
-                    $this.UpdateColors()
-                    $this._headerInvalid = $true
-                }.GetNewClosure())
-            }
+            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            $this.OnThemeChanged()
         }
     }
     
-    [void] UpdateColors() {
+    [void] OnThemeChanged() {
+        $this.CacheThemeColors()
+        $this.Invalidate()
+    }
+    
+    [void] CacheThemeColors() {
         if ($this.Theme) {
             $this._colors = @{
+                border = $this.Theme.GetColor('border.normal')
+                background = $this.Theme.GetBgColor('surface.background')
                 header = $this.Theme.GetColor('list.header.text')
                 headerBg = $this.Theme.GetBgColor('list.header.background')
-                normal = $this.Theme.GetColor('text.primary')
-                selected = $this.Theme.GetColor('menu.text.selected')
+                text = $this.Theme.GetColor('text.primary')
+                selectedText = $this.Theme.GetColor('menu.text.selected')
                 selectedBg = $this.Theme.GetBgColor('menu.background.selected')
+                gridLine = $this.Theme.GetColor('border.faint')
+                focusIndicator = $this.Theme.GetColor('color.primary')
+                titleColor = $this.Theme.GetColor('color.primary')
                 alternate = $this.Theme.GetColor('text.disabled')
-                border = $this.Theme.GetColor('border.normal')
-                accent = $this.Theme.GetColor('color.primary')
+            }
+        }
+        
+        # Cache border characters
+        if ($this.BorderType -ne [BorderType]::None) {
+            $style = [BorderStyle]::Styles[$this.BorderType.ToString()]
+            if ($style) {
+                $this._borderChars = $style
             }
         }
     }
     
+    # Convenience method to add a single column
     [void] AddColumn([string]$name, [scriptblock]$valueGetter, [int]$width = 0) {
         $col = [GridColumn]::new()
         $col.Name = $name
+        $col.Header = $name
         $col.ValueGetter = $valueGetter
         $col.Width = $width
         $this.Columns.Add($col)
-        $this._headerInvalid = $true
-        $this.Invalidate()
-    }
-    
-    [void] SetItems([object[]]$items) {
-        $this.Items.Clear()
-        if ($items -and $items.Count -gt 0) {
-            $this.Items.AddRange($items)
-        }
-        
-        # Auto-size columns if needed
         $this.AutoSizeColumns()
-        
-        if ($this.SelectedIndex -ge $this.Items.Count) {
-            $this.SelectedIndex = $this.Items.Count - 1
-        }
-        
         $this.Invalidate()
     }
     
-    [void] SetColumns([hashtable[]]$columns) {
+    [void] SetColumns([array]$columns) {
         $this.Columns.Clear()
         foreach ($colDef in $columns) {
             $col = [GridColumn]::new()
             $col.Name = $colDef.Name
-            $col.Header = $colDef.Header
-            $col.Width = $colDef.Width
-            if ($colDef.ContainsKey('Getter')) {
-                $col.ValueGetter = $colDef.Getter
-            }
-            if ($colDef.ContainsKey('Formatter')) {
-                $col.Formatter = $colDef.Formatter
-            }
+            $col.Header = if ($colDef.Header) { $colDef.Header } else { $colDef.Name }
+            $col.Width = if ($colDef.Width) { $colDef.Width } else { 0 }
+            $col.Getter = if ($colDef.Getter) { $colDef.Getter } else { $null }
+            $col.ValueGetter = if ($colDef.Getter) { $colDef.Getter } else { $null }
+            $col.Formatter = if ($colDef.Formatter) { $colDef.Formatter } else { $null }
             $this.Columns.Add($col)
         }
+        $this.AutoSizeColumns()
         $this._headerInvalid = $true
         $this.Invalidate()
     }
     
-    [void] AutoSizeColumns() {
-        if ($this.Columns.Count -eq 0) { return }
-        
-        # Calculate available width
-        $availableWidth = $this.Width - 2  # Account for borders
-        if ($this.BorderType -ne [BorderType]::None) { $availableWidth -= 2 }
-        $availableWidth -= 3  # Selection column
-        if ($this.ShowRowNumbers) { $availableWidth -= 7 }
-        
-        # Calculate fixed column widths
-        $fixedWidth = 0
-        $flexibleColumns = @()
-        foreach ($col in $this.Columns) {
-            if ($col.Width -gt 0) {
-                $fixedWidth += $col.Width
-            } else {
-                $flexibleColumns += $col
+    [void] SetItems([array]$items) {
+        $this.Items.Clear()
+        if ($items) {
+            foreach ($item in $items) {
+                $this.Items.Add($item)
             }
         }
-        
-        # Account for column separators
-        if ($this.ShowColumnSeparators -and $this.Columns.Count -gt 1) {
-            $fixedWidth += ($this.Columns.Count - 1) * 3
+        if ($this.SelectedIndex -ge $this.Items.Count) {
+            $this.SelectedIndex = $this.Items.Count - 1
         }
+        $this.AutoSizeColumns()
+        $this._rowsInvalid = $true
+        $this._lastItemCount = $this.Items.Count
+        $this.Invalidate()
+    }
+    
+    [void] AutoSizeColumns() {
+        if ($this.Columns.Count -eq 0 -or $this._contentWidth -le 0) { return }
         
-        # Remaining width for flexible columns
-        $remainingWidth = $availableWidth - $fixedWidth
-        
-        # Calculate max width needed for each flexible column
-        foreach ($col in $flexibleColumns) {
-            $maxWidth = $col.Name.Length
-            foreach ($item in $this.Items) {
-                $value = ""
-                if ($col.ValueGetter) {
-                    $value = (& $col.ValueGetter $item).ToString()
-                } elseif ($col.Name -and $item.PSObject.Properties[$col.Name]) {
-                    $value = $item."$($col.Name)".ToString()
+        # First, calculate max content width for each column
+        foreach ($col in $this.Columns) {
+            $maxWidth = $col.Header.Length
+            # Only sample first few items for performance
+            $itemsToCheck = [Math]::Min($this.Items.Count, 20)
+            for ($i = 0; $i -lt $itemsToCheck; $i++) {
+                $item = $this.Items[$i]
+                $value = $this.GetColumnValue($item, $col)
+                if ($value) {
+                    $maxWidth = [Math]::Max($maxWidth, $value.Length)
                 }
-                $maxWidth = [Math]::Max($maxWidth, $value.Length)
             }
             $col.MaxContentWidth = $maxWidth
         }
         
-        # Distribute remaining width among flexible columns
-        if ($flexibleColumns.Count -gt 0 -and $remainingWidth -gt 0) {
+        # Calculate available width
+        $availableWidth = $this._contentWidth
+        if ($this.ShowRowNumbers) { $availableWidth -= 6 }
+        $availableWidth -= 3  # Selection indicator space
+        
+        # Calculate column separators space
+        if ($this.ShowColumnSeparators) {
+            $availableWidth -= ($this.Columns.Count - 1)
+        }
+        
+        # Auto-size columns with 0 width
+        $fixedWidth = 0
+        $flexColumns = @()
+        foreach ($col in $this.Columns) {
+            if ($col.Width -gt 0) {
+                $fixedWidth += $col.Width
+            } else {
+                $flexColumns += $col
+            }
+        }
+        
+        if ($flexColumns.Count -gt 0 -and $availableWidth -gt $fixedWidth) {
+            $remainingWidth = $availableWidth - $fixedWidth
+            
             # First pass: give each column its minimum needed width
             $totalNeeded = 0
-            foreach ($col in $flexibleColumns) {
+            foreach ($col in $flexColumns) {
                 $col.Width = [Math]::Max($col.Header.Length + 2, [Math]::Min($col.MaxContentWidth + 2, 30))
                 $totalNeeded += $col.Width
             }
             
-            # If we have extra space, distribute it proportionally
-            if ($totalNeeded -lt $remainingWidth) {
-                $extraSpace = $remainingWidth - $totalNeeded
-                # Give extra space to the first flexible column (usually the main content)
-                if ($flexibleColumns.Count -gt 0) {
-                    $flexibleColumns[0].Width += $extraSpace
-                }
-            } elseif ($totalNeeded -gt $remainingWidth) {
+            # Adjust if needed
+            if ($totalNeeded -gt $remainingWidth) {
                 # Need to shrink columns - distribute shrinkage proportionally
                 $shrinkFactor = $remainingWidth / $totalNeeded
-                foreach ($col in $flexibleColumns) {
+                foreach ($col in $flexColumns) {
                     $col.Width = [Math]::Max($col.Header.Length + 2, [int]($col.Width * $shrinkFactor))
                 }
             }
         }
     }
     
-    [string] RenderContent() {
-        if ($this.Columns.Count -eq 0) { return "" }
+    [void] OnBoundsChanged() {
+        $this.CalculateLayout()
+        $this.AutoSizeColumns()
+        $this._headerInvalid = $true
+        ([FocusableComponent]$this).OnBoundsChanged()
+    }
+    
+    [void] CalculateLayout() {
+        # Ensure we have valid bounds
+        if ($this.Width -le 0 -or $this.Height -le 0) {
+            return
+        }
         
-        $sb = Get-PooledStringBuilder 4096
+        # Calculate content area (inside border if present)
+        if ($this.ShowBorder -and $this.BorderType -ne [BorderType]::None) {
+            $this._contentX = $this.X + 1
+            $this._contentY = $this.Y + 1
+            $this._contentWidth = [Math]::Max(1, $this.Width - 2)
+            $this._contentHeight = [Math]::Max(1, $this.Height - 2)
+        } else {
+            $this._contentX = $this.X
+            $this._contentY = $this.Y
+            $this._contentWidth = [Math]::Max(1, $this.Width)
+            $this._contentHeight = [Math]::Max(1, $this.Height)
+        }
         
-        # Calculate viewport
-        $titleHeight = if ($this.ShowTitle -and $this.Title) { 1 } else { 0 }
-        $this._headerHeight = if ($this.ShowHeader) { 2 } else { 0 }
-        $borderInset = if ($this.BorderType -ne [BorderType]::None) { 2 } else { 0 }
-        $this._viewportHeight = $this.Height - $this._headerHeight - $borderInset - $titleHeight
+        # Calculate vertical positions
+        $currentY = $this._contentY
         
-        # Ensure scroll is valid
-        $this.EnsureSelectedVisible()
+        # Title height (rounded box takes 1 line)
+        if ($this.ShowTitle -and $this.Title) {
+            $this._titleHeight = 1
+            $currentY += $this._titleHeight
+        } else {
+            $this._titleHeight = 0
+        }
         
-        # Current Y position for rendering
-        $currentY = $this.Y
-        
-        # Render border if enabled
-        if ($this.BorderType -ne [BorderType]::None) {
-            $color = if ($this.IsFocused) { $this._colors.accent } else { $this._colors.border }
-            if ($this.ShowTitle -and $this.Title) {
-                $sb.Append([BorderStyle]::RenderBorderWithTitle(
-                    $this.X, $this.Y, $this.Width, $this.Height,
-                    $this.BorderType, $color,
-                    $this.Title, $color  # Using same color for title
-                ))
-            } else {
-                $sb.Append([BorderStyle]::RenderBorder(
-                    $this.X, $this.Y, $this.Width, $this.Height,
-                    $this.BorderType, $color
-                ))
-            }
+        # Header
+        if ($this.ShowHeader) {
+            $this._headerY = $currentY
+            $currentY++
+            # Always show header separator for connected table look
             $currentY++
         }
         
+        # Data starts here
+        $this._dataY = $currentY
         
-        # Render header
-        if ($this.ShowHeader) {
-            if ($this._headerInvalid) {
-                $this.RebuildHeader($currentY)
-            }
-            $sb.Append($this._cachedHeader)
+        # Calculate viewport rows
+        $rowHeight = 1 + $this.RowSpacing
+        if ($this.ShowGridLines) { $rowHeight++ }
+        
+        $remainingHeight = $this._contentY + $this._contentHeight - $this._dataY
+        $this._viewportRows = [Math]::Max(0, [Math]::Floor($remainingHeight / $rowHeight))
+    }
+    
+    [string] OnRender() {
+        # Check if we have valid colors first
+        if (-not $this._colors -or $this._colors.Count -eq 0) {
+            return ""
         }
         
-        # Render rows
-        $startY = $currentY + $this._headerHeight
+        # Use larger buffer for better performance
+        $sb = Get-PooledStringBuilder 8192
         
-        $endIndex = [Math]::Min($this._scrollOffset + $this._viewportHeight, $this.Items.Count)
+        try {
+            # Clear the area if bounds changed
+            if ($this._cachedClear -and $this._cachedClear.Length -gt 0) {
+                [void]$sb.Append($this._cachedClear)
+            }
+            
+            # Draw border if enabled
+            if ($this.ShowBorder -and $this.BorderType -ne [BorderType]::None -and $this._colors.border) {
+                # Adjust border top if we have a title
+                if ($this.ShowTitle -and $this.Title) {
+                    # Draw custom border with title integration
+                    $this.RenderBorderWithTitle($sb)
+                } else {
+                    # Standard border
+                    $borderStr = [BorderStyle]::RenderBorder(
+                        $this.X, $this.Y, $this.Width, $this.Height,
+                        $this.BorderType, $this._colors.border
+                    )
+                    [void]$sb.Append($borderStr)
+                }
+            }
+            
+            # Draw header if enabled
+            if ($this.ShowHeader) {
+                if ($this._headerInvalid) {
+                    $this._cachedHeader = $this.BuildHeaderString()
+                    $this._headerInvalid = $false
+                }
+                [void]$sb.Append($this._cachedHeader)
+            }
+            
+            # Draw data rows with caching
+            if ($this._rowsInvalid -or $this._lastSelectedIndex -ne $this.SelectedIndex -or 
+                $this._lastItemCount -ne $this.Items.Count) {
+                $rowBuilder = Get-PooledStringBuilder 4096
+                try {
+                    $this.RenderDataRows($rowBuilder)
+                    $this._cachedRows = $rowBuilder.ToString()
+                    $this._rowsInvalid = $false
+                    $this._lastSelectedIndex = $this.SelectedIndex
+                    $this._lastItemCount = $this.Items.Count
+                }
+                finally {
+                    Return-PooledStringBuilder $rowBuilder
+                }
+            }
+            [void]$sb.Append($this._cachedRows)
+            
+            # Draw scrollbar if needed
+            if ($this.Items.Count -gt $this._viewportRows -and $this._viewportRows -gt 0) {
+                $this.RenderScrollbar($sb)
+            }
+            
+            $result = $sb.ToString()
+            return $result
+        }
+        finally {
+            Return-PooledStringBuilder $sb
+        }
+    }
+    
+    [void] RenderBorderWithTitle([System.Text.StringBuilder]$sb) {
+        # Draw standard border
+        $borderStr = [BorderStyle]::RenderBorder(
+            $this.X, $this.Y, $this.Width, $this.Height,
+            $this.BorderType, $this._colors.border
+        )
+        [void]$sb.Append($borderStr)
+        
+        # Add title to top border
+        if ($this.Title -and $this.Title.Length -gt 0) {
+            $titleText = " $($this.Title) "
+            $titleX = $this.X + 2
+            [void]$sb.Append([VT]::MoveTo($titleX, $this.Y))
+            [void]$sb.Append($this._colors.titleColor)
+            [void]$sb.Append($titleText)
+        }
+        return
+        
+    }
+    
+    [string] BuildHeaderString() {
+        $sb = Get-PooledStringBuilder 512
+        try {
+            $this.RenderHeader($sb)
+            return $sb.ToString()
+        }
+        finally {
+            Return-PooledStringBuilder $sb
+        }
+    }
+    
+    [void] RenderHeader([System.Text.StringBuilder]$sb) {
+        if ($this.Columns.Count -eq 0 -or $this._headerY -eq 0) { return }
+        
+        $y = $this._headerY
+        $x = $this._contentX
+        
+        # Header background
+        [void]$sb.Append([VT]::MoveTo($x, $y))
+        if ($this._colors.headerBg) {
+            [void]$sb.Append($this._colors.headerBg)
+        }
+        if ($this._colors.header) {
+            [void]$sb.Append($this._colors.header)
+        }
+        
+        # Row number column
+        if ($this.ShowRowNumbers) {
+            [void]$sb.Append("  #   ")
+        }
+        
+        # Selection indicator space
+        [void]$sb.Append("   ")
+        
+        # Column headers - check for overflow
+        $currentX = 3  # Selection indicator
+        if ($this.ShowRowNumbers) { $currentX += 6 }
+        
+        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
+            $col = $this.Columns[$i]
+            
+            # Check if this column would overflow
+            $neededWidth = $col.Width
+            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
+                $neededWidth += 1  # For separator
+            }
+            
+            if (($currentX + $neededWidth) -gt $this._contentWidth) {
+                # Column would overflow - stop rendering
+                break
+            }
+            
+            $header = $col.Header
+            
+            # Truncate if too long
+            if ($header.Length -gt $col.Width) {
+                $header = $header.Substring(0, [Math]::Max(1, $col.Width - 1)) + "…"
+            }
+            
+            [void]$sb.Append($header.PadRight($col.Width))
+            
+            # Column separator
+            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
+                [void]$sb.Append($this._colors.gridLine)
+                [void]$sb.Append("│")
+                [void]$sb.Append($this._colors.header)
+            }
+            
+            $currentX += $neededWidth
+        }
+        
+        # Fill remaining space
+        $usedWidth = 3  # Selection indicator
+        if ($this.ShowRowNumbers) { $usedWidth += 6 }
+        foreach ($col in $this.Columns) {
+            $usedWidth += $col.Width
+        }
+        if ($this.ShowColumnSeparators) {
+            $usedWidth += ($this.Columns.Count - 1)
+        }
+        
+        $remainingWidth = $this._contentWidth - $usedWidth
+        if ($remainingWidth -gt 0) {
+            [void]$sb.Append([StringCache]::GetSpaces($remainingWidth))
+        }
+        
+        # Header separator line that connects to borders
+        $y++
+        [void]$sb.Append([VT]::MoveTo($this.X, $y))
+        [void]$sb.Append($this._colors.gridLine)
+        
+        # Left T-junction
+        if ($this.ShowBorder -and $this.BorderType -ne [BorderType]::None) {
+            [void]$sb.Append($this._borderChars.LT)
+        } else {
+            [void]$sb.Append($this._borderChars.H)
+        }
+        
+        # Draw line with column intersections
+        $currentX = 1
+        if ($this.ShowRowNumbers) {
+            for ($i = 0; $i -lt 6; $i++) {
+                [void]$sb.Append($this._borderChars.H)
+            }
+            $currentX += 6
+        }
+        
+        # Selection space
+        for ($i = 0; $i -lt 3; $i++) {
+            [void]$sb.Append($this._borderChars.H)
+        }
+        $currentX += 3
+        
+        # Column lines with intersections - only for visible columns
+        $lineX = $currentX
+        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
+            $col = $this.Columns[$i]
+            
+            # Check if this column would overflow
+            $neededWidth = $col.Width
+            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
+                $neededWidth += 1
+            }
+            
+            if (($lineX + $neededWidth) -gt ($this.Width - 2)) {
+                # Would overflow - stop
+                break
+            }
+            
+            for ($j = 0; $j -lt $col.Width; $j++) {
+                [void]$sb.Append($this._borderChars.H)
+            }
+            
+            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
+                # Column intersection
+                [void]$sb.Append($this._borderChars.TT)
+            }
+            
+            $lineX += $neededWidth
+        }
+        
+        # Fill to right border
+        $remaining = $this.Width - $lineX - 1
+        for ($i = 0; $i -lt $remaining; $i++) {
+            [void]$sb.Append($this._borderChars.H)
+        }
+        
+        # Right T-junction
+        if ($this.ShowBorder -and $this.BorderType -ne [BorderType]::None) {
+            [void]$sb.Append($this._borderChars.RT)
+        } else {
+            [void]$sb.Append($this._borderChars.H)
+        }
+    }
+    
+    [void] RenderDataRows([System.Text.StringBuilder]$sb) {
+        if ($this.Items.Count -eq 0) { return }
+        
+        $endIndex = [Math]::Min($this._scrollOffset + $this._viewportRows, $this.Items.Count)
+        $rowHeight = 1 + $this.RowSpacing
+        if ($this.ShowGridLines) { $rowHeight++ }
         
         for ($i = $this._scrollOffset; $i -lt $endIndex; $i++) {
-            $y = $startY + ($i - $this._scrollOffset)
-            $this.RenderRow($sb, $i, $y)
-        }
-        
-        # Minimal scrollbar if needed
-        if ($this.Items.Count -gt $this._viewportHeight) {
-            $this.RenderScrollbar($sb)
-        }
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
-    }
-    
-    [void] RenderRow([System.Text.StringBuilder]$sb, [int]$index, [int]$y) {
-        $item = $this.Items[$index]
-        $x = $this.X + 1
-        if ($this.BorderType -ne [BorderType]::None) { $x++ }
-        
-        $sb.Append([VT]::MoveTo($x, $y))
-        
-        # Clear the entire row first with theme background
-        $bgColor = $this.Theme.GetBgColor('surface.background')
-        $rowWidth = $this.Width - 2
-        if ($this.BorderType -ne [BorderType]::None) { $rowWidth -= 2 }
-        $sb.Append($bgColor)
-        $sb.Append(' ' * $rowWidth)
-        $sb.Append([VT]::MoveTo($x, $y))
-        
-        # Row selection
-        if ($index -eq $this.SelectedIndex) {
-            $sb.Append($this._colors.selectedBg)
-            $sb.Append($this._colors.selected)
-            if ($this.IsFocused) {
-                $sb.Append('▸ ')
+            $item = $this.Items[$i]
+            $rowY = $this._dataY + (($i - $this._scrollOffset) * $rowHeight)
+            
+            # Row background
+            [void]$sb.Append([VT]::MoveTo($this._contentX, $rowY))
+            
+            # Determine colors
+            $bgColor = $this._colors.background
+            $textColor = $this._colors.text
+            
+            if ($i -eq $this.SelectedIndex) {
+                $bgColor = $this._colors.selectedBg
+                $textColor = $this._colors.selectedText
+            } elseif ($this.AlternateRowColors -and ($i % 2 -eq 1)) {
+                $textColor = $this._colors.alternate
+            }
+            
+            [void]$sb.Append($bgColor)
+            [void]$sb.Append($textColor)
+            
+            # Row number
+            if ($this.ShowRowNumbers) {
+                $rowNum = ($i + 1).ToString().PadLeft(5)
+                [void]$sb.Append($rowNum)
+                [void]$sb.Append(" ")
+            }
+            
+            # Selection indicator (3 spaces to match header)
+            if ($i -eq $this.SelectedIndex -and $this.IsFocused) {
+                [void]$sb.Append($this._colors.focusIndicator)
+                [void]$sb.Append("▸ ")
+                [void]$sb.Append($textColor)
             } else {
-                $sb.Append('  ')
+                [void]$sb.Append("   ")  # 3 spaces to match header
             }
-        } else {
-            # Ensure background color for normal rows
-            $sb.Append($bgColor)
-            # Alternate row colors
-            if ($this.AlternateRowColors -and ($index % 2 -eq 1)) {
-                $sb.Append($this._colors.alternate)
-            } else {
-                $sb.Append($this._colors.normal)
+            
+            # Column data - check for overflow
+            $dataX = 3  # Selection indicator
+            if ($this.ShowRowNumbers) { $dataX += 6 }
+            
+            for ($j = 0; $j -lt $this.Columns.Count; $j++) {
+                $col = $this.Columns[$j]
+                
+                # Check if this column would overflow
+                $neededWidth = $col.Width
+                if ($this.ShowColumnSeparators -and $j -lt ($this.Columns.Count - 1)) {
+                    $neededWidth += 1
+                }
+                
+                if (($dataX + $neededWidth) -gt $this._contentWidth) {
+                    # Column would overflow - stop rendering
+                    break
+                }
+                
+                $value = $this.GetColumnValue($item, $col)
+                
+                # Truncate if too long
+                if ($value.Length -gt $col.Width) {
+                    $value = $value.Substring(0, [Math]::Max(1, $col.Width - 1)) + "…"
+                }
+                
+                [void]$sb.Append($value.PadRight($col.Width))
+                
+                # Column separator
+                if ($this.ShowColumnSeparators -and $j -lt ($this.Columns.Count - 1)) {
+                    [void]$sb.Append($this._colors.gridLine)
+                    [void]$sb.Append("│")
+                    [void]$sb.Append($textColor)
+                }
+                
+                $dataX += $neededWidth
             }
-            $sb.Append('  ')
-        }
-        
-        # Row number if enabled
-        if ($this.ShowRowNumbers) {
-            $sb.Append(($index + 1).ToString().PadLeft(4))
-            $sb.Append(' │ ')
-        }
-        
-        # Render columns
-        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
-            $col = $this.Columns[$i]
-            $value = ""
-            if ($col.ValueGetter) {
-                $rawValue = & $col.ValueGetter $item
-                if ($col.Formatter) {
-                    $value = (& $col.Formatter $rawValue).ToString()
+            
+            # Fill remaining width
+            $usedWidth = 3  # Selection indicator
+            if ($this.ShowRowNumbers) { $usedWidth += 6 }
+            foreach ($col in $this.Columns) {
+                $usedWidth += $col.Width
+            }
+            if ($this.ShowColumnSeparators) {
+                $usedWidth += ($this.Columns.Count - 1)
+            }
+            
+            $remainingWidth = $this._contentWidth - $usedWidth
+            if ($remainingWidth -gt 0) {
+                [void]$sb.Append([StringCache]::GetSpaces($remainingWidth))
+            }
+            
+            # Reset colors to prevent bleed
+            [void]$sb.Append([VT]::Reset())
+            
+            # Row spacing - skip if 0 for performance
+            if ($this.RowSpacing -gt 0) {
+                for ($s = 1; $s -le $this.RowSpacing; $s++) {
+                    [void]$sb.Append([VT]::MoveTo($this._contentX, $rowY + $s))
+                    [void]$sb.Append($this._colors.background)
+                    [void]$sb.Append([StringCache]::GetSpaces($this._contentWidth))
+                }
+            }
+            
+            # Grid line below row (connected to borders)
+            if ($this.ShowGridLines -and $i -lt ($endIndex - 1)) {
+                $lineY = $rowY + 1 + $this.RowSpacing
+                [void]$sb.Append([VT]::MoveTo($this.X, $lineY))
+                [void]$sb.Append($this._colors.gridLine)
+                
+                # Left T-junction
+                if ($this.ShowBorder -and $this.BorderType -ne [BorderType]::None) {
+                    [void]$sb.Append($this._borderChars.LT)
                 } else {
-                    $value = if ($null -ne $rawValue) { $rawValue.ToString() } else { "" }
+                    [void]$sb.Append($this._borderChars.H)
                 }
-            } elseif ($col.Name -and $item.PSObject.Properties[$col.Name]) {
-                $rawValue = $item."$($col.Name)"
-                if ($col.Formatter) {
-                    $value = (& $col.Formatter $rawValue).ToString()
+                
+                # Draw line
+                for ($x = 0; $x -lt ($this.Width - 2); $x++) {
+                    [void]$sb.Append($this._borderChars.H)
+                }
+                
+                # Right T-junction
+                if ($this.ShowBorder -and $this.BorderType -ne [BorderType]::None) {
+                    [void]$sb.Append($this._borderChars.RT)
                 } else {
-                    $value = if ($null -ne $rawValue) { $rawValue.ToString() } else { "" }
+                    [void]$sb.Append($this._borderChars.H)
                 }
             }
-            
-            if ($col.Width -gt 1 -and $value.Length -gt $col.Width - 1) {
-                $maxLength = [Math]::Max(1, $col.Width - 2)
-                if ($value.Length -gt $maxLength) {
-                    $value = $value.Substring(0, $maxLength) + '…'
-                }
-            }
-            $sb.Append($value.PadRight($col.Width))
-            
-            # Add column separator if not last column
-            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
-                $sb.Append(' │ ')
-            }
         }
-        
-        # Clear to end of row
-        $remainingWidth = $this.Width - ($x - $this.X) - 2
-        if ($this.ShowRowNumbers) { $remainingWidth -= 7 }
-        foreach ($col in $this.Columns) { $remainingWidth -= $col.Width }
-        if ($this.ShowColumnSeparators -and $this.Columns.Count -gt 1) {
-            $remainingWidth -= ($this.Columns.Count - 1) * 3  # ' │ ' is 3 chars
-        }
-        if ($remainingWidth -gt 0) {
-            $sb.Append(' ' * $remainingWidth)
-        }
-    }
-    
-    [void] RebuildHeader([int]$startY) {
-        $sb = Get-PooledStringBuilder 512
-        
-        $x = $this.X + 1
-        $y = $startY
-        if ($this.BorderType -ne [BorderType]::None) { 
-            $x++
-        }
-        
-        # Header row
-        $sb.Append([VT]::MoveTo($x, $y))
-        $sb.Append($this._colors.headerBg)
-        $sb.Append($this._colors.header)
-        $sb.Append('   ')  # Selection column (3 spaces for alignment with "▸ ")
-        
-        if ($this.ShowRowNumbers) {
-            $sb.Append(' No. │ ')
-        }
-        
-        for ($i = 0; $i -lt $this.Columns.Count; $i++) {
-            $col = $this.Columns[$i]
-            $header = if ($col.Header) { $col.Header } else { $col.Name }
-            if ($header.Length -gt $col.Width) {
-                $header = $header.Substring(0, [Math]::Max(1, $col.Width - 1)) + '…'
-            }
-            $sb.Append($header.PadRight($col.Width))
-            
-            # Add column separator if not last column
-            if ($this.ShowColumnSeparators -and $i -lt ($this.Columns.Count - 1)) {
-                $sb.Append(' │ ')
-            }
-        }
-        
-        # Clear to end
-        $totalWidth = 3  # Selection column width (3 chars for "▸ " or "  ")
-        if ($this.ShowRowNumbers) { $totalWidth += 7 }
-        foreach ($col in $this.Columns) { $totalWidth += $col.Width }
-        if ($this.ShowColumnSeparators -and $this.Columns.Count -gt 1) {
-            $totalWidth += ($this.Columns.Count - 1) * 3  # ' │ ' is 3 chars
-        }
-        $remainingWidth = $this.Width - $totalWidth - 2
-        if ($this.BorderType -ne [BorderType]::None) { $remainingWidth -= 2 }
-
-        # Ensure remainingWidth is not negative before using it for multiplication
-        if ($remainingWidth -lt 0) {
-            $remainingWidth = 0
-        }
-
-        if ($remainingWidth -gt 0) {
-            $sb.Append(' ' * $remainingWidth)
-        }
-        
-        # Separator line - just a simple line, no T-junctions
-        $sb.Append([VT]::MoveTo($x, $y + 1))
-        $sb.Append($this._colors.border)
-        
-        # Draw separator line inside the border area
-        $separatorWidth = $this.Width - 2
-        if ($this.BorderType -ne [BorderType]::None) { 
-            $separatorWidth -= 2  # Account for side borders
-        }
-        if ($separatorWidth -gt 0) {
-            $sb.Append('─' * $separatorWidth)
-        }
-        
-        $this._cachedHeader = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        $this._headerInvalid = $false
     }
     
     [void] RenderScrollbar([System.Text.StringBuilder]$sb) {
-        $scrollbarX = $this.X + $this.Width - 1
-        if ($this.BorderType -ne [BorderType]::None) { $scrollbarX-- }
+        if ($this._viewportRows -le 0 -or $this.Items.Count -le 0) { return }
         
-        $scrollbarY = $this.Y + $this._headerHeight
-        if ($this.BorderType -ne [BorderType]::None) { $scrollbarY++ }
+        $scrollbarX = $this._contentX + $this._contentWidth - 1
+        $scrollbarHeight = $this._viewportRows
         
-        $scrollbarHeight = $this._viewportHeight
-        
-        # Calculate thumb
-        $thumbSize = [Math]::Max(1, [int]($scrollbarHeight * $scrollbarHeight / $this.Items.Count))
-        $thumbPos = [int]($this._scrollOffset * ($scrollbarHeight - $thumbSize) / ($this.Items.Count - $this._viewportHeight))
-        
-        $sb.Append($this._colors.border)
+        # Calculate thumb position and size
+        $thumbSize = [Math]::Max(1, [Math]::Floor($scrollbarHeight * $this._viewportRows / $this.Items.Count))
+        $thumbPos = [Math]::Floor($scrollbarHeight * $this._scrollOffset / $this.Items.Count)
         
         for ($i = 0; $i -lt $scrollbarHeight; $i++) {
-            $sb.Append([VT]::MoveTo($scrollbarX, $scrollbarY + $i))
+            $y = $this._dataY + $i
+            [void]$sb.Append([VT]::MoveTo($scrollbarX, $y))
+            
             if ($i -ge $thumbPos -and $i -lt ($thumbPos + $thumbSize)) {
-                $sb.Append('▐')
+                [void]$sb.Append($this._colors.focusIndicator)
+                [void]$sb.Append("█")
             } else {
-                $sb.Append('│')
+                [void]$sb.Append($this._colors.gridLine)
+                [void]$sb.Append("│")
             }
         }
     }
     
-    [void] EnsureSelectedVisible() {
-        if ($this.SelectedIndex -lt 0 -or $this.Items.Count -eq 0) { return }
+    [string] GetColumnValue([object]$item, [GridColumn]$col) {
+        $value = $null
         
-        if ($this.SelectedIndex -lt $this._scrollOffset) {
-            $this._scrollOffset = $this.SelectedIndex
-        } elseif ($this.SelectedIndex -ge ($this._scrollOffset + $this._viewportHeight)) {
-            $this._scrollOffset = $this.SelectedIndex - $this._viewportHeight + 1
+        if ($col.Getter -or $col.ValueGetter) {
+            $getter = if ($col.Getter) { $col.Getter } else { $col.ValueGetter }
+            $value = & $getter $item
+        } elseif ($item -is [hashtable] -and $item.ContainsKey($col.Name)) {
+            $value = $item[$col.Name]
+        } elseif ($item.PSObject.Properties[$col.Name]) {
+            $value = $item.($col.Name)
         }
         
-        $maxScroll = [Math]::Max(0, $this.Items.Count - $this._viewportHeight)
-        $this._scrollOffset = [Math]::Max(0, [Math]::Min($this._scrollOffset, $maxScroll))
+        if ($null -eq $value) { $value = "" }
+        
+        if ($col.Formatter) {
+            $value = & $col.Formatter $value
+        } else {
+            $value = $value.ToString()
+        }
+        
+        return $value
     }
     
-    [bool] OnHandleInput([System.ConsoleKeyInfo]$key) {
-        if ($this.Items.Count -eq 0) { return $false }
-        
-        $oldIndex = $this.SelectedIndex
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        $handled = $false
         
         switch ($key.Key) {
             ([System.ConsoleKey]::UpArrow) {
                 if ($this.SelectedIndex -gt 0) {
                     $this.SelectedIndex--
+                    $this.EnsureSelectedVisible()
+                    $this._rowsInvalid = $true
                     $this.Invalidate()
+                    $handled = $true
                 }
-                return $true
             }
             ([System.ConsoleKey]::DownArrow) {
                 if ($this.SelectedIndex -lt ($this.Items.Count - 1)) {
                     $this.SelectedIndex++
+                    $this.EnsureSelectedVisible()
+                    $this._rowsInvalid = $true
                     $this.Invalidate()
+                    $handled = $true
                 }
-                return $true
+            }
+            ([System.ConsoleKey]::PageUp) {
+                $this.SelectedIndex = [Math]::Max(0, $this.SelectedIndex - $this._viewportRows)
+                $this.EnsureSelectedVisible()
+                $this.Invalidate()
+                $handled = $true
+            }
+            ([System.ConsoleKey]::PageDown) {
+                $this.SelectedIndex = [Math]::Min($this.Items.Count - 1, $this.SelectedIndex + $this._viewportRows)
+                $this.EnsureSelectedVisible()
+                $this.Invalidate()
+                $handled = $true
             }
             ([System.ConsoleKey]::Home) {
                 $this.SelectedIndex = 0
-                $this._scrollOffset = 0
+                $this.EnsureSelectedVisible()
                 $this.Invalidate()
-                return $true
+                $handled = $true
             }
             ([System.ConsoleKey]::End) {
                 $this.SelectedIndex = $this.Items.Count - 1
+                $this.EnsureSelectedVisible()
                 $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::PageUp) {
-                $this.SelectedIndex = [Math]::Max(0, $this.SelectedIndex - $this._viewportHeight)
-                $this.Invalidate()
-                return $true
-            }
-            ([System.ConsoleKey]::PageDown) {
-                $this.SelectedIndex = [Math]::Min($this.Items.Count - 1, $this.SelectedIndex + $this._viewportHeight)
-                $this.Invalidate()
-                return $true
+                $handled = $true
             }
             ([System.ConsoleKey]::Enter) {
                 if ($this.OnItemSelected -and $this.SelectedIndex -ge 0) {
@@ -488,26 +736,36 @@ class MinimalDataGrid : FocusableComponent {
                         & $this.OnItemSelected $selectedItem
                     }
                 }
-                return $true
+                $handled = $true
             }
         }
         
-        return $false
+        # Don't call base class to avoid infinite recursion
+        # The base FocusableComponent.HandleInput would eventually call back to this method
+        # if (-not $handled) {
+        #     $handled = ([FocusableComponent]$this).HandleInput($key)
+        # }
+        
+        return $handled
     }
     
-    [void] OnBoundsChanged() {
-        $this._headerInvalid = $true
-        $this.AutoSizeColumns()
+    # Compatibility method name
+    [bool] OnHandleInput([System.ConsoleKeyInfo]$key) {
+        return $this.HandleInput($key)
     }
     
-    [void] OnGotFocus() {
-        if ($this.SelectedIndex -lt 0 -and $this.Items.Count -gt 0) {
-            $this.SelectedIndex = 0
+    [void] EnsureSelectedVisible() {
+        if ($this.SelectedIndex -lt 0 -or $this.Items.Count -eq 0) { return }
+        
+        if ($this.SelectedIndex -lt $this._scrollOffset) {
+            $this._scrollOffset = $this.SelectedIndex
+        } elseif ($this.SelectedIndex -ge ($this._scrollOffset + $this._viewportRows)) {
+            $this._scrollOffset = $this.SelectedIndex - $this._viewportRows + 1
         }
-        ([FocusableComponent]$this).OnGotFocus()
+        
+        $this._scrollOffset = [Math]::Max(0, [Math]::Min($this._scrollOffset, $this.Items.Count - $this._viewportRows))
     }
     
-    # Get selected item
     [object] GetSelectedItem() {
         if ($this.SelectedIndex -ge 0 -and $this.SelectedIndex -lt $this.Items.Count) {
             return $this.Items[$this.SelectedIndex]
@@ -515,7 +773,6 @@ class MinimalDataGrid : FocusableComponent {
         return $null
     }
     
-    # Select specific index
     [void] SelectIndex([int]$index) {
         if ($index -ge 0 -and $index -lt $this.Items.Count) {
             $this.SelectedIndex = $index
@@ -523,11 +780,37 @@ class MinimalDataGrid : FocusableComponent {
             $this.Invalidate()
         }
     }
+    
+    [void] SelectFirst() {
+        $this.SelectIndex(0)
+    }
+    
+    [void] SelectLast() {
+        $this.SelectIndex($this.Items.Count - 1)
+    }
+    
+    [void] ClearSelection() {
+        $this.SelectedIndex = -1
+        $this.Invalidate()
+    }
+    
+    [void] OnGotFocus() {
+        $this._rowsInvalid = $true
+        $this.Invalidate()
+        ([FocusableComponent]$this).OnGotFocus()
+    }
+    
+    [void] OnLostFocus() {
+        $this._rowsInvalid = $true
+        $this.Invalidate()
+        ([FocusableComponent]$this).OnLostFocus()
+    }
 }
 
 class GridColumn {
     [string]$Name
     [string]$Header
+    [scriptblock]$Getter
     [scriptblock]$ValueGetter
     [scriptblock]$Formatter
     [int]$Width

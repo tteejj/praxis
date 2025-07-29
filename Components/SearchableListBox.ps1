@@ -45,12 +45,20 @@ class SearchableListBox : UIElement {
     [void] Initialize([ServiceContainer]$services) {
         $this.Theme = $services.GetService("ThemeManager")
         if ($this.Theme) {
-            $this.Theme.Subscribe({ $this.OnThemeChanged() })
+            # Subscribe to EventBus theme changes instead of legacy ThemeManager subscription
+            $eventBus = $services.GetService('EventBus')
+            if ($eventBus) {
+                $component = $this
+                $eventBus.Subscribe('theme.changed', {
+                    $component.OnThemeChanged()
+                }.GetNewClosure())
+            }
             $this.OnThemeChanged()
         }
         $this.ApplyFilter()
     }
     
+    # Island Components Theme Interface - Cache all colors this component uses
     [void] OnThemeChanged() {
         if ($this.Theme) {
             $this._colors = @{
@@ -62,6 +70,8 @@ class SearchableListBox : UIElement {
                 'search' = $this.Theme.GetColor("search.background")
                 'highlight' = $this.Theme.GetColor("highlight.background")
                 'border.focused' = $this.Theme.GetColor("border.focused")
+                'selectedText' = $this.Theme.GetColor('menu.text.selected')
+                'accent' = $this.Theme.GetColor('color.primary')
             }
         }
         $this._cachedRender = ""
@@ -340,7 +350,8 @@ class SearchableListBox : UIElement {
             # Top border
             $sb.Append([VT]::MoveTo($this.X, $this.Y))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::TR())
+            # Island Components: use spaces instead of horizontal lines
+            $sb.Append([VT]::TL() + [StringCache]::GetVTHorizontalNoLines($this.Width - 2) + [VT]::TR())
             $contentY++
             $contentHeight--
             
@@ -391,7 +402,8 @@ class SearchableListBox : UIElement {
             # Search box separator
             $sb.Append([VT]::MoveTo($this.X + ($this.ShowBorder ? 1 : 0), $contentY))
             $sb.Append($borderColor)
-            $sb.Append([StringCache]::GetVTHorizontal($contentWidth))
+            # Island Components: use spaces instead of horizontal lines
+            $sb.Append([StringCache]::GetVTHorizontalNoLines($contentWidth))
             $contentY++
             $contentHeight--
             
@@ -515,7 +527,8 @@ class SearchableListBox : UIElement {
             $bottomY = $this.Y + $this.Height - 1
             $sb.Append([VT]::MoveTo($this.X, $bottomY))
             $sb.Append($currentBorderColor)
-            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontal($this.Width - 2) + [VT]::BR())
+            # Island Components: use spaces instead of horizontal lines
+            $sb.Append([VT]::BL() + [StringCache]::GetVTHorizontalNoLines($this.Width - 2) + [VT]::BR())
         }
 
         $this._cachedRender = $sb.ToString()

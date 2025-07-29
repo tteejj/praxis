@@ -59,6 +59,11 @@ class StringCache {
         return "─" * $width
     }
     
+    # Get spaces for Island Components (no horizontal lines)
+    static [string] GetVTHorizontalNoLines([int]$width) {
+        return [StringCache]::GetSpaces($width)
+    }
+    
     # Get repeated character string
     static [string] GetRepeatedChar([char]$char, [int]$count) {
         if ($count -le 0) { return "" }

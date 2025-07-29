@@ -130,7 +130,25 @@ class BaseDialog : Screen {
     
     [void] CloseDialog() {
         if ($global:ScreenManager) {
+            # Get the parent screen before popping
+            $parentScreen = $null
+            if ($global:ScreenManager.ScreenStack.Count -gt 1) {
+                $parentScreen = $global:ScreenManager.ScreenStack[$global:ScreenManager.ScreenStack.Count - 2]
+            }
+            
+            # Pop the dialog
             $global:ScreenManager.Pop()
+            
+            # Force parent to refresh and restore focus
+            if ($parentScreen) {
+                $parentScreen.Invalidate()
+                
+                # Restore focus to appropriate element in parent
+                if ($parentScreen.GetType().GetProperty('SelectedIndex')) {
+                    # If parent has a SelectedIndex (like a list), ensure it's visible
+                    $parentScreen.OnActivated()
+                }
+            }
         }
     }
     
@@ -147,21 +165,13 @@ class BaseDialog : Screen {
                     if ($focusManager) {
                         $focused = $focusManager.GetFocused()
                         if ($global:Logger) {
-                            $focusedType = if ($focused) { $focused.GetType().Name } else { "null" }
-                            $global:Logger.Debug("BaseDialog.HandleScreenInput: Enter pressed, focused element: $focusedType")
-                        }
+                            $focusedType = if ($focused) { $focused.GetType().Name } else { "null" }                        }
                         if ($focused -and ($focused -is [MinimalButton] -or $focused -is [MinimalListBox])) {
                             # Let the button or list handle it
-                            if ($global:Logger) {
-                                $global:Logger.Debug("BaseDialog: Button or ListBox has focus, letting it handle Enter")
-                            }
                             return $false
                         }
                     }
                     # No button focused, use default behavior
-                    if ($global:Logger) {
-                        $global:Logger.Debug("BaseDialog: No button focused, calling HandlePrimaryAction")
-                    }
                     $this.HandlePrimaryAction()
                     return $true
                 }
@@ -175,6 +185,8 @@ class BaseDialog : Screen {
     }
     
     [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        
         # Publish dialog opened event
         if ($this.EventBus) {
             $this.EventBus.Publish([EventNames]::DialogOpened, @{ 
@@ -182,32 +194,34 @@ class BaseDialog : Screen {
             })
         }
         
-        if ($global:Logger) {
-            $global:Logger.Debug("BaseDialog.OnActivated: Dialog=$($this.GetType().Name) ContentControls=$($this._contentControls.Count)")
-        }
+        # Ensure dialog is properly positioned
+        $this.OnBoundsChanged()
         
-        # Focus first content control
+        # Focus first content control after a small delay to ensure rendering
         if ($this._contentControls.Count -gt 0) {
             $firstControl = $this._contentControls[0]
-            if ($global:Logger) {
-                $global:Logger.Debug("BaseDialog: Focusing first control: $($firstControl.GetType().Name)")
-            }
-            $firstControl.Focus()
             
-            # Verify focus was set
-            if ($global:Logger) {
-                $focusManager = $this.ServiceContainer.GetService('FocusManager')
-                if ($focusManager) {
+            # Use FocusManager directly
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                [void]$focusManager.SetFocus($firstControl)
+                
+                # Verify focus was set
+                if ($global:Logger) {
                     $focused = $focusManager.GetFocused()
                     if ($focused) {
                         $global:Logger.Debug("BaseDialog: FocusManager reports focused: $($focused.GetType().Name)")
                     } else {
                         $global:Logger.Warning("BaseDialog: FocusManager reports NO focused element!")
                     }
-                } else {
-                    $global:Logger.Warning("BaseDialog: No FocusManager available!")
                 }
+            } else {
+                # Fallback to direct focus
+                $firstControl.Focus()
             }
+            
+            # Force render to show cursor
+            $this.Invalidate()
         } else {
             if ($global:Logger) {
                 $global:Logger.Warning("BaseDialog: No content controls to focus!")
@@ -219,6 +233,16 @@ class BaseDialog : Screen {
         # Calculate dialog position (centered)
         $centerX = [int](($this.Width - $this.DialogWidth) / 2)
         $centerY = [int](($this.Height - $this.DialogHeight) / 2)
+        
+        # Ensure dialog stays on screen
+        if ($centerX -lt 0) { $centerX = 0 }
+        if ($centerY -lt 0) { $centerY = 0 }
+        if ($centerX + $this.DialogWidth -gt $this.Width) {
+            $centerX = $this.Width - $this.DialogWidth
+        }
+        if ($centerY + $this.DialogHeight -gt $this.Height) {
+            $centerY = $this.Height - $this.DialogHeight
+        }
         
         # Store dialog bounds for rendering
         $this._dialogBounds = @{
@@ -307,9 +331,6 @@ class BaseDialog : Screen {
     [void] RenderOverlay([System.Text.StringBuilder]$sb) {
         # Use theme background with slight transparency effect
         $themeBg = $this.Theme.GetBgColor('surface.background')
-        if ($global:Logger) {
-            $global:Logger.Debug("BaseDialog.RenderOverlay: Theme background color: '$themeBg'")
-        }
         # For dialogs, darken the background slightly
         for ($y = 0; $y -lt $this.Height; $y++) {
             $sb.Append([VT]::MoveTo(0, $y))

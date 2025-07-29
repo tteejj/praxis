@@ -20,6 +20,11 @@ class TaskScreen : Screen {
     }
     
     [void] OnInitialize() {
+        # Critical debug for freeze investigation
+        if ($global:Logger) {
+            $global:Logger.Info("TaskScreen.OnInitialize: START")
+        }
+        
         # Get services using proper dependency injection
         $this.TaskService = $this.GetService("TaskService")
         if (-not $this.TaskService) {
@@ -114,8 +119,8 @@ class TaskScreen : Screen {
         # Create DataGrid with columns
         $this.TaskGrid = [MinimalDataGrid]::new()
         $this.TaskGrid.Title = "Tasks"
-        $this.TaskGrid.ShowBorder = $false  # MainScreen draws the border
-        $this.TaskGrid.BorderType = [BorderType]::None
+        $this.TaskGrid.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.TaskGrid.BorderType = [BorderType]::Rounded
         $this.TaskGrid.ShowGridLines = $false
         
         # Define columns
@@ -252,9 +257,19 @@ class TaskScreen : Screen {
         
         # Load tasks
         $this.LoadTasks()
+        
+        # Critical debug for freeze investigation
+        if ($global:Logger) {
+            $global:Logger.Info("TaskScreen.OnInitialize: COMPLETED")
+        }
     }
 
     [void] OnActivated() {
+        # Critical debug for freeze investigation
+        if ($global:Logger) {
+            $global:Logger.Info("TaskScreen.OnActivated: START")
+        }
+        
         # Call base to manage focus scope and shortcuts
         ([Screen]$this).OnActivated()
         
@@ -263,16 +278,20 @@ class TaskScreen : Screen {
             $this.TaskGrid.Focus()
         }
         
+        # Critical debug for freeze investigation
         if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.OnActivated: Screen activated and focused grid")
+            $global:Logger.Info("TaskScreen.OnActivated: COMPLETED")
         }
     }
     
     [void] OnBoundsChanged() {
+        # Only update bounds if TaskGrid exists
+        if (-not $this.TaskGrid) { return }
+        
         # Layout: Grid takes all space
         $gridHeight = $this.Height
         
-        # Task grid
+        # Task grid  
         $this.TaskGrid.SetBounds(
             $this.X,
             $this.Y,
