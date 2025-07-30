@@ -66,7 +66,7 @@ class KeyboardHelpOverlay : Screen {
             Name = "Close Help"
             Description = "Close help overlay"
             Key = [System.ConsoleKey]::Escape
-            Scope = [ShortcutScope]::Screen
+            # Scope = # [ShortcutScope]::Screen
             ScreenType = "KeyboardHelpOverlay"
             Priority = 100
             Action = { 
@@ -81,7 +81,7 @@ class KeyboardHelpOverlay : Screen {
             Name = "Close Help"
             Description = "Close help overlay"
             Key = [System.ConsoleKey]::F1
-            Scope = [ShortcutScope]::Screen
+            # Scope = # [ShortcutScope]::Screen
             ScreenType = "KeyboardHelpOverlay"
             Priority = 100
             Action = { 
@@ -140,17 +140,20 @@ class KeyboardHelpOverlay : Screen {
         foreach ($shortcut in $allShortcuts) {
             if (-not $shortcut.Enabled) { continue }
             
-            $category = switch ($shortcut.Scope) {
-                ([ShortcutScope]::Global) { "Global" }
-                ([ShortcutScope]::Screen) { 
-                    if ($shortcut.ScreenType) {
-                        $shortcut.ScreenType -replace 'Screen$', ''
-                    } else {
-                        "Screen"
-                    }
-                }
-                default { "Other" }
-            }
+            # $category = switch ($shortcut.Scope) {
+            #     ([ShortcutScope]::Global) { "Global" }
+            #     ([ShortcutScope]::Screen) { 
+            #         if ($shortcut.ScreenType) {
+            #             $shortcut.ScreenType -replace 'Screen$', ''
+            #         } else {
+            #             "Screen"
+            #         }
+            #     }
+            #     default { "Other" }
+            # }
+            
+            # Simplified category assignment since ShortcutManager is deprecated
+            $category = "Deprecated"
             
             if (-not $this.ShortcutsByCategory.ContainsKey($category)) {
                 $this.ShortcutsByCategory[$category] = @()

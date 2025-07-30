@@ -69,7 +69,7 @@ $loadOrder = @(
     
     # Services that depend on base classes
     "Services/FocusManager.ps1"
-    "Services/ShortcutManager.ps1"
+    # "Services/ShortcutManager.ps1"  # REMOVED - deprecated
     
     # Models
     "Models/Project.ps1"
@@ -109,6 +109,7 @@ $loadOrder = @(
     "Components/GradientButton.ps1"
     "Components/GradientContainer.ps1"
     "Components/MinimalListBox.ps1"
+    "Components/ContextPopup.ps1"
     "Components/MinimalTextBox.ps1"
     "Components/MinimalDataGrid.ps1"
     "Components/MinimalStatusBar.ps1"
@@ -225,34 +226,8 @@ $eventBus = [EventBus]::new()
 $eventBus.Initialize($global:ServiceContainer)
 $global:ServiceContainer.Register("EventBus", $eventBus)
 
-# ShortcutManager
-$shortcutManager = [ShortcutManager]::new()
-$shortcutManager.Initialize($global:ServiceContainer)
-$global:ServiceContainer.Register("ShortcutManager", $shortcutManager)
-
-# Register global F1 help shortcut
-$shortcutManager.RegisterShortcut(@{
-    Id = "global_help"
-    Name = "Help"
-    Description = "Show keyboard help overlay"
-    Key = [System.ConsoleKey]::F1
-    Modifiers = [System.ConsoleModifiers]::None
-    Scope = [ShortcutScope]::Global
-    Action = {
-        param($screenManager)
-        try {
-            $helpOverlay = [KeyboardHelpOverlay]::new("")
-            if ($screenManager.GetActiveScreen()) {
-                $helpOverlay = [KeyboardHelpOverlay]::new($screenManager.GetActiveScreen().GetType().Name)
-            }
-            $screenManager.Push($helpOverlay)
-        } catch {
-            if ($global:Logger) {
-                $global:Logger.Debug("F1 help not available: $_")
-            }
-        }
-    }
-})
+# REMOVED: ShortcutManager - deprecated in favor of direct input handling
+# Old global shortcuts replaced with screen-specific input handling
 if ($Debug) {
     Write-Host "  EventBus initialized" -ForegroundColor DarkGray
 }

@@ -370,12 +370,14 @@ class RangerFileTree : Container {
         # Also handle arrow keys for compatibility
         switch ($key.Key) {
             ([System.ConsoleKey]::LeftArrow) {
-                # Navigate to parent directory
+                # Navigate to parent directory, but let MainScreen handle if no parent
                 $parentPath = Split-Path $this.CurrentPath -Parent
-                if ($parentPath) {
+                if ($parentPath -and $parentPath -ne $this.CurrentPath) {
                     $this.NavigateToDirectory($parentPath)
+                    return $true
                 }
-                return $true
+                # No parent available - let MainScreen handle (switch focus to menu)
+                return $false
             }
             ([System.ConsoleKey]::RightArrow) {
                 # Navigate into selected directory

@@ -89,8 +89,7 @@ class TimeEntryScreen : Screen {
         # Load initial data
         $this.RefreshGrid()
         
-        # Register shortcuts
-        $this.RegisterShortcuts()
+        # REMOVED: RegisterShortcuts() - ShortcutManager deprecated
     }
     
     [void] OnBoundsChanged() {
@@ -352,152 +351,39 @@ class TimeEntryScreen : Screen {
         }
     }
     
-    [string] OnRender() {
-        $result = ([Screen]$this).OnRender()
-        return $result
-    }
-    
-    [void] RegisterShortcuts() {
-        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
-        if ($shortcutManager) {
-            # DO NOT use a temp variable - use $this directly in Actions to avoid closure issues
-            
-            # Q - Quick entry
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.quick"
-                Name = "Quick Entry"
-                Description = "Quick time entry"
-                KeyChar = 'q'
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = { $this.ShowQuickEntry() }.GetNewClosure()
-            })
-            
-            # E - Edit entry
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.edit"
-                Name = "Edit Entry"
-                Description = "Edit time entry"
-                KeyChar = 'e'
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = { $this.EditSelectedEntry() }.GetNewClosure()
-            })
-            
-            # Left/Right arrows for week navigation
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.prevweek"
-                Name = "Previous Week"
-                Description = "Navigate to previous week"
-                Key = [System.ConsoleKey]::LeftArrow
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = {
-                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(-7)
-                    $this.RefreshGrid()
-                }.GetNewClosure()
-            })
-            
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.nextweek"
-                Name = "Next Week"
-                Description = "Navigate to next week"
-                Key = [System.ConsoleKey]::RightArrow
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = {
-                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(7)
-                    $this.RefreshGrid()
-                }.GetNewClosure()
-            })
-            
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.currentweek"
-                Name = "Current Week"
-                Description = "Navigate to current week"
-                KeyChar = 'c'
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = {
-                    $screen.CurrentWeekFriday = $screen.TimeService.GetCurrentWeekFriday()
-                    $screen.RefreshGrid()
-                }.GetNewClosure()
-            })
-            
-            # N - New entry
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.new"
-                Name = "New Entry"
-                Description = "Add new time entry"
-                KeyChar = 'n'
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = { $this.NewTimeEntry() }.GetNewClosure()
-            })
-            
-            # D - Delete entry
-            $shortcutManager.RegisterShortcut(@{
-                Id = "time.delete"
-                Name = "Delete Entry"
-                Description = "Delete selected time entry"
-                KeyChar = 'd'
-                Scope = [ShortcutScope]::Screen
-                ScreenType = "TimeEntryScreen"
-                Priority = 50
-                Action = { $this.DeleteSelectedEntry() }.GetNewClosure()
-            })
-        }
-    }
-    
-    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Let base handle first (for child components)
-        if (([Screen]$this).HandleInput($key)) {
-            return $true
-        }
-        
-        # Handle screen-specific keys
-        switch ($key.Key) {
-            ([ConsoleKey]::Q) {
-                $this.ShowQuickEntry()
-                return $true
-            }
-            ([ConsoleKey]::E) {
-                $this.EditSelectedEntry()
-                return $true
-            }
-            ([ConsoleKey]::LeftArrow) {
-                if ($key.Modifiers -eq [ConsoleModifiers]::None) {
-                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(-7)
-                    $this.RefreshGrid()
-                    return $true
-                }
-            }
-            ([ConsoleKey]::RightArrow) {
-                if ($key.Modifiers -eq [ConsoleModifiers]::None) {
-                    $this.CurrentWeekFriday = $this.CurrentWeekFriday.AddDays(7)
-                    $this.RefreshGrid()
-                    return $true
-                }
-            }
-            ([ConsoleKey]::Enter) {
-                $this.EditSelectedEntry()
-                return $true
-            }
-            ([ConsoleKey]::C) {
+[bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # TimeEntry screen shortcuts - this is where they should be
+        switch ($keyInfo.KeyChar) {
+            'n' { $this.NewTimeEntry(); return $true }
+            'e' { $this.EditSelectedEntry(); return $true }
+            'd' { $this.DeleteSelectedEntry(); return $true }
+            'q' { $this.ShowQuickEntry(); return $true }
+            'c' { 
                 $this.CurrentWeekFriday = $this.TimeService.GetCurrentWeekFriday()
                 $this.RefreshGrid()
                 return $true
             }
         }
         
+        # REMOVED: Arrow keys for week navigation - conflicts with menu focus switching
+        
+        # Enter key for editing
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
+            $this.EditSelectedEntry()
+            return $true
+        }
+        
         return $false
     }
+
+    [string] OnRender() {
+        $result = ([Screen]$this).OnRender()
+        return $result
+    }
+    
+    # REMOVED: RegisterShortcuts() method - ShortcutManager deprecated
+    # Shortcuts now handled directly in HandleScreenInput() method
+    
     
     [void] UpdateColumnHeaders() {
         # Update column headers to show current day indicator

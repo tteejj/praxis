@@ -191,7 +191,7 @@ class TimeEntryDialog : BaseDialog {
             # Create new entry
             return [PSCustomObject]@{
                 Id = [Guid]::NewGuid().ToString()
-                ProjectId = $this.Project.Id
+                ProjectId = if ($this.Project.ID2) { $this.Project.ID2 } else { $this.Project.Id }
                 ProjectName = $this.Project.FullProjectName
                 Date = $date
                 Hours = $hours

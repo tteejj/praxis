@@ -55,9 +55,20 @@ class ManualTimeEntryDialog : BaseDialog {
         # Set up primary action
         $dialog = $this
         $this.OnPrimary = {
+            if ($global:Logger) {
+                $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Save button clicked")
+            }
+            
             # Validate inputs
             if (-not $dialog.ID2TextBox.Text -or -not $dialog.HoursTextBox.Text) {
+                if ($global:Logger) {
+                    $global:Logger.Warning("ManualTimeEntryDialog.OnPrimary: Validation failed - missing ID2 or Hours")
+                }
                 return
+            }
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Validation passed - ID2='$($dialog.ID2TextBox.Text)', Hours='$($dialog.HoursTextBox.Text)'")
             }
             
             # Parse date and hours
@@ -66,7 +77,14 @@ class ManualTimeEntryDialog : BaseDialog {
                 $hours = [decimal]::Parse($dialog.HoursTextBox.Text)
                 
                 if ($hours -le 0 -or $hours -gt 24) {
+                    if ($global:Logger) {
+                        $global:Logger.Warning("ManualTimeEntryDialog.OnPrimary: Hours validation failed - $hours not between 0 and 24")
+                    }
                     return
+                }
+                
+                if ($global:Logger) {
+                    $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Parsed date=$($date.ToString('yyyy-MM-dd')), hours=$hours")
                 }
                 
                 # Create time entry
@@ -81,18 +99,38 @@ class ManualTimeEntryDialog : BaseDialog {
                     UpdatedAt = [DateTime]::Now
                 }
                 
+                if ($global:Logger) {
+                    $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Created time entry object - ProjectId='$($timeEntry.ProjectId)'")
+                }
+                
                 # Save using TimeTrackingService
                 if ($dialog.TimeService) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Calling TimeService.AddTimeEntry")
+                    }
                     $dialog.TimeService.AddTimeEntry($timeEntry)
+                    if ($global:Logger) {
+                        $global:Logger.Info("ManualTimeEntryDialog.OnPrimary: TimeService.AddTimeEntry completed")
+                    }
+                } else {
+                    if ($global:Logger) {
+                        $global:Logger.Error("ManualTimeEntryDialog.OnPrimary: TimeService is null!")
+                    }
                 }
                 
                 # Call callback if set
                 if ($dialog.OnSave) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Calling OnSave callback")
+                    }
                     & $dialog.OnSave $timeEntry
                 }
                 
                 # Publish event
                 if ($dialog.EventBus) {
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ManualTimeEntryDialog.OnPrimary: Publishing timeentry.created event")
+                    }
                     $dialog.EventBus.Publish('timeentry.created', @{ 
                         TimeEntry = $timeEntry 
                     })
@@ -100,6 +138,9 @@ class ManualTimeEntryDialog : BaseDialog {
             }
             catch {
                 # Invalid input - could show error dialog
+                if ($global:Logger) {
+                    $global:Logger.Error("ManualTimeEntryDialog.OnPrimary: Exception during save: $_")
+                }
                 return
             }
         }.GetNewClosure()

@@ -58,8 +58,7 @@ class CommandLibraryScreen : Screen {
         # Load commands
         $this.LoadCommands()
         
-        # Register shortcuts
-        $this.RegisterShortcuts()
+        # ShortcutManager is deprecated - shortcuts handled in HandleScreenInput
     }
     
     [void] LoadCommands() {
@@ -90,7 +89,7 @@ class CommandLibraryScreen : Screen {
             Name = "New Command"
             Description = "Create a new command"
             KeyChar = 'n'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "CommandLibraryScreen"
             Priority = 50
             Action = { $screen.NewCommand() }.GetNewClosure()
@@ -101,7 +100,7 @@ class CommandLibraryScreen : Screen {
             Name = "Edit Command"
             Description = "Edit the selected command"
             KeyChar = 'e'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "CommandLibraryScreen"
             Priority = 50
             Action = { $screen.EditCommand() }.GetNewClosure()
@@ -112,7 +111,7 @@ class CommandLibraryScreen : Screen {
             Name = "Delete Command"
             Description = "Delete the selected command"
             KeyChar = 'd'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "CommandLibraryScreen"
             Priority = 50
             Action = { $screen.DeleteCommand() }.GetNewClosure()
@@ -123,7 +122,7 @@ class CommandLibraryScreen : Screen {
             Name = "Copy Command"
             Description = "Copy selected command to clipboard"
             Key = [System.ConsoleKey]::Enter
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "CommandLibraryScreen"
             Priority = 50
             Action = { $screen.CopySelectedCommand() }.GetNewClosure()
@@ -227,7 +226,7 @@ class CommandLibraryScreen : Screen {
                 # Show toast notification
                 $toastService = $this.ServiceContainer.GetService('ToastService')
                 if ($toastService) {
-                    $toastService.ShowToast("Command copied to clipboard!", [ToastType]::Success, 2000)
+                    $toastService.Show("Command copied to clipboard!", [ToastType]::Success, 2000)
                 }
                 
                 if ($global:Logger) {
@@ -241,12 +240,57 @@ class CommandLibraryScreen : Screen {
                 # Show error toast
                 $toastService = $this.ServiceContainer.GetService('ToastService')
                 if ($toastService) {
-                    $toastService.ShowToast("Failed to copy command", [ToastType]::Error, 3000)
+                    $toastService.Show("Failed to copy command", [ToastType]::Error, 3000)
                 }
                 
                 if ($global:Logger) {
                     $global:Logger.Error("Failed to copy command: $($_.Exception.Message)")
                 }
+            }
+        }
+    }
+    
+    [void] RunCommand() {
+        $selectedCommand = $this.CommandList.GetSelectedItem()
+        if (-not $selectedCommand) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("CommandLibraryScreen.RunCommand: No command selected")
+            }
+            return 
+        }
+        
+        try {
+            # Execute the command
+            if ($global:Logger) {
+                $global:Logger.Debug("CommandLibraryScreen.RunCommand: Executing command '$($selectedCommand.Name)'")
+            }
+            
+            # Commands in the library are typically stored as strings
+            # We'll invoke them using Invoke-Expression
+            $result = Invoke-Expression -Command $selectedCommand.Command
+            
+            # Show success toast
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Command executed successfully!", [ToastType]::Success, 2000)
+            }
+            
+            # Update usage count
+            $this.CommandService.IncrementUseCount($selectedCommand.Id)
+            
+            # Refresh the list to show updated usage count
+            $this.LoadCommands()
+            $this.FilterCommands()
+            
+        } catch {
+            # Show error toast
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Command failed: $($_.Exception.Message)", [ToastType]::Error, 3000)
+            }
+            
+            if ($global:Logger) {
+                $global:Logger.Error("CommandLibraryScreen.RunCommand: Error executing command '$($selectedCommand.Name)': $_")
             }
         }
     }
@@ -265,11 +309,20 @@ class CommandLibraryScreen : Screen {
     }
     
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Route to ShortcutManager for screen-specific shortcuts
-        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
-        if ($shortcutManager) {
-            return $shortcutManager.HandleKeyPress($keyInfo, $this.GetType().Name, "")
+        # Command Library screen shortcuts - direct implementation instead of deprecated ShortcutManager
+        switch ($keyInfo.KeyChar) {
+            'n' { $this.NewCommand(); return $true }
+            'e' { $this.EditCommand(); return $true }
+            'd' { $this.DeleteCommand(); return $true }
+            'r' { $this.RunCommand(); return $true }
         }
+        
+        # Enter key for editing
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
+            $this.EditCommand()
+            return $true
+        }
+        
         return $false
     }
     

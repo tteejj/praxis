@@ -412,12 +412,17 @@ class TabContainer : Container {
     
     # Handle keyboard input
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Debug logging removed for performance
+        # CORRECT INPUT HIERARCHY: Children first, then container shortcuts
         
+        # 1. Let child components handle input first
+        $handled = ([Container]$this).HandleInput($key)
+        if ($handled) {
+            return $true
+        }
         
-        # Check TabContainer shortcuts FIRST before passing to children
+        # 2. Only handle TabContainer shortcuts if no child handled the input
         
-        # Number keys for quick tab switching
+        # Number keys for quick tab switching (only when TabContainer has focus)
         if ($key.KeyChar -ge '1' -and $key.KeyChar -le '9') {
             $tabIndex = [int]$key.KeyChar - [int][char]'1'
             if ($tabIndex -lt $this.Tabs.Count) {
@@ -448,15 +453,7 @@ class TabContainer : Container {
             }
         }
         
-        # Route to active tab's content if tab switching didn't handle it
-        $activeTab = $this.GetActiveTab()
-        if ($activeTab -and $activeTab.Content) {
-            if ($activeTab.Content.HandleInput($key)) {
-                return $true
-            }
-        }
-        
-        # No one handled it
+        # No TabContainer shortcut handled it
         return $false
     }
     

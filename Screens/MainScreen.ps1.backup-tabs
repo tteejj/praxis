@@ -1,0 +1,320 @@
+# MainScreen.ps1 - Main screen with tab container
+
+class MainScreen : Screen {
+    [TabContainer]$TabContainer
+    [CommandPalette]$CommandPalette
+    [MinimalStatusBar]$StatusBar
+    [EventBus]$EventBus
+    hidden [string]$TabChangedSubscription
+    hidden [bool]$_needsDeferredInit = $false
+    hidden [System.Timers.Timer]$UpdateTimer
+    
+    MainScreen() : base() {
+        $this.Title = "PRAXIS"
+    }
+    
+    [void] OnInitialize() {
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.OnInitialize: Starting simplified initialization")
+        }
+        
+        # Create tab container immediately but don't initialize tabs yet
+        $this.TabContainer = [TabContainer]::new()
+        $this.TabContainer.Initialize($global:ServiceContainer)
+        $this.AddChild($this.TabContainer)
+        
+        # Defer heavy initialization to OnActivated
+        $this._needsDeferredInit = $true
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.OnInitialize: Completed simplified initialization")
+        }
+    }
+    
+    [void] OnActivated() {
+        ([Screen]$this).OnActivated()
+        
+        if ($this._needsDeferredInit) {
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.OnActivated: Starting deferred initialization")
+            }
+            
+            # Get EventBus
+            $this.EventBus = $global:ServiceContainer.GetService('EventBus')
+            
+            # Subscribe to tab change events
+            if ($this.EventBus) {
+                $screen = $this
+                $this.TabChangedSubscription = $this.EventBus.Subscribe('navigation.tabChanged', {
+                    param($sender, $eventData)
+                    if ($eventData.TabIndex -ne $null -and $screen.TabContainer) {
+                        $screen.TabContainer.ActivateTab($eventData.TabIndex)
+                        $screen.RequestRender()
+                        $screen.UpdateStatusBar()
+                    }
+                }.GetNewClosure())
+            }
+            
+            # Add tabs - these will be lazy-initialized when activated
+            $this.TabContainer.AddTab("Projects", [ProjectsScreen]::new())
+            $this.TabContainer.AddTab("Tasks", [TaskScreen]::new())
+            $this.TabContainer.AddTab("Time", [TimeEntryScreen]::new())
+            $this.TabContainer.AddTab("Files", [FileBrowserScreen]::new())
+            $this.TabContainer.AddTab("Editor", [TextEditorScreenNew]::new())
+            $this.TabContainer.AddTab("Commands", [CommandLibraryScreen]::new())
+            $this.TabContainer.AddTab("Macro Factory", [VisualMacroFactoryScreen]::new())
+            $this.TabContainer.AddTab("Settings", [SettingsScreen]::new())
+            
+            # Create status bar
+            $this.StatusBar = [MinimalStatusBar]::new()
+            $this.StatusBar.Height = 1
+            $this.AddChild($this.StatusBar)
+            
+            # Create command palette
+            $this.CommandPalette = [CommandPalette]::new()
+            $this.CommandPalette.Initialize($global:ServiceContainer)
+            $this.AddChild($this.CommandPalette)
+            
+            # Subscribe to events
+            $this.SetupEventHandlers()
+            
+            # Start update timer
+            $this.StartTimer()
+            
+            # Register shortcuts
+            $this.RegisterShortcuts()
+            
+            # Initial status update
+            $this.UpdateStatusBar()
+            
+            $this._needsDeferredInit = $false
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.OnActivated: Completed deferred initialization")
+            }
+        }
+    }
+    
+    hidden [void] SetupEventHandlers() {
+        # Subscribe to timer events
+        if ($global:ServiceContainer.GetService('EventBus')) {
+            $mainScreen = $this
+            $global:ServiceContainer.GetService('EventBus').Subscribe('time.changed', {
+                param($sender, $eventData)
+                $mainScreen.UpdateStatusBar()
+            }.GetNewClosure())
+        }
+    }
+    
+    hidden [void] StartTimer() {
+        # Create timer for status bar updates
+        $this.UpdateTimer = [System.Timers.Timer]::new()
+        $this.UpdateTimer.Interval = 30000  # 30 seconds
+        $this.UpdateTimer.AutoReset = $true
+        
+        $timer = $this.UpdateTimer
+        $screen = $this
+        
+        Register-ObjectEvent -InputObject $timer -EventName Elapsed -Action {
+            if ($screen.Active) {
+                $screen.UpdateStatusBar()
+            }
+        } | Out-Null
+        
+        $this.UpdateTimer.Start()
+    }
+    
+    [void] RegisterShortcuts() {
+        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        if (-not $shortcutManager) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("MainScreen: ShortcutManager not found")
+            }
+            return 
+        }
+        
+        $screen = $this
+        
+        # F1: Help
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.help"
+            Name = "Show Help"
+            Description = "Show keyboard help overlay"
+            Key = [System.ConsoleKey]::F1
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { 
+                $helpOverlay = [KeyboardHelpOverlay]::new()
+                $helpOverlay.Initialize($global:ServiceContainer)
+                $global:ScreenManager.Push($helpOverlay)
+            }
+        })
+        
+        # Ctrl+Tab: Next tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.next_tab"
+            Name = "Next Tab"
+            Description = "Switch to next tab"
+            Key = [System.ConsoleKey]::Tab
+            Modifiers = [System.ConsoleModifiers]::Control
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.NextTab() }
+        })
+        
+        # Ctrl+Shift+Tab: Previous tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.prev_tab"
+            Name = "Previous Tab"
+            Description = "Switch to previous tab"
+            Key = [System.ConsoleKey]::Tab
+            Modifiers = [System.ConsoleModifiers]::Control -bor [System.ConsoleModifiers]::Shift
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.PreviousTab() }
+        })
+        
+        # Alt+Right: Next tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.next_tab_alt"
+            Name = "Next Tab (Alt)"
+            Description = "Switch to next tab"
+            Key = [System.ConsoleKey]::RightArrow
+            Modifiers = [System.ConsoleModifiers]::Alt
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.NextTab() }
+        })
+        
+        # Alt+Left: Previous tab
+        $shortcutManager.RegisterShortcut(@{
+            Id = "main.prev_tab_alt"
+            Name = "Previous Tab (Alt)"
+            Description = "Switch to previous tab"
+            Key = [System.ConsoleKey]::LeftArrow
+            Modifiers = [System.ConsoleModifiers]::Alt
+            Scope = [ShortcutScope]::Screen
+            ScreenType = "MainScreen"
+            Priority = 20
+            Action = { $screen.TabContainer.PreviousTab() }
+        })
+        
+        # Number keys 1-9 for quick tab access (only when MainScreen is active)
+        for ($i = 1; $i -le 9; $i++) {
+            $tabIndex = $i - 1
+            $shortcutManager.RegisterShortcut(@{
+                Id = "main.tab_$i"
+                Name = "Go to Tab $i"
+                Description = "Switch to tab $i"
+                KeyChar = [char]"$i"
+                Scope = [ShortcutScope]::Screen
+                ScreenType = "MainScreen"
+                Priority = 10  # Lower priority than child screen shortcuts
+                Action = { $screen.TabContainer.ActivateTab($tabIndex) }.GetNewClosure()
+            })
+        }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.RegisterShortcuts: Registered all shortcuts")
+        }
+    }
+    
+    [void] OnBoundsChanged() {
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.OnBoundsChanged: Bounds=($($this.X),$($this.Y),$($this.Width),$($this.Height))")
+        }
+        if ($this.TabContainer) {
+            # TabContainer gets full screen except status bar
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen: TabContainer bounds before: ($($this.TabContainer.X),$($this.TabContainer.Y),$($this.TabContainer.Width),$($this.TabContainer.Height))")
+            }
+            $this.TabContainer.SetBounds($this.X, $this.Y, $this.Width, $this.Height - 1)
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen: TabContainer bounds after: ($($this.TabContainer.X),$($this.TabContainer.Y),$($this.TabContainer.Width),$($this.TabContainer.Height))")
+            }
+        }
+        if ($this.StatusBar) {
+            # Status bar at bottom
+            $this.StatusBar.SetBounds($this.X, $this.Y + $this.Height - 1, $this.Width, 1)
+        }
+        if ($this.CommandPalette) {
+            # Command palette overlays when visible
+            $paletteHeight = [Math]::Min(20, [Math]::Max(10, $this.Height - 4))
+            $paletteY = $this.Y + 2
+            $this.CommandPalette.SetBounds($this.X + 2, $paletteY, $this.Width - 4, $paletteHeight)
+        }
+    }
+    
+    [void] OnDeactivated() {
+        if ($this.UpdateTimer) {
+            $this.UpdateTimer.Stop()
+        }
+        ([Screen]$this).OnDeactivated()
+    }
+    
+    
+    [void] UpdateStatusBar() {
+        if (-not $this.StatusBar -or -not $this.TabContainer) { return }
+        
+        $activeTab = $this.TabContainer.GetActiveTab()
+        if (-not $activeTab) { return }
+        
+        # Build status info
+        $leftStatus = "Tab: $($activeTab.Title)"
+        
+        # Get tab-specific status
+        $middleStatus = ""
+        if ($activeTab.Content -and $activeTab.Content.PSObject.Methods['GetStatusInfo']) {
+            $middleStatus = $activeTab.Content.GetStatusInfo()
+        }
+        
+        # Time and memory
+        $time = Get-Date -Format "HH:mm"
+        $memoryMB = [Math]::Round((Get-Process -Id $global:PID).WorkingSet64 / 1MB, 0)
+        $rightStatus = "Mem: ${memoryMB}MB | $time"
+        
+        $this.StatusBar.LeftText = $leftStatus
+        $this.StatusBar.CenterText = $middleStatus
+        $this.StatusBar.RightText = $rightStatus
+        $this.StatusBar.Invalidate()
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # Check if we're the top-level screen (no dialogs on top)
+        $screenManager = $this.ServiceContainer.GetService('ScreenManager')
+        if ($screenManager) {
+            $activeScreen = $screenManager.GetActiveScreen()
+            # If there's a dialog on top of us, don't handle tab switching
+            if ($activeScreen -and $activeScreen -ne $this) {
+                return ([Screen]$this).HandleInput($key)
+            }
+        }
+        
+        # Number key tab switching is now handled via shortcuts with Alt modifier
+        # This prevents interference with text input
+        
+        # Let base class handle other input
+        return ([Screen]$this).HandleInput($key)
+    }
+    
+    [string] OnRender() {
+        $sb = Get-PooledStringBuilder 2048
+        
+        # Clear background
+        $bgColor = if ($this.Theme) { $this.Theme.GetBgColor('surface.background') } else { [VT]::BgRgb(16, 16, 16) }
+        $sb.Append([VT]::Clear())
+        $sb.Append($bgColor)
+        
+        # Let base class render children (TabContainer, StatusBar, etc)
+        $baseRender = ([Screen]$this).OnRender()
+        $sb.Append($baseRender)
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
+    }
+}

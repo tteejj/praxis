@@ -1,23 +1,89 @@
 {
-  "TimeEntries": [
+  "LastUpdated": "2025-07-29 23:05:05",
+  "TimeCodes": [
     {
-      "Id": "TE-20250725-ADMIN",
-      "WeekEndingFriday": "20250725",
-      "Name": "Administration",
-      "ID1": "Internal",
       "ID2": "ADMIN",
-      "Monday": 2.5,
-      "Tuesday": 3.0,
-      "Wednesday": 2.0,
-      "Thursday": 1.5,
-      "Friday": 1.0,
-      "Total": 10.0,
-      "FiscalYear": "2025-2026",
+      "Description": "Administrative tasks",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "e60a42ad-4a93-4beb-a513-e618180e92f9",
       "CreatedAt": "2025-07-25T06:00:00",
-      "UpdatedAt": "2025-07-25T06:00:00"
+      "UpdatedAt": "2025-07-29T21:41:51.1775188-06:00",
+      "Deleted": false
     },
     {
-      "Id": "TE-20250725-TRAIN",
+      "ID2": "TRAIN",
+      "Description": "Training and learning",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "5966a727-dbc4-479c-a34f-2e70349d32d6",
+      "CreatedAt": "2025-07-25T06:00:00",
+      "UpdatedAt": "2025-07-29T21:41:51.2449487-06:00",
+      "Deleted": false
+    },
+    {
+      "ID2": "MEET",
+      "Description": "Team meetings",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "b6f51c65-01a2-4339-88df-cfce43085018",
+      "CreatedAt": "2025-07-25T06:00:00",
+      "UpdatedAt": "2025-07-29T21:41:51.251819-06:00",
+      "Deleted": false
+    },
+    {
+      "ID2": "VAC",
+      "Description": "Vacation",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "268d813f-d52c-43c1-aa0c-c349c633f9a3",
+      "CreatedAt": "2025-07-29T21:41:51.3258717-06:00",
+      "UpdatedAt": "2025-07-29T21:41:51.3258717-06:00",
+      "Deleted": false
+    },
+    {
+      "ID2": "SICK",
+      "Description": "Sick Leave",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "bdf33add-52bd-4979-8edd-1985ad5f3eae",
+      "CreatedAt": "2025-07-29T21:41:51.336535-06:00",
+      "UpdatedAt": "2025-07-29T21:41:51.336535-06:00",
+      "Deleted": false
+    },
+    {
+      "ID2": "STAT",
+      "Description": "Statutory Holiday",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "e282b8a3-60fa-43f6-bf20-6e3af11645d1",
+      "CreatedAt": "2025-07-29T21:41:51.3375316-06:00",
+      "UpdatedAt": "2025-07-29T21:41:51.3375316-06:00",
+      "Deleted": false
+    },
+    {
+      "ID2": "MTG",
+      "Description": "Meetings",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "c76eef37-7de0-405e-b768-022a6a61af7b",
+      "CreatedAt": "2025-07-29T21:41:51.3398656-06:00",
+      "UpdatedAt": "2025-07-29T21:41:51.3398656-06:00",
+      "Deleted": false
+    },
+    {
+      "ID2": "PD",
+      "Description": "Professional Development",
+      "IsActive": true,
+      "DisplayOrder": 999,
+      "Id": "5e78c82c-ebe6-4a29-b4ca-55b228b917e0",
+      "CreatedAt": "2025-07-29T21:41:51.3406318-06:00",
+      "UpdatedAt": "2025-07-29T21:41:51.3406318-06:00",
+      "Deleted": false
+    }
+  ],
+  "TimeEntries": [
+    {
       "WeekEndingFriday": "20250725",
       "Name": "Training",
       "ID1": "Internal",
@@ -29,11 +95,12 @@
       "Friday": 0.5,
       "Total": 6.0,
       "FiscalYear": "2025-2026",
+      "Id": "TE-20250725-TRAIN",
       "CreatedAt": "2025-07-25T06:00:00",
-      "UpdatedAt": "2025-07-25T06:00:00"
+      "UpdatedAt": "2025-07-25T06:00:00",
+      "Deleted": false
     },
     {
-      "Id": "TE-20250725-MEET",
       "WeekEndingFriday": "20250725",
       "Name": "Meetings",
       "ID1": "Internal",
@@ -45,35 +112,78 @@
       "Friday": 1.0,
       "Total": 5.0,
       "FiscalYear": "2025-2026",
+      "Id": "TE-20250725-MEET",
       "CreatedAt": "2025-07-25T06:00:00",
-      "UpdatedAt": "2025-07-25T06:00:00"
-    }
-  ],
-  "TimeCodes": [
-    {
-      "ID2": "ADMIN",
-      "Name": "Administration",
-      "ID1": "Internal",
-      "Description": "Administrative tasks",
-      "IsActive": true,
-      "CreatedAt": "2025-07-25T06:00:00"
+      "UpdatedAt": "2025-07-25T06:00:00",
+      "Deleted": false
     },
     {
-      "ID2": "TRAIN",
-      "Name": "Training",
-      "ID1": "Internal",
-      "Description": "Training and learning",
-      "IsActive": true,
-      "CreatedAt": "2025-07-25T06:00:00"
+      "WeekEndingFriday": "20250801",
+      "Name": "",
+      "ID1": "",
+      "ID2": "11",
+      "Monday": 0.0,
+      "Tuesday": 3.0,
+      "Wednesday": 0.0,
+      "Thursday": 0.0,
+      "Friday": 0.0,
+      "Total": 3.0,
+      "FiscalYear": "2025-2026",
+      "Id": "2276f278-135c-474e-869e-2f40e19364bf",
+      "CreatedAt": "2025-07-29T21:42:23.2623896-06:00",
+      "UpdatedAt": "2025-07-29T22:23:48.6746808-06:00",
+      "Deleted": false
     },
     {
-      "ID2": "MEET",
-      "Name": "Meetings",
-      "ID1": "Internal",
-      "Description": "Team meetings",
-      "IsActive": true,
-      "CreatedAt": "2025-07-25T06:00:00"
+      "WeekEndingFriday": "20250801",
+      "Name": "",
+      "ID1": "",
+      "ID2": "W",
+      "Monday": 0.0,
+      "Tuesday": 1.0,
+      "Wednesday": 0.0,
+      "Thursday": 0.0,
+      "Friday": 0.0,
+      "Total": 1.0,
+      "FiscalYear": "2025-2026",
+      "Id": "af983129-996d-428e-b3e4-25c0c7e20e62",
+      "CreatedAt": "2025-07-29T21:43:29.4855656-06:00",
+      "UpdatedAt": "2025-07-29T21:43:29.4862043-06:00",
+      "Deleted": false
+    },
+    {
+      "WeekEndingFriday": "20250801",
+      "Name": "",
+      "ID1": "",
+      "ID2": "111",
+      "Monday": 0.0,
+      "Tuesday": 1.0,
+      "Wednesday": 0.0,
+      "Thursday": 0.0,
+      "Friday": 0.0,
+      "Total": 1.0,
+      "FiscalYear": "2025-2026",
+      "Id": "c0c3b6d6-0bdd-4bd1-8128-d9e86a8812db",
+      "CreatedAt": "2025-07-29T23:04:23.6043117-06:00",
+      "UpdatedAt": "2025-07-29T23:04:23.6618379-06:00",
+      "Deleted": false
+    },
+    {
+      "WeekEndingFriday": "20250725",
+      "Name": "",
+      "ID1": "",
+      "ID2": "050",
+      "Monday": 1.0,
+      "Tuesday": 0.0,
+      "Wednesday": 0.0,
+      "Thursday": 0.0,
+      "Friday": 0.0,
+      "Total": 1.0,
+      "FiscalYear": "2025-2026",
+      "Id": "5c082f67-f649-4a83-890a-9ccd274c8638",
+      "CreatedAt": "2025-07-29T23:05:04.9956945-06:00",
+      "UpdatedAt": "2025-07-29T23:05:05.0017689-06:00",
+      "Deleted": false
     }
-  ],
-  "LastUpdated": "2025-07-25 06:00:00"
+  ]
 }

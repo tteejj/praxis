@@ -130,8 +130,8 @@ class TimeTrackingService {
         return $this.GetWeekEntries($friday.ToString("yyyyMMdd"))
     }
     
-    # Update time entry
-    [void] UpdateTimeEntry([TimeEntry]$entry) {
+    # Update time entry (internal method for TimeEntry objects)
+    [void] UpdateTimeEntryInternal([TimeEntry]$entry) {
         $entry.CalculateTotal()
         $entry.CalculateFiscalYear()
         $entry.UpdatedAt = [DateTime]::Now
@@ -165,7 +165,7 @@ class TimeTrackingService {
             }
         }
         
-        $this.UpdateTimeEntry($entry)
+        $this.UpdateTimeEntryInternal($entry)
     }
     
     # Get Friday date for current week
@@ -274,6 +274,151 @@ class TimeTrackingService {
             $this.TimeCodes.Add($code) | Out-Null
         }
         $this.SaveData()
+    }
+    
+    # Add a new time entry from dialog data
+    [void] AddTimeEntry([PSCustomObject]$timeEntryData) {
+        if ($this.Logger) {
+            $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Called with data - ProjectId='$($timeEntryData.ProjectId)', Hours=$($timeEntryData.Hours)")
+        }
+        
+        if (-not $timeEntryData) { 
+            if ($this.Logger) {
+                $this.Logger.Error("TimeTrackingService.AddTimeEntry: timeEntryData is null")
+            }
+            return 
+        }
+        
+        # Convert dialog data to TimeEntry object
+        $date = $timeEntryData.Date
+        $friday = $this.GetWeekFridayForDate($date)
+        $weekString = $friday.ToString("yyyyMMdd")
+        
+        if ($this.Logger) {
+            $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Date=$($date.ToString('yyyy-MM-dd')), WeekFriday=$($friday.ToString('yyyy-MM-dd')), WeekString=$weekString")
+        }
+        
+        # Get or create time entry for the week
+        $entry = $this.GetOrCreateTimeEntry($weekString, $timeEntryData.ProjectId)
+        
+        if ($this.Logger) {
+            $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Got/Created entry for ID2='$($entry.ID2)', Name='$($entry.Name)'")
+        }
+        
+        # Add hours to the appropriate day
+        $dayOfWeek = $date.DayOfWeek
+        $oldValue = 0
+        switch ($dayOfWeek) {
+            Monday { 
+                $oldValue = $entry.Monday
+                $entry.Monday += $timeEntryData.Hours 
+                if ($this.Logger) {
+                    $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Monday hours: $oldValue -> $($entry.Monday)")
+                }
+            }
+            Tuesday { 
+                $oldValue = $entry.Tuesday
+                $entry.Tuesday += $timeEntryData.Hours 
+                if ($this.Logger) {
+                    $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Tuesday hours: $oldValue -> $($entry.Tuesday)")
+                }
+            }
+            Wednesday { 
+                $oldValue = $entry.Wednesday
+                $entry.Wednesday += $timeEntryData.Hours 
+                if ($this.Logger) {
+                    $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Wednesday hours: $oldValue -> $($entry.Wednesday)")
+                }
+            }
+            Thursday { 
+                $oldValue = $entry.Thursday
+                $entry.Thursday += $timeEntryData.Hours 
+                if ($this.Logger) {
+                    $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Thursday hours: $oldValue -> $($entry.Thursday)")
+                }
+            }
+            Friday { 
+                $oldValue = $entry.Friday
+                $entry.Friday += $timeEntryData.Hours 
+                if ($this.Logger) {
+                    $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Friday hours: $oldValue -> $($entry.Friday)")
+                }
+            }
+            default {
+                if ($this.Logger) {
+                    $this.Logger.Warning("TimeTrackingService.AddTimeEntry: Cannot add time for weekend day: $dayOfWeek")
+                }
+                return
+            }
+        }
+        
+        # Update entry
+        if ($this.Logger) {
+            $this.Logger.Debug("TimeTrackingService.AddTimeEntry: Calling UpdateTimeEntryInternal")
+        }
+        $this.UpdateTimeEntryInternal($entry)
+        
+        if ($this.Logger) {
+            $this.Logger.Info("TimeTrackingService.AddTimeEntry: Successfully added $($timeEntryData.Hours) hours on $($date.ToString('yyyy-MM-dd')) for project $($timeEntryData.ProjectId)")
+        }
+    }
+    
+    # Update time entry from dialog data  
+    [void] UpdateTimeEntry([PSCustomObject]$timeEntryData) {
+        if (-not $timeEntryData) { return }
+        
+        # If it's already a TimeEntry object, use the internal method
+        if ($timeEntryData -is [TimeEntry]) {
+            $this.UpdateTimeEntryInternal($timeEntryData)
+            return
+        }
+        
+        # Handle dialog data format
+        $date = $timeEntryData.Date
+        $friday = $this.GetWeekFridayForDate($date)
+        $weekString = $friday.ToString("yyyyMMdd")
+        
+        # Find existing entry
+        $entry = $this.TimeEntries | Where-Object { 
+            $_.WeekEndingFriday -eq $weekString -and $_.ID2 -eq $timeEntryData.ProjectId 
+        } | Select-Object -First 1
+        
+        if (-not $entry) {
+            # Entry doesn't exist, create new one
+            $this.AddTimeEntry($timeEntryData)
+            return
+        }
+        
+        # Update the appropriate day
+        $dayOfWeek = $date.DayOfWeek
+        
+        # First, remove old hours for this day (assuming we're replacing, not adding)
+        # This is a simplified approach - in reality you might want more sophisticated editing
+        switch ($dayOfWeek) {
+            Monday { $entry.Monday = $timeEntryData.Hours }
+            Tuesday { $entry.Tuesday = $timeEntryData.Hours }
+            Wednesday { $entry.Wednesday = $timeEntryData.Hours }
+            Thursday { $entry.Thursday = $timeEntryData.Hours }
+            Friday { $entry.Friday = $timeEntryData.Hours }
+            default {
+                if ($this.Logger) {
+                    $this.Logger.Warning("Cannot update time for weekend day: $dayOfWeek")
+                }
+                return
+            }
+        }
+        
+        # Update entry using internal method
+        $this.UpdateTimeEntryInternal($entry)
+        
+        if ($this.Logger) {
+            $this.Logger.Info("Updated time entry: $($timeEntryData.Hours) hours on $($date.ToString('yyyy-MM-dd')) for project $($timeEntryData.ProjectId)")
+        }
+    }
+    
+    # Get time entries by project ID
+    [TimeEntry[]] GetTimeEntriesByProject([string]$projectId) {
+        return $this.TimeEntries | Where-Object { $_.ID2 -eq $projectId }
     }
     
     # Delete a time entry

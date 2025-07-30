@@ -12,7 +12,7 @@ class VisualMacroFactoryScreen : Screen {
     [FunctionRegistry]$FunctionRegistry
     [CommandService]$CommandService
     [EventBus]$EventBus
-    [ShortcutManager]$ShortcutManager
+    # [ShortcutManager]$ShortcutManager  # Removed - deprecated
     [MacroService]$MacroService
     
     # Available actions
@@ -29,7 +29,7 @@ class VisualMacroFactoryScreen : Screen {
         # Get services
         $this.CommandService = $this.ServiceContainer.GetService("CommandService")
         $this.EventBus = $this.ServiceContainer.GetService('EventBus')
-        $this.ShortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
+        # $this.ShortcutManager = $this.ServiceContainer.GetService('ShortcutManager')  # Removed - deprecated
         
         # Initialize macro services
         $this.ContextManager = [MacroContextManager]::new()
@@ -44,7 +44,7 @@ class VisualMacroFactoryScreen : Screen {
         $this.CreateContextPanel()
         
         # Register shortcuts
-        $this.RegisterShortcuts()
+        # $this.RegisterShortcuts()  # Removed - deprecated
     }
     
     [void] LoadAvailableActions() {
@@ -253,151 +253,36 @@ class VisualMacroFactoryScreen : Screen {
     }
     
     [void] RegisterShortcuts() {
-        if (-not $this.ShortcutManager) { return }
+        # if (-not $this.ShortcutManager) { return }  # Removed - deprecated
         
         $screen = $this
         
         # A: Add action to sequence
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_add"
-            Name = "Add Action"
-            Description = "Add selected action to sequence"
-            KeyChar = 'a'
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                if ($screen.ComponentLibrary.IsFocused) {
-                    $screen.AddActionToSequence()
-                }
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Enter: Edit selected action properties
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_edit_action"
-            Name = "Edit Action"
-            Description = "Edit properties of selected action"
-            Key = [System.ConsoleKey]::Enter
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                if ($screen.MacroSequence.IsFocused) {
-                    $screen.EditSelectedAction()
-                } elseif ($screen.ComponentLibrary.IsFocused) {
-                    $screen.AddActionToSequence()
-                }
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Delete/D: Remove selected action from sequence
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_delete"
-            Name = "Delete Action"
-            Description = "Remove selected action from macro sequence"
-            KeyChar = 'd'
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                if ($screen.MacroSequence.IsFocused) {
-                    $screen.RemoveSelectedAction()
-                }
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Ctrl+Up: Move action up in sequence
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_move_up"
-            Name = "Move Action Up"
-            Description = "Move selected action up in sequence"
-            Key = [System.ConsoleKey]::UpArrow
-            Modifiers = [System.ConsoleModifiers]::Control
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                if ($this.MacroSequence.IsFocused -and $this.SelectedSequenceIndex -gt 0) {
-                    $this.ContextManager.MoveAction($this.SelectedSequenceIndex, $this.SelectedSequenceIndex - 1)
-                    $this.SelectedSequenceIndex--
-                    $this.UpdateMacroSequence()
-                    $this.UpdateContextPanel()
-                }
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Ctrl+Down: Move action down in sequence
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_move_down"
-            Name = "Move Action Down"
-            Description = "Move selected action down in sequence"
-            Key = [System.ConsoleKey]::DownArrow
-            Modifiers = [System.ConsoleModifiers]::Control
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                if ($this.MacroSequence.IsFocused -and 
-                    $this.SelectedSequenceIndex -ge 0 -and 
-                    $this.SelectedSequenceIndex -lt $this.ContextManager.Actions.Count - 1) {
-                    $this.ContextManager.MoveAction($this.SelectedSequenceIndex, $this.SelectedSequenceIndex + 1)
-                    $this.SelectedSequenceIndex++
-                    $this.UpdateMacroSequence()
-                    $this.UpdateContextPanel()
-                }
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # F5: Generate and preview script
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_preview"
-            Name = "Preview Script"
-            Description = "Generate and preview the IDEAScript"
-            Key = [System.ConsoleKey]::F5
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                $this.PreviewGeneratedScript()
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Ctrl+S: Save macro
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_save"
-            Name = "Save Macro"
-            Description = "Save the current macro"
-            Key = [System.ConsoleKey]::S
-            Modifiers = [System.ConsoleModifiers]::Control
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                $this.SaveMacro()
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Ctrl+O: Open macro
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_open"
-            Name = "Open Macro"
-            Description = "Open an existing macro"
-            Key = [System.ConsoleKey]::O
-            Modifiers = [System.ConsoleModifiers]::Control
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                $this.OpenMacro()
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
         
         # Ctrl+N: New macro (clear)
-        $this.ShortcutManager.RegisterShortcut(@{
-            Id = "macro_factory_new"
-            Name = "New Macro"
-            Description = "Start a new macro (clear current)"
-            Key = [System.ConsoleKey]::N
-            Modifiers = [System.ConsoleModifiers]::Control
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "VisualMacroFactoryScreen"
-            Action = {
-                $this.NewMacro()
-            }.GetNewClosure()
-        })
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
     }
     
     [void] AddActionToSequence([BaseAction]$action) {
@@ -832,5 +717,68 @@ Press ESC to close help
         }.GetNewClosure()
         
         $global:ScreenManager.Push($dialog)
+    }
+    
+    [void] EditMacro() {
+        # Alias for OpenMacro - opens existing macro for editing
+        $this.OpenMacro()
+    }
+    
+    [void] DeleteMacro() {
+        # Not fully implemented - would need to show a list of saved macros to delete
+        $toastService = $this.ServiceContainer.GetService('ToastService')
+        if ($toastService) {
+            $toastService.Show("Delete macro not yet implemented", [ToastType]::Warning, 2000)
+        }
+    }
+    
+    [void] TestMacro() {
+        # Generate and execute the current macro script
+        try {
+            $script = $this.GenerateScript()
+            if ([string]::IsNullOrWhiteSpace($script)) {
+                $toastService = $this.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.Show("No macro to test", [ToastType]::Warning, 2000)
+                }
+                return
+            }
+            
+            # Execute the script
+            $result = Invoke-Expression -Command $script
+            
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Macro executed successfully!", [ToastType]::Success, 2000)
+            }
+        }
+        catch {
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Macro failed: $($_.Exception.Message)", [ToastType]::Error, 3000)
+            }
+            
+            if ($global:Logger) {
+                $global:Logger.Error("VisualMacroFactoryScreen.TestMacro: Error executing macro: $_")
+            }
+        }
+    }
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Visual Macro Factory screen shortcuts
+        switch ($keyInfo.KeyChar) {
+            'n' { $this.NewMacro(); return $true }
+            'e' { $this.EditMacro(); return $true }
+            'd' { $this.DeleteMacro(); return $true }
+            't' { $this.TestMacro(); return $true }
+        }
+        
+        # Enter key for editing
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
+            $this.EditMacro()
+            return $true
+        }
+        
+        return $false
     }
 }

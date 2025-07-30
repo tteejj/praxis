@@ -133,6 +133,102 @@ class FileBrowserScreen : Screen {
         return ([Screen]$this).HandleInput($key)
     }
     
+    [void] NewFile() {
+        # Create new file in current directory
+        if ($this.FileTree -and $this.FileTree.CurrentPath) {
+            $dialog = [TextInputDialog]::new("New File", "")
+            $dialog.Title = "Create New File"
+            $dialog.Prompt = "Enter filename:"
+            
+            $currentPath = $this.FileTree.CurrentPath
+            $screen = $this
+            $dialog.OnSubmit = {
+                param($filename)
+                if (-not [string]::IsNullOrWhiteSpace($filename)) {
+                    $newFilePath = Join-Path $currentPath $filename
+                    try {
+                        New-Item -ItemType File -Path $newFilePath -Force | Out-Null
+                        $screen.FileTree.RefreshCurrentDirectory()
+                        
+                        $toastService = $screen.ServiceContainer.GetService('ToastService')
+                        if ($toastService) {
+                            $toastService.Show("File created: $filename", [ToastType]::Success, 2000)
+                        }
+                    }
+                    catch {
+                        $toastService = $screen.ServiceContainer.GetService('ToastService')
+                        if ($toastService) {
+                            $toastService.Show("Failed to create file: $($_.Exception.Message)", [ToastType]::Error, 3000)
+                        }
+                    }
+                }
+            }.GetNewClosure()
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }
+    }
+    
+    [void] EditFile() {
+        # Edit selected file
+        if ($this.FileTree -and $this.FileTree.SelectedNode) {
+            $node = $this.FileTree.SelectedNode
+            if (-not $node.IsDirectory -and $node.FullPath) {
+                $this.OpenFileInEditor($node.FullPath)
+            }
+        }
+    }
+    
+    [void] DeleteFile() {
+        # Delete selected file/directory
+        if ($this.FileTree -and $this.FileTree.SelectedNode) {
+            $node = $this.FileTree.SelectedNode
+            $itemType = if ($node.IsDirectory) { "directory" } else { "file" }
+            $nodeName = $node.Name
+            $message = "Are you sure you want to delete this ${itemType}?`n`n${nodeName}"
+            
+            $dialog = [ConfirmationDialog]::new($message)
+            $dialog.Title = "Delete $itemType"
+            
+            $screen = $this
+            $fullPath = $node.FullPath
+            $dialog.OnPrimary = {
+                try {
+                    Remove-Item -Path $fullPath -Recurse -Force
+                    $screen.FileTree.RefreshCurrentDirectory()
+                    
+                    $toastService = $screen.ServiceContainer.GetService('ToastService')
+                    if ($toastService) {
+                        $toastService.Show("Deleted: $nodeName", [ToastType]::Success, 2000)
+                    }
+                }
+                catch {
+                    $toastService = $screen.ServiceContainer.GetService('ToastService')
+                    if ($toastService) {
+                        $toastService.Show("Failed to delete: $($_.Exception.Message)", [ToastType]::Error, 3000)
+                    }
+                }
+            }.GetNewClosure()
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }
+    }
+    
+    [void] RefreshFiles() {
+        # Refresh current directory
+        if ($this.FileTree) {
+            $this.FileTree.RefreshCurrentDirectory()
+            
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Files refreshed", [ToastType]::Info, 1000)
+            }
+        }
+    }
+    
     [void] ApplyFileBrowserSettings() {
         $configService = $this.ServiceContainer.GetService("ConfigurationService")
         if (-not $configService -or -not $this.FileTree) { return }

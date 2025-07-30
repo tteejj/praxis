@@ -7,7 +7,7 @@ class ScreenManager {
     hidden [bool]$_needsRender = $true
     hidden [System.ConsoleKeyInfo]$_lastKey
     hidden [ServiceContainer]$_services
-    hidden [ShortcutManager]$_shortcutManager
+    # hidden [ShortcutManager]$_shortcutManager  # Removed - deprecated
     hidden [FocusManager]$_focusManager
     hidden [bool]$_exitRequested = $false
     
@@ -26,15 +26,15 @@ class ScreenManager {
         
         # Get managers - with protection against initialization order issues
         try {
-            $this._shortcutManager = $services.GetService('ShortcutManager')
+            # $this._shortcutManager = $services.GetService('ShortcutManager')  # Removed - deprecated
             if ($global:Logger) {
-                $global:Logger.Debug("ScreenManager: ShortcutManager loaded successfully")
+                $global:Logger.Debug("ScreenManager: ShortcutManager deprecated - removed")
             }
         } catch {
             if ($global:Logger) {
-                $global:Logger.LogWarning("ScreenManager: ShortcutManager not available during construction: $_")
+                $global:Logger.LogWarning("ScreenManager: ShortcutManager deprecated - removed")
             }
-            $this._shortcutManager = $null
+            # $this._shortcutManager = $null  # Removed - deprecated
         }
         
         try {
@@ -223,6 +223,12 @@ class ScreenManager {
                         continue
                     }
                     
+                    # Check if console input is available (not redirected)
+                    if ([Console]::IsInputRedirected) {
+                        Start-Sleep -Milliseconds 50
+                        continue
+                    }
+                    
                     if ([Console]::KeyAvailable) {
                         $key = [Console]::ReadKey($true)
                         $this._lastKey = $key
@@ -249,8 +255,11 @@ class ScreenManager {
                         Start-Sleep -Milliseconds 10
                     }
                 } catch {
-                    if ($global:Logger) {
-                        $global:Logger.LogException($_.Exception, "Error in input handling")
+                    # Only log if it's not the expected console redirect error
+                    if ($_.Exception.Message -notlike "*cannot see if a key has been pressed*") {
+                        if ($global:Logger) {
+                            $global:Logger.LogException($_.Exception, "Error in input handling")
+                        }
                     }
                     
                     # In non-interactive mode, just sleep
@@ -379,22 +388,22 @@ class ScreenManager {
             return $handled
         }
         
-        # PRIORITY 2: ShortcutManager for global and screen-specific shortcuts
-        if ($this._shortcutManager) {
-            $currentScreenType = $this.GetCurrentScreenType()
-            $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, "")
-            
-            if ($handled) {
-                if ($global:Logger) {
-                    $global:Logger.Debug("ShortcutManager handled: $handled")
-                }
-                return $true
-            }
-        } else {
-            if ($global:Logger -and $this._frameCount % 100 -eq 0) {
-                $global:Logger.Debug("ProcessInputChain: ShortcutManager not available")
-            }
-        }
+        # PRIORITY 2: ShortcutManager for global and screen-specific shortcuts - DEPRECATED
+        # if ($this._shortcutManager) {
+        #     $currentScreenType = $this.GetCurrentScreenType()
+        #     $handled = $this._shortcutManager.HandleKeyPress($key, $currentScreenType, "")
+        #     
+        #     if ($handled) {
+        #         if ($global:Logger) {
+        #             $global:Logger.Debug("ShortcutManager handled: $handled")
+        #         }
+        #         return $true
+        #     }
+        # } else {
+        #     if ($global:Logger -and $this._frameCount % 100 -eq 0) {
+        #         $global:Logger.Debug("ProcessInputChain: ShortcutManager not available")
+        #     }
+        # }
         
         # PRIORITY 3: Screen and component input handling
         
@@ -437,19 +446,15 @@ class ScreenManager {
             return $true
         }
         
-        # Ctrl+Q fallback if ShortcutManager unavailable
-        if (-not $this._shortcutManager -and 
-            $key.Key -eq [System.ConsoleKey]::Q -and 
+        # Ctrl+Q fallback (ShortcutManager deprecated)
+        if ($key.Key -eq [System.ConsoleKey]::Q -and 
             ($key.Modifiers -band [System.ConsoleModifiers]::Control)) {
             $this.RequestExit()
             return $true
         }
         
-        # Command palette fallback
-        if (-not $this._shortcutManager -and ($key.KeyChar -eq '/' -or $key.KeyChar -eq ':')) {
-            $this.ShowCommandPalette()
-            return $true
-        }
+        # REMOVED: Command palette fallback - replaced with per-screen action popups
+        # Old global command palette is deprecated
         
         return $false
     }

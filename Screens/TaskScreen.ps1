@@ -258,8 +258,7 @@ class TaskScreen : Screen {
         # Load tasks
         $this.LoadTasks()
         
-        # Register screen-specific shortcuts
-        $this.RegisterShortcuts()
+        # ShortcutManager is deprecated - shortcuts handled in HandleScreenInput
         
         # Critical debug for freeze investigation
         if ($global:Logger) {
@@ -610,7 +609,7 @@ class TaskScreen : Screen {
             Name = "Edit Task"
             Description = "Edit the selected task"
             Key = [System.ConsoleKey]::Enter
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.EditTask() }.GetNewClosure()
@@ -622,7 +621,7 @@ class TaskScreen : Screen {
             Name = "Delete Task"
             Description = "Delete the selected task"
             Key = [System.ConsoleKey]::Delete
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.DeleteTask() }.GetNewClosure()
@@ -634,7 +633,7 @@ class TaskScreen : Screen {
             Name = "Refresh"
             Description = "Refresh the task list"
             Key = [System.ConsoleKey]::F5
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.LoadTasks() }.GetNewClosure()
@@ -646,7 +645,7 @@ class TaskScreen : Screen {
             Name = "New Task"
             Description = "Create a new task"
             KeyChar = 'n'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.NewTask() }.GetNewClosure()
@@ -658,7 +657,7 @@ class TaskScreen : Screen {
             Name = "Edit Task"
             Description = "Edit the selected task"
             KeyChar = 'e'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.EditTask() }.GetNewClosure()
@@ -670,7 +669,7 @@ class TaskScreen : Screen {
             Name = "Delete Task"
             Description = "Delete the selected task"
             KeyChar = 'd'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.DeleteTask() }.GetNewClosure()
@@ -682,7 +681,7 @@ class TaskScreen : Screen {
             Name = "Refresh"
             Description = "Refresh the task list"
             KeyChar = 'r'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.LoadTasks() }.GetNewClosure()
@@ -694,7 +693,7 @@ class TaskScreen : Screen {
             Name = "Cycle Status"
             Description = "Cycle task status"
             KeyChar = 's'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.CycleStatus() }.GetNewClosure()
@@ -706,7 +705,7 @@ class TaskScreen : Screen {
             Name = "Cycle Priority"
             Description = "Cycle task priority"
             KeyChar = 'p'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.CyclePriority() }.GetNewClosure()
@@ -718,7 +717,7 @@ class TaskScreen : Screen {
             Name = "Toggle Subtasks"
             Description = "Toggle subtask view"
             KeyChar = 't'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.ToggleSubtaskView() }.GetNewClosure()
@@ -730,7 +729,7 @@ class TaskScreen : Screen {
             Name = "Add Subtask"
             Description = "Add subtask to selected task"
             KeyChar = 'a'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "TaskScreen"
             Priority = 10
             Action = { $screen.AddSubtask() }.GetNewClosure()
@@ -739,6 +738,40 @@ class TaskScreen : Screen {
         if ($global:Logger) {
             $global:Logger.Debug("TaskScreen.RegisterShortcuts: Registered all shortcuts")
         }
+    }
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Task screen shortcuts - this is where they should be
+        switch ($keyInfo.KeyChar) {
+            'n' { $this.NewTask(); return $true }
+            'e' { $this.EditTask(); return $true }
+            'd' { $this.DeleteTask(); return $true }
+            'r' { $this.LoadTasks(); return $true }
+            's' { $this.CycleStatus(); return $true }
+            'p' { $this.CyclePriority(); return $true }
+            't' { $this.ToggleSubtaskView(); return $true }
+            'a' { $this.AddSubtask(); return $true }
+        }
+        
+        # Enter key for editing
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
+            $this.EditTask()
+            return $true
+        }
+        
+        # Delete key for deleting
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Delete) {
+            $this.DeleteTask()
+            return $true
+        }
+        
+        # F5 key for refresh
+        if ($keyInfo.Key -eq [System.ConsoleKey]::F5) {
+            $this.LoadTasks()
+            return $true
+        }
+        
+        return $false
     }
     
     [string] OnRender() {

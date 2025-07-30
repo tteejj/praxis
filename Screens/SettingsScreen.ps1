@@ -1038,4 +1038,85 @@ This will add the following themes:
             $this.Parent.Invalidate()
         }
     }
+    
+    [void] ChangeTheme() {
+        # Alias for SelectThemeCategory - cycles through themes
+        $this.SelectThemeCategory()
+    }
+    
+    [void] ExportSettings() {
+        # Export current settings to a file
+        try {
+            $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+            $exportPath = Join-Path $this.ConfigService.ConfigDirectory "settings_export_$timestamp.json"
+            
+            $settings = $this.ConfigService.GetAll()
+            $json = $settings | ConvertTo-Json -Depth 10
+            Set-Content -Path $exportPath -Value $json -Encoding UTF8
+            
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Settings exported to: $exportPath", [ToastType]::Success, 3000)
+            }
+        }
+        catch {
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Export failed: $($_.Exception.Message)", [ToastType]::Error, 3000)
+            }
+            
+            if ($global:Logger) {
+                $global:Logger.Error("SettingsScreen.ExportSettings: $_")
+            }
+        }
+    }
+    
+    [void] ImportSettings() {
+        # Import settings from a file
+        $dialog = [FilePickerDialog]::new()
+        $dialog.Title = "Import Settings"
+        $dialog.Filter = "*.json"
+        $dialog.StartPath = $this.ConfigService.ConfigDirectory
+        
+        $screen = $this
+        $dialog.OnFileSelected = {
+            param($filePath)
+            try {
+                $json = Get-Content -Path $filePath -Raw -Encoding UTF8
+                $settings = $json | ConvertFrom-Json -AsHashtable
+                
+                # Merge with existing settings
+                foreach ($key in $settings.Keys) {
+                    $screen.ConfigService.Set($key, $settings[$key])
+                }
+                
+                $screen.ConfigService.Save()
+                $screen.LoadCategories()
+                
+                $toastService = $screen.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.Show("Settings imported successfully!", [ToastType]::Success, 2000)
+                }
+            }
+            catch {
+                $toastService = $screen.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.Show("Import failed: $($_.Exception.Message)", [ToastType]::Error, 3000)
+                }
+                
+                if ($global:Logger) {
+                    $global:Logger.Error("SettingsScreen.ImportSettings: $_")
+                }
+            }
+        }.GetNewClosure()
+        
+        if ($global:ScreenManager) {
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    [void] ResetSettings() {
+        # Alias for ResetAll
+        $this.ResetAll()
+    }
 }

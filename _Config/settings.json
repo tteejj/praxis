@@ -1,98 +1,10 @@
 {
-  "Performance": {
-    "RenderOptimization": true,
-    "EnableCaching": true,
-    "MaxCacheSize": 100
-  },
-  "Projects": {
-    "AutoSave": true,
-    "BackupCount": 5,
-    "BackupEnabled": true,
-    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData"
-  },
-  "Editor": {
-    "AutoSaveInterval": 0,
-    "TabSize": 4,
-    "SyntaxHighlighting": true,
-    "ShowLineNumbers": true,
-    "HighlightCurrentLine": true,
-    "WordWrap": false
-  },
   "Tasks": {
-    "DefaultPriority": "Medium",
+    "CompletedTaskRetention": 30,
     "ShowCompletedTasks": true,
-    "CompletedTaskRetention": 30
-  },
-  "Theme": {
-    "AvailableThemes": [
-      "amber",
-      "amber-black",
-      "default",
-      "matrix",
-      "matrix-rain",
-      "synthwave-84",
-      "synthwave-outrun"
-    ],
-    "ShowThemePreview": true,
-    "UserCustomizations": {},
-    "CurrentTheme": "amber",
-    "EnableLiveEdit": true,
-    "EditTheme": "[Click to open theme editor]"
-  },
-  "FileBrowser": {
-    "ShowFileSize": true,
-    "ShowHiddenFiles": true,
-    "ShowModifiedDate": false,
-    "SortBy": "Name",
-    "IgnoredExtensions": [
-      ".tmp",
-      ".cache",
-      ".log"
-    ],
-    "DefaultPath": "/home/teej/projects/github/praxis",
-    "SortDescending": false
-  },
-  "Logging": {
-    "MaxFiles": 5,
-    "Level": "Debug",
-    "MaxFileSize": 10
-  },
-  "UI": {
-    "UseGradients": false,
-    "ShowScrollbars": true,
-    "GradientType": "vertical",
-    "VerticalSpacing": 1,
-    "CompactMode": false,
-    "AnimationsEnabled": true
+    "DefaultPriority": "Medium"
   },
   "Templates": {
-    "TimeEntry": {
-      "Items": [
-        {
-          "DefaultHours": 0.25,
-          "Name": "Daily Standup",
-          "DefaultDays": [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday"
-          ],
-          "Description": "Daily standup meeting",
-          "ProjectID": "Internal"
-        },
-        {
-          "DefaultHours": 1.0,
-          "Name": "Weekly Planning",
-          "DefaultDays": [
-            "Monday"
-          ],
-          "Description": "Weekly planning and review",
-          "ProjectID": "Internal"
-        }
-      ],
-      "Enabled": true
-    },
     "Macros": {
       "Items": [
         {
@@ -138,6 +50,94 @@
         }
       ],
       "Enabled": true
+    },
+    "TimeEntry": {
+      "Items": [
+        {
+          "DefaultHours": 0.25,
+          "Name": "Daily Standup",
+          "DefaultDays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "Description": "Daily standup meeting",
+          "ProjectID": "Internal"
+        },
+        {
+          "DefaultHours": 1.0,
+          "Name": "Weekly Planning",
+          "DefaultDays": [
+            "Monday"
+          ],
+          "Description": "Weekly planning and review",
+          "ProjectID": "Internal"
+        }
+      ],
+      "Enabled": true
     }
+  },
+  "Theme": {
+    "AvailableThemes": [
+      "amber",
+      "amber-black",
+      "default",
+      "matrix",
+      "matrix-rain",
+      "synthwave-84",
+      "synthwave-outrun"
+    ],
+    "CurrentTheme": "amber",
+    "EnableLiveEdit": true,
+    "UserCustomizations": {},
+    "EditTheme": "[Click to open theme editor]",
+    "ShowThemePreview": true
+  },
+  "Logging": {
+    "Level": "Debug",
+    "MaxFileSize": 10,
+    "MaxFiles": 5
+  },
+  "Performance": {
+    "EnableCaching": true,
+    "MaxCacheSize": 100,
+    "RenderOptimization": true
+  },
+  "FileBrowser": {
+    "ShowFileSize": true,
+    "ShowHiddenFiles": true,
+    "ShowModifiedDate": false,
+    "IgnoredExtensions": [
+      ".tmp",
+      ".cache",
+      ".log"
+    ],
+    "DefaultPath": "/home/teej/projects/github/praxis",
+    "SortDescending": false,
+    "SortBy": "Name"
+  },
+  "UI": {
+    "UseGradients": false,
+    "VerticalSpacing": 1,
+    "CompactMode": false,
+    "GradientType": "vertical",
+    "ShowScrollbars": true,
+    "AnimationsEnabled": true
+  },
+  "Projects": {
+    "BackupCount": 5,
+    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
+    "AutoSave": true,
+    "BackupEnabled": true
+  },
+  "Editor": {
+    "HighlightCurrentLine": true,
+    "WordWrap": false,
+    "AutoSaveInterval": 0,
+    "ShowLineNumbers": true,
+    "TabSize": 4,
+    "SyntaxHighlighting": true
   }
 }

@@ -115,19 +115,8 @@ class ShortcutManager {
         #     }
         # })
         
-        $this.RegisterShortcut(@{
-            Id = "global.command_palette_alt"
-            Name = "Command Palette (Alt)"
-            Description = "Open the command palette"
-            KeyChar = '/'
-            Scope = [ShortcutScope]::Global
-            Priority = 90
-            Action = {
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.ShowCommandPalette()
-                }
-            }
-        })
+        # REMOVED: Global '/' shortcut - replaced with per-screen action popups
+        # Old global command palette is deprecated in favor of screen-specific context popups
     }
     
     [void] RegisterShortcut([hashtable]$definition) {

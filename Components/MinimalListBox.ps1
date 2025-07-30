@@ -24,7 +24,7 @@ class MinimalListBox : FocusableComponent {
     
     MinimalListBox() : base() {
         $this.Items = [System.Collections.Generic.List[object]]::new()
-        $this.FocusStyle = 'minimal'
+        $this.FocusStyle = 'none'  # Remove underline focus style
     }
     
     [void] OnInitialize() {
@@ -258,15 +258,14 @@ class MinimalListBox : FocusableComponent {
     [void] OnSelectionChangedInternal([int]$oldIndex) {
         if ($oldIndex -ne $this.SelectedIndex) {
             $this.Invalidate()
-            if ($this.OnSelectionChanged) {
-                & $this.OnSelectionChanged
-            }
+            # Don't fire OnSelectionChanged here - only on Enter key
         }
     }
     
     [void] OnGotFocus() {
         if ($this.SelectedIndex -lt 0 -and $this.Items.Count -gt 0) {
             $this.SelectedIndex = 0
+            $this.Invalidate()
         }
         ([FocusableComponent]$this).OnGotFocus()
     }

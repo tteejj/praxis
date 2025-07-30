@@ -140,8 +140,7 @@ class ProjectsScreen : Screen {
         # Load projects
         $this.LoadProjects()
         
-        # Register screen-specific shortcuts with ShortcutManager
-        $this.RegisterShortcuts()
+        # REMOVED: RegisterShortcuts() - ShortcutManager deprecated
     }
     
     [void] RegisterShortcuts() {
@@ -161,7 +160,7 @@ class ProjectsScreen : Screen {
             Name = "New Project"
             Description = "Create a new project"
             KeyChar = 'n'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.NewProject() }.GetNewClosure()
@@ -172,7 +171,7 @@ class ProjectsScreen : Screen {
             Name = "View Details"
             Description = "View project details"
             Key = [System.ConsoleKey]::Enter
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.ViewProjectDetails() }.GetNewClosure()
@@ -183,7 +182,7 @@ class ProjectsScreen : Screen {
             Name = "Edit Project"
             Description = "Edit the selected project"
             KeyChar = 'e'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.EditProject() }.GetNewClosure()
@@ -194,7 +193,7 @@ class ProjectsScreen : Screen {
             Name = "Delete Project"
             Description = "Delete the selected project"
             KeyChar = 'd'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.DeleteProject() }.GetNewClosure()
@@ -205,7 +204,7 @@ class ProjectsScreen : Screen {
             Name = "Refresh"
             Description = "Refresh the project list"
             Key = [System.ConsoleKey]::F5
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.LoadProjects() }.GetNewClosure()
@@ -216,7 +215,7 @@ class ProjectsScreen : Screen {
             Name = "View Details (v)"
             Description = "View project details"
             KeyChar = 'v'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.ViewProjectDetails() }.GetNewClosure()
@@ -227,7 +226,7 @@ class ProjectsScreen : Screen {
             Name = "Refresh (r)"
             Description = "Refresh the project list"
             KeyChar = 'r'
-            Scope = [ShortcutScope]::Screen
+            # Scope = [ShortcutScope]::Screen
             ScreenType = "ProjectsScreen"
             Priority = 50
             Action = { $screen.LoadProjects() }.GetNewClosure()
@@ -439,7 +438,37 @@ class ProjectsScreen : Screen {
     }
     
     # Using parent-delegated focus model - Tab handled by ScreenManager/Container
-    # All shortcuts now handled by ShortcutManager in RegisterShortcuts()
+    # All shortcuts now handled directly in HandleScreenInput()
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Projects screen shortcuts - this is where they should be
+        switch ($keyInfo.KeyChar) {
+            'n' { 
+                if ($global:Logger) {
+                    $global:Logger.Debug("ProjectsScreen.HandleScreenInput: 'n' key pressed, calling NewProject()")
+                }
+                $this.NewProject(); return $true 
+            }
+            'e' { $this.EditProject(); return $true }
+            'd' { $this.DeleteProject(); return $true }
+            'v' { $this.ViewProjectDetails(); return $true }
+            'r' { $this.LoadProjects(); return $true }
+        }
+        
+        # Enter key for viewing details
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
+            $this.ViewProjectDetails()
+            return $true
+        }
+        
+        # F5 key for refresh
+        if ($keyInfo.Key -eq [System.ConsoleKey]::F5) {
+            $this.LoadProjects()
+            return $true
+        }
+        
+        return $false
+    }
     
     [void] ShowContextPopup() {
         if ($global:Logger) {

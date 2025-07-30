@@ -93,45 +93,43 @@ class ProjectDetailScreen : Screen {
         $this.LoadTimeEntries()
         
         # Register shortcuts
-        $this.RegisterShortcuts()
+        # $this.RegisterShortcuts()  # Removed - deprecated
     }
     
     [void] RegisterShortcuts() {
-        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
-        if (-not $shortcutManager) { return }
+        # $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')  # Removed - deprecated
+        # if (-not $shortcutManager) { return }  # Removed - deprecated
         
-        $screen = $this
+        # $screen = $this
         
         # ESC: Go back
-        $shortcutManager.RegisterShortcut(@{
-            Id = "projectdetail.back"
-            Name = "Go Back"
-            Description = "Return to projects list"
-            Key = [System.ConsoleKey]::Escape
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "ProjectDetailScreen"
-            Priority = 50
-            Action = { 
-                if ($global:ScreenManager) {
-                    $global:ScreenManager.Pop()
-                }
-            }
-        })
+        # $shortcutManager.RegisterShortcut(@{
+        #     Id = "projectdetail.back"
+        #     Name = "Go Back"
+        #     Description = "Return to projects list"
+        #     Key = [System.ConsoleKey]::Escape
+        #     ScreenType = "ProjectDetailScreen"
+        #     Priority = 50
+        #     Action = { 
+        #         if ($global:ScreenManager) {
+        #             $global:ScreenManager.Pop()
+        #         }
+        #     }
+        # })
         
         # F5: Refresh
-        $shortcutManager.RegisterShortcut(@{
-            Id = "projectdetail.refresh"
-            Name = "Refresh"
-            Description = "Refresh time entries"
-            Key = [System.ConsoleKey]::F5
-            Scope = [ShortcutScope]::Screen
-            ScreenType = "ProjectDetailScreen"
-            Priority = 50
-            Action = { 
-                $screen.LoadProjectInfo()
-                $screen.LoadTimeEntries()
-            }
-        })
+        # $shortcutManager.RegisterShortcut(@{
+        #     Id = "projectdetail.refresh"
+        #     Name = "Refresh"
+        #     Description = "Refresh time entries"
+        #     Key = [System.ConsoleKey]::F5
+        #     ScreenType = "ProjectDetailScreen"
+        #     Priority = 50
+        #     Action = { 
+        #         $screen.LoadProjectInfo()
+        #         $screen.LoadTimeEntries()
+        #     }
+        # })
     }
     
     [void] OnBoundsChanged() {
@@ -301,5 +299,24 @@ Shortcuts:
 Navigation:
   Up/Down arrows to navigate entries
 "@
+    }
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Handle Escape key to exit the detail screen
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Escape) {
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Pop()
+            }
+            return $true
+        }
+        
+        # Handle F5 to refresh
+        if ($keyInfo.Key -eq [System.ConsoleKey]::F5) {
+            $this.LoadProjectInfo()
+            $this.LoadTimeEntries()
+            return $true
+        }
+        
+        return $false
     }
 }
