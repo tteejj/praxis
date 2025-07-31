@@ -1,0 +1,65 @@
+[
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:22.8898621-06:00",
+    "Id": "09fdc73f-d665-47b9-94ab-aa0df3289687",
+    "IsTemplate": false,
+    "Title": "Test Command 1",
+    "Category": "Development",
+    "Group": "Git",
+    "CreatedAt": "2025-07-31T06:22:22.8898462-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "git",
+      "vcs"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "Git",
+    "CommandText": "Test-Command1"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:22.9055148-06:00",
+    "Id": "62325fb3-38bf-45aa-bec3-f864990d2373",
+    "IsTemplate": false,
+    "Title": "Test Command 2",
+    "Category": "Development",
+    "Group": "Docker",
+    "CreatedAt": "2025-07-31T06:22:22.9055016-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "docker",
+      "container"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "Docker",
+    "CommandText": "Test-Command2"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:22.930839-06:00",
+    "Id": "4bc73c4d-7f8f-47e4-a2e1-fecf886be25b",
+    "IsTemplate": false,
+    "Title": "Test Command 3",
+    "Category": "Administration",
+    "Group": "PowerShell",
+    "CreatedAt": "2025-07-31T06:22:22.9308269-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "system",
+      "admin"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Test-Command3"
+  }
+]

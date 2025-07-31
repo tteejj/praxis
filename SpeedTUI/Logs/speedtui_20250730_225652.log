@@ -1,0 +1,22 @@
+2025-07-30 22:56:53.068 [Info] [Application][Constructor] Application created with title | Title=Simple Test
+2025-07-30 22:56:53.349 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 22:56:53.419 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 22:56:53.497 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 22:56:54.107 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 22:56:54.121 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 22:56:54.265 [Info] [Application][Initialize] Initializing application | Title=Simple Test
+2025-07-30 22:56:54.285 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-30 22:56:54.298 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 22:56:54.368 [Info] [Terminal][Initialize] Terminal initialized | Height=24 Width=80
+2025-07-30 22:56:54.533 [Info] [RenderEngine][Initialize] Render engine initialized | Height=24 Width=80
+2025-07-30 22:56:54.689 [Info] [InputManager][Start] Input manager started
+2025-07-30 22:56:54.796 [Info] [Application][Initialize] Application initialized successfully
+2025-07-30 22:56:54.802 [Info] [Application][Run] Starting main loop
+2025-07-30 22:57:08.258 [Info] [Application][Run] Auto-stopping after 10 seconds
+2025-07-30 22:57:08.271 [Info] [Application][Stop] Stopping application
+2025-07-30 22:57:08.286 [Info] [Application][Cleanup] Cleaning up application
+2025-07-30 22:57:08.299 [Info] [InputManager][Stop] Input manager stopped
+2025-07-30 22:57:08.309 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-30 22:57:08.319 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-30 22:57:08.334 [Info] [RenderEngine][Performance] Render statistics | AverageRenderMs=13.5 TotalFrames=601 AverageFPS=74.1
+2025-07-30 22:57:08.390 [Info] [Application][Cleanup] Application statistics | TotalUptime=00:00:13.5806521 TotalFrames=601 Title=Simple Test

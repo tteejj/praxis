@@ -1,0 +1,7 @@
+2025-07-31 07:27:38.098 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 07:27:38.918 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 07:27:39.656 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 07:27:45.267 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 07:27:45.526 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "TopBorder" and the argument count: "0".
+2025-07-31 07:31:50.576 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "TopBorder" and the argument count: "0".
+2025-07-31 07:31:51.367 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "TopBorder" and the argument count: "0".

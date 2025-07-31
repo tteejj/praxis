@@ -1,0 +1,20 @@
+2025-07-31 12:00:03.733 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 12:00:04.520 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 12:00:04.566 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 12:00:04.667 [Info] [Terminal][Constructor] Enhanced terminal initialized | Width=80 Height=24 CacheEnabled=True
+2025-07-31 12:00:04.756 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 12:00:04.785 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 12:00:04.890 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 12:00:04.947 [Debug] [SpeedTUI][TimeTrackingScreen] Initializing forms
+2025-07-31 12:00:04.996 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm created
+2025-07-31 12:00:05.145 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=3 Label=Project Name Placeholder=e.g., Website Redesign
+2025-07-31 12:00:05.179 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm fields added | FieldCount=9
+2025-07-31 12:00:05.193 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=3 Label=Project Name Placeholder=e.g., Website Redesign
+2025-07-31 12:00:05.248 [Debug] [SpeedTUI][TimeTrackingScreen] Current week initialized | WeekStarting=2025-07-28 WeekEnding=2025-08-01
+2025-07-31 12:00:05.661 [Debug] [PerformanceMonitor][Metric] 12:00:05.566 counter.screen.timetracking.refresh: 1count
+2025-07-31 12:00:05.671 [Debug] [PerformanceMonitor][Metric] 12:00:05.667 counter.screen.timetracking.initialized: 1count
+2025-07-31 12:00:05.869 [Debug] [PerformanceMonitor][Metric] 12:00:05.859 timing.Application.Startup: 2099ms
+2025-07-31 12:00:05.879 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 12:00:05.966 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=TimeTrackingScreen
+2025-07-31 12:00:06.003 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 12:00:06.040 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode

@@ -1,0 +1,61 @@
+2025-07-31 12:20:20.209 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 12:20:21.014 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 12:20:21.056 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 12:20:21.163 [Info] [Terminal][Constructor] Enhanced terminal initialized | Width=80 CacheEnabled=True Height=24
+2025-07-31 12:20:21.252 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 12:20:21.280 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 12:20:21.399 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 12:20:22.166 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 12:20:23.232 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 12:20:23.261 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 12:20:23.275 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 12:20:23.352 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | Width=80 CacheSize=2 Theme=default Height=24
+2025-07-31 12:20:23.375 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-31 12:20:23.381 [Debug] [RenderEngine][Initialize] Initializing terminal
+2025-07-31 12:20:23.389 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 12:20:23.426 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | Width=80 CacheSize=2 Theme=default Height=24
+2025-07-31 12:20:23.440 [Debug] [RenderEngine][Initialize] Creating render buffer | Height=24 Width=80
+2025-07-31 12:20:23.562 [Debug] [RenderBuffer][Constructor] Buffer initialized | Height=24 Width=80
+2025-07-31 12:20:23.575 [Info] [RenderEngine][Initialize] Render engine initialized successfully | Height=24 Width=80
+2025-07-31 12:20:23.725 [Debug] [RenderRegion][Constructor] Render region created successfully | Bounds=0,0 80x24 Id=main
+2025-07-31 12:20:23.736 [Debug] [RenderEngine][DefineRegion] Region defined successfully | TotalRegions=1 Height=24 Y=0 X=0 Id=main Width=80
+2025-07-31 12:20:23.750 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=80x24
+2025-07-31 12:20:23.882 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 80x24 RegionId=main
+2025-07-31 12:20:23.962 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | CellsCleared=1920 ActualBounds=0,0 to 80,24
+2025-07-31 12:20:23.989 [Debug] [RenderEngine][MarkDirty] Region marked dirty | RegionId=main TotalDirtyRegions=1
+2025-07-31 12:20:25.406 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:20:25.549 [Debug] [RenderBuffer][GetDifferences] Differences computed | ChangedCells=969 ChangePercentage=50.47 CellsCompared=1920 DifferenceCount=101
+2025-07-31 12:20:25.586 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:20:25.643 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=1920
+2025-07-31 12:20:25.722 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=310.6874
+2025-07-31 12:20:25.760 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek. FrameCount=0
+2025-07-31 12:20:26.092 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 80x24 RegionId=main
+2025-07-31 12:20:26.098 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | CellsCleared=1920 ActualBounds=0,0 to 80,24
+2025-07-31 12:20:26.112 [Debug] [RenderEngine][MarkDirty] Region marked dirty | RegionId=main TotalDirtyRegions=1
+2025-07-31 12:20:26.386 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:20:26.394 [Debug] [RenderBuffer][GetDifferences] Differences computed | ChangedCells=4 ChangePercentage=0.21 CellsCompared=1920 DifferenceCount=3
+2025-07-31 12:20:26.401 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:20:26.406 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=1920
+2025-07-31 12:20:26.410 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=23.8798
+2025-07-31 12:20:26.425 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek. FrameCount=0
+2025-07-31 12:20:26.542 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 80x24 RegionId=main
+2025-07-31 12:20:26.548 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | CellsCleared=1920 ActualBounds=0,0 to 80,24
+2025-07-31 12:20:26.553 [Debug] [RenderEngine][MarkDirty] Region marked dirty | RegionId=main TotalDirtyRegions=1
+2025-07-31 12:20:26.809 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:20:26.818 [Debug] [RenderBuffer][GetDifferences] Differences computed | ChangedCells=2 ChangePercentage=0.1 CellsCompared=1920 DifferenceCount=2
+2025-07-31 12:20:26.824 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:20:26.829 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=1920
+2025-07-31 12:20:26.848 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=38.4701
+2025-07-31 12:20:26.872 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek. FrameCount=0
+2025-07-31 12:20:27.002 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 80x24 RegionId=main
+2025-07-31 12:20:27.012 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | CellsCleared=1920 ActualBounds=0,0 to 80,24
+2025-07-31 12:20:27.017 [Debug] [RenderEngine][MarkDirty] Region marked dirty | RegionId=main TotalDirtyRegions=1
+2025-07-31 12:20:27.172 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:20:27.186 [Debug] [RenderBuffer][GetDifferences] Differences computed | ChangedCells=3 ChangePercentage=0.16 CellsCompared=1920 DifferenceCount=3
+2025-07-31 12:20:27.191 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:20:27.196 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=1920
+2025-07-31 12:20:27.203 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=31.2824
+2025-07-31 12:20:27.225 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek. FrameCount=0
+2025-07-31 12:20:27.362 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 80x24 RegionId=main
+2025-07-31 12:20:27.368 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | CellsCleared=1920 ActualBounds=0,0 to 80,24
+2025-07-31 12:20:27.374 [Debug] [RenderEngine][MarkDirty] Region marked dirty | RegionId=main TotalDirtyRegions=1

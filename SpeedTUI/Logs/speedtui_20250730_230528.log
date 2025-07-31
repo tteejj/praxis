@@ -1,0 +1,31 @@
+2025-07-30 23:05:28.500 [Info] [Application][Constructor] Application created with title | Title=SpeedTUI Example
+2025-07-30 23:05:28.754 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 23:05:28.821 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 23:05:28.895 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 23:05:29.384 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:05:29.396 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 23:05:29.524 [Info] [DataStore][Constructor] DataStore created | Name=example
+2025-07-30 23:05:29.537 [Info] [DataStoreManager][GetStore] Store created | StoreName=example
+2025-07-30 23:05:31.187 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:05:31.268 [Info] [Application][Initialize] Initializing application | Title=SpeedTUI Example
+2025-07-30 23:05:31.286 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-30 23:05:31.302 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 23:05:31.340 [Info] [Terminal][Initialize] Terminal initialized | Width=80 Height=24
+2025-07-30 23:05:31.465 [Info] [RenderEngine][Initialize] Render engine initialized | Width=80 Height=24
+2025-07-30 23:05:31.645 [Info] [InputManager][Start] Input manager started
+2025-07-30 23:05:31.903 [Info] [Application][Initialize] Application initialized successfully
+2025-07-30 23:05:31.912 [Info] [Application][Run] Starting main loop
+2025-07-30 23:05:32.974 [Error] [Application][Run] Error in main loop | Error=You cannot call a method on a null-valued expression. StackTrace=at DrawRow, /home/teej/projects/github/SpeedTUI/Components/Table.ps1: line 410
+at DrawRows, /home/teej/projects/github/SpeedTUI/Components/Table.ps1: line 378
+at OnRender, /home/teej/projects/github/SpeedTUI/Components/Table.ps1: line 305
+at Render, /home/teej/projects/github/SpeedTUI/Core/Component.ps1: line 170
+at Render, /home/teej/projects/github/SpeedTUI/Core/Component.ps1: line 177
+at Render, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 235
+at Run, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 131
+at Run, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 376
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 183
+2025-07-30 23:05:33.196 [Info] [Application][Cleanup] Cleaning up application
+2025-07-30 23:05:33.208 [Info] [InputManager][Stop] Input manager stopped
+2025-07-30 23:05:33.217 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-30 23:05:33.228 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-30 23:05:33.279 [Info] [Application][Cleanup] Application statistics | TotalFrames=0 Title=SpeedTUI Example TotalUptime=00:00:01.3425910

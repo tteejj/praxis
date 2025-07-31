@@ -1,0 +1,22 @@
+2025-07-30 22:56:05.373 [Info] [Application][Constructor] Application created with title | Title=Simple Test
+2025-07-30 22:56:05.635 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 22:56:05.697 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 22:56:05.764 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 22:56:06.332 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 22:56:06.346 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 22:56:06.504 [Info] [Application][Initialize] Initializing application | Title=Simple Test
+2025-07-30 22:56:06.522 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-30 22:56:06.537 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 22:56:06.582 [Info] [Terminal][Initialize] Terminal initialized | Height=24 Width=80
+2025-07-30 22:56:06.750 [Info] [RenderEngine][Initialize] Render engine initialized | Height=24 Width=80
+2025-07-30 22:56:06.924 [Info] [InputManager][Start] Input manager started
+2025-07-30 22:56:07.036 [Info] [Application][Initialize] Application initialized successfully
+2025-07-30 22:56:07.043 [Info] [Application][Run] Starting main loop
+2025-07-30 22:56:07.115 [Error] [Application][Run] Error in main loop | StackTrace=at ProcessInput, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 161
+at Run, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 124
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/TestSimple.ps1: line 17 Error=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-30 22:56:07.338 [Info] [Application][Cleanup] Cleaning up application
+2025-07-30 22:56:07.350 [Info] [InputManager][Stop] Input manager stopped
+2025-07-30 22:56:07.365 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-30 22:56:07.376 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-30 22:56:07.419 [Info] [Application][Cleanup] Application statistics | Title=Simple Test TotalUptime=00:00:00.3637385 TotalFrames=0

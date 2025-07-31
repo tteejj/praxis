@@ -1,0 +1,13 @@
+2025-07-31 11:56:39.121 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 11:56:39.426 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 11:56:40.456 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 11:56:40.510 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 11:56:40.550 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 11:56:40.660 [Trace] [Terminal][UpdateDimensions] Terminal dimensions updated | Width=80 Height=24
+2025-07-31 11:56:40.695 [Info] [Terminal][Constructor] Enhanced terminal initialized | CacheEnabled=True Width=80 Height=24
+2025-07-31 11:56:40.729 [Trace] [RenderEngine][Constructor] Creating render engine
+2025-07-31 11:56:40.752 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 11:56:40.787 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 11:56:40.802 [Info] [SpeedTUI][EnhancedApplication] Debug mode enabled - detailed logging active
+2025-07-31 11:56:40.901 [Debug] [DashboardScreen][Constructor] Enhanced component created | Type=DashboardScreen Id=a8def995-37b7-46de-a036-7c84b2fa3929
+2025-07-31 11:56:41.032 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026

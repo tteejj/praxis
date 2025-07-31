@@ -1,0 +1,22 @@
+2025-07-31 13:52:45.398 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 13:52:45.666 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:52:46.508 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 13:52:46.552 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:52:46.642 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:52:46.657 [Info] [SpeedTUI][EnhancedApplication] Debug mode enabled - detailed logging active
+2025-07-31 13:52:46.847 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:52:47.587 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 13:52:48.669 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 13:52:48.697 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 13:52:48.776 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=169x44
+2025-07-31 13:52:52.801 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=DownArrow KeyChar=0
+2025-07-31 13:52:53.733 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=UpArrow KeyChar=0
+2025-07-31 13:53:15.391 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=DownArrow KeyChar=0
+2025-07-31 13:53:16.002 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=DownArrow KeyChar=0
+2025-07-31 13:53:16.399 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=DownArrow KeyChar=0
+2025-07-31 13:53:17.411 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=Enter KeyChar=13
+2025-07-31 13:53:19.837 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=UpArrow KeyChar=0
+2025-07-31 13:53:20.876 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | CurrentScreen=DashboardScreen Key=Enter KeyChar=13
+2025-07-31 13:53:35.205 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 13:53:35.236 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | RenderEngineUsed=True AverageFPS=1138.7 TotalFrames=2155 TotalUptime=00:00:46 AverageFrameTime=0.88
+2025-07-31 13:53:35.240 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed

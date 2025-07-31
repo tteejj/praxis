@@ -1,0 +1,11 @@
+2025-07-31 07:52:03.911 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 07:52:04.302 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:263 char:14
++     [string] HandleKey([System.ConsoleKeyInfo]$keyInfo) {
++              ~~~~~~~~~
+Not all code path returns value within method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:356 char:14
++     [string] HandleAddInputKey([System.ConsoleKeyInfo]$keyInfo) {
++              ~~~~~~~~~~~~~~~~~
+Not all code path returns value within method.
+2025-07-31 07:52:04.561 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

@@ -1,0 +1,16 @@
+2025-07-31 08:27:06.594 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 08:27:07.028 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:159 char:17
++             if ($sumResult -and $null -ne $sumResult.Sum) {
++                 ~~~~~~~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:159 char:43
++             if ($sumResult -and $null -ne $sumResult.Sum) {
++                                           ~~~~~~~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:160 char:31
++                 $totalHours = $sumResult.Sum
++                               ~~~~~~~~~~
+Variable is not assigned in the method.
+2025-07-31 08:27:07.309 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

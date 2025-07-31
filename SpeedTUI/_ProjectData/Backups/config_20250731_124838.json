@@ -1,0 +1,127 @@
+{
+  "Network": {
+    "UpdateCheckInterval": 7,
+    "ProxyServer": "",
+    "Timeout": 30,
+    "ProxyPort": 8080,
+    "ProxyEnabled": false,
+    "ProxyUsername": "",
+    "EnableUpdates": true,
+    "ProxyAuth": false
+  },
+  "Advanced": {
+    "ShowPerformanceMetrics": false,
+    "RecoveryInterval": 300,
+    "CacheSize": 100,
+    "MaxUndoLevels": 50,
+    "EnableDebugMode": true,
+    "AutoRecovery": true,
+    "ThreadPoolSize": 4,
+    "EnableTelemetry": false
+  },
+  "Colors": {
+    "Foreground": "White",
+    "Background": "Black",
+    "Accent": "DarkBlue",
+    "Info": "Cyan",
+    "Selection": "Blue",
+    "Success": "Green",
+    "Border": "Gray",
+    "Error": "Red",
+    "Warning": "Yellow",
+    "Header": "Magenta"
+  },
+  "_metadata": {
+    "Version": "1.0",
+    "LastModified": "2025-07-31T12:15:19.2377216-06:00",
+    "Application": "SpeedTUI"
+  },
+  "Commands": {
+    "ShowUsageCount": true,
+    "GroupByCategory": true,
+    "CacheSearchResults": true,
+    "ShowFavorites": true,
+    "EnableTemplates": true,
+    "AutoCreateBackups": true,
+    "MaxRecentCommands": 20,
+    "DefaultLanguage": "PowerShell"
+  },
+  "UI": {
+    "ShowBorders": true,
+    "Theme": "Default",
+    "ShowToolbar": true,
+    "WindowTitle": "SpeedTUI - PowerShell Terminal Interface",
+    "DefaultWidth": 120,
+    "HighlightCurrentLine": true,
+    "WordWrap": true,
+    "DefaultHeight": 30,
+    "FullScreen": false,
+    "ShowLineNumbers": true,
+    "ShowStatusBar": true
+  },
+  "Shortcuts": {
+    "Save": "Ctrl+S",
+    "SelectAll": "Ctrl+A",
+    "Search": "Ctrl+F",
+    "Exit": "Ctrl+Q",
+    "Replace": "Ctrl+H",
+    "ShowHelp": "F1",
+    "Cut": "Ctrl+X",
+    "Paste": "Ctrl+V",
+    "Redo": "Ctrl+Y",
+    "Undo": "Ctrl+Z",
+    "ToggleFullScreen": "F11",
+    "New": "Ctrl+N",
+    "Copy": "Ctrl+C",
+    "QuickCommand": "Ctrl+Shift+P",
+    "Open": "Ctrl+O",
+    "TimeEntry": "Ctrl+T"
+  },
+  "Recent": {
+    "MaxCommands": 20,
+    "MaxFiles": 10,
+    "MaxSearches": 15,
+    "MaxProjects": 10,
+    "ClearOnExit": false
+  },
+  "Application": {
+    "BackupRetention": 30,
+    "Version": "1.0.0",
+    "RefreshInterval": 5000,
+    "MaxLogFiles": 10,
+    "AutoSave": true,
+    "Name": "SpeedTUI",
+    "StartupMode": "Dashboard",
+    "LogLevel": "Debug"
+  },
+  "Editor": {
+    "SyntaxHighlighting": true,
+    "TabSize": 4,
+    "ShowWhitespace": false,
+    "AutoIndent": true,
+    "LineEndings": "CRLF",
+    "Encoding": "UTF8",
+    "UseTabs": false,
+    "BracketMatching": true,
+    "AutoComplete": true
+  },
+  "Files": {
+    "BackupInterval": 24,
+    "DefaultDirectory": "_ProjectData",
+    "BackupDirectory": "Backups",
+    "AutoBackup": true,
+    "ShowHiddenFiles": false,
+    "CompressBackups": true,
+    "MaxBackups": 10
+  },
+  "TimeTracking": {
+    "AutoCalculateTotal": true,
+    "ValidateTimeEntries": true,
+    "FiscalYearStart": "April",
+    "ShowWeekends": false,
+    "DefaultHoursPerDay": 8.0,
+    "RequireProjectCode": true,
+    "WeekStartDay": "Monday",
+    "RoundingMinutes": 15
+  }
+}

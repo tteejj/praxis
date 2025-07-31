@@ -1,0 +1,23 @@
+2025-07-31 13:01:30.046 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 13:01:30.313 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:01:31.255 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 13:01:31.311 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:01:31.414 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:01:31.429 [Info] [SpeedTUI][EnhancedApplication] Debug mode enabled - detailed logging active
+2025-07-31 13:01:31.622 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:01:32.330 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 13:01:33.460 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 13:01:33.485 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 13:01:33.551 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=80x24
+2025-07-31 13:01:34.572 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:34.964 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:35.167 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:35.363 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:35.589 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:35.839 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:36.119 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:36.330 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:36.509 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:36.737 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:37.064 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+2025-07-31 13:01:37.271 [Error] [SpeedTUI][EnhancedApplication] Error in main loop | FrameCount=0 Exception=Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.

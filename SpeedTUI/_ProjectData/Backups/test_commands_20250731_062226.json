@@ -1,0 +1,40 @@
+[
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:26.8321467-06:00",
+    "Id": "70f676a9-0bd7-4c7b-8d93-f33df9bcc73c",
+    "IsTemplate": false,
+    "Title": "Command 1",
+    "Category": "",
+    "Group": "",
+    "CreatedAt": "2025-07-31T06:22:26.8321336-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": null,
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Get-Process"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:26.8584242-06:00",
+    "Id": "bff07490-0448-41cd-b3d7-b5f3beb0520b",
+    "IsTemplate": false,
+    "Title": "Command 2",
+    "Category": "",
+    "Group": "",
+    "CreatedAt": "2025-07-31T06:22:26.8584148-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "favorite"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Get-Service"
+  }
+]

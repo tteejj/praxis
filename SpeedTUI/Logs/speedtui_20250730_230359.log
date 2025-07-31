@@ -1,0 +1,9 @@
+2025-07-30 23:03:59.315 [Info] [Application][Constructor] Application created with title | Title=SpeedTUI Example
+2025-07-30 23:03:59.587 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 23:03:59.649 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 23:03:59.718 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 23:04:00.240 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:04:00.253 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 23:04:00.381 [Info] [DataStore][Constructor] DataStore created | Name=example
+2025-07-30 23:04:00.395 [Info] [DataStoreManager][GetStore] Store created | StoreName=example
+2025-07-30 23:04:01.942 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default

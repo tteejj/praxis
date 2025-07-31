@@ -1,0 +1,8 @@
+2025-07-31 06:59:25.128 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 06:59:26.571 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 06:59:46.607 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "IncrementCounter" and the argument count: "1".
+2025-07-31 07:00:14.529 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "IncrementCounter" and the argument count: "1".
+2025-07-31 07:00:22.037 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "IncrementCounter" and the argument count: "1".
+2025-07-31 07:00:31.573 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "IncrementCounter" and the argument count: "1".
+2025-07-31 07:00:38.394 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot find an overload for "IncrementCounter" and the argument count: "1".
+2025-07-31 07:00:45.766 [Fatal] [SpeedTUI][Startup] Fatal startup error: Cannot find an overload for "IncrementCounter" and the argument count: "1".

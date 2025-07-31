@@ -1,0 +1,6 @@
+2025-07-31 13:15:52.222 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:15:52.746 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Core/EnhancedApplication.ps1:220 char:17
++             if ($refreshNeeded) {
++                 ~~~~~~~~~~~~~~
+Variable is not assigned in the method.
+2025-07-31 13:15:52.947 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

@@ -1,0 +1,91 @@
+2025-07-31 08:23:23.484 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 08:23:24.286 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 08:23:24.998 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 08:23:28.052 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 08:23:28.710 [Error] [SpeedTUI][MainLoop] Error in main loop: You cannot call a method on a null-valued expression. | InvocationInfo=
+MyCommand             : 
+BoundParameters       : {}
+UnboundArguments      : {}
+ScriptLineNumber      : 151
+OffsetInLine          : 161
+HistoryId             : 1
+ScriptName            : /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1
+Line                  :         $lines += [BorderHelper]::ContentLine("Fiscal Year: $($currentFY.PadRight(15)) │ Total Entries: $($totalEntries.ToString().PadLeft(4)) │ Total Hours: $($totalHours.ToString('F1').PadLeft(6))")
+                        
+Statement             : $totalHours.ToString('F1').PadLeft(6)
+PositionMessage       : At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:151 char:161
+                        + … PadLeft(4)) │ Total Hours: $($totalHours.ToString('F1').PadLeft(6))")
+                        +                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PSScriptRoot          : /home/teej/projects/github/SpeedTUI/Screens
+PSCommandPath         : /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1
+InvocationName        : 
+PipelineLength        : 0
+PipelinePosition      : 0
+ExpectingInput        : False
+CommandOrigin         : Internal
+DisplayScriptPosition : 
+
+ Exception=System.Management.Automation.RuntimeException: You cannot call a method on a null-valued expression.
+   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)
+   at lambda_method586(Closure, Object[], StrongBox`1[], InterpretedFrame) ScriptStackTrace=at RenderHeader, /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1: line 151
+at Render, /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1: line 114
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1: line 153
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 179
+2025-07-31 08:26:30.934 [Error] [SpeedTUI][MainLoop] Error in main loop: You cannot call a method on a null-valued expression. | InvocationInfo=
+MyCommand             : 
+BoundParameters       : {}
+UnboundArguments      : {}
+ScriptLineNumber      : 151
+OffsetInLine          : 161
+HistoryId             : 1
+ScriptName            : /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1
+Line                  :         $lines += [BorderHelper]::ContentLine("Fiscal Year: $($currentFY.PadRight(15)) │ Total Entries: $($totalEntries.ToString().PadLeft(4)) │ Total Hours: $($totalHours.ToString('F1').PadLeft(6))")
+                        
+Statement             : $totalHours.ToString('F1').PadLeft(6)
+PositionMessage       : At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:151 char:161
+                        + … PadLeft(4)) │ Total Hours: $($totalHours.ToString('F1').PadLeft(6))")
+                        +                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PSScriptRoot          : /home/teej/projects/github/SpeedTUI/Screens
+PSCommandPath         : /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1
+InvocationName        : 
+PipelineLength        : 0
+PipelinePosition      : 0
+ExpectingInput        : False
+CommandOrigin         : Internal
+DisplayScriptPosition : 
+
+ Exception=System.Management.Automation.RuntimeException: You cannot call a method on a null-valued expression.
+   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)
+   at lambda_method586(Closure, Object[], StrongBox`1[], InterpretedFrame) ScriptStackTrace=at RenderHeader, /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1: line 151
+at Render, /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1: line 114
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1: line 153
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 179
+2025-07-31 08:26:33.374 [Error] [SpeedTUI][MainLoop] Error in main loop: You cannot call a method on a null-valued expression. | InvocationInfo=
+MyCommand             : 
+BoundParameters       : {}
+UnboundArguments      : {}
+ScriptLineNumber      : 151
+OffsetInLine          : 161
+HistoryId             : 1
+ScriptName            : /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1
+Line                  :         $lines += [BorderHelper]::ContentLine("Fiscal Year: $($currentFY.PadRight(15)) │ Total Entries: $($totalEntries.ToString().PadLeft(4)) │ Total Hours: $($totalHours.ToString('F1').PadLeft(6))")
+                        
+Statement             : $totalHours.ToString('F1').PadLeft(6)
+PositionMessage       : At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:151 char:161
+                        + … PadLeft(4)) │ Total Hours: $($totalHours.ToString('F1').PadLeft(6))")
+                        +                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PSScriptRoot          : /home/teej/projects/github/SpeedTUI/Screens
+PSCommandPath         : /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1
+InvocationName        : 
+PipelineLength        : 0
+PipelinePosition      : 0
+ExpectingInput        : False
+CommandOrigin         : Internal
+DisplayScriptPosition : 
+
+ Exception=System.Management.Automation.RuntimeException: You cannot call a method on a null-valued expression.
+   at System.Management.Automation.ExceptionHandlingOps.CheckActionPreference(FunctionContext funcContext, Exception exception)
+   at lambda_method586(Closure, Object[], StrongBox`1[], InterpretedFrame) ScriptStackTrace=at RenderHeader, /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1: line 151
+at Render, /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1: line 114
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1: line 153
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 179

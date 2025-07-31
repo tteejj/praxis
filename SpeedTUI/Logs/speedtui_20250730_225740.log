@@ -1,0 +1,4 @@
+2025-07-30 22:57:40.543 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 22:57:40.803 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 22:57:40.853 [Info] [Terminal][Initialize] Terminal initialized | Width=80 Height=24
+2025-07-30 22:57:41.373 [Info] [Terminal][Cleanup] Restoring terminal state

@@ -1,0 +1,41 @@
+2025-07-31 09:10:26.711 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 09:10:27.473 [Debug] [DashboardScreen][Constructor] Component created | Type=DashboardScreen Id=b9b18424-29f5-487a-98d7-cdb837ce9a18
+2025-07-31 09:10:27.622 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 09:10:28.312 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 09:10:28.331 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 09:10:29.013 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=42
+2025-07-31 09:10:30.257 [Trace] [SpeedTUI][MainLoop] Key pressed | Key=Enter CurrentScreen=DashboardScreen KeyChar=13
+2025-07-31 09:10:30.380 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 09:10:30.410 [Debug] [SpeedTUI][TimeTrackingScreen] Initializing forms
+2025-07-31 09:10:30.451 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm created
+2025-07-31 09:10:30.521 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=1 Placeholder=e.g., PRJ001 Label=Project ID1
+2025-07-31 09:10:30.528 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=2 Placeholder=e.g., TASK01 Label=Project ID2
+2025-07-31 09:10:30.535 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=3 Placeholder=e.g., Website Redesign Label=Project Name
+2025-07-31 09:10:30.609 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm fields added | FieldCount=9
+2025-07-31 09:10:30.620 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=1 Placeholder=e.g., PRJ001 Label=Project ID1
+2025-07-31 09:10:30.627 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=2 Placeholder=e.g., TASK01 Label=Project ID2
+2025-07-31 09:10:30.633 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=3 Placeholder=e.g., Website Redesign Label=Project Name
+2025-07-31 09:10:30.766 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 09:10:30.855 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | AddFormExists=True EditFormExists=True ViewMode=List TimeEntriesCount=3
+2025-07-31 09:10:31.140 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=28
+2025-07-31 09:10:33.495 [Trace] [SpeedTUI][MainLoop] Key pressed | Key=A CurrentScreen=TimeTrackingScreen KeyChar=97
+2025-07-31 09:10:33.516 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=A
+2025-07-31 09:10:33.663 [Debug] [SpeedTUI][FormManager] Form activated | FirstFieldLabel=Project ID1 TotalFields=9
+2025-07-31 09:10:33.831 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 09:10:33.898 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | AddFormExists=True EditFormExists=True ViewMode=Add TimeEntriesCount=3
+2025-07-31 09:10:34.072 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 09:10:36.259 [Trace] [SpeedTUI][MainLoop] Key pressed | Key=DownArrow CurrentScreen=TimeTrackingScreen KeyChar=0
+2025-07-31 09:10:36.274 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 09:10:36.342 [Trace] [SpeedTUI][FormManager] HandleInput | Key=DownArrow CurrentFieldLabel=Project ID1 CurrentFieldIndex=0
+2025-07-31 09:10:36.382 [Trace] [SpeedTUI][InputField] HandleInput | Key=DownArrow CursorPos=0 CurrentValue= KeyChar=0 Label=Project ID1
+2025-07-31 09:10:36.460 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 09:10:36.534 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | AddFormExists=True EditFormExists=True ViewMode=Add TimeEntriesCount=3
+2025-07-31 09:10:36.564 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 09:10:37.654 [Trace] [SpeedTUI][MainLoop] Key pressed | Key=Enter CurrentScreen=TimeTrackingScreen KeyChar=13
+2025-07-31 09:10:37.672 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=Enter
+2025-07-31 09:10:37.689 [Trace] [SpeedTUI][FormManager] HandleInput | Key=Enter CurrentFieldLabel=Project ID1 CurrentFieldIndex=0
+2025-07-31 09:10:37.794 [Debug] [SpeedTUI][FormManager] GetFormData | Keys=Monday Hours, Tuesday Hours, Friday Hours, Project Name, Week Ending (Friday), Thursday Hours, Project ID2, Project ID1, Wednesday Hours FieldCount=9
+2025-07-31 09:10:38.265 [Debug] [SpeedTUI][TimeTrackingService] Cleared time tracking caches
+2025-07-31 09:10:38.436 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 09:10:38.486 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | AddFormExists=True EditFormExists=True ViewMode=List TimeEntriesCount=4
+2025-07-31 09:10:38.507 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=28

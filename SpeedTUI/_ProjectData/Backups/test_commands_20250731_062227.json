@@ -1,0 +1,102 @@
+[
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:27.8040502-06:00",
+    "Id": "b9f15fc0-c953-46af-a17e-3cc8bc880988",
+    "IsTemplate": false,
+    "Title": "Bulk Command 1",
+    "Category": "NewCategory",
+    "Group": "OldGroup",
+    "CreatedAt": "2025-07-31T06:22:27.6361309-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "old"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Test-Command1"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:27.8455558-06:00",
+    "Id": "5735019b-5c50-48a1-9d07-6a3930436a09",
+    "IsTemplate": false,
+    "Title": "Bulk Command 2",
+    "Category": "NewCategory",
+    "Group": "OldGroup",
+    "CreatedAt": "2025-07-31T06:22:27.6592286-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "old"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Test-Command2"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:27.8707016-06:00",
+    "Id": "75a3ce6e-b6dd-404a-8b50-505556fae1cb",
+    "IsTemplate": false,
+    "Title": "Bulk Command 3",
+    "Category": "NewCategory",
+    "Group": "OldGroup",
+    "CreatedAt": "2025-07-31T06:22:27.6865425-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "old"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Test-Command3"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:27.9053994-06:00",
+    "Id": "0b122322-de4e-4b25-9dfa-91bc4986967a",
+    "IsTemplate": false,
+    "Title": "Bulk Command 4",
+    "Category": "NewCategory",
+    "Group": "OldGroup",
+    "CreatedAt": "2025-07-31T06:22:27.7149817-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "old"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Test-Command4"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:27.7477568-06:00",
+    "Id": "6cfc1431-887e-4151-aba4-e97fcfade665",
+    "IsTemplate": false,
+    "Title": "Bulk Command 5",
+    "Category": "OldCategory",
+    "Group": "OldGroup",
+    "CreatedAt": "2025-07-31T06:22:27.7477431-06:00",
+    "Notes": "",
+    "Description": "",
+    "Parameters": {},
+    "Tags": [
+      "old"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Test-Command5"
+  }
+]

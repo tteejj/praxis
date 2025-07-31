@@ -1,0 +1,7 @@
+2025-07-31 12:05:17.977 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 12:05:18.738 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 12:05:18.778 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 12:05:18.881 [Info] [Terminal][Constructor] Enhanced terminal initialized | CacheEnabled=True Height=24 Width=80
+2025-07-31 12:05:18.975 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 12:05:19.005 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 12:05:19.125 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026

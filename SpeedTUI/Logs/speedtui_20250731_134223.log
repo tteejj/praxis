@@ -1,0 +1,21 @@
+2025-07-31 13:42:23.539 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 13:42:23.821 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:42:24.820 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 13:42:24.880 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:42:24.982 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:42:24.999 [Info] [SpeedTUI][EnhancedApplication] Debug mode enabled - detailed logging active
+2025-07-31 13:42:25.214 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:42:26.056 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 13:42:27.143 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 13:42:27.168 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 13:42:27.242 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=169x44
+2025-07-31 13:43:00.369 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=DownArrow KeyChar=0 CurrentScreen=DashboardScreen
+2025-07-31 13:43:01.101 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=DownArrow KeyChar=0 CurrentScreen=DashboardScreen
+2025-07-31 13:43:01.361 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=DownArrow KeyChar=0 CurrentScreen=DashboardScreen
+2025-07-31 13:43:01.774 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=DownArrow KeyChar=0 CurrentScreen=DashboardScreen
+2025-07-31 13:43:02.972 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=DownArrow KeyChar=0 CurrentScreen=DashboardScreen
+2025-07-31 13:43:25.889 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=Ctrl+Q KeyChar=17 CurrentScreen=DashboardScreen
+2025-07-31 13:43:25.931 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 13:43:25.959 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | RenderEngineUsed=True TotalFrames=3277 TotalUptime=00:00:58 AverageFrameTime=0.54 AverageFPS=1855.9
+2025-07-31 13:43:25.965 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed
+2025-07-31 13:43:26.206 [Info] [SpeedTUI][Shutdown] Enhanced application shutdown completed

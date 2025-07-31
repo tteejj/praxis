@@ -1,0 +1,5 @@
+2025-07-31 08:01:37.092 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 08:01:37.901 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 08:01:38.665 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 08:01:41.335 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 08:01:41.811 [Error] [SpeedTUI][MainLoop] Error in main loop: You cannot call a method on a null-valued expression.

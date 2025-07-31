@@ -1,0 +1,35 @@
+2025-07-31 11:29:39.985 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 11:29:40.875 [Debug] [DashboardScreen][Constructor] Enhanced component created | Type=DashboardScreen Id=276a40f9-b2da-4489-94c1-9850dd49dd3d
+2025-07-31 11:29:41.024 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 11:29:41.725 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 11:29:41.745 [Trace] [SpeedTUI][MainLoop] Refresh needed | CurrentScreen=DashboardScreen ScreenDetails=System.Collections.Hashtable
+2025-07-31 11:29:42.582 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:29:42.788 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek. | ScriptStackTrace=at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1: line 167
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 303 InvocationInfo=
+MyCommand             : 
+BoundParameters       : {}
+UnboundArguments      : {}
+ScriptLineNumber      : 167
+OffsetInLine          : 17
+HistoryId             : 1
+ScriptName            : /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1
+Line                  :             if ([Console]::KeyAvailable) {
+                        
+Statement             : [Console]::KeyAvailable
+PositionMessage       : At /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1:167 char:17
+                        +             if ([Console]::KeyAvailable) {
+                        +                 ~~~~~~~~~~~~~~~~~~~~~~~
+PSScriptRoot          : /home/teej/projects/github/SpeedTUI
+PSCommandPath         : /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1
+InvocationName        : 
+PipelineLength        : 0
+PipelinePosition      : 0
+ExpectingInput        : False
+CommandOrigin         : Internal
+DisplayScriptPosition : 
+
+ Exception=System.InvalidOperationException: Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+   at System.Console.get_KeyAvailable()
+   at System.Management.Automation.Interpreter.FuncCallInstruction`1.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame)
+2025-07-31 11:29:42.997 [Fatal] [SpeedTUI][Startup] Fatal startup error: Exception calling "ReadKey" with "1" argument(s): "Cannot read keys when either application does not have a console or when console input has been redirected. Try Console.Read."

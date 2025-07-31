@@ -1,0 +1,18 @@
+{
+  "UseCount": 0,
+  "UpdatedAt": "2025-07-31T06:22:23.9365487-06:00",
+  "Id": "14e4e256-786a-44e7-8132-68fb6c9f46b8",
+  "IsTemplate": false,
+  "Title": "Frequently Used Command",
+  "Category": "",
+  "Group": "",
+  "CreatedAt": "2025-07-31T06:22:23.9365346-06:00",
+  "Notes": "",
+  "Description": "",
+  "Parameters": {},
+  "Tags": null,
+  "LastUsed": "0001-01-01T00:00:00",
+  "Deleted": false,
+  "Language": "PowerShell",
+  "CommandText": "Get-Process"
+}

@@ -1,0 +1,25 @@
+2025-07-30 23:02:21.054 [Info] [Application][Constructor] Application created with title | Title=SpeedTUI Example
+2025-07-30 23:02:21.359 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 23:02:21.436 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 23:02:21.512 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 23:02:22.090 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:02:22.105 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 23:02:22.248 [Info] [DataStore][Constructor] DataStore created | Name=example
+2025-07-30 23:02:22.263 [Info] [DataStoreManager][GetStore] Store created | StoreName=example
+2025-07-30 23:02:22.666 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:02:22.781 [Info] [Application][Initialize] Initializing application | Title=SpeedTUI Example
+2025-07-30 23:02:22.797 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-30 23:02:22.810 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 23:02:22.857 [Info] [Terminal][Initialize] Terminal initialized | Width=80 Height=24
+2025-07-30 23:02:22.986 [Info] [RenderEngine][Initialize] Render engine initialized | Width=80 Height=24
+2025-07-30 23:02:23.127 [Info] [InputManager][Start] Input manager started
+2025-07-30 23:02:23.213 [Info] [Application][Initialize] Application initialized successfully
+2025-07-30 23:02:23.219 [Info] [Application][Run] Starting main loop
+2025-07-30 23:02:36.306 [Info] [Application][Run] Auto-stopping after 10 seconds
+2025-07-30 23:02:36.323 [Info] [Application][Stop] Stopping application
+2025-07-30 23:02:36.334 [Info] [Application][Cleanup] Cleaning up application
+2025-07-30 23:02:36.346 [Info] [InputManager][Stop] Input manager stopped
+2025-07-30 23:02:36.357 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-30 23:02:36.366 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-30 23:02:36.385 [Info] [RenderEngine][Performance] Render statistics | TotalFrames=601 AverageFPS=81.1 AverageRenderMs=12.33
+2025-07-30 23:02:36.433 [Info] [Application][Cleanup] Application statistics | TotalFrames=601 TotalUptime=00:00:13.2090736 Title=SpeedTUI Example

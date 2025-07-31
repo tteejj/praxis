@@ -1,0 +1,4 @@
+2025-07-31 06:40:04.136 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 06:40:04.998 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 06:40:05.054 [Fatal] [SpeedTUI][Startup] Fatal startup error: The property 'Width' cannot be found on this object. Verify that the property exists and can be set.
+2025-07-31 06:40:05.259 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

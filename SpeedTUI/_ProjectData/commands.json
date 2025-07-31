@@ -1,0 +1,112 @@
+[
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:16.6772546-06:00",
+    "Id": "288ecf45-3240-4c1d-b68f-140506513296",
+    "IsTemplate": false,
+    "Title": "Get System Information",
+    "Category": "Administration",
+    "Group": "System",
+    "CreatedAt": "2025-07-31T06:22:16.6712252-06:00",
+    "Notes": "",
+    "Description": "Display basic system information including OS, memory, and CPU",
+    "Parameters": {},
+    "Tags": [
+      "system",
+      "info",
+      "diagnostics"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Get-ComputerInfo | Select-Object WindowsProductName, TotalPhysicalMemoryMB, CsProcessors"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:17.1206622-06:00",
+    "Id": "46ea262d-dad5-4177-ad3f-b1cdd7757cbe",
+    "IsTemplate": false,
+    "Title": "List Running Processes",
+    "Category": "Administration",
+    "Group": "System",
+    "CreatedAt": "2025-07-31T06:22:17.1206284-06:00",
+    "Notes": "",
+    "Description": "Show top 10 processes by CPU usage",
+    "Parameters": {},
+    "Tags": [
+      "process",
+      "performance",
+      "monitoring"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name, CPU, WorkingSet"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:17.2197547-06:00",
+    "Id": "573848f1-0714-4edb-9edc-77afb01de11c",
+    "IsTemplate": false,
+    "Title": "Git Status",
+    "Category": "Development",
+    "Group": "Git",
+    "CreatedAt": "2025-07-31T06:22:17.2197274-06:00",
+    "Notes": "",
+    "Description": "Show git repository status in short format",
+    "Parameters": {},
+    "Tags": [
+      "git",
+      "status",
+      "vcs"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "Git",
+    "CommandText": "git status --porcelain"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:17.253867-06:00",
+    "Id": "57b78c4a-c91c-4b68-a5d7-de5a539f72b2",
+    "IsTemplate": false,
+    "Title": "Docker List Containers",
+    "Category": "Development",
+    "Group": "Docker",
+    "CreatedAt": "2025-07-31T06:22:17.2538396-06:00",
+    "Notes": "",
+    "Description": "List all Docker containers with formatted output",
+    "Parameters": {},
+    "Tags": [
+      "docker",
+      "containers",
+      "devops"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "Docker",
+    "CommandText": "docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}'"
+  },
+  {
+    "UseCount": 0,
+    "UpdatedAt": "2025-07-31T06:22:17.2778466-06:00",
+    "Id": "c4ff1af7-d81b-4aa9-a6cf-2de0bc8bebdf",
+    "IsTemplate": false,
+    "Title": "Find Large Files",
+    "Category": "Utilities",
+    "Group": "File Management",
+    "CreatedAt": "2025-07-31T06:22:17.2778189-06:00",
+    "Notes": "",
+    "Description": "Find the 10 largest files in the current directory tree",
+    "Parameters": {},
+    "Tags": [
+      "files",
+      "disk",
+      "cleanup"
+    ],
+    "LastUsed": "0001-01-01T00:00:00",
+    "Deleted": false,
+    "Language": "PowerShell",
+    "CommandText": "Get-ChildItem -Recurse | Sort-Object Length -Descending | Select-Object -First 10 FullName, @{Name='SizeMB';Expression={[Math]::Round(System.Collections.Hashtable.Length/1MB,2)}}"
+  }
+]

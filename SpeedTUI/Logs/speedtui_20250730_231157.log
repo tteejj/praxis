@@ -1,0 +1,24 @@
+2025-07-30 23:11:57.631 [Info] [Application][Constructor] Application created with title | Title=SpeedTUI Example
+2025-07-30 23:11:57.915 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 23:11:57.977 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 23:11:58.049 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 23:11:58.611 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:11:58.624 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 23:11:58.759 [Info] [DataStore][Constructor] DataStore created | Name=example
+2025-07-30 23:11:58.773 [Info] [DataStoreManager][GetStore] Store created | StoreName=example
+2025-07-30 23:12:00.420 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:12:00.495 [Info] [Application][Initialize] Initializing application | Title=SpeedTUI Example
+2025-07-30 23:12:00.513 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-30 23:12:00.528 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 23:12:00.569 [Info] [Terminal][Initialize] Terminal initialized | Height=23 Width=90
+2025-07-30 23:12:00.679 [Info] [RenderEngine][Initialize] Render engine initialized | Height=23 Width=90
+2025-07-30 23:12:01.237 [Info] [InputManager][Start] Input manager started
+2025-07-30 23:12:01.491 [Info] [Application][Initialize] Application initialized successfully
+2025-07-30 23:12:01.497 [Info] [Application][Run] Starting main loop
+2025-07-30 23:12:09.180 [Info] [Application][Stop] Stopping application
+2025-07-30 23:12:09.226 [Info] [Application][Cleanup] Cleaning up application
+2025-07-30 23:12:09.237 [Info] [InputManager][Stop] Input manager stopped
+2025-07-30 23:12:09.248 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-30 23:12:09.258 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-30 23:12:09.276 [Info] [RenderEngine][Performance] Render statistics | TotalFrames=210 AverageFPS=34.5 AverageRenderMs=28.99
+2025-07-30 23:12:09.336 [Info] [Application][Cleanup] Application statistics | TotalFrames=210 Title=SpeedTUI Example TotalUptime=00:00:07.8328042

@@ -1,0 +1,21 @@
+{
+  "UseCount": 0,
+  "UpdatedAt": "2025-07-31T06:22:24.8798864-06:00",
+  "Id": "1fbd13cd-9115-43da-8061-b3026946ec7c",
+  "IsTemplate": true,
+  "Title": "Git Command Template",
+  "Category": "Development",
+  "Group": "Git",
+  "CreatedAt": "2025-07-31T06:22:24.8798683-06:00",
+  "Notes": "",
+  "Description": "Template for git commands",
+  "Parameters": {},
+  "Tags": [
+    "git",
+    "template"
+  ],
+  "LastUsed": "0001-01-01T00:00:00",
+  "Deleted": false,
+  "Language": "Git",
+  "CommandText": "git {action} {parameters}"
+}

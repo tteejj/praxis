@@ -1,0 +1,35 @@
+2025-07-31 11:29:13.499 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 11:29:14.291 [Debug] [DashboardScreen][Constructor] Enhanced component created | Id=b2a5ea9c-08b5-4852-a824-53607913a9d7 Type=DashboardScreen
+2025-07-31 11:29:14.435 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 11:29:15.174 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 11:29:15.196 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:29:16.111 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:29:16.354 [Error] [SpeedTUI][MainLoop] Error in main loop: Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek. | ScriptStackTrace=at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1: line 167
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 303 Exception=System.InvalidOperationException: Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+   at System.Console.get_KeyAvailable()
+   at System.Management.Automation.Interpreter.FuncCallInstruction`1.Run(InterpretedFrame frame)
+   at System.Management.Automation.Interpreter.EnterTryCatchFinallyInstruction.Run(InterpretedFrame frame) InvocationInfo=
+MyCommand             : 
+BoundParameters       : {}
+UnboundArguments      : {}
+ScriptLineNumber      : 167
+OffsetInLine          : 17
+HistoryId             : 1
+ScriptName            : /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1
+Line                  :             if ([Console]::KeyAvailable) {
+                        
+Statement             : [Console]::KeyAvailable
+PositionMessage       : At /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1:167 char:17
+                        +             if ([Console]::KeyAvailable) {
+                        +                 ~~~~~~~~~~~~~~~~~~~~~~~
+PSScriptRoot          : /home/teej/projects/github/SpeedTUI
+PSCommandPath         : /home/teej/projects/github/SpeedTUI/SpeedTUI.ps1
+InvocationName        : 
+PipelineLength        : 0
+PipelinePosition      : 0
+ExpectingInput        : False
+CommandOrigin         : Internal
+DisplayScriptPosition : 
+
+
+2025-07-31 11:29:16.557 [Fatal] [SpeedTUI][Startup] Fatal startup error: Exception calling "ReadKey" with "1" argument(s): "Cannot read keys when either application does not have a console or when console input has been redirected. Try Console.Read."

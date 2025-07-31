@@ -1,0 +1,42 @@
+SpeedTUI Performance Report
+==========================
+Generated: 07/31/2025 12:50:51
+
+System Metrics:
+  gauge.system.cpu.time: 5837.356
+  gauge.system.gc.gen0: 12
+  gauge.system.gc.gen1: 5
+  gauge.system.gc.gen2: 3
+  gauge.system.gc.total_memory: 19.1169509887695
+  gauge.system.handles: 171
+  gauge.system.memory.private: 319.84375
+  gauge.system.memory.working_set: 137.03515625
+  gauge.system.threads: 19
+
+Performance Timings:
+  timing.Application.Startup:
+    Count: 1
+    Average: 1888ms
+    Min: 1888ms
+    Max: 1888ms
+  timing.DashboardScreen.HandleInput:
+    Count: 2
+    Average: 11ms
+    Min: 10ms
+    Max: 12ms
+  timing.DashboardScreen.RefreshQuickStats:
+    Count: 1
+    Average: 309ms
+    Min: 309ms
+    Max: 309ms
+  timing.DashboardScreen.Render:
+    Count: 3
+    Average: 268ms
+    Min: 56ms
+    Max: 690ms
+
+Counters:
+  application.shutdown: 1
+  dashboard.initialized: 1
+  dashboard.navigation.down: 1
+  dashboard.navigation.up: 1

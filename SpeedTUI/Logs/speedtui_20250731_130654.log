@@ -1,0 +1,22 @@
+2025-07-31 13:06:54.790 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:06:55.688 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:06:55.790 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:06:55.979 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:06:56.740 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 13:06:57.870 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 13:06:57.898 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 13:06:57.961 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=169x44
+2025-07-31 13:07:04.981 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:07:05.014 [Debug] [SpeedTUI][TimeTrackingScreen] Initializing forms
+2025-07-31 13:07:05.036 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm created
+2025-07-31 13:07:05.131 [Debug] [SpeedTUI][FormManager] Added text field | Label=Project Name FieldCount=3 Placeholder=e.g., Website Redesign
+2025-07-31 13:07:05.169 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm fields added | FieldCount=9
+2025-07-31 13:07:05.181 [Debug] [SpeedTUI][FormManager] Added text field | Label=Project Name FieldCount=3 Placeholder=e.g., Website Redesign
+2025-07-31 13:07:05.236 [Debug] [SpeedTUI][TimeTrackingScreen] Current week initialized | WeekEnding=2025-08-01 WeekStarting=2025-07-28
+2025-07-31 13:07:06.775 [Debug] [SpeedTUI][TimeTrackingScreen] Navigated to next week | WeekStarting=2025-08-04
+2025-07-31 13:07:07.694 [Debug] [SpeedTUI][TimeTrackingScreen] Navigated to previous week | WeekStarting=2025-07-28
+2025-07-31 13:07:08.069 [Debug] [SpeedTUI][TimeTrackingScreen] Navigated to previous week | WeekStarting=2025-07-21
+2025-07-31 13:07:09.049 [Debug] [SpeedTUI][TimeTrackingScreen] Navigated to next week | WeekStarting=2025-07-28
+2025-07-31 13:10:44.974 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 13:10:45.000 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | AverageFPS=3568.9 AverageFrameTime=0.28 TotalFrames=12931 RenderEngineUsed=True TotalUptime=00:03:47
+2025-07-31 13:10:45.006 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed

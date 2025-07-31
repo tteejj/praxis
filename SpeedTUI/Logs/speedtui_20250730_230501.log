@@ -1,0 +1,31 @@
+2025-07-30 23:05:02.161 [Info] [Application][Constructor] Application created with title | Title=SpeedTUI Example
+2025-07-30 23:05:02.467 [Info] [Terminal][Constructor] Initializing Terminal
+2025-07-30 23:05:02.546 [Info] [RenderEngine][Constructor] RenderEngine created
+2025-07-30 23:05:02.634 [Info] [InputManager][Constructor] InputManager created
+2025-07-30 23:05:03.270 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:05:03.283 [Info] [ThemeManager][Constructor] ThemeManager initialized
+2025-07-30 23:05:03.417 [Info] [DataStore][Constructor] DataStore created | Name=example
+2025-07-30 23:05:03.432 [Info] [DataStoreManager][GetStore] Store created | StoreName=example
+2025-07-30 23:05:04.941 [Info] [ThemeManager][SetTheme] Theme changed | ThemeName=default
+2025-07-30 23:05:05.005 [Info] [Application][Initialize] Initializing application | Title=SpeedTUI Example
+2025-07-30 23:05:05.020 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-30 23:05:05.033 [Info] [Terminal][Initialize] Setting up terminal for TUI mode
+2025-07-30 23:05:05.069 [Info] [Terminal][Initialize] Terminal initialized | Height=24 Width=80
+2025-07-30 23:05:05.196 [Info] [RenderEngine][Initialize] Render engine initialized | Height=24 Width=80
+2025-07-30 23:05:05.369 [Info] [InputManager][Start] Input manager started
+2025-07-30 23:05:05.611 [Info] [Application][Initialize] Application initialized successfully
+2025-07-30 23:05:05.618 [Info] [Application][Run] Starting main loop
+2025-07-30 23:05:06.744 [Error] [Application][Run] Error in main loop | StackTrace=at DrawRows, /home/teej/projects/github/SpeedTUI/Components/Table.ps1: line 360
+at OnRender, /home/teej/projects/github/SpeedTUI/Components/Table.ps1: line 305
+at Render, /home/teej/projects/github/SpeedTUI/Core/Component.ps1: line 170
+at Render, /home/teej/projects/github/SpeedTUI/Core/Component.ps1: line 177
+at Render, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 235
+at Run, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 131
+at Run, /home/teej/projects/github/SpeedTUI/Core/Application.ps1: line 376
+at <ScriptBlock>, /home/teej/projects/github/SpeedTUI/Start.ps1: line 183 Error=The term 'if' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+2025-07-30 23:05:07.047 [Info] [Application][Cleanup] Cleaning up application
+2025-07-30 23:05:07.057 [Info] [InputManager][Stop] Input manager stopped
+2025-07-30 23:05:07.068 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-30 23:05:07.077 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-30 23:05:07.116 [Info] [Application][Cleanup] Application statistics | TotalFrames=0 Title=SpeedTUI Example TotalUptime=00:00:01.4868229

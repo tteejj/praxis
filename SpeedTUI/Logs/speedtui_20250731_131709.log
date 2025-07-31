@@ -1,0 +1,5 @@
+2025-07-31 13:17:09.671 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:17:10.509 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:17:10.617 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:17:10.809 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:17:11.592 [Info] [SpeedTUI][Startup] Enhanced application startup completed

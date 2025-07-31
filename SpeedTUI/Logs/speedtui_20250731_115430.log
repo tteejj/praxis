@@ -1,0 +1,81 @@
+2025-07-31 11:54:31.094 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 11:54:31.366 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 11:54:32.280 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 11:54:32.341 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 11:54:32.388 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 11:54:32.483 [Trace] [Terminal][UpdateDimensions] Terminal dimensions updated | Height=23 Width=90
+2025-07-31 11:54:32.515 [Info] [Terminal][Constructor] Enhanced terminal initialized | Width=90 Height=23 CacheEnabled=True
+2025-07-31 11:54:32.549 [Trace] [RenderEngine][Constructor] Creating render engine
+2025-07-31 11:54:32.573 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 11:54:32.605 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 11:54:32.620 [Info] [SpeedTUI][EnhancedApplication] Debug mode enabled - detailed logging active
+2025-07-31 11:54:32.714 [Debug] [DashboardScreen][Constructor] Enhanced component created | Type=DashboardScreen Id=f258401b-e4e6-4871-a4b5-54c251e8af39
+2025-07-31 11:54:32.813 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 11:54:33.518 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 11:54:33.577 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=String
+2025-07-31 11:54:33.595 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 11:54:33.608 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 11:54:33.714 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | CacheSize=2 Width=90 Height=23 Theme=default
+2025-07-31 11:54:33.736 [Trace] [RenderEngine][Initialize] Initialize method started | AlreadyInitialized=False
+2025-07-31 11:54:33.740 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-31 11:54:33.747 [Debug] [RenderEngine][Initialize] Initializing terminal
+2025-07-31 11:54:33.755 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 11:54:33.791 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | CacheSize=2 Width=90 Height=23 Theme=default
+2025-07-31 11:54:33.803 [Debug] [RenderEngine][Initialize] Creating render buffer | Height=23 Width=90
+2025-07-31 11:54:33.878 [Trace] [Guard][Positive] Validating positive parameter | ParamName=width Value=90 IsPositive=True
+2025-07-31 11:54:33.885 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 11:54:33.889 [Trace] [Guard][Positive] Validating positive parameter | ParamName=height Value=23 IsPositive=True
+2025-07-31 11:54:33.894 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 11:54:33.976 [Debug] [RenderBuffer][Constructor] Buffer initialized | Height=23 Width=90
+2025-07-31 11:54:33.989 [Info] [RenderEngine][Initialize] Render engine initialized successfully | Height=23 Width=90
+2025-07-31 11:54:34.033 [Trace] [RenderEngine][DefineRegion] Defining new region | Y=0 X=0 Width=90 Id=main ExistingRegions=0 Height=23
+2025-07-31 11:54:34.052 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | IsNullOrEmpty=False ParamName=id
+2025-07-31 11:54:34.057 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 11:54:34.110 [Trace] [RenderRegion][Constructor] Creating render region | Y=0 X=0 Id=main Height=23 Width=90
+2025-07-31 11:54:34.151 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | IsNullOrEmpty=False ParamName=id
+2025-07-31 11:54:34.178 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 11:54:34.190 [Trace] [Guard][NonNegative] Validating non-negative parameter | IsNonNegative=True ParamName=x Value=0
+2025-07-31 11:54:34.194 [Trace] [Guard][NonNegative] Non-negative validation passed
+2025-07-31 11:54:34.198 [Trace] [Guard][NonNegative] Validating non-negative parameter | IsNonNegative=True ParamName=y Value=0
+2025-07-31 11:54:34.202 [Trace] [Guard][NonNegative] Non-negative validation passed
+2025-07-31 11:54:34.209 [Trace] [Guard][Positive] Validating positive parameter | ParamName=width Value=90 IsPositive=True
+2025-07-31 11:54:34.213 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 11:54:34.216 [Trace] [Guard][Positive] Validating positive parameter | ParamName=height Value=23 IsPositive=True
+2025-07-31 11:54:34.221 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 11:54:34.244 [Debug] [RenderRegion][Constructor] Render region created successfully | Id=main Bounds=0,0 90x23
+2025-07-31 11:54:34.253 [Debug] [RenderEngine][DefineRegion] Region defined successfully | Y=0 X=0 Width=90 Id=main Height=23 TotalRegions=1
+2025-07-31 11:54:34.268 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=90x23
+2025-07-31 11:54:34.303 [Trace] [SpeedTUI][EnhancedApplication] Rendering screen flicker-free | ScreenType=String
+2025-07-31 11:54:34.320 [Trace] [RenderEngine][BeginFrame] Beginning frame | DirtyRegions=0 FrameCount=0
+2025-07-31 11:54:34.349 [Trace] [RenderEngine][BeginFrame] Frame begun successfully
+2025-07-31 11:54:34.368 [Trace] [RenderEngine][ClearRegion] Clearing region | RegionId=main
+2025-07-31 11:54:34.373 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | IsNullOrEmpty=False ParamName=regionId
+2025-07-31 11:54:34.378 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 11:54:34.396 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | RegionId=main Bounds=0,0 90x23
+2025-07-31 11:54:34.440 [Trace] [RenderBuffer][ClearRegion] Clearing buffer region | Y=0 X=0 Height=23 Width=90 BufferSize=90x23
+2025-07-31 11:54:34.484 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | CellsCleared=2070 ActualBounds=0,0 to 90,23
+2025-07-31 11:54:34.503 [Trace] [RenderEngine][MarkDirty] Marking region dirty | RegionId=main TotalDirtyRegions=0 AlreadyDirty=False
+2025-07-31 11:54:34.508 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | IsNullOrEmpty=False ParamName=regionId
+2025-07-31 11:54:34.513 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 11:54:34.521 [Debug] [RenderEngine][MarkDirty] Region marked dirty | RegionId=main TotalDirtyRegions=1
+2025-07-31 11:54:34.526 [Trace] [RenderEngine][ClearRegion] Region cleared successfully
+2025-07-31 11:54:34.546 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [System.String] does not contain a method named 'Render'. ScreenType=String
+2025-07-31 11:54:34.876 [Error] [SpeedTUI][EnhancedApplication] Fallback rendering also failed | Exception=Method invocation failed because [System.String] does not contain a method named 'Render'.
+2025-07-31 11:54:36.758 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=100 AvgFrameTime=6.23 CurrentFPS=18214.9
+2025-07-31 11:54:38.583 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=200 AvgFrameTime=3.14 CurrentFPS=20284
+2025-07-31 11:54:40.387 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=300 AvgFrameTime=2.11 CurrentFPS=19342.4
+2025-07-31 11:54:42.185 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=400 AvgFrameTime=1.6 CurrentFPS=18939.4
+2025-07-31 11:54:43.964 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=500 AvgFrameTime=1.29 CurrentFPS=31055.9
+2025-07-31 11:54:44.486 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=Ctrl+Q KeyChar=17 CurrentScreen=String
+2025-07-31 11:54:44.516 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 11:54:44.532 [Trace] [RenderEngine][Cleanup] Cleanup method started | Initialized=True FrameCount=0
+2025-07-31 11:54:44.536 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-31 11:54:44.539 [Debug] [RenderEngine][Cleanup] Cleaning up terminal
+2025-07-31 11:54:44.550 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-31 11:54:44.650 [Info] [Terminal][Performance] Final performance statistics | AverageFPS=0 CacheHitRate=0% TotalFrames=0 TotalCacheEntries=2 FinalBatchSize=0 TotalWriteOperations=0
+2025-07-31 11:54:44.657 [Debug] [Terminal][Cleanup] Enhanced terminal state restored
+2025-07-31 11:54:44.660 [Info] [RenderEngine][Performance] No frames rendered
+2025-07-31 11:54:44.663 [Info] [RenderEngine][Cleanup] Render engine cleanup completed
+2025-07-31 11:54:44.676 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | RenderEngineUsed=True TotalFrames=524 AverageFPS=723.1 TotalUptime=00:00:10 AverageFrameTime=1.38
+2025-07-31 11:54:44.681 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed
+2025-07-31 11:54:45.057 [Info] [SpeedTUI][Shutdown] Enhanced application shutdown completed

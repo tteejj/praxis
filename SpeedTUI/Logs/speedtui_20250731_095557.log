@@ -1,0 +1,6 @@
+2025-07-31 09:55:58.270 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 09:55:59.103 [Debug] [DashboardScreen][Constructor] Component created | Id=c30bc17b-3b15-4754-981d-662592732c62 Type=DashboardScreen
+2025-07-31 09:55:59.249 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 09:55:59.914 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 09:55:59.933 [Trace] [SpeedTUI][MainLoop] Refresh needed | CurrentScreen=DashboardScreen ScreenDetails=System.Collections.Hashtable
+2025-07-31 09:56:00.612 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=42

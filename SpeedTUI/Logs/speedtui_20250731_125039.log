@@ -1,0 +1,57 @@
+2025-07-31 12:50:39.255 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 12:50:39.975 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 12:50:40.014 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 12:50:40.113 [Info] [Terminal][Constructor] Enhanced terminal initialized | Height=44 Width=169 CacheEnabled=True
+2025-07-31 12:50:40.200 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 12:50:40.229 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 12:50:40.343 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 12:50:41.089 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 12:50:42.161 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 12:50:42.184 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 12:50:42.200 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 12:50:42.280 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | Height=44 CacheSize=2 Width=169 Theme=default
+2025-07-31 12:50:42.304 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-31 12:50:42.310 [Debug] [RenderEngine][Initialize] Initializing terminal
+2025-07-31 12:50:42.319 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 12:50:42.358 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | Height=44 CacheSize=2 Width=169 Theme=default
+2025-07-31 12:50:42.374 [Debug] [RenderEngine][Initialize] Creating render buffer | Width=169 Height=44
+2025-07-31 12:50:42.500 [Debug] [RenderBuffer][Constructor] Buffer initialized | Width=169 Height=44
+2025-07-31 12:50:42.514 [Info] [RenderEngine][Initialize] Render engine initialized successfully | Width=169 Height=44
+2025-07-31 12:50:42.671 [Debug] [RenderRegion][Constructor] Render region created successfully | Bounds=0,0 169x44 Id=main
+2025-07-31 12:50:42.680 [Debug] [RenderEngine][DefineRegion] Region defined successfully | Y=0 Width=169 Height=44 TotalRegions=1 X=0 Id=main
+2025-07-31 12:50:42.702 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=169x44
+2025-07-31 12:50:42.795 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 169x44 RegionId=main
+2025-07-31 12:50:42.875 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | ActualBounds=0,0 to 169,44 CellsCleared=7436
+2025-07-31 12:50:42.902 [Debug] [RenderEngine][MarkDirty] Region marked dirty | TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:50:44.203 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:50:44.347 [Debug] [RenderBuffer][GetDifferences] Differences computed | CellsCompared=7436 ChangedCells=2812 DifferenceCount=219 ChangePercentage=37.82
+2025-07-31 12:50:44.423 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:50:44.473 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=7436
+2025-07-31 12:50:44.531 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=322.2161
+2025-07-31 12:50:45.752 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 169x44 RegionId=main
+2025-07-31 12:50:45.761 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | ActualBounds=0,0 to 169,44 CellsCleared=7436
+2025-07-31 12:50:45.781 [Debug] [RenderEngine][MarkDirty] Region marked dirty | TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:50:46.066 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:50:46.087 [Debug] [RenderBuffer][GetDifferences] Differences computed | CellsCompared=7436 ChangedCells=151 DifferenceCount=14 ChangePercentage=2.03
+2025-07-31 12:50:46.096 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:50:46.107 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=7436
+2025-07-31 12:50:46.112 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=46.3716
+2025-07-31 12:50:46.862 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 169x44 RegionId=main
+2025-07-31 12:50:46.878 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | ActualBounds=0,0 to 169,44 CellsCleared=7436
+2025-07-31 12:50:46.884 [Debug] [RenderEngine][MarkDirty] Region marked dirty | TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:50:47.157 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:50:47.177 [Debug] [RenderBuffer][GetDifferences] Differences computed | CellsCompared=7436 ChangedCells=160 DifferenceCount=17 ChangePercentage=2.15
+2025-07-31 12:50:47.183 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:50:47.196 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=7436
+2025-07-31 12:50:47.202 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=45.1617
+2025-07-31 12:50:51.300 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 12:50:51.323 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-31 12:50:51.327 [Debug] [RenderEngine][Cleanup] Cleaning up terminal
+2025-07-31 12:50:51.344 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-31 12:50:51.446 [Info] [Terminal][Performance] Final performance statistics | FinalBatchSize=0 TotalCacheEntries=2 TotalWriteOperations=0 TotalFrames=0 CacheHitRate=0% AverageFPS=0
+2025-07-31 12:50:51.454 [Debug] [Terminal][Cleanup] Enhanced terminal state restored
+2025-07-31 12:50:51.461 [Info] [RenderEngine][Performance] Final render statistics | AverageRenderMs=0 AverageFPS=Infinity TotalFrames=3 TotalRenderTime=0
+2025-07-31 12:50:51.465 [Info] [RenderEngine][Cleanup] Render engine cleanup completed
+2025-07-31 12:50:51.475 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | RenderEngineUsed=True AverageFrameTime=8.45 AverageFPS=118.3 TotalFrames=323 TotalUptime=00:00:08
+2025-07-31 12:50:51.480 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed
+2025-07-31 12:50:51.774 [Info] [SpeedTUI][Shutdown] Enhanced application shutdown completed

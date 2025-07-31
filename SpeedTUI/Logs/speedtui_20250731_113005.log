@@ -1,0 +1,463 @@
+2025-07-31 11:30:06.114 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 11:30:06.898 [Debug] [DashboardScreen][Constructor] Enhanced component created | Type=DashboardScreen Id=366f3fa3-f9da-43ab-97b0-96a24adc5a49
+2025-07-31 11:30:07.027 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 11:30:07.760 [Info] [SpeedTUI][Startup] Application startup completed
+2025-07-31 11:30:07.779 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:08.568 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:10.692 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=DownArrow
+2025-07-31 11:30:10.787 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:10.895 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:11.681 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=DownArrow
+2025-07-31 11:30:11.757 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:11.863 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:12.158 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=DownArrow
+2025-07-31 11:30:12.236 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:12.331 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:13.824 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=DownArrow
+2025-07-31 11:30:13.943 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:14.059 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:14.627 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=UpArrow
+2025-07-31 11:30:14.744 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:14.898 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:15.062 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=UpArrow
+2025-07-31 11:30:15.178 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:15.265 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:15.306 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=UpArrow
+2025-07-31 11:30:15.376 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:15.451 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:16.852 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=DashboardScreen Key=UpArrow
+2025-07-31 11:30:16.929 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=DashboardScreen
+2025-07-31 11:30:17.005 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=48
+2025-07-31 11:30:19.034 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=13 CurrentScreen=DashboardScreen Key=Enter
+2025-07-31 11:30:19.157 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 11:30:19.196 [Debug] [SpeedTUI][TimeTrackingScreen] Initializing forms
+2025-07-31 11:30:19.224 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm created
+2025-07-31 11:30:19.335 [Debug] [SpeedTUI][FormManager] Added text field | Placeholder=e.g., Website Redesign Label=Project Name FieldCount=3
+2025-07-31 11:30:19.369 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm fields added | FieldCount=9
+2025-07-31 11:30:19.379 [Debug] [SpeedTUI][FormManager] Added text field | Placeholder=e.g., Website Redesign Label=Project Name FieldCount=3
+2025-07-31 11:30:19.436 [Debug] [SpeedTUI][TimeTrackingScreen] Current week initialized | WeekEnding=2025-08-01 WeekStarting=2025-07-28
+2025-07-31 11:30:19.550 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:19.619 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:19.834 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:21.044 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:21.057 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:21.171 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:21.212 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:21.229 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:21.548 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:21.555 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:21.622 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:21.665 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:21.686 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:21.752 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:21.756 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:21.816 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:21.855 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:21.872 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:21.905 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:21.909 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:21.972 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:22.014 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:22.028 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:22.042 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:22.048 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:22.109 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:22.160 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:22.176 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:22.904 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:22.917 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:22.995 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:23.034 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:23.052 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:23.120 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:23.123 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:23.184 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:23.235 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:23.250 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:23.263 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:23.267 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:23.330 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:23.375 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:23.398 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:23.427 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:23.436 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:23.501 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:23.543 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:23.567 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:23.592 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:23.597 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:23.661 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:23.702 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:23.717 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:23.781 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:23.786 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:24.364 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:24.376 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:24.439 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:24.487 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:24.502 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:24.618 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:24.622 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:24.687 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:24.734 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:24.749 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:24.812 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:24.816 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:24.880 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:24.924 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:24.941 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:24.969 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:24.974 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:25.040 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:25.078 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:25.097 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:25.166 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:25.169 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:30:25.234 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:25.284 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:25.301 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:27.087 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:27.098 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:27.189 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:27.224 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:27.235 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:27.657 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:27.661 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:27.720 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:27.791 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:27.801 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:27.914 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:27.919 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:30:27.983 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:28.038 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:30:28.055 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=21
+2025-07-31 11:30:28.532 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=97 CurrentScreen=TimeTrackingScreen Key=A
+2025-07-31 11:30:28.538 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=A
+2025-07-31 11:30:28.625 [Debug] [SpeedTUI][FormManager] Form activated | FirstFieldLabel=Project ID1 TotalFields=9
+2025-07-31 11:30:28.716 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:28.747 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:28.888 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:29.876 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:29.910 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:29.971 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID1 CurrentFieldIndex=0 Key=DownArrow
+2025-07-31 11:30:29.992 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=1 NewFieldLabel=Project ID2
+2025-07-31 11:30:30.047 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:30.085 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:30.098 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:30.473 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:30.478 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:30.483 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID2 CurrentFieldIndex=1 Key=DownArrow
+2025-07-31 11:30:30.490 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=2 NewFieldLabel=Project Name
+2025-07-31 11:30:30.547 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:30.594 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:30.607 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:30.875 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:30.878 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:30.883 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=DownArrow
+2025-07-31 11:30:30.887 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=3 NewFieldLabel=Week Ending (Friday)
+2025-07-31 11:30:30.942 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:30.986 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:31.000 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:31.724 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:31.733 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:31.743 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Week Ending (Friday) CurrentFieldIndex=3 Key=DownArrow
+2025-07-31 11:30:31.751 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=4 NewFieldLabel=Monday Hours
+2025-07-31 11:30:31.808 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:31.844 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:31.858 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:31.988 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:31.993 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:31.996 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Monday Hours CurrentFieldIndex=4 Key=DownArrow
+2025-07-31 11:30:31.999 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=5 NewFieldLabel=Tuesday Hours
+2025-07-31 11:30:32.053 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:32.117 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:32.130 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:32.657 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:32.660 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:32.663 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Tuesday Hours CurrentFieldIndex=5 Key=DownArrow
+2025-07-31 11:30:32.666 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=6 NewFieldLabel=Wednesday Hours
+2025-07-31 11:30:32.720 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:32.785 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:32.793 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:33.059 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:33.063 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:33.067 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Wednesday Hours CurrentFieldIndex=6 Key=DownArrow
+2025-07-31 11:30:33.071 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=7 NewFieldLabel=Thursday Hours
+2025-07-31 11:30:33.133 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:33.183 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:33.197 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:33.562 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:33.567 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:33.574 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Thursday Hours CurrentFieldIndex=7 Key=DownArrow
+2025-07-31 11:30:33.577 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=8 NewFieldLabel=Friday Hours
+2025-07-31 11:30:33.631 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:33.693 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:33.702 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:34.171 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:34.174 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:34.178 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Friday Hours CurrentFieldIndex=8 Key=UpArrow
+2025-07-31 11:30:34.181 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=7 NewFieldLabel=Thursday Hours
+2025-07-31 11:30:34.236 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:34.269 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:34.281 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:34.393 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:34.397 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:34.400 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Thursday Hours CurrentFieldIndex=7 Key=UpArrow
+2025-07-31 11:30:34.403 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=6 NewFieldLabel=Wednesday Hours
+2025-07-31 11:30:34.459 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:34.492 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:34.510 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:34.574 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:34.578 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:34.583 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Wednesday Hours CurrentFieldIndex=6 Key=UpArrow
+2025-07-31 11:30:34.586 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=5 NewFieldLabel=Tuesday Hours
+2025-07-31 11:30:34.640 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:34.680 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:34.690 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:34.757 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:34.760 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:34.764 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Tuesday Hours CurrentFieldIndex=5 Key=UpArrow
+2025-07-31 11:30:34.767 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=4 NewFieldLabel=Monday Hours
+2025-07-31 11:30:34.821 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:34.863 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:34.876 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:34.939 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:34.943 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:34.947 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Monday Hours CurrentFieldIndex=4 Key=UpArrow
+2025-07-31 11:30:34.954 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=3 NewFieldLabel=Week Ending (Friday)
+2025-07-31 11:30:35.009 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:35.050 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:35.088 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:35.114 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:35.119 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:35.123 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Week Ending (Friday) CurrentFieldIndex=3 Key=UpArrow
+2025-07-31 11:30:35.129 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=2 NewFieldLabel=Project Name
+2025-07-31 11:30:35.183 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:35.221 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:35.232 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:35.304 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:30:35.307 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=UpArrow
+2025-07-31 11:30:35.311 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=UpArrow
+2025-07-31 11:30:35.314 [Debug] [SpeedTUI][FormManager] Moved to previous field via UpArrow | NewFieldIndex=1 NewFieldLabel=Project ID2
+2025-07-31 11:30:35.368 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:35.410 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:35.418 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:41.319 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=48 CurrentScreen=TimeTrackingScreen Key=D0
+2025-07-31 11:30:41.327 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D0
+2025-07-31 11:30:41.338 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID2 CurrentFieldIndex=1 Key=D0
+2025-07-31 11:30:41.378 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=48 CurrentValue= Label=Project ID2 CursorPos=0 Key=D0
+2025-07-31 11:30:41.456 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:41.492 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:41.500 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:41.508 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=52 CurrentScreen=TimeTrackingScreen Key=D4
+2025-07-31 11:30:41.511 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D4
+2025-07-31 11:30:41.514 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID2 CurrentFieldIndex=1 Key=D4
+2025-07-31 11:30:41.522 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=52 CurrentValue=0 Label=Project ID2 CursorPos=1 Key=D4
+2025-07-31 11:30:41.578 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:41.610 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:41.631 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:41.662 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=48 CurrentScreen=TimeTrackingScreen Key=D0
+2025-07-31 11:30:41.666 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D0
+2025-07-31 11:30:41.669 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID2 CurrentFieldIndex=1 Key=D0
+2025-07-31 11:30:41.672 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=48 CurrentValue=04 Label=Project ID2 CursorPos=2 Key=D0
+2025-07-31 11:30:41.731 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:41.770 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:41.779 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:42.874 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:42.884 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:42.924 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID2 CurrentFieldIndex=1 Key=DownArrow
+2025-07-31 11:30:42.934 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=2 NewFieldLabel=Project Name
+2025-07-31 11:30:42.994 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:43.071 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:43.078 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:48.914 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=97 CurrentScreen=TimeTrackingScreen Key=A
+2025-07-31 11:30:48.923 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=A
+2025-07-31 11:30:48.928 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=A
+2025-07-31 11:30:48.931 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=97 CurrentValue= Label=Project Name CursorPos=0 Key=A
+2025-07-31 11:30:48.990 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:49.055 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:49.073 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:49.290 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=97 CurrentScreen=TimeTrackingScreen Key=A
+2025-07-31 11:30:49.294 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=A
+2025-07-31 11:30:49.297 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=A
+2025-07-31 11:30:49.303 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=97 CurrentValue=a Label=Project Name CursorPos=1 Key=A
+2025-07-31 11:30:49.359 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:49.392 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:49.407 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:50.978 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=100 CurrentScreen=TimeTrackingScreen Key=D
+2025-07-31 11:30:50.980 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D
+2025-07-31 11:30:50.983 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=D
+2025-07-31 11:30:50.986 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=100 CurrentValue=aa Label=Project Name CursorPos=2 Key=D
+2025-07-31 11:30:51.043 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:51.079 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:51.090 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:51.470 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=109 CurrentScreen=TimeTrackingScreen Key=M
+2025-07-31 11:30:51.477 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=M
+2025-07-31 11:30:51.485 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=M
+2025-07-31 11:30:51.493 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=109 CurrentValue=aad Label=Project Name CursorPos=3 Key=M
+2025-07-31 11:30:51.552 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:51.618 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:51.628 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:51.639 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=105 CurrentScreen=TimeTrackingScreen Key=I
+2025-07-31 11:30:51.643 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=I
+2025-07-31 11:30:51.646 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=I
+2025-07-31 11:30:51.652 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=105 CurrentValue=aadm Label=Project Name CursorPos=4 Key=I
+2025-07-31 11:30:51.706 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:51.743 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:51.756 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:51.779 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=110 CurrentScreen=TimeTrackingScreen Key=N
+2025-07-31 11:30:51.785 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=N
+2025-07-31 11:30:51.788 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=N
+2025-07-31 11:30:51.792 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=110 CurrentValue=aadmi Label=Project Name CursorPos=5 Key=N
+2025-07-31 11:30:51.852 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:51.896 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:51.911 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:52.910 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:52.919 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:52.930 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project Name CurrentFieldIndex=2 Key=DownArrow
+2025-07-31 11:30:52.939 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=3 NewFieldLabel=Week Ending (Friday)
+2025-07-31 11:30:52.998 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:53.087 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:53.100 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:30:59.620 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:30:59.628 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:30:59.645 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Week Ending (Friday) CurrentFieldIndex=3 Key=DownArrow
+2025-07-31 11:30:59.654 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=4 NewFieldLabel=Monday Hours
+2025-07-31 11:30:59.713 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:30:59.792 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:30:59.803 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:31:00.279 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:31:00.288 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=DownArrow
+2025-07-31 11:31:00.305 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Monday Hours CurrentFieldIndex=4 Key=DownArrow
+2025-07-31 11:31:00.315 [Debug] [SpeedTUI][FormManager] Moved to next field via DownArrow | NewFieldIndex=5 NewFieldLabel=Tuesday Hours
+2025-07-31 11:31:00.375 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:00.439 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:31:00.452 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:31:02.393 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=50 CurrentScreen=TimeTrackingScreen Key=D2
+2025-07-31 11:31:02.402 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D2
+2025-07-31 11:31:02.412 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Tuesday Hours CurrentFieldIndex=5 Key=D2
+2025-07-31 11:31:02.424 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=50 CurrentValue= Label=Tuesday Hours CursorPos=0 Key=D2
+2025-07-31 11:31:02.502 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:02.575 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:31:02.585 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:31:03.628 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=13 CurrentScreen=TimeTrackingScreen Key=Enter
+2025-07-31 11:31:03.645 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=Enter
+2025-07-31 11:31:03.656 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Tuesday Hours CurrentFieldIndex=5 Key=Enter
+2025-07-31 11:31:03.728 [Debug] [SpeedTUI][FormManager] Form validation result | InvalidFields=Project ID1 IsValid=False
+2025-07-31 11:31:03.738 [Debug] [SpeedTUI][FormManager] Moved to first invalid field | FieldLabel=Project ID1 ValidationError=This field is required
+2025-07-31 11:31:03.793 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:03.835 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:31:03.844 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=25
+2025-07-31 11:31:08.529 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=49 CurrentScreen=TimeTrackingScreen Key=D1
+2025-07-31 11:31:08.535 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D1
+2025-07-31 11:31:08.541 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID1 CurrentFieldIndex=0 Key=D1
+2025-07-31 11:31:08.551 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=49 CurrentValue= Label=Project ID1 CursorPos=0 Key=D1
+2025-07-31 11:31:08.605 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:08.669 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:31:08.684 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:31:08.696 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=49 CurrentScreen=TimeTrackingScreen Key=D1
+2025-07-31 11:31:08.699 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D1
+2025-07-31 11:31:08.702 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID1 CurrentFieldIndex=0 Key=D1
+2025-07-31 11:31:08.705 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=49 CurrentValue=1 Label=Project ID1 CursorPos=1 Key=D1
+2025-07-31 11:31:08.759 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:08.806 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:31:08.820 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:31:08.835 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=49 CurrentScreen=TimeTrackingScreen Key=D1
+2025-07-31 11:31:08.838 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=D1
+2025-07-31 11:31:08.841 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID1 CurrentFieldIndex=0 Key=D1
+2025-07-31 11:31:08.845 [Trace] [SpeedTUI][InputField] HandleInput | KeyChar=49 CurrentValue=11 Label=Project ID1 CursorPos=2 Key=D1
+2025-07-31 11:31:08.900 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:08.958 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=6 AddFormExists=True ViewMode=Add EditFormExists=True
+2025-07-31 11:31:08.979 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=24
+2025-07-31 11:31:11.553 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=13 CurrentScreen=TimeTrackingScreen Key=Enter
+2025-07-31 11:31:11.562 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Add KeyString=Enter
+2025-07-31 11:31:11.568 [Trace] [SpeedTUI][FormManager] HandleInput | CurrentFieldLabel=Project ID1 CurrentFieldIndex=0 Key=Enter
+2025-07-31 11:31:11.584 [Debug] [SpeedTUI][FormManager] Form validation result | InvalidFields= IsValid=True
+2025-07-31 11:31:11.596 [Debug] [SpeedTUI][FormManager] Form submitted successfully
+2025-07-31 11:31:11.619 [Debug] [SpeedTUI][FormManager] GetFormData | Keys=Friday Hours, Thursday Hours, Project ID2, Project Name, Wednesday Hours, Monday Hours, Tuesday Hours, Project ID1, Week Ending (Friday) FieldCount=9
+2025-07-31 11:31:12.017 [Debug] [SpeedTUI][TimeTrackingService] Cleared time tracking caches
+2025-07-31 11:31:12.143 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:12.174 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:12.200 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:14.789 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:31:14.794 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:31:14.851 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:14.893 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:14.911 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:15.241 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=UpArrow
+2025-07-31 11:31:15.248 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=UpArrow
+2025-07-31 11:31:15.312 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:15.384 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:15.397 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:16.356 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=100 CurrentScreen=TimeTrackingScreen Key=D
+2025-07-31 11:31:16.365 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=D
+2025-07-31 11:31:16.437 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:16.523 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=Delete EditFormExists=True
+2025-07-31 11:31:16.564 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=25
+2025-07-31 11:31:20.989 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=121 CurrentScreen=TimeTrackingScreen Key=Y
+2025-07-31 11:31:20.998 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Delete KeyString=Y
+2025-07-31 11:31:21.039 [Debug] [SpeedTUI][TimeTrackingScreen] Delete confirmation input | SelectedEntry=0 Key=Y
+2025-07-31 11:31:21.065 [Debug] [SpeedTUI][TimeTrackingScreen] Deleting time entry | EntryId=6c92a4cc-6799-480d-959b-e32fcc365b52 EntryName= SelectedIndex=0
+2025-07-31 11:31:21.099 [Error] [SpeedTUI][TimeTrackingScreen] Error deleting time entry | SelectedEntry=0 Exception=Method invocation failed because [TimeTrackingService] does not contain a method named 'Remove'.
+2025-07-31 11:31:21.326 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:21.363 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:21.370 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:22.869 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=100 CurrentScreen=TimeTrackingScreen Key=D
+2025-07-31 11:31:22.902 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=D
+2025-07-31 11:31:22.974 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:23.052 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=Delete EditFormExists=True
+2025-07-31 11:31:23.065 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=25
+2025-07-31 11:31:25.375 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=89 CurrentScreen=TimeTrackingScreen Key=Shift+Y
+2025-07-31 11:31:25.385 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Delete KeyString=Shift+Y
+2025-07-31 11:31:25.397 [Debug] [SpeedTUI][TimeTrackingScreen] Delete confirmation input | SelectedEntry=0 Key=Y
+2025-07-31 11:31:25.405 [Debug] [SpeedTUI][TimeTrackingScreen] Deleting time entry | EntryId=6c92a4cc-6799-480d-959b-e32fcc365b52 EntryName= SelectedIndex=0
+2025-07-31 11:31:25.418 [Error] [SpeedTUI][TimeTrackingScreen] Error deleting time entry | SelectedEntry=0 Exception=Method invocation failed because [TimeTrackingService] does not contain a method named 'Remove'.
+2025-07-31 11:31:25.499 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:25.550 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:25.560 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:27.179 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=100 CurrentScreen=TimeTrackingScreen Key=D
+2025-07-31 11:31:27.188 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=D
+2025-07-31 11:31:27.258 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:27.350 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=Delete EditFormExists=True
+2025-07-31 11:31:27.360 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=25
+2025-07-31 11:31:27.732 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=89 CurrentScreen=TimeTrackingScreen Key=Shift+Y
+2025-07-31 11:31:27.745 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Delete KeyString=Shift+Y
+2025-07-31 11:31:27.752 [Debug] [SpeedTUI][TimeTrackingScreen] Delete confirmation input | SelectedEntry=0 Key=Y
+2025-07-31 11:31:27.758 [Debug] [SpeedTUI][TimeTrackingScreen] Deleting time entry | EntryId=6c92a4cc-6799-480d-959b-e32fcc365b52 EntryName= SelectedIndex=0
+2025-07-31 11:31:27.767 [Error] [SpeedTUI][TimeTrackingScreen] Error deleting time entry | SelectedEntry=0 Exception=Method invocation failed because [TimeTrackingService] does not contain a method named 'Remove'.
+2025-07-31 11:31:27.855 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:27.900 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:27.912 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:30.828 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:31:30.846 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:31:30.919 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:30.967 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:30.980 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:31.872 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=68 CurrentScreen=TimeTrackingScreen Key=Shift+D
+2025-07-31 11:31:31.875 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=Shift+D
+2025-07-31 11:31:31.934 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:31.989 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=Delete EditFormExists=True
+2025-07-31 11:31:31.997 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=25
+2025-07-31 11:31:35.434 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=89 CurrentScreen=TimeTrackingScreen Key=Shift+Y
+2025-07-31 11:31:35.450 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=Delete KeyString=Shift+Y
+2025-07-31 11:31:35.464 [Debug] [SpeedTUI][TimeTrackingScreen] Delete confirmation input | SelectedEntry=1 Key=Y
+2025-07-31 11:31:35.473 [Debug] [SpeedTUI][TimeTrackingScreen] Deleting time entry | EntryId=4ce843d1-dbab-4670-b1f9-5ba6711056e5 EntryName= SelectedIndex=1
+2025-07-31 11:31:35.486 [Error] [SpeedTUI][TimeTrackingScreen] Error deleting time entry | SelectedEntry=1 Exception=Method invocation failed because [TimeTrackingService] does not contain a method named 'Remove'.
+2025-07-31 11:31:35.564 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:35.614 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:35.628 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:41.412 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:31:41.421 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:31:41.506 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:41.592 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:41.603 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:41.673 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:31:41.679 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:31:41.742 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:41.782 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:41.790 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22
+2025-07-31 11:31:41.898 [Trace] [SpeedTUI][MainLoop] Key pressed | KeyChar=0 CurrentScreen=TimeTrackingScreen Key=DownArrow
+2025-07-31 11:31:41.903 [Debug] [SpeedTUI][MainLoop] TimeTrackingScreen input | HasHandleKey=True ViewMode=List KeyString=DownArrow
+2025-07-31 11:31:41.966 [Trace] [SpeedTUI][MainLoop] Refresh needed | ScreenDetails=System.Collections.Hashtable CurrentScreen=TimeTrackingScreen
+2025-07-31 11:31:42.012 [Trace] [SpeedTUI][TimeTrackingScreen] Render start | TimeEntriesCount=7 AddFormExists=True ViewMode=List EditFormExists=True
+2025-07-31 11:31:42.027 [Trace] [SpeedTUI][MainLoop] Screen rendered | LineCount=22

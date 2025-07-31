@@ -1,0 +1,54 @@
+2025-07-31 11:53:07.797 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 11:53:08.097 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 11:53:08.515 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:13 char:25
++ class DashboardScreen : Component {
++                         ~~~~~~~~~
+Unable to find type [Component].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:101 char:20
++         $lines += [BorderHelper]::TopBorder()
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:102 char:20
++         $lines += [BorderHelper]::EmptyLine()
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:103 char:20
++         $lines += [BorderHelper]::ContentLine("    ███████╗██████╗ ██ …
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:104 char:20
++         $lines += [BorderHelper]::ContentLine("    ██╔════╝██╔══██╗██ …
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:105 char:20
++         $lines += [BorderHelper]::ContentLine("    ███████╗██████╔╝██ …
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:106 char:20
++         $lines += [BorderHelper]::ContentLine("    ╚════██║██╔═══╝ ██ …
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:107 char:20
++         $lines += [BorderHelper]::ContentLine("    ███████║██║     ██ …
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:108 char:20
++         $lines += [BorderHelper]::ContentLine("    ╚══════╝╚═╝     ╚═ …
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:109 char:20
++         $lines += [BorderHelper]::EmptyLine()
++                    ~~~~~~~~~~~~
+Unable to find type [BorderHelper].
+
+Not all parse errors were reported.  Correct the reported errors and try again.
+2025-07-31 11:53:08.794 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

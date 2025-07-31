@@ -1,0 +1,1885 @@
+06:40:20.882 gauge.system.memory.working_set: 129.421875 (unit=MB
+06:40:20.995 gauge.system.memory.private: 300.46484375 (unit=MB
+06:40:21.006 gauge.system.cpu.time: 4664.483 (unit=ms
+06:40:21.021 gauge.system.threads: 18 (unit=count
+06:40:21.034 gauge.system.handles: 169 (unit=count
+06:40:21.050 gauge.system.gc.gen0: 9 (unit=count
+06:40:21.054 gauge.system.gc.gen1: 4 (unit=count
+06:40:21.058 gauge.system.gc.gen2: 2 (unit=count
+06:40:21.062 gauge.system.gc.total_memory: 15.1506881713867 (unit=MB
+06:40:21.123 timing.DashboardScreen.RefreshQuickStats: 312ms
+06:40:21.146 timing.Application.Startup: 1747ms
+06:40:21.655 timing.DashboardScreen.Render: 391ms
+06:40:21.996 timing.DashboardScreen.Render: 48ms
+06:40:22.080 timing.DashboardScreen.Render: 15ms
+06:40:22.161 timing.DashboardScreen.Render: 14ms
+06:40:22.239 timing.DashboardScreen.Render: 13ms
+06:40:22.350 timing.DashboardScreen.Render: 31ms
+06:40:22.550 timing.DashboardScreen.Render: 13ms
+06:40:22.635 timing.DashboardScreen.Render: 14ms
+06:40:22.759 timing.DashboardScreen.Render: 59ms
+06:40:22.935 timing.DashboardScreen.Render: 23ms
+06:40:23.038 timing.DashboardScreen.Render: 17ms
+06:40:23.236 timing.DashboardScreen.Render: 20ms
+06:40:23.410 timing.DashboardScreen.Render: 14ms
+06:40:23.524 timing.DashboardScreen.Render: 16ms
+06:40:23.678 timing.DashboardScreen.Render: 40ms
+06:40:23.783 timing.DashboardScreen.Render: 13ms
+06:40:23.888 timing.DashboardScreen.Render: 16ms
+06:40:24.115 timing.DashboardScreen.Render: 33ms
+06:40:24.250 timing.DashboardScreen.Render: 12ms
+06:40:24.341 timing.DashboardScreen.Render: 13ms
+06:40:24.427 timing.DashboardScreen.Render: 12ms
+06:40:24.531 timing.DashboardScreen.Render: 20ms
+06:40:24.670 timing.DashboardScreen.Render: 18ms
+06:40:24.774 timing.DashboardScreen.Render: 19ms
+06:40:24.861 timing.DashboardScreen.Render: 12ms
+06:40:24.948 timing.DashboardScreen.Render: 14ms
+06:40:25.051 timing.DashboardScreen.Render: 24ms
+06:40:25.156 timing.DashboardScreen.Render: 31ms
+06:40:25.258 timing.DashboardScreen.Render: 14ms
+06:40:25.344 timing.DashboardScreen.Render: 12ms
+06:40:25.615 timing.DashboardScreen.Render: 56ms
+06:40:25.717 timing.DashboardScreen.Render: 12ms
+06:40:25.842 timing.DashboardScreen.Render: 45ms
+06:40:26.158 timing.DashboardScreen.Render: 12ms
+06:40:26.238 timing.DashboardScreen.Render: 11ms
+06:40:26.316 timing.DashboardScreen.Render: 11ms
+06:40:26.397 timing.DashboardScreen.Render: 15ms
+06:40:26.492 timing.DashboardScreen.Render: 10ms
+06:40:26.631 timing.DashboardScreen.Render: 13ms
+06:40:26.742 timing.DashboardScreen.Render: 14ms
+06:40:26.889 timing.DashboardScreen.Render: 28ms
+06:40:27.013 timing.DashboardScreen.Render: 29ms
+06:40:27.097 timing.DashboardScreen.Render: 12ms
+06:40:27.180 timing.DashboardScreen.Render: 14ms
+06:40:27.268 timing.DashboardScreen.Render: 11ms
+06:40:27.375 timing.DashboardScreen.Render: 16ms
+06:40:27.458 timing.DashboardScreen.Render: 12ms
+06:40:27.548 timing.DashboardScreen.Render: 12ms
+06:40:27.636 timing.DashboardScreen.Render: 10ms
+06:40:27.940 timing.DashboardScreen.Render: 11ms
+06:40:28.032 timing.DashboardScreen.Render: 13ms
+06:40:28.111 timing.DashboardScreen.Render: 10ms
+06:40:28.195 timing.DashboardScreen.Render: 10ms
+06:40:28.272 timing.DashboardScreen.Render: 9ms
+06:40:28.355 timing.DashboardScreen.Render: 12ms
+06:40:28.444 timing.DashboardScreen.Render: 13ms
+06:40:28.527 timing.DashboardScreen.Render: 10ms
+06:40:28.618 timing.DashboardScreen.Render: 11ms
+06:40:28.701 timing.DashboardScreen.Render: 12ms
+06:40:28.808 timing.DashboardScreen.Render: 13ms
+06:40:28.903 timing.DashboardScreen.Render: 10ms
+06:40:28.984 timing.DashboardScreen.Render: 13ms
+06:40:29.072 timing.DashboardScreen.Render: 12ms
+06:40:29.156 timing.DashboardScreen.Render: 10ms
+06:40:29.236 timing.DashboardScreen.Render: 11ms
+06:40:29.318 timing.DashboardScreen.Render: 10ms
+06:40:29.402 timing.DashboardScreen.Render: 10ms
+06:40:29.486 timing.DashboardScreen.Render: 11ms
+06:40:29.578 timing.DashboardScreen.Render: 16ms
+06:40:29.661 timing.DashboardScreen.Render: 10ms
+06:40:29.740 timing.DashboardScreen.Render: 9ms
+06:40:29.821 timing.DashboardScreen.Render: 11ms
+06:40:29.901 timing.DashboardScreen.Render: 10ms
+06:40:30.123 timing.DashboardScreen.Render: 10ms
+06:40:30.216 timing.DashboardScreen.Render: 10ms
+06:40:30.336 timing.DashboardScreen.Render: 13ms
+06:40:30.440 timing.DashboardScreen.Render: 13ms
+06:40:30.521 timing.DashboardScreen.Render: 12ms
+06:40:30.608 timing.DashboardScreen.Render: 12ms
+06:40:30.699 timing.DashboardScreen.Render: 9ms
+06:40:30.793 timing.DashboardScreen.Render: 12ms
+06:40:30.872 timing.DashboardScreen.Render: 9ms
+06:40:30.958 timing.DashboardScreen.Render: 9ms
+06:40:31.048 timing.DashboardScreen.Render: 14ms
+06:40:31.127 timing.DashboardScreen.Render: 12ms
+06:40:31.211 timing.DashboardScreen.Render: 12ms
+06:40:31.294 timing.DashboardScreen.Render: 12ms
+06:40:31.390 timing.DashboardScreen.Render: 21ms
+06:40:31.474 timing.DashboardScreen.Render: 12ms
+06:40:31.554 timing.DashboardScreen.Render: 12ms
+06:40:31.640 timing.DashboardScreen.Render: 13ms
+06:40:31.728 timing.DashboardScreen.Render: 16ms
+06:40:31.818 timing.DashboardScreen.Render: 10ms
+06:40:31.907 timing.DashboardScreen.Render: 9ms
+06:40:32.037 timing.DashboardScreen.Render: 10ms
+06:40:32.120 timing.DashboardScreen.Render: 13ms
+06:40:32.310 timing.DashboardScreen.Render: 28ms
+06:40:32.407 timing.DashboardScreen.Render: 14ms
+06:40:32.485 timing.DashboardScreen.Render: 12ms
+06:40:32.570 timing.DashboardScreen.Render: 12ms
+06:40:32.696 timing.DashboardScreen.Render: 19ms
+06:40:32.850 timing.DashboardScreen.Render: 11ms
+06:40:32.929 timing.DashboardScreen.Render: 12ms
+06:40:33.017 timing.DashboardScreen.Render: 14ms
+06:40:33.105 timing.DashboardScreen.Render: 19ms
+06:40:33.190 timing.DashboardScreen.Render: 11ms
+06:40:33.269 timing.DashboardScreen.Render: 9ms
+06:40:33.364 timing.DashboardScreen.Render: 10ms
+06:40:33.445 timing.DashboardScreen.Render: 12ms
+06:40:33.532 timing.DashboardScreen.Render: 12ms
+06:40:33.611 timing.DashboardScreen.Render: 11ms
+06:40:33.698 timing.DashboardScreen.Render: 11ms
+06:40:33.774 timing.DashboardScreen.Render: 11ms
+06:40:33.854 timing.DashboardScreen.Render: 12ms
+06:40:33.932 timing.DashboardScreen.Render: 11ms
+06:40:34.018 timing.DashboardScreen.Render: 13ms
+06:40:34.102 timing.DashboardScreen.Render: 9ms
+06:40:34.187 timing.DashboardScreen.Render: 15ms
+06:40:34.269 timing.DashboardScreen.Render: 9ms
+06:40:34.416 timing.DashboardScreen.Render: 12ms
+06:40:34.495 timing.DashboardScreen.Render: 11ms
+06:40:34.580 timing.DashboardScreen.Render: 12ms
+06:40:34.664 timing.DashboardScreen.Render: 16ms
+06:40:34.748 timing.DashboardScreen.Render: 10ms
+06:40:34.835 timing.DashboardScreen.Render: 9ms
+06:40:34.917 timing.DashboardScreen.Render: 14ms
+06:40:35.019 timing.DashboardScreen.Render: 17ms
+06:40:35.100 timing.DashboardScreen.Render: 12ms
+06:40:35.179 timing.DashboardScreen.Render: 12ms
+06:40:35.266 timing.DashboardScreen.Render: 19ms
+06:40:35.345 timing.DashboardScreen.Render: 12ms
+06:40:35.429 timing.DashboardScreen.Render: 12ms
+06:40:35.515 timing.DashboardScreen.Render: 11ms
+06:40:35.595 timing.DashboardScreen.Render: 9ms
+06:40:35.687 timing.DashboardScreen.Render: 14ms
+06:40:35.772 timing.DashboardScreen.Render: 11ms
+06:40:35.850 timing.DashboardScreen.Render: 11ms
+06:40:35.926 timing.DashboardScreen.Render: 11ms
+06:40:36.005 timing.DashboardScreen.Render: 11ms
+06:40:36.080 timing.DashboardScreen.Render: 11ms
+06:40:36.167 timing.DashboardScreen.Render: 14ms
+06:40:36.248 timing.DashboardScreen.Render: 10ms
+06:40:36.327 timing.DashboardScreen.Render: 11ms
+06:40:36.410 timing.DashboardScreen.Render: 12ms
+06:40:36.499 timing.DashboardScreen.Render: 11ms
+06:40:36.745 timing.DashboardScreen.Render: 17ms
+06:40:36.829 timing.DashboardScreen.Render: 11ms
+06:40:36.905 timing.DashboardScreen.Render: 11ms
+06:40:36.979 timing.DashboardScreen.Render: 8ms
+06:40:37.052 timing.DashboardScreen.Render: 9ms
+06:40:37.125 timing.DashboardScreen.Render: 9ms
+06:40:37.202 timing.DashboardScreen.Render: 9ms
+06:40:37.293 timing.DashboardScreen.Render: 20ms
+06:40:37.366 timing.DashboardScreen.Render: 11ms
+06:40:37.446 timing.DashboardScreen.Render: 10ms
+06:40:37.521 timing.DashboardScreen.Render: 11ms
+06:40:37.593 timing.DashboardScreen.Render: 8ms
+06:40:37.680 timing.DashboardScreen.Render: 9ms
+06:40:37.762 timing.DashboardScreen.Render: 14ms
+06:40:37.837 timing.DashboardScreen.Render: 11ms
+06:40:37.913 timing.DashboardScreen.Render: 10ms
+06:40:37.985 timing.DashboardScreen.Render: 8ms
+06:40:38.061 timing.DashboardScreen.Render: 9ms
+06:40:38.135 timing.DashboardScreen.Render: 9ms
+06:40:38.208 timing.DashboardScreen.Render: 8ms
+06:40:38.280 timing.DashboardScreen.Render: 8ms
+06:40:38.353 timing.DashboardScreen.Render: 11ms
+06:40:38.429 timing.DashboardScreen.Render: 10ms
+06:40:38.513 timing.DashboardScreen.Render: 11ms
+06:40:38.683 timing.DashboardScreen.Render: 20ms
+06:40:38.829 timing.DashboardScreen.Render: 11ms
+06:40:38.903 timing.DashboardScreen.Render: 10ms
+06:40:38.971 timing.DashboardScreen.Render: 12ms
+06:40:39.057 timing.DashboardScreen.Render: 15ms
+06:40:39.131 timing.DashboardScreen.Render: 10ms
+06:40:39.208 timing.DashboardScreen.Render: 11ms
+06:40:39.278 timing.DashboardScreen.Render: 10ms
+06:40:39.352 timing.DashboardScreen.Render: 11ms
+06:40:39.423 timing.DashboardScreen.Render: 10ms
+06:40:39.493 timing.DashboardScreen.Render: 10ms
+06:40:39.567 timing.DashboardScreen.Render: 11ms
+06:40:39.636 timing.DashboardScreen.Render: 11ms
+06:40:39.714 timing.DashboardScreen.Render: 11ms
+06:40:39.783 timing.DashboardScreen.Render: 11ms
+06:40:39.852 timing.DashboardScreen.Render: 10ms
+06:40:39.919 timing.DashboardScreen.Render: 10ms
+06:40:39.997 timing.DashboardScreen.Render: 15ms
+06:40:40.106 timing.DashboardScreen.Render: 10ms
+06:40:40.212 timing.DashboardScreen.Render: 10ms
+06:40:40.316 timing.DashboardScreen.Render: 8ms
+06:40:40.403 timing.DashboardScreen.Render: 12ms
+06:40:40.474 timing.DashboardScreen.Render: 10ms
+06:40:40.554 timing.DashboardScreen.Render: 10ms
+06:40:40.620 timing.DashboardScreen.Render: 7ms
+06:40:40.695 timing.DashboardScreen.Render: 10ms
+06:40:40.779 timing.DashboardScreen.Render: 16ms
+06:40:40.870 timing.DashboardScreen.Render: 11ms
+06:40:40.966 timing.DashboardScreen.Render: 11ms
+06:40:41.036 timing.DashboardScreen.Render: 8ms
+06:40:41.110 timing.DashboardScreen.Render: 8ms
+06:40:41.181 timing.DashboardScreen.Render: 10ms
+06:40:41.263 timing.DashboardScreen.Render: 10ms
+06:40:41.338 timing.DashboardScreen.Render: 16ms
+06:40:41.419 timing.DashboardScreen.Render: 9ms
+06:40:41.494 timing.DashboardScreen.Render: 9ms
+06:40:41.580 timing.DashboardScreen.Render: 11ms
+06:40:41.682 timing.DashboardScreen.Render: 18ms
+06:40:41.757 timing.DashboardScreen.Render: 9ms
+06:40:41.827 timing.DashboardScreen.Render: 9ms
+06:40:41.893 timing.DashboardScreen.Render: 9ms
+06:40:42.014 timing.DashboardScreen.Render: 20ms
+06:40:42.167 timing.DashboardScreen.Render: 21ms
+06:58:14.652 gauge.system.memory.working_set: 134.40234375 (unit=MB
+06:58:14.804 gauge.system.memory.private: 306.1015625 (unit=MB
+06:58:14.816 gauge.system.cpu.time: 5215.841 (unit=ms
+06:58:14.831 gauge.system.threads: 18 (unit=count
+06:58:14.845 gauge.system.handles: 169 (unit=count
+06:58:14.883 gauge.system.gc.gen0: 12 (unit=count
+06:58:14.887 gauge.system.gc.gen1: 4 (unit=count
+06:58:14.891 gauge.system.gc.gen2: 2 (unit=count
+06:58:14.895 gauge.system.gc.total_memory: 16.895149230957 (unit=MB
+06:58:14.952 timing.DashboardScreen.RefreshQuickStats: 374ms
+06:58:15.007 timing.Application.Startup: 1642ms
+06:58:15.623 timing.DashboardScreen.Render: 416ms
+06:58:54.120 timing.DashboardScreen.HandleInput: 1ms (key=Ctrl+Q
+06:59:26.281 gauge.system.memory.working_set: 135.05078125 (unit=MB
+06:59:26.400 gauge.system.memory.private: 302.2734375 (unit=MB
+06:59:26.412 gauge.system.cpu.time: 5870.788 (unit=ms
+06:59:26.427 gauge.system.threads: 18 (unit=count
+06:59:26.458 gauge.system.handles: 171 (unit=count
+06:59:26.476 gauge.system.gc.gen0: 12 (unit=count
+06:59:26.480 gauge.system.gc.gen1: 5 (unit=count
+06:59:26.484 gauge.system.gc.gen2: 2 (unit=count
+06:59:26.489 gauge.system.gc.total_memory: 16.9653472900391 (unit=MB
+06:59:26.543 timing.DashboardScreen.RefreshQuickStats: 329ms
+06:59:26.567 timing.Application.Startup: 1548ms
+06:59:27.086 timing.DashboardScreen.Render: 404ms
+06:59:46.582 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+07:00:06.874 timing.DashboardScreen.Render: 42ms
+07:00:10.547 counter.dashboard.navigation: 1count (screen=CommandLibrary
+07:00:10.553 timing.DashboardScreen.HandleInput: 94ms (key=2
+07:00:10.557 timing.DashboardScreen.HandleInput: 124ms (key=Enter
+07:00:14.513 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+07:00:20.780 timing.DashboardScreen.Render: 28ms
+07:00:22.009 timing.DashboardScreen.HandleInput: 7ms (key=DownArrow
+07:00:24.903 timing.DashboardScreen.Render: 15ms
+07:00:28.966 counter.dashboard.navigation: 1count (screen=FileBrowser
+07:00:28.986 timing.DashboardScreen.HandleInput: 20ms (key=4
+07:00:28.993 timing.DashboardScreen.HandleInput: 37ms (key=Enter
+07:00:31.565 timing.DashboardScreen.HandleInput: 10ms (key=DownArrow
+07:00:33.908 timing.DashboardScreen.Render: 19ms
+07:00:35.941 timing.DashboardScreen.HandleInput: 2ms (key=RightArrow
+07:00:37.105 timing.DashboardScreen.HandleInput: 1ms (key=RightArrow
+07:00:37.323 timing.DashboardScreen.HandleInput: 1ms (key=RightArrow
+07:00:38.380 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+07:00:39.636 timing.DashboardScreen.Render: 33ms
+07:00:39.653 timing.DashboardScreen.HandleInput: 0ms (key=RightArrow
+07:00:45.683 timing.DashboardScreen.HandleInput: 2ms (key=Ctrl+Q
+07:03:57.451 gauge.system.memory.working_set: 134.33984375 (unit=MB
+07:03:57.569 gauge.system.memory.private: 317.8125 (unit=MB
+07:03:57.580 gauge.system.cpu.time: 5703.364 (unit=ms
+07:03:57.595 gauge.system.threads: 19 (unit=count
+07:03:57.626 gauge.system.handles: 171 (unit=count
+07:03:57.642 gauge.system.gc.gen0: 12 (unit=count
+07:03:57.647 gauge.system.gc.gen1: 5 (unit=count
+07:03:57.651 gauge.system.gc.gen2: 2 (unit=count
+07:03:57.655 gauge.system.gc.total_memory: 16.9697265625 (unit=MB
+07:03:57.707 timing.DashboardScreen.RefreshQuickStats: 322ms
+07:03:57.732 timing.Application.Startup: 1618ms
+07:03:58.257 timing.DashboardScreen.Render: 409ms
+07:04:01.927 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:04:01.935 timing.DashboardScreen.HandleInput: 65ms (key=1
+07:04:01.940 timing.DashboardScreen.HandleInput: 81ms (key=Enter
+07:04:12.449 counter.dashboard.navigation.down: 1count
+07:04:12.454 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+07:04:12.604 timing.DashboardScreen.Render: 47ms
+07:04:39.461 counter.dashboard.navigation.up: 1count
+07:04:39.470 timing.DashboardScreen.HandleInput: 17ms (key=UpArrow
+07:04:39.592 timing.DashboardScreen.Render: 24ms
+07:04:41.164 counter.dashboard.navigation: 2count (screen=TimeTracking
+07:04:41.171 timing.DashboardScreen.HandleInput: 17ms (key=1
+07:04:41.176 timing.DashboardScreen.HandleInput: 24ms (key=Enter
+07:04:45.106 gauge.system.memory.working_set: 129.3359375 (unit=MB
+07:04:45.225 gauge.system.memory.private: 314.02734375 (unit=MB
+07:04:45.237 gauge.system.cpu.time: 4808.221 (unit=ms
+07:04:45.252 gauge.system.threads: 19 (unit=count
+07:04:45.269 gauge.system.handles: 171 (unit=count
+07:04:45.292 gauge.system.gc.gen0: 8 (unit=count
+07:04:45.316 gauge.system.gc.gen1: 4 (unit=count
+07:04:45.321 gauge.system.gc.gen2: 2 (unit=count
+07:04:45.325 gauge.system.gc.total_memory: 16.3701782226562 (unit=MB
+07:04:45.379 timing.DashboardScreen.RefreshQuickStats: 346ms
+07:04:45.402 timing.Application.Startup: 1453ms
+07:04:45.890 timing.DashboardScreen.Render: 388ms
+07:04:46.192 timing.DashboardScreen.Render: 28ms
+07:04:46.270 timing.DashboardScreen.Render: 14ms
+07:04:46.383 timing.DashboardScreen.Render: 13ms
+07:04:46.525 timing.DashboardScreen.Render: 23ms
+07:04:46.646 timing.DashboardScreen.Render: 36ms
+07:04:46.891 timing.DashboardScreen.Render: 17ms
+07:04:47.053 timing.DashboardScreen.Render: 19ms
+07:04:47.163 timing.DashboardScreen.Render: 20ms
+07:04:47.282 timing.DashboardScreen.Render: 28ms
+07:04:47.375 timing.DashboardScreen.Render: 11ms
+07:04:47.519 timing.DashboardScreen.Render: 15ms
+07:04:47.615 timing.DashboardScreen.Render: 15ms
+07:04:47.728 timing.DashboardScreen.Render: 34ms
+07:04:47.870 timing.DashboardScreen.Render: 24ms
+07:04:47.975 timing.DashboardScreen.Render: 12ms
+07:04:48.073 timing.DashboardScreen.Render: 21ms
+07:04:48.164 timing.DashboardScreen.Render: 18ms
+07:04:48.257 timing.DashboardScreen.Render: 21ms
+07:04:48.358 timing.DashboardScreen.Render: 21ms
+07:04:48.456 timing.DashboardScreen.Render: 14ms
+07:04:48.552 timing.DashboardScreen.Render: 12ms
+07:04:48.654 timing.DashboardScreen.Render: 27ms
+07:04:48.742 timing.DashboardScreen.Render: 15ms
+07:04:48.832 timing.DashboardScreen.Render: 12ms
+07:04:48.926 timing.DashboardScreen.Render: 12ms
+07:04:49.020 timing.DashboardScreen.Render: 15ms
+07:04:49.112 timing.DashboardScreen.Render: 15ms
+07:04:49.215 timing.DashboardScreen.Render: 16ms
+07:04:49.304 timing.DashboardScreen.Render: 13ms
+07:04:49.400 timing.DashboardScreen.Render: 18ms
+07:04:49.596 timing.DashboardScreen.Render: 16ms
+07:04:49.717 timing.DashboardScreen.Render: 45ms
+07:04:50.136 timing.DashboardScreen.Render: 20ms
+07:04:50.246 timing.DashboardScreen.Render: 14ms
+07:04:50.340 timing.DashboardScreen.Render: 11ms
+07:04:50.422 timing.DashboardScreen.Render: 11ms
+07:04:50.505 timing.DashboardScreen.Render: 11ms
+07:04:50.590 timing.DashboardScreen.Render: 14ms
+07:04:50.680 timing.DashboardScreen.Render: 11ms
+07:04:50.768 timing.DashboardScreen.Render: 11ms
+07:04:50.852 timing.DashboardScreen.Render: 11ms
+07:04:50.934 timing.DashboardScreen.Render: 11ms
+07:04:51.026 timing.DashboardScreen.Render: 13ms
+07:04:51.114 timing.DashboardScreen.Render: 15ms
+07:04:51.214 timing.DashboardScreen.Render: 17ms
+07:04:51.321 timing.DashboardScreen.Render: 14ms
+07:04:51.409 timing.DashboardScreen.Render: 14ms
+07:04:51.503 timing.DashboardScreen.Render: 14ms
+07:04:51.924 timing.DashboardScreen.Render: 11ms
+07:05:04.609 counter.dashboard.navigation: 3count (screen=TimeTracking
+07:05:04.618 timing.DashboardScreen.HandleInput: 23ms (key=1
+07:05:04.621 timing.DashboardScreen.HandleInput: 27ms (key=Enter
+07:05:06.016 counter.dashboard.navigation.down: 2count
+07:05:06.020 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+07:05:06.166 timing.DashboardScreen.Render: 26ms
+07:06:03.118 timing.DashboardScreen.HandleInput: 1ms (key=Ctrl+Q
+07:06:03.203 counter.application.shutdown: 1count
+07:06:09.697 gauge.system.memory.working_set: 135.0078125 (unit=MB
+07:06:09.814 gauge.system.memory.private: 301.78125 (unit=MB
+07:06:09.826 gauge.system.cpu.time: 5722.492 (unit=ms
+07:06:09.860 gauge.system.threads: 18 (unit=count
+07:06:09.873 gauge.system.handles: 171 (unit=count
+07:06:09.890 gauge.system.gc.gen0: 12 (unit=count
+07:06:09.894 gauge.system.gc.gen1: 5 (unit=count
+07:06:09.898 gauge.system.gc.gen2: 2 (unit=count
+07:06:09.902 gauge.system.gc.total_memory: 17.3464508056641 (unit=MB
+07:06:09.954 timing.DashboardScreen.RefreshQuickStats: 347ms
+07:06:09.993 counter.dashboard.initialized: 1count
+07:06:10.000 timing.Application.Startup: 1557ms
+07:06:10.524 timing.DashboardScreen.Render: 408ms
+07:06:15.698 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:06:15.710 timing.DashboardScreen.HandleInput: 36ms (key=1
+07:06:15.716 timing.DashboardScreen.HandleInput: 55ms (key=Enter
+07:06:36.642 timing.DashboardScreen.HandleInput: 2ms (key=Ctrl+Q
+07:06:36.725 counter.application.shutdown: 1count
+07:06:55.786 gauge.system.memory.working_set: 134.8125 (unit=MB
+07:06:55.912 gauge.system.memory.private: 303.109375 (unit=MB
+07:06:55.925 gauge.system.cpu.time: 5520.269 (unit=ms
+07:06:55.963 gauge.system.threads: 18 (unit=count
+07:06:55.978 gauge.system.handles: 171 (unit=count
+07:06:55.996 gauge.system.gc.gen0: 12 (unit=count
+07:06:56.001 gauge.system.gc.gen1: 4 (unit=count
+07:06:56.006 gauge.system.gc.gen2: 2 (unit=count
+07:06:56.012 gauge.system.gc.total_memory: 17.3625946044922 (unit=MB
+07:06:56.069 timing.DashboardScreen.RefreshQuickStats: 383ms
+07:06:56.111 counter.dashboard.initialized: 1count
+07:06:56.120 timing.Application.Startup: 1703ms
+07:06:56.722 timing.DashboardScreen.Render: 487ms
+07:07:04.522 timing.DashboardScreen.HandleInput: 1ms (key=Ctrl+Q
+07:07:04.587 counter.application.shutdown: 1count
+07:16:18.356 gauge.system.memory.working_set: 131.0625 (unit=MB
+07:16:18.478 gauge.system.memory.private: 301.68359375 (unit=MB
+07:16:18.490 gauge.system.cpu.time: 5522.712 (unit=ms
+07:16:18.523 gauge.system.threads: 18 (unit=count
+07:16:18.536 gauge.system.handles: 169 (unit=count
+07:16:18.553 gauge.system.gc.gen0: 12 (unit=count
+07:16:18.558 gauge.system.gc.gen1: 5 (unit=count
+07:16:18.562 gauge.system.gc.gen2: 2 (unit=count
+07:16:18.567 gauge.system.gc.total_memory: 17.3745880126953 (unit=MB
+07:16:18.621 timing.DashboardScreen.RefreshQuickStats: 360ms
+07:16:18.661 counter.dashboard.initialized: 1count
+07:16:18.668 timing.Application.Startup: 1627ms
+07:16:19.205 timing.DashboardScreen.Render: 416ms
+07:16:23.341 counter.dashboard.navigation.down: 1count
+07:16:23.347 timing.DashboardScreen.HandleInput: 12ms (key=DownArrow
+07:16:23.489 timing.DashboardScreen.Render: 38ms
+07:16:24.814 counter.dashboard.navigation: 1count (screen=CommandLibrary
+07:16:24.824 timing.DashboardScreen.HandleInput: 35ms (key=2
+07:16:24.829 timing.DashboardScreen.HandleInput: 54ms (key=Enter
+07:16:28.666 timing.DashboardScreen.HandleInput: 2ms (key=Escape
+07:16:39.829 gauge.system.memory.working_set: 130.16796875 (unit=MB
+07:16:39.942 gauge.system.memory.private: 300.83984375 (unit=MB
+07:16:39.952 gauge.system.cpu.time: 5032.656 (unit=ms
+07:16:39.985 gauge.system.threads: 18 (unit=count
+07:16:39.998 gauge.system.handles: 169 (unit=count
+07:16:40.013 gauge.system.gc.gen0: 12 (unit=count
+07:16:40.017 gauge.system.gc.gen1: 5 (unit=count
+07:16:40.020 gauge.system.gc.gen2: 2 (unit=count
+07:16:40.024 gauge.system.gc.total_memory: 17.4116363525391 (unit=MB
+07:16:40.073 timing.DashboardScreen.RefreshQuickStats: 328ms
+07:16:40.108 counter.dashboard.initialized: 1count
+07:16:40.115 timing.Application.Startup: 1451ms
+07:16:40.593 timing.DashboardScreen.Render: 378ms
+07:16:41.966 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:16:41.974 timing.DashboardScreen.HandleInput: 31ms (key=1
+07:16:41.981 timing.DashboardScreen.HandleInput: 50ms (key=Enter
+07:16:53.676 timing.DashboardScreen.HandleInput: 4ms (key=Ctrl+Q
+07:16:53.774 counter.application.shutdown: 1count
+07:20:44.062 gauge.system.memory.working_set: 131.09375 (unit=MB
+07:20:44.196 gauge.system.memory.private: 301.546875 (unit=MB
+07:20:44.208 gauge.system.cpu.time: 5256.648 (unit=ms
+07:20:44.222 gauge.system.threads: 18 (unit=count
+07:20:44.235 gauge.system.handles: 169 (unit=count
+07:20:44.251 gauge.system.gc.gen0: 12 (unit=count
+07:20:44.255 gauge.system.gc.gen1: 5 (unit=count
+07:20:44.259 gauge.system.gc.gen2: 2 (unit=count
+07:20:44.263 gauge.system.gc.total_memory: 17.639762878418 (unit=MB
+07:20:44.314 timing.DashboardScreen.RefreshQuickStats: 339ms
+07:20:44.355 counter.dashboard.initialized: 1count
+07:20:44.362 timing.Application.Startup: 1533ms
+07:20:44.882 timing.DashboardScreen.Render: 398ms
+07:20:46.774 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:20:46.782 timing.DashboardScreen.HandleInput: 36ms (key=1
+07:20:46.789 timing.DashboardScreen.HandleInput: 54ms (key=Enter
+07:21:26.691 timing.DashboardScreen.HandleInput: 1ms (key=Ctrl+Q
+07:21:26.774 counter.application.shutdown: 1count
+07:23:06.164 gauge.system.memory.working_set: 133.8828125 (unit=MB
+07:23:06.281 gauge.system.memory.private: 301.9765625 (unit=MB
+07:23:06.312 gauge.system.cpu.time: 5613.083 (unit=ms
+07:23:06.328 gauge.system.threads: 18 (unit=count
+07:23:06.341 gauge.system.handles: 171 (unit=count
+07:23:06.358 gauge.system.gc.gen0: 12 (unit=count
+07:23:06.362 gauge.system.gc.gen1: 5 (unit=count
+07:23:06.366 gauge.system.gc.gen2: 2 (unit=count
+07:23:06.371 gauge.system.gc.total_memory: 17.6286468505859 (unit=MB
+07:23:06.423 timing.DashboardScreen.RefreshQuickStats: 347ms
+07:23:06.463 counter.dashboard.initialized: 1count
+07:23:06.470 timing.Application.Startup: 1552ms
+07:23:06.974 timing.DashboardScreen.Render: 400ms
+07:23:08.740 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:23:08.747 timing.DashboardScreen.HandleInput: 31ms (key=1
+07:23:08.754 timing.DashboardScreen.HandleInput: 50ms (key=Enter
+07:23:21.230 counter.dashboard.navigation: 2count (screen=TimeTracking
+07:23:21.246 timing.DashboardScreen.HandleInput: 44ms (key=1
+07:23:21.254 timing.DashboardScreen.HandleInput: 63ms (key=Enter
+07:23:24.931 timing.DashboardScreen.HandleInput: 3ms (key=Ctrl+Q
+07:23:25.012 counter.application.shutdown: 1count
+07:27:39.332 gauge.system.memory.working_set: 130.2578125 (unit=MB
+07:27:39.483 gauge.system.memory.private: 316.609375 (unit=MB
+07:27:39.494 gauge.system.cpu.time: 4994.079 (unit=ms
+07:27:39.508 gauge.system.threads: 19 (unit=count
+07:27:39.521 gauge.system.handles: 169 (unit=count
+07:27:39.537 gauge.system.gc.gen0: 11 (unit=count
+07:27:39.542 gauge.system.gc.gen1: 4 (unit=count
+07:27:39.546 gauge.system.gc.gen2: 2 (unit=count
+07:27:39.550 gauge.system.gc.total_memory: 18.8315963745117 (unit=MB
+07:27:39.608 timing.DashboardScreen.RefreshQuickStats: 387ms
+07:27:39.645 counter.dashboard.initialized: 1count
+07:27:39.652 timing.Application.Startup: 1658ms
+07:27:40.187 timing.DashboardScreen.Render: 408ms
+07:27:45.217 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:27:45.224 timing.DashboardScreen.HandleInput: 29ms (key=1
+07:27:45.228 timing.DashboardScreen.HandleInput: 44ms (key=Enter
+07:27:45.306 counter.screen.timetracking.refresh: 1count
+07:27:45.312 counter.screen.timetracking.initialized: 1count
+07:27:45.506 timing.TimeTrackingScreen.Render: 51ms
+07:31:50.571 timing.TimeTrackingScreen.Render: 3ms
+07:31:51.364 timing.TimeTrackingScreen.Render: 2ms
+07:31:59.707 gauge.system.memory.working_set: 139.34765625 (unit=MB
+07:31:59.834 gauge.system.memory.private: 322.50390625 (unit=MB
+07:31:59.846 gauge.system.cpu.time: 5868.908 (unit=ms
+07:31:59.862 gauge.system.threads: 19 (unit=count
+07:31:59.876 gauge.system.handles: 171 (unit=count
+07:31:59.893 gauge.system.gc.gen0: 12 (unit=count
+07:31:59.898 gauge.system.gc.gen1: 5 (unit=count
+07:31:59.903 gauge.system.gc.gen2: 2 (unit=count
+07:31:59.908 gauge.system.gc.total_memory: 19.0237045288086 (unit=MB
+07:31:59.964 timing.DashboardScreen.RefreshQuickStats: 417ms
+07:32:00.005 counter.dashboard.initialized: 1count
+07:32:00.012 timing.Application.Startup: 1770ms
+07:32:00.534 timing.DashboardScreen.Render: 415ms
+07:32:02.320 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:32:02.328 timing.DashboardScreen.HandleInput: 27ms (key=1
+07:32:02.335 timing.DashboardScreen.HandleInput: 43ms (key=Enter
+07:32:02.409 counter.screen.timetracking.refresh: 1count
+07:32:02.417 counter.screen.timetracking.initialized: 1count
+07:32:02.652 timing.TimeTrackingScreen.Render: 111ms
+07:34:21.126 gauge.system.memory.working_set: 137.578125 (unit=MB
+07:34:21.241 gauge.system.memory.private: 321.578125 (unit=MB
+07:34:21.252 gauge.system.cpu.time: 5449.189 (unit=ms
+07:34:21.265 gauge.system.threads: 19 (unit=count
+07:34:21.278 gauge.system.handles: 171 (unit=count
+07:34:21.293 gauge.system.gc.gen0: 12 (unit=count
+07:34:21.297 gauge.system.gc.gen1: 5 (unit=count
+07:34:21.301 gauge.system.gc.gen2: 2 (unit=count
+07:34:21.304 gauge.system.gc.total_memory: 19.0353851318359 (unit=MB
+07:34:21.355 timing.DashboardScreen.RefreshQuickStats: 378ms
+07:34:21.390 counter.dashboard.initialized: 1count
+07:34:21.396 timing.Application.Startup: 1563ms
+07:34:21.869 timing.DashboardScreen.Render: 373ms
+07:34:23.174 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:34:23.185 timing.DashboardScreen.HandleInput: 29ms (key=1
+07:34:23.191 timing.DashboardScreen.HandleInput: 46ms (key=Enter
+07:34:23.270 counter.screen.timetracking.refresh: 1count
+07:34:23.276 counter.screen.timetracking.initialized: 1count
+07:34:23.556 timing.TimeTrackingScreen.Render: 153ms
+07:39:36.979 gauge.system.memory.working_set: 136.86328125 (unit=MB
+07:39:37.101 gauge.system.memory.private: 320.17578125 (unit=MB
+07:39:37.114 gauge.system.cpu.time: 5541.19 (unit=ms
+07:39:37.131 gauge.system.threads: 19 (unit=count
+07:39:37.146 gauge.system.handles: 171 (unit=count
+07:39:37.164 gauge.system.gc.gen0: 12 (unit=count
+07:39:37.170 gauge.system.gc.gen1: 4 (unit=count
+07:39:37.176 gauge.system.gc.gen2: 2 (unit=count
+07:39:37.181 gauge.system.gc.total_memory: 19.39404296875 (unit=MB
+07:39:37.240 timing.DashboardScreen.RefreshQuickStats: 380ms
+07:39:37.282 counter.dashboard.initialized: 1count
+07:39:37.290 timing.Application.Startup: 1691ms
+07:39:37.864 timing.DashboardScreen.Render: 459ms
+07:39:39.414 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:39:39.422 timing.DashboardScreen.HandleInput: 27ms (key=1
+07:39:39.431 timing.DashboardScreen.HandleInput: 44ms (key=Enter
+07:39:39.504 counter.screen.timetracking.refresh: 1count
+07:39:39.509 counter.screen.timetracking.initialized: 1count
+07:39:39.770 timing.TimeTrackingScreen.Render: 139ms
+07:39:41.951 timing.TimeTrackingScreen.HandleInput: 26ms (key=A
+07:39:42.094 timing.TimeTrackingScreen.Render: 41ms
+07:39:53.456 timing.TimeTrackingScreen.HandleInput: 7ms (key=Tab
+07:39:58.227 timing.TimeTrackingScreen.HandleInput: 192ms (key=S
+07:39:58.320 timing.TimeTrackingScreen.Render: 3ms
+07:40:05.511 timing.TimeTrackingScreen.HandleInput: 2ms (key=Ctrl+Q
+07:55:05.599 gauge.system.memory.working_set: 130.8515625 (unit=MB
+07:55:05.759 gauge.system.memory.private: 301.58203125 (unit=MB
+07:55:05.771 gauge.system.cpu.time: 5548.378 (unit=ms
+07:55:05.787 gauge.system.threads: 18 (unit=count
+07:55:05.801 gauge.system.handles: 169 (unit=count
+07:55:05.818 gauge.system.gc.gen0: 12 (unit=count
+07:55:05.823 gauge.system.gc.gen1: 5 (unit=count
+07:55:05.828 gauge.system.gc.gen2: 2 (unit=count
+07:55:05.832 gauge.system.gc.total_memory: 20.9480361938477 (unit=MB
+07:55:05.892 timing.DashboardScreen.RefreshQuickStats: 396ms
+07:55:05.931 counter.dashboard.initialized: 1count
+07:55:05.938 timing.Application.Startup: 1740ms
+07:55:06.483 timing.DashboardScreen.Render: 398ms
+07:57:45.913 counter.dashboard.navigation: 1count (screen=TimeTracking
+07:57:45.920 timing.DashboardScreen.HandleInput: 27ms (key=1
+07:57:45.925 timing.DashboardScreen.HandleInput: 41ms (key=Enter
+07:57:46.123 counter.screen.timetracking.refresh: 1count
+07:57:46.129 counter.screen.timetracking.initialized: 1count
+07:57:46.420 timing.TimeTrackingScreen.Render: 167ms
+07:57:48.396 timing.TimeTrackingScreen.HandleInput: 164ms (key=A
+07:57:48.595 timing.TimeTrackingScreen.Render: 115ms
+07:57:50.795 timing.TimeTrackingScreen.Render: 6ms
+07:57:52.160 timing.TimeTrackingScreen.Render: 11ms
+07:57:52.870 timing.TimeTrackingScreen.Render: 9ms
+07:57:53.407 timing.TimeTrackingScreen.Render: 12ms
+07:57:57.329 counter.screen.timetracking.refresh: 2count
+07:57:57.342 counter.screen.timetracking.entry_added: 1count
+07:57:57.466 timing.TimeTrackingScreen.Render: 24ms
+08:01:38.357 gauge.system.memory.working_set: 142.78125 (unit=MB
+08:01:38.476 gauge.system.memory.private: 309.35546875 (unit=MB
+08:01:38.488 gauge.system.cpu.time: 6153.329 (unit=ms
+08:01:38.503 gauge.system.threads: 18 (unit=count
+08:01:38.517 gauge.system.handles: 171 (unit=count
+08:01:38.533 gauge.system.gc.gen0: 12 (unit=count
+08:01:38.538 gauge.system.gc.gen1: 5 (unit=count
+08:01:38.542 gauge.system.gc.gen2: 2 (unit=count
+08:01:38.546 gauge.system.gc.total_memory: 20.9864349365234 (unit=MB
+08:01:38.599 timing.DashboardScreen.RefreshQuickStats: 333ms
+08:01:38.638 counter.dashboard.initialized: 1count
+08:01:38.662 timing.Application.Startup: 1700ms
+08:01:39.343 timing.DashboardScreen.Render: 573ms
+08:01:41.279 counter.dashboard.navigation: 1count (screen=TimeTracking
+08:01:41.290 timing.DashboardScreen.HandleInput: 31ms (key=1
+08:01:41.297 timing.DashboardScreen.HandleInput: 48ms (key=Enter
+08:01:41.500 counter.screen.timetracking.refresh: 1count
+08:01:41.511 counter.screen.timetracking.initialized: 1count
+08:01:41.793 timing.TimeTrackingScreen.Render: 158ms
+08:05:38.784 gauge.system.memory.working_set: 139.6796875 (unit=MB
+08:05:38.906 gauge.system.memory.private: 325.02734375 (unit=MB
+08:05:38.917 gauge.system.cpu.time: 5810.62 (unit=ms
+08:05:38.933 gauge.system.threads: 19 (unit=count
+08:05:38.946 gauge.system.handles: 169 (unit=count
+08:05:38.962 gauge.system.gc.gen0: 12 (unit=count
+08:05:38.967 gauge.system.gc.gen1: 5 (unit=count
+08:05:38.971 gauge.system.gc.gen2: 2 (unit=count
+08:05:38.975 gauge.system.gc.total_memory: 21.0944137573242 (unit=MB
+08:05:39.028 timing.DashboardScreen.RefreshQuickStats: 335ms
+08:05:39.083 counter.dashboard.initialized: 1count
+08:05:39.090 timing.Application.Startup: 1693ms
+08:05:39.763 timing.DashboardScreen.Render: 567ms
+08:05:41.207 counter.dashboard.navigation: 1count (screen=TimeTracking
+08:05:41.214 timing.DashboardScreen.HandleInput: 27ms (key=1
+08:05:41.226 timing.DashboardScreen.HandleInput: 48ms (key=Enter
+08:05:41.423 counter.screen.timetracking.refresh: 1count
+08:05:41.429 counter.screen.timetracking.initialized: 1count
+08:05:41.678 timing.TimeTrackingScreen.Render: 119ms
+08:23:24.678 gauge.system.memory.working_set: 134.28125 (unit=MB
+08:23:24.811 gauge.system.memory.private: 319.61328125 (unit=MB
+08:23:24.823 gauge.system.cpu.time: 5602.004 (unit=ms
+08:23:24.839 gauge.system.threads: 19 (unit=count
+08:23:24.853 gauge.system.handles: 169 (unit=count
+08:23:24.870 gauge.system.gc.gen0: 12 (unit=count
+08:23:24.875 gauge.system.gc.gen1: 5 (unit=count
+08:23:24.880 gauge.system.gc.gen2: 2 (unit=count
+08:23:24.901 gauge.system.gc.total_memory: 22.1120758056641 (unit=MB
+08:23:24.953 timing.DashboardScreen.RefreshQuickStats: 369ms
+08:23:24.989 counter.dashboard.initialized: 1count
+08:23:24.995 timing.Application.Startup: 1623ms
+08:23:25.678 timing.DashboardScreen.Render: 571ms
+08:23:28.002 counter.dashboard.navigation: 1count (screen=TimeTracking
+08:23:28.011 timing.DashboardScreen.HandleInput: 29ms (key=1
+08:23:28.016 timing.DashboardScreen.HandleInput: 44ms (key=Enter
+08:23:28.250 counter.screen.timetracking.refresh: 1count
+08:23:28.263 counter.screen.timetracking.initialized: 1count
+08:23:28.544 timing.TimeTrackingScreen.Render: 142ms
+08:26:30.920 timing.TimeTrackingScreen.Render: 8ms
+08:26:33.366 timing.TimeTrackingScreen.Render: 6ms
+08:31:47.103 gauge.system.memory.working_set: 135.73828125 (unit=MB
+08:31:47.257 gauge.system.memory.private: 306.7421875 (unit=MB
+08:31:47.268 gauge.system.cpu.time: 5604.004 (unit=ms
+08:31:47.283 gauge.system.threads: 18 (unit=count
+08:31:47.297 gauge.system.handles: 169 (unit=count
+08:31:47.313 gauge.system.gc.gen0: 12 (unit=count
+08:31:47.336 gauge.system.gc.gen1: 5 (unit=count
+08:31:47.340 gauge.system.gc.gen2: 2 (unit=count
+08:31:47.345 gauge.system.gc.total_memory: 22.2090530395508 (unit=MB
+08:31:47.402 timing.DashboardScreen.RefreshQuickStats: 399ms
+08:31:47.443 counter.dashboard.initialized: 1count
+08:31:47.450 timing.Application.Startup: 1827ms
+08:31:48.200 timing.DashboardScreen.Render: 604ms
+08:31:50.371 counter.dashboard.navigation: 1count (screen=TimeTracking
+08:31:50.380 timing.DashboardScreen.HandleInput: 35ms (key=1
+08:31:50.387 timing.DashboardScreen.HandleInput: 53ms (key=Enter
+08:31:50.648 counter.screen.timetracking.refresh: 1count
+08:31:50.661 counter.screen.timetracking.initialized: 1count
+08:31:51.124 timing.TimeTrackingScreen.Render: 309ms
+08:32:00.564 timing.TimeTrackingScreen.HandleInput: 182ms (key=A
+08:32:00.804 timing.TimeTrackingScreen.Render: 143ms
+08:32:03.214 timing.TimeTrackingScreen.Render: 7ms
+08:32:05.908 timing.TimeTrackingScreen.Render: 7ms
+08:32:08.264 counter.screen.timetracking.refresh: 2count
+08:32:08.276 counter.screen.timetracking.entry_added: 1count
+08:32:08.369 timing.TimeTrackingScreen.Render: 8ms
+08:32:17.562 timing.TimeTrackingScreen.HandleInput: 4ms (key=A
+08:32:17.661 timing.TimeTrackingScreen.Render: 11ms
+08:32:21.339 timing.TimeTrackingScreen.Render: 4ms
+08:32:23.612 counter.screen.timetracking.refresh: 3count
+08:32:23.627 counter.screen.timetracking.entry_added: 2count
+08:32:23.718 timing.TimeTrackingScreen.Render: 8ms
+08:32:26.196 timing.TimeTrackingScreen.HandleInput: 13ms (key=Ctrl+Q
+08:37:45.876 gauge.system.memory.working_set: 140.02734375 (unit=MB
+08:37:46.001 gauge.system.memory.private: 322.56640625 (unit=MB
+08:37:46.014 gauge.system.cpu.time: 6173.251 (unit=ms
+08:37:46.030 gauge.system.threads: 19 (unit=count
+08:37:46.044 gauge.system.handles: 171 (unit=count
+08:37:46.061 gauge.system.gc.gen0: 13 (unit=count
+08:37:46.066 gauge.system.gc.gen1: 5 (unit=count
+08:37:46.071 gauge.system.gc.gen2: 2 (unit=count
+08:37:46.076 gauge.system.gc.total_memory: 20.8560638427734 (unit=MB
+08:37:46.128 timing.DashboardScreen.RefreshQuickStats: 344ms
+08:37:46.167 counter.dashboard.initialized: 1count
+08:37:46.174 timing.Application.Startup: 1663ms
+08:37:46.837 timing.DashboardScreen.Render: 539ms
+09:07:50.893 gauge.system.memory.working_set: 141.16796875 (unit=MB
+09:07:51.074 gauge.system.memory.private: 311.25390625 (unit=MB
+09:07:51.090 gauge.system.cpu.time: 5956.122 (unit=ms
+09:07:51.105 gauge.system.threads: 18 (unit=count
+09:07:51.118 gauge.system.handles: 169 (unit=count
+09:07:51.133 gauge.system.gc.gen0: 13 (unit=count
+09:07:51.138 gauge.system.gc.gen1: 4 (unit=count
+09:07:51.142 gauge.system.gc.gen2: 2 (unit=count
+09:07:51.146 gauge.system.gc.total_memory: 20.3810577392578 (unit=MB
+09:07:51.206 timing.DashboardScreen.RefreshQuickStats: 422ms
+09:07:51.245 counter.dashboard.initialized: 1count
+09:07:51.252 timing.Application.Startup: 1847ms
+09:07:52.144 timing.DashboardScreen.Render: 743ms
+09:10:28.019 gauge.system.memory.working_set: 140.62109375 (unit=MB
+09:10:28.119 gauge.system.memory.private: 310.16015625 (unit=MB
+09:10:28.131 gauge.system.cpu.time: 5966.067 (unit=ms
+09:10:28.147 gauge.system.threads: 18 (unit=count
+09:10:28.161 gauge.system.handles: 169 (unit=count
+09:10:28.178 gauge.system.gc.gen0: 14 (unit=count
+09:10:28.182 gauge.system.gc.gen1: 6 (unit=count
+09:10:28.186 gauge.system.gc.gen2: 3 (unit=count
+09:10:28.191 gauge.system.gc.total_memory: 23.1790542602539 (unit=MB
+09:10:28.262 timing.DashboardScreen.RefreshQuickStats: 335ms
+09:10:28.301 counter.dashboard.initialized: 1count
+09:10:28.308 timing.Application.Startup: 1727ms
+09:10:29.006 timing.DashboardScreen.Render: 572ms
+09:10:30.315 counter.dashboard.navigation: 1count (screen=TimeTracking
+09:10:30.331 timing.DashboardScreen.HandleInput: 35ms (key=1
+09:10:30.339 timing.DashboardScreen.HandleInput: 56ms (key=Enter
+09:10:30.674 counter.screen.timetracking.refresh: 1count
+09:10:30.681 counter.screen.timetracking.initialized: 1count
+09:10:31.136 timing.TimeTrackingScreen.Render: 296ms
+09:10:33.774 timing.TimeTrackingScreen.HandleInput: 215ms (key=A
+09:10:34.067 timing.TimeTrackingScreen.Render: 170ms
+09:10:36.560 timing.TimeTrackingScreen.Render: 27ms
+09:10:38.345 counter.screen.timetracking.refresh: 2count
+09:10:38.380 counter.screen.timetracking.entry_added: 1count
+09:10:38.504 timing.TimeTrackingScreen.Render: 20ms
+09:23:27.530 gauge.system.memory.working_set: 143.69921875 (unit=MB
+09:23:27.629 gauge.system.memory.private: 312.87890625 (unit=MB
+09:23:27.640 gauge.system.cpu.time: 6116.56 (unit=ms
+09:23:27.656 gauge.system.threads: 18 (unit=count
+09:23:27.669 gauge.system.handles: 169 (unit=count
+09:23:27.687 gauge.system.gc.gen0: 14 (unit=count
+09:23:27.691 gauge.system.gc.gen1: 6 (unit=count
+09:23:27.695 gauge.system.gc.gen2: 3 (unit=count
+09:23:27.699 gauge.system.gc.total_memory: 23.2566909790039 (unit=MB
+09:23:27.770 timing.DashboardScreen.RefreshQuickStats: 330ms
+09:23:27.808 counter.dashboard.initialized: 1count
+09:23:27.815 timing.Application.Startup: 1691ms
+09:23:28.520 timing.DashboardScreen.Render: 580ms
+09:23:29.446 counter.dashboard.navigation: 1count (screen=TimeTracking
+09:23:29.455 timing.DashboardScreen.HandleInput: 30ms (key=1
+09:23:29.462 timing.DashboardScreen.HandleInput: 69ms (key=Enter
+09:23:29.758 counter.screen.timetracking.refresh: 1count
+09:23:29.764 counter.screen.timetracking.initialized: 1count
+09:23:30.210 timing.TimeTrackingScreen.Render: 307ms
+09:23:32.467 timing.TimeTrackingScreen.HandleInput: 189ms (key=A
+09:23:32.713 timing.TimeTrackingScreen.Render: 144ms
+09:23:34.178 timing.TimeTrackingScreen.Render: 36ms
+09:23:35.564 timing.TimeTrackingScreen.Render: 16ms
+09:23:36.876 timing.TimeTrackingScreen.Render: 23ms
+09:23:37.259 timing.TimeTrackingScreen.Render: 12ms
+09:23:42.611 timing.TimeTrackingScreen.Render: 13ms
+09:23:46.741 timing.TimeTrackingScreen.Render: 9ms
+09:23:50.566 timing.TimeTrackingScreen.Render: 10ms
+09:23:51.333 timing.TimeTrackingScreen.Render: 12ms
+09:23:51.467 timing.TimeTrackingScreen.Render: 11ms
+09:23:51.650 timing.TimeTrackingScreen.Render: 18ms
+09:23:51.797 timing.TimeTrackingScreen.Render: 10ms
+09:23:53.766 timing.TimeTrackingScreen.Render: 13ms
+09:23:56.691 timing.TimeTrackingScreen.Render: 7ms
+09:23:57.384 timing.TimeTrackingScreen.Render: 11ms
+09:23:58.438 timing.TimeTrackingScreen.Render: 8ms
+09:23:59.060 timing.TimeTrackingScreen.Render: 9ms
+09:23:59.683 timing.TimeTrackingScreen.Render: 18ms
+09:24:01.046 timing.TimeTrackingScreen.Render: 8ms
+09:24:01.493 timing.TimeTrackingScreen.Render: 7ms
+09:24:09.224 timing.TimeTrackingScreen.Render: 6ms
+09:24:12.753 timing.TimeTrackingScreen.Render: 6ms
+09:24:18.107 timing.TimeTrackingScreen.Render: 14ms
+09:30:33.656 gauge.system.memory.working_set: 141.57421875 (unit=MB
+09:30:33.762 gauge.system.memory.private: 309.19140625 (unit=MB
+09:30:33.774 gauge.system.cpu.time: 6323.154 (unit=ms
+09:30:33.789 gauge.system.threads: 18 (unit=count
+09:30:33.802 gauge.system.handles: 171 (unit=count
+09:30:33.819 gauge.system.gc.gen0: 14 (unit=count
+09:30:33.823 gauge.system.gc.gen1: 6 (unit=count
+09:30:33.828 gauge.system.gc.gen2: 3 (unit=count
+09:30:33.832 gauge.system.gc.total_memory: 23.3542175292969 (unit=MB
+09:30:33.904 timing.DashboardScreen.RefreshQuickStats: 339ms
+09:30:33.942 counter.dashboard.initialized: 1count
+09:30:33.949 timing.Application.Startup: 1705ms
+09:30:34.661 timing.DashboardScreen.Render: 589ms
+09:30:36.971 counter.dashboard.navigation: 1count (screen=TimeTracking
+09:30:36.980 timing.DashboardScreen.HandleInput: 32ms (key=1
+09:30:36.993 timing.DashboardScreen.HandleInput: 55ms (key=Enter
+09:30:37.319 counter.screen.timetracking.refresh: 1count
+09:30:37.325 counter.screen.timetracking.initialized: 1count
+09:30:37.726 timing.TimeTrackingScreen.Render: 273ms
+09:30:39.691 timing.TimeTrackingScreen.HandleInput: 203ms (key=A
+09:30:39.935 timing.TimeTrackingScreen.Render: 141ms
+09:30:43.091 timing.TimeTrackingScreen.Render: 36ms
+09:30:45.478 timing.TimeTrackingScreen.Render: 16ms
+09:30:47.343 timing.TimeTrackingScreen.Render: 11ms
+09:30:47.540 timing.TimeTrackingScreen.Render: 14ms
+09:30:47.722 timing.TimeTrackingScreen.Render: 16ms
+09:30:49.552 timing.TimeTrackingScreen.Render: 8ms
+09:30:52.814 timing.TimeTrackingScreen.Render: 18ms
+09:30:54.773 timing.TimeTrackingScreen.Render: 21ms
+09:30:54.915 timing.TimeTrackingScreen.Render: 12ms
+09:30:55.034 timing.TimeTrackingScreen.Render: 6ms
+09:30:56.799 counter.screen.timetracking.refresh: 2count
+09:30:56.814 counter.screen.timetracking.entry_added: 1count
+09:30:56.920 timing.TimeTrackingScreen.Render: 8ms
+09:31:01.890 timing.TimeTrackingScreen.HandleInput: 17ms (key=A
+09:31:01.995 timing.TimeTrackingScreen.Render: 9ms
+09:31:05.612 timing.TimeTrackingScreen.Render: 12ms
+09:31:06.280 timing.TimeTrackingScreen.Render: 11ms
+09:31:08.088 timing.TimeTrackingScreen.Render: 7ms
+09:31:08.216 timing.TimeTrackingScreen.Render: 6ms
+09:31:08.340 timing.TimeTrackingScreen.Render: 10ms
+09:31:09.563 timing.TimeTrackingScreen.Render: 6ms
+09:31:11.422 timing.TimeTrackingScreen.Render: 7ms
+09:31:11.547 timing.TimeTrackingScreen.Render: 7ms
+09:31:11.668 timing.TimeTrackingScreen.Render: 6ms
+09:31:12.972 timing.TimeTrackingScreen.Render: 8ms
+09:31:15.294 timing.TimeTrackingScreen.Render: 5ms
+09:31:16.955 timing.TimeTrackingScreen.Render: 21ms
+09:31:18.721 timing.TimeTrackingScreen.Render: 15ms
+09:31:20.130 timing.TimeTrackingScreen.Render: 8ms
+09:31:20.362 timing.TimeTrackingScreen.Render: 9ms
+09:31:27.468 counter.screen.timetracking.refresh: 3count
+09:31:27.482 counter.screen.timetracking.entry_added: 2count
+09:31:27.579 timing.TimeTrackingScreen.Render: 6ms
+09:31:38.400 timing.TimeTrackingScreen.HandleInput: 1ms (key=E
+09:31:38.565 timing.TimeTrackingScreen.Render: 16ms
+09:31:45.725 timing.TimeTrackingScreen.Render: 9ms
+09:31:47.913 timing.TimeTrackingScreen.HandleInput: 64ms (key=D
+09:31:48.045 timing.TimeTrackingScreen.Render: 25ms
+09:43:39.289 gauge.system.memory.working_set: 139.4375 (unit=MB
+09:43:39.422 gauge.system.memory.private: 309.796875 (unit=MB
+09:43:39.433 gauge.system.cpu.time: 5638.406 (unit=ms
+09:43:39.449 gauge.system.threads: 18 (unit=count
+09:43:39.462 gauge.system.handles: 169 (unit=count
+09:43:39.497 gauge.system.gc.gen0: 15 (unit=count
+09:43:39.501 gauge.system.gc.gen1: 6 (unit=count
+09:43:39.505 gauge.system.gc.gen2: 3 (unit=count
+09:43:39.509 gauge.system.gc.total_memory: 19.5454025268555 (unit=MB
+09:43:39.567 timing.DashboardScreen.RefreshQuickStats: 374ms
+09:43:39.604 counter.dashboard.initialized: 1count
+09:43:39.610 timing.Application.Startup: 1791ms
+09:43:40.374 timing.DashboardScreen.Render: 599ms
+09:43:42.916 counter.dashboard.navigation.down: 1count
+09:43:42.921 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+09:43:43.090 timing.DashboardScreen.Render: 44ms
+09:43:43.749 counter.dashboard.navigation.down: 2count
+09:43:43.763 timing.DashboardScreen.HandleInput: 32ms (key=DownArrow
+09:43:43.983 timing.DashboardScreen.Render: 70ms
+09:43:44.053 counter.dashboard.navigation.down: 3count
+09:43:44.059 timing.DashboardScreen.HandleInput: 7ms (key=DownArrow
+09:43:44.183 timing.DashboardScreen.Render: 27ms
+09:43:44.650 counter.dashboard.navigation.down: 4count
+09:43:44.663 timing.DashboardScreen.HandleInput: 18ms (key=DownArrow
+09:43:44.807 timing.DashboardScreen.Render: 22ms
+09:43:45.395 counter.dashboard.navigation.up: 1count
+09:43:45.408 timing.DashboardScreen.HandleInput: 19ms (key=UpArrow
+09:43:45.566 timing.DashboardScreen.Render: 44ms
+09:43:45.752 counter.dashboard.navigation.up: 2count
+09:43:45.756 timing.DashboardScreen.HandleInput: 6ms (key=UpArrow
+09:43:45.885 timing.DashboardScreen.Render: 17ms
+09:43:46.055 counter.dashboard.navigation.up: 3count
+09:43:46.062 timing.DashboardScreen.HandleInput: 10ms (key=UpArrow
+09:43:46.194 timing.DashboardScreen.Render: 21ms
+09:43:48.632 counter.dashboard.navigation.up: 4count
+09:43:48.645 timing.DashboardScreen.HandleInput: 20ms (key=UpArrow
+09:43:48.814 timing.DashboardScreen.Render: 21ms
+09:43:50.575 counter.dashboard.navigation: 1count (screen=TimeTracking
+09:43:50.583 timing.DashboardScreen.HandleInput: 38ms (key=1
+09:43:50.589 timing.DashboardScreen.HandleInput: 63ms (key=Enter
+09:43:50.898 counter.screen.timetracking.refresh: 1count
+09:43:50.903 counter.screen.timetracking.initialized: 1count
+09:43:51.316 timing.TimeTrackingScreen.Render: 282ms
+09:43:53.417 timing.TimeTrackingScreen.HandleInput: 18ms (key=DownArrow
+09:43:53.544 timing.TimeTrackingScreen.Render: 22ms
+09:43:53.942 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+09:43:54.111 timing.TimeTrackingScreen.Render: 26ms
+09:43:54.140 timing.TimeTrackingScreen.HandleInput: 0ms (key=DownArrow
+09:43:54.248 timing.TimeTrackingScreen.Render: 19ms
+09:43:54.330 timing.TimeTrackingScreen.HandleInput: 0ms (key=DownArrow
+09:43:54.443 timing.TimeTrackingScreen.Render: 23ms
+09:43:54.757 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+09:43:54.879 timing.TimeTrackingScreen.Render: 16ms
+09:43:56.771 timing.TimeTrackingScreen.HandleInput: 11ms (key=UpArrow
+09:43:56.907 timing.TimeTrackingScreen.Render: 10ms
+09:43:57.096 timing.TimeTrackingScreen.HandleInput: 0ms (key=UpArrow
+09:43:57.223 timing.TimeTrackingScreen.Render: 16ms
+09:43:57.352 timing.TimeTrackingScreen.HandleInput: 0ms (key=UpArrow
+09:43:57.466 timing.TimeTrackingScreen.Render: 19ms
+09:43:57.511 timing.TimeTrackingScreen.HandleInput: 0ms (key=UpArrow
+09:43:57.609 timing.TimeTrackingScreen.Render: 11ms
+09:43:58.580 timing.TimeTrackingScreen.HandleInput: 0ms (key=UpArrow
+09:43:58.714 timing.TimeTrackingScreen.Render: 16ms
+09:43:59.110 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+09:44:08.462 timing.TimeTrackingScreen.HandleInput: 177ms (key=E
+09:44:08.691 timing.TimeTrackingScreen.Render: 141ms
+09:44:19.425 timing.TimeTrackingScreen.Render: 14ms
+09:44:21.801 timing.TimeTrackingScreen.Render: 14ms
+09:44:23.661 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+09:44:23.808 timing.TimeTrackingScreen.Render: 18ms
+09:44:23.936 timing.TimeTrackingScreen.HandleInput: 0ms (key=DownArrow
+09:44:24.049 timing.TimeTrackingScreen.Render: 6ms
+09:44:24.392 timing.TimeTrackingScreen.HandleInput: 0ms (key=DownArrow
+09:44:24.508 timing.TimeTrackingScreen.Render: 12ms
+09:44:24.797 timing.TimeTrackingScreen.HandleInput: 0ms (key=DownArrow
+09:44:24.926 timing.TimeTrackingScreen.Render: 8ms
+09:44:26.376 timing.TimeTrackingScreen.HandleInput: 51ms (key=E
+09:44:26.491 timing.TimeTrackingScreen.Render: 18ms
+09:44:29.548 timing.TimeTrackingScreen.Render: 17ms
+09:44:35.035 counter.screen.timetracking.refresh: 2count
+09:44:35.047 counter.screen.timetracking.entry_updated: 1count
+09:44:35.142 timing.TimeTrackingScreen.Render: 10ms
+09:55:59.632 gauge.system.memory.working_set: 142.9453125 (unit=MB
+09:55:59.729 gauge.system.memory.private: 309.87109375 (unit=MB
+09:55:59.740 gauge.system.cpu.time: 6399.501 (unit=ms
+09:55:59.755 gauge.system.threads: 18 (unit=count
+09:55:59.768 gauge.system.handles: 171 (unit=count
+09:55:59.784 gauge.system.gc.gen0: 14 (unit=count
+09:55:59.806 gauge.system.gc.gen1: 6 (unit=count
+09:55:59.811 gauge.system.gc.gen2: 3 (unit=count
+09:55:59.815 gauge.system.gc.total_memory: 23.8132019042969 (unit=MB
+09:55:59.867 timing.DashboardScreen.RefreshQuickStats: 328ms
+09:55:59.904 counter.dashboard.initialized: 1count
+09:55:59.911 timing.Application.Startup: 1826ms
+09:56:00.606 timing.DashboardScreen.Render: 561ms
+10:01:02.904 gauge.system.memory.working_set: 142.7265625 (unit=MB
+10:01:03.047 gauge.system.memory.private: 327.90625 (unit=MB
+10:01:03.059 gauge.system.cpu.time: 5991.685 (unit=ms
+10:01:03.075 gauge.system.threads: 19 (unit=count
+10:01:03.089 gauge.system.handles: 169 (unit=count
+10:01:03.106 gauge.system.gc.gen0: 13 (unit=count
+10:01:03.110 gauge.system.gc.gen1: 4 (unit=count
+10:01:03.115 gauge.system.gc.gen2: 2 (unit=count
+10:01:03.119 gauge.system.gc.total_memory: 20.995735168457 (unit=MB
+10:01:03.173 timing.DashboardScreen.RefreshQuickStats: 378ms
+10:01:03.212 counter.dashboard.initialized: 1count
+10:01:03.219 timing.Application.Startup: 1791ms
+10:01:04.203 timing.DashboardScreen.Render: 846ms
+10:04:01.995 gauge.system.memory.working_set: 143.2578125 (unit=MB
+10:04:02.094 gauge.system.memory.private: 313.09375 (unit=MB
+10:04:02.105 gauge.system.cpu.time: 5992.907 (unit=ms
+10:04:02.120 gauge.system.threads: 18 (unit=count
+10:04:02.133 gauge.system.handles: 169 (unit=count
+10:04:02.167 gauge.system.gc.gen0: 15 (unit=count
+10:04:02.171 gauge.system.gc.gen1: 6 (unit=count
+10:04:02.175 gauge.system.gc.gen2: 3 (unit=count
+10:04:02.180 gauge.system.gc.total_memory: 19.4633255004883 (unit=MB
+10:04:02.232 timing.DashboardScreen.RefreshQuickStats: 327ms
+10:04:02.269 counter.dashboard.initialized: 1count
+10:04:02.276 timing.Application.Startup: 1707ms
+10:04:03.051 timing.DashboardScreen.Render: 656ms
+10:04:13.850 counter.dashboard.navigation.down: 1count
+10:04:13.855 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+10:04:14.017 timing.DashboardScreen.Render: 59ms
+10:04:15.795 counter.dashboard.navigation.up: 1count
+10:04:15.800 timing.DashboardScreen.HandleInput: 7ms (key=UpArrow
+10:04:15.948 timing.DashboardScreen.Render: 29ms
+10:04:16.787 counter.dashboard.navigation: 1count (screen=TimeTracking
+10:04:16.792 timing.DashboardScreen.HandleInput: 20ms (key=1
+10:04:16.796 timing.DashboardScreen.HandleInput: 32ms (key=Enter
+10:04:17.077 counter.screen.timetracking.refresh: 1count
+10:04:17.081 counter.screen.timetracking.initialized: 1count
+10:04:17.380 timing.TimeTrackingScreen.Render: 188ms
+10:04:18.183 timing.TimeTrackingScreen.HandleInput: 22ms (key=LeftArrow
+10:04:18.293 timing.TimeTrackingScreen.Render: 19ms
+10:04:19.463 timing.TimeTrackingScreen.HandleInput: 20ms (key=RightArrow
+10:04:19.617 timing.TimeTrackingScreen.Render: 12ms
+10:04:20.068 timing.TimeTrackingScreen.HandleInput: 8ms (key=RightArrow
+10:04:20.183 timing.TimeTrackingScreen.Render: 12ms
+10:04:20.723 timing.TimeTrackingScreen.HandleInput: 3ms (key=LeftArrow
+10:04:20.830 timing.TimeTrackingScreen.Render: 17ms
+10:04:34.219 timing.TimeTrackingScreen.HandleInput: 1ms (key=Ctrl+Q
+11:29:14.848 gauge.system.memory.working_set: 139.71484375 (unit=MB
+11:29:14.983 gauge.system.memory.private: 310.45703125 (unit=MB
+11:29:14.995 gauge.system.cpu.time: 5708.37 (unit=ms
+11:29:15.012 gauge.system.threads: 18 (unit=count
+11:29:15.043 gauge.system.handles: 169 (unit=count
+11:29:15.057 gauge.system.gc.gen0: 15 (unit=count
+11:29:15.061 gauge.system.gc.gen1: 5 (unit=count
+11:29:15.065 gauge.system.gc.gen2: 2 (unit=count
+11:29:15.069 gauge.system.gc.total_memory: 20.909912109375 (unit=MB
+11:29:15.127 timing.DashboardScreen.RefreshQuickStats: 382ms
+11:29:15.164 counter.dashboard.initialized: 1count
+11:29:15.171 timing.Application.Startup: 1786ms
+11:29:16.104 timing.DashboardScreen.Render: 783ms
+11:29:29.475 gauge.system.memory.working_set: 140.59765625 (unit=MB
+11:29:29.576 gauge.system.memory.private: 326.25 (unit=MB
+11:29:29.588 gauge.system.cpu.time: 5595.844 (unit=ms
+11:29:29.602 gauge.system.threads: 19 (unit=count
+11:29:29.632 gauge.system.handles: 169 (unit=count
+11:29:29.647 gauge.system.gc.gen0: 15 (unit=count
+11:29:29.651 gauge.system.gc.gen1: 5 (unit=count
+11:29:29.654 gauge.system.gc.gen2: 2 (unit=count
+11:29:29.660 gauge.system.gc.total_memory: 20.9257736206055 (unit=MB
+11:29:29.714 timing.DashboardScreen.RefreshQuickStats: 333ms
+11:29:29.749 counter.dashboard.initialized: 1count
+11:29:29.755 timing.Application.Startup: 1576ms
+11:29:30.564 timing.DashboardScreen.Render: 690ms
+11:29:41.427 gauge.system.memory.working_set: 141.859375 (unit=MB
+11:29:41.534 gauge.system.memory.private: 326.89453125 (unit=MB
+11:29:41.547 gauge.system.cpu.time: 6003.936 (unit=ms
+11:29:41.563 gauge.system.threads: 19 (unit=count
+11:29:41.595 gauge.system.handles: 169 (unit=count
+11:29:41.610 gauge.system.gc.gen0: 15 (unit=count
+11:29:41.614 gauge.system.gc.gen1: 5 (unit=count
+11:29:41.618 gauge.system.gc.gen2: 2 (unit=count
+11:29:41.623 gauge.system.gc.total_memory: 20.9420928955078 (unit=MB
+11:29:41.677 timing.DashboardScreen.RefreshQuickStats: 347ms
+11:29:41.715 counter.dashboard.initialized: 1count
+11:29:41.722 timing.Application.Startup: 1857ms
+11:29:42.575 timing.DashboardScreen.Render: 729ms
+11:30:07.456 gauge.system.memory.working_set: 139.41015625 (unit=MB
+11:30:07.563 gauge.system.memory.private: 308.69140625 (unit=MB
+11:30:07.575 gauge.system.cpu.time: 5992.644 (unit=ms
+11:30:07.590 gauge.system.threads: 18 (unit=count
+11:30:07.604 gauge.system.handles: 169 (unit=count
+11:30:07.620 gauge.system.gc.gen0: 14 (unit=count
+11:30:07.625 gauge.system.gc.gen1: 7 (unit=count
+11:30:07.630 gauge.system.gc.gen2: 2 (unit=count
+11:30:07.636 gauge.system.gc.total_memory: 23.551025390625 (unit=MB
+11:30:07.691 timing.DashboardScreen.RefreshQuickStats: 329ms
+11:30:07.732 counter.dashboard.initialized: 1count
+11:30:07.739 timing.Application.Startup: 1736ms
+11:30:08.562 timing.DashboardScreen.Render: 679ms
+11:30:10.726 counter.dashboard.navigation.down: 1count
+11:30:10.731 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+11:30:10.892 timing.DashboardScreen.Render: 43ms
+11:30:11.697 counter.dashboard.navigation.down: 2count
+11:30:11.702 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+11:30:11.860 timing.DashboardScreen.Render: 49ms
+11:30:12.172 counter.dashboard.navigation.down: 3count
+11:30:12.178 timing.DashboardScreen.HandleInput: 10ms (key=DownArrow
+11:30:12.326 timing.DashboardScreen.Render: 30ms
+11:30:13.859 counter.dashboard.navigation.down: 4count
+11:30:13.880 timing.DashboardScreen.HandleInput: 28ms (key=DownArrow
+11:30:14.056 timing.DashboardScreen.Render: 27ms
+11:30:14.662 counter.dashboard.navigation.up: 1count
+11:30:14.681 timing.DashboardScreen.HandleInput: 24ms (key=UpArrow
+11:30:14.890 timing.DashboardScreen.Render: 52ms
+11:30:15.099 counter.dashboard.navigation.up: 2count
+11:30:15.112 timing.DashboardScreen.HandleInput: 24ms (key=UpArrow
+11:30:15.262 timing.DashboardScreen.Render: 35ms
+11:30:15.315 counter.dashboard.navigation.up: 3count
+11:30:15.320 timing.DashboardScreen.HandleInput: 8ms (key=UpArrow
+11:30:15.446 timing.DashboardScreen.Render: 24ms
+11:30:16.868 counter.dashboard.navigation.up: 4count
+11:30:16.873 timing.DashboardScreen.HandleInput: 7ms (key=UpArrow
+11:30:17.002 timing.DashboardScreen.Render: 22ms
+11:30:19.101 counter.dashboard.navigation: 1count (screen=TimeTracking
+11:30:19.108 timing.DashboardScreen.HandleInput: 30ms (key=1
+11:30:19.112 timing.DashboardScreen.HandleInput: 47ms (key=Enter
+11:30:19.472 counter.screen.timetracking.refresh: 1count
+11:30:19.477 counter.screen.timetracking.initialized: 1count
+11:30:19.831 timing.TimeTrackingScreen.Render: 225ms
+11:30:21.116 timing.TimeTrackingScreen.HandleInput: 17ms (key=DownArrow
+11:30:21.226 timing.TimeTrackingScreen.Render: 14ms
+11:30:21.568 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+11:30:21.683 timing.TimeTrackingScreen.Render: 21ms
+11:30:21.763 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+11:30:21.869 timing.TimeTrackingScreen.Render: 13ms
+11:30:21.918 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+11:30:22.025 timing.TimeTrackingScreen.Render: 11ms
+11:30:22.055 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+11:30:22.174 timing.TimeTrackingScreen.Render: 17ms
+11:30:22.941 timing.TimeTrackingScreen.HandleInput: 15ms (key=UpArrow
+11:30:23.050 timing.TimeTrackingScreen.Render: 15ms
+11:30:23.130 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+11:30:23.248 timing.TimeTrackingScreen.Render: 12ms
+11:30:23.275 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+11:30:23.394 timing.TimeTrackingScreen.Render: 16ms
+11:30:23.446 timing.TimeTrackingScreen.HandleInput: 5ms (key=UpArrow
+11:30:23.562 timing.TimeTrackingScreen.Render: 19ms
+11:30:23.604 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+11:30:23.715 timing.TimeTrackingScreen.Render: 13ms
+11:30:23.795 timing.TimeTrackingScreen.HandleInput: 4ms (key=UpArrow
+11:30:24.385 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+11:30:24.500 timing.TimeTrackingScreen.Render: 16ms
+11:30:24.629 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+11:30:24.746 timing.TimeTrackingScreen.Render: 12ms
+11:30:24.823 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+11:30:24.939 timing.TimeTrackingScreen.Render: 17ms
+11:30:24.985 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+11:30:25.091 timing.TimeTrackingScreen.Render: 14ms
+11:30:25.178 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+11:30:25.299 timing.TimeTrackingScreen.Render: 16ms
+11:30:27.132 timing.TimeTrackingScreen.HandleInput: 20ms (key=UpArrow
+11:30:27.233 timing.TimeTrackingScreen.Render: 9ms
+11:30:27.667 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+11:30:27.800 timing.TimeTrackingScreen.Render: 9ms
+11:30:27.928 timing.TimeTrackingScreen.HandleInput: 2ms (key=UpArrow
+11:30:28.053 timing.TimeTrackingScreen.Render: 18ms
+11:30:28.663 timing.TimeTrackingScreen.HandleInput: 118ms (key=A
+11:30:28.883 timing.TimeTrackingScreen.Render: 136ms
+11:30:30.095 timing.TimeTrackingScreen.Render: 9ms
+11:30:30.604 timing.TimeTrackingScreen.Render: 10ms
+11:30:30.998 timing.TimeTrackingScreen.Render: 12ms
+11:30:31.856 timing.TimeTrackingScreen.Render: 13ms
+11:30:32.129 timing.TimeTrackingScreen.Render: 12ms
+11:30:32.792 timing.TimeTrackingScreen.Render: 6ms
+11:30:33.195 timing.TimeTrackingScreen.Render: 12ms
+11:30:33.700 timing.TimeTrackingScreen.Render: 8ms
+11:30:34.279 timing.TimeTrackingScreen.Render: 10ms
+11:30:34.508 timing.TimeTrackingScreen.Render: 15ms
+11:30:34.687 timing.TimeTrackingScreen.Render: 11ms
+11:30:34.874 timing.TimeTrackingScreen.Render: 11ms
+11:30:35.081 timing.TimeTrackingScreen.Render: 30ms
+11:30:35.230 timing.TimeTrackingScreen.Render: 7ms
+11:30:35.416 timing.TimeTrackingScreen.Render: 6ms
+11:30:41.498 timing.TimeTrackingScreen.Render: 6ms
+11:30:41.630 timing.TimeTrackingScreen.Render: 19ms
+11:30:41.778 timing.TimeTrackingScreen.Render: 7ms
+11:30:43.077 timing.TimeTrackingScreen.Render: 6ms
+11:30:49.071 timing.TimeTrackingScreen.Render: 16ms
+11:30:49.402 timing.TimeTrackingScreen.Render: 10ms
+11:30:51.089 timing.TimeTrackingScreen.Render: 10ms
+11:30:51.626 timing.TimeTrackingScreen.Render: 8ms
+11:30:51.754 timing.TimeTrackingScreen.Render: 11ms
+11:30:51.907 timing.TimeTrackingScreen.Render: 17ms
+11:30:53.097 timing.TimeTrackingScreen.Render: 10ms
+11:30:59.799 timing.TimeTrackingScreen.Render: 10ms
+11:31:00.446 timing.TimeTrackingScreen.Render: 9ms
+11:31:02.582 timing.TimeTrackingScreen.Render: 6ms
+11:31:03.843 timing.TimeTrackingScreen.Render: 7ms
+11:31:08.680 timing.TimeTrackingScreen.Render: 11ms
+11:31:08.818 timing.TimeTrackingScreen.Render: 12ms
+11:31:08.978 timing.TimeTrackingScreen.Render: 19ms
+11:31:12.080 counter.screen.timetracking.refresh: 2count
+11:31:12.090 counter.screen.timetracking.entry_added: 1count
+11:31:12.198 timing.TimeTrackingScreen.Render: 25ms
+11:31:14.798 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+11:31:14.909 timing.TimeTrackingScreen.Render: 15ms
+11:31:15.258 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+11:31:15.395 timing.TimeTrackingScreen.Render: 10ms
+11:31:16.377 timing.TimeTrackingScreen.HandleInput: 2ms (key=D
+11:31:16.562 timing.TimeTrackingScreen.Render: 40ms
+11:31:21.274 timing.TimeTrackingScreen.HandleInput: 264ms (key=Y
+11:31:21.368 timing.TimeTrackingScreen.Render: 7ms
+11:31:22.916 timing.TimeTrackingScreen.HandleInput: 1ms (key=D
+11:31:23.062 timing.TimeTrackingScreen.Render: 9ms
+11:31:25.444 timing.TimeTrackingScreen.HandleInput: 48ms (key=Y
+11:31:25.558 timing.TimeTrackingScreen.Render: 8ms
+11:31:27.200 timing.TimeTrackingScreen.HandleInput: 1ms (key=D
+11:31:27.358 timing.TimeTrackingScreen.Render: 8ms
+11:31:27.802 timing.TimeTrackingScreen.HandleInput: 50ms (key=Y
+11:31:27.910 timing.TimeTrackingScreen.Render: 10ms
+11:31:30.861 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+11:31:30.979 timing.TimeTrackingScreen.Render: 11ms
+11:31:31.879 timing.TimeTrackingScreen.HandleInput: 0ms (key=D
+11:31:31.996 timing.TimeTrackingScreen.Render: 7ms
+11:31:35.511 timing.TimeTrackingScreen.HandleInput: 49ms (key=Y
+11:31:35.626 timing.TimeTrackingScreen.Render: 12ms
+11:31:41.438 timing.TimeTrackingScreen.HandleInput: 6ms (key=DownArrow
+11:31:41.601 timing.TimeTrackingScreen.Render: 9ms
+11:31:41.686 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+11:31:41.789 timing.TimeTrackingScreen.Render: 6ms
+11:31:41.910 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+11:31:42.024 timing.TimeTrackingScreen.Render: 12ms
+11:53:26.191 gauge.system.memory.working_set: 135.46484375 (unit=MB
+11:53:26.401 gauge.system.memory.private: 322.359375 (unit=MB
+11:53:26.428 gauge.system.cpu.time: 5839.251 (unit=ms
+11:53:26.444 gauge.system.threads: 19 (unit=count
+11:53:26.457 gauge.system.handles: 168 (unit=count
+11:54:33.258 gauge.system.memory.working_set: 136.84765625 (unit=MB
+11:54:33.349 gauge.system.memory.private: 322.01953125 (unit=MB
+11:54:33.361 gauge.system.cpu.time: 5964.145 (unit=ms
+11:54:33.375 gauge.system.threads: 19 (unit=count
+11:54:33.388 gauge.system.handles: 169 (unit=count
+11:54:33.404 gauge.system.gc.gen0: 13 (unit=count
+11:54:33.408 gauge.system.gc.gen1: 6 (unit=count
+11:54:33.412 gauge.system.gc.gen2: 3 (unit=count
+11:54:33.416 gauge.system.gc.total_memory: 20.8292541503906 (unit=MB
+11:54:33.472 timing.DashboardScreen.RefreshQuickStats: 301ms
+11:54:33.508 counter.dashboard.initialized: 1count
+11:54:33.515 timing.Application.Startup: 2163ms
+11:54:44.696 counter.application.shutdown: 1count
+11:57:21.261 gauge.system.memory.working_set: 133.2578125 (unit=MB
+11:57:21.366 gauge.system.memory.private: 303.91796875 (unit=MB
+11:57:21.378 gauge.system.cpu.time: 5517.24 (unit=ms
+11:57:21.395 gauge.system.threads: 18 (unit=count
+11:57:21.408 gauge.system.handles: 170 (unit=count
+11:57:21.423 gauge.system.gc.gen0: 11 (unit=count
+11:57:21.427 gauge.system.gc.gen1: 5 (unit=count
+11:57:21.431 gauge.system.gc.gen2: 2 (unit=count
+11:57:21.435 gauge.system.gc.total_memory: 20.5000457763672 (unit=MB
+11:57:21.515 timing.DashboardScreen.RefreshQuickStats: 335ms
+11:57:21.554 counter.dashboard.initialized: 1count
+11:57:21.571 timing.Application.Startup: 2285ms
+11:57:38.000 gauge.system.memory.working_set: 129.81640625 (unit=MB
+11:57:38.132 gauge.system.memory.private: 301.1875 (unit=MB
+11:57:38.145 gauge.system.cpu.time: 4783.779 (unit=ms
+11:57:38.163 gauge.system.threads: 18 (unit=count
+11:57:38.177 gauge.system.handles: 169 (unit=count
+11:57:38.215 gauge.system.gc.gen0: 10 (unit=count
+11:57:38.221 gauge.system.gc.gen1: 5 (unit=count
+11:57:38.226 gauge.system.gc.gen2: 3 (unit=count
+11:57:38.230 gauge.system.gc.total_memory: 14.1291885375977 (unit=MB
+11:57:38.294 timing.DashboardScreen.RefreshQuickStats: 400ms
+11:57:38.333 counter.dashboard.initialized: 1count
+11:57:59.280 gauge.system.memory.working_set: 133.84375 (unit=MB
+11:57:59.393 gauge.system.memory.private: 320.42578125 (unit=MB
+11:57:59.405 gauge.system.cpu.time: 5294.195 (unit=ms
+11:57:59.420 gauge.system.threads: 19 (unit=count
+11:57:59.433 gauge.system.handles: 169 (unit=count
+11:57:59.449 gauge.system.gc.gen0: 11 (unit=count
+11:57:59.453 gauge.system.gc.gen1: 5 (unit=count
+11:57:59.457 gauge.system.gc.gen2: 2 (unit=count
+11:57:59.461 gauge.system.gc.total_memory: 19.9563369750977 (unit=MB
+11:57:59.515 timing.DashboardScreen.RefreshQuickStats: 327ms
+11:57:59.555 counter.dashboard.initialized: 1count
+11:57:59.599 timing.Application.Startup: 2069ms
+11:58:20.847 gauge.system.memory.working_set: 132.19921875 (unit=MB
+11:58:20.942 gauge.system.memory.private: 303.30859375 (unit=MB
+11:58:20.954 gauge.system.cpu.time: 5461.057 (unit=ms
+11:58:20.968 gauge.system.threads: 18 (unit=count
+11:58:20.981 gauge.system.handles: 169 (unit=count
+11:58:20.998 gauge.system.gc.gen0: 12 (unit=count
+11:58:21.002 gauge.system.gc.gen1: 5 (unit=count
+11:58:21.006 gauge.system.gc.gen2: 3 (unit=count
+11:58:21.010 gauge.system.gc.total_memory: 19.7276000976562 (unit=MB
+11:58:21.066 timing.DashboardScreen.RefreshQuickStats: 311ms
+11:58:21.174 counter.dashboard.initialized: 1count
+11:58:21.208 timing.Application.Startup: 2064ms
+11:58:51.194 gauge.system.memory.working_set: 135.86328125 (unit=MB
+11:58:51.300 gauge.system.memory.private: 322.25390625 (unit=MB
+11:58:51.312 gauge.system.cpu.time: 5391.234 (unit=ms
+11:58:51.326 gauge.system.threads: 19 (unit=count
+11:58:51.338 gauge.system.handles: 169 (unit=count
+11:58:51.354 gauge.system.gc.gen0: 12 (unit=count
+11:58:51.358 gauge.system.gc.gen1: 5 (unit=count
+11:58:51.361 gauge.system.gc.gen2: 3 (unit=count
+11:58:51.365 gauge.system.gc.total_memory: 19.3097839355469 (unit=MB
+11:58:51.420 timing.DashboardScreen.RefreshQuickStats: 322ms
+11:58:51.524 counter.dashboard.initialized: 1count
+11:58:51.544 timing.Application.Startup: 2037ms
+11:59:09.682 gauge.system.memory.working_set: 135.265625 (unit=MB
+11:59:09.779 gauge.system.memory.private: 322.14453125 (unit=MB
+11:59:09.791 gauge.system.cpu.time: 5447.995 (unit=ms
+11:59:09.805 gauge.system.threads: 19 (unit=count
+11:59:09.817 gauge.system.handles: 169 (unit=count
+11:59:09.832 gauge.system.gc.gen0: 12 (unit=count
+11:59:09.836 gauge.system.gc.gen1: 5 (unit=count
+11:59:09.840 gauge.system.gc.gen2: 3 (unit=count
+11:59:09.844 gauge.system.gc.total_memory: 19.8825073242188 (unit=MB
+11:59:09.901 timing.DashboardScreen.RefreshQuickStats: 312ms
+11:59:10.008 counter.dashboard.initialized: 1count
+11:59:10.030 timing.Application.Startup: 2115ms
+11:59:20.715 gauge.system.memory.working_set: 135.08203125 (unit=MB
+11:59:20.811 gauge.system.memory.private: 321.9765625 (unit=MB
+11:59:20.823 gauge.system.cpu.time: 5346.48 (unit=ms
+11:59:20.837 gauge.system.threads: 19 (unit=count
+11:59:20.850 gauge.system.handles: 169 (unit=count
+11:59:20.866 gauge.system.gc.gen0: 13 (unit=count
+11:59:20.871 gauge.system.gc.gen1: 5 (unit=count
+11:59:20.875 gauge.system.gc.gen2: 2 (unit=count
+11:59:20.879 gauge.system.gc.total_memory: 20.144775390625 (unit=MB
+11:59:20.934 timing.DashboardScreen.RefreshQuickStats: 306ms
+11:59:20.992 counter.dashboard.initialized: 1count
+11:59:21.014 timing.Application.Startup: 1992ms
+11:59:22.593 timing.DashboardScreen.Render: 698ms
+11:59:23.812 timing.DashboardScreen.Render: 35ms
+11:59:24.218 timing.DashboardScreen.Render: 62ms
+11:59:24.654 timing.DashboardScreen.Render: 91ms
+11:59:25.082 timing.DashboardScreen.Render: 39ms
+11:59:25.474 timing.DashboardScreen.Render: 32ms
+11:59:25.954 timing.DashboardScreen.Render: 83ms
+12:00:05.566 counter.screen.timetracking.refresh: 1count
+12:00:05.667 counter.screen.timetracking.initialized: 1count
+12:00:05.859 timing.Application.Startup: 2099ms
+12:00:28.925 gauge.system.memory.working_set: 137.58984375 (unit=MB
+12:00:29.027 gauge.system.memory.private: 323.359375 (unit=MB
+12:00:29.038 gauge.system.cpu.time: 5992.755 (unit=ms
+12:00:29.054 gauge.system.threads: 19 (unit=count
+12:00:29.067 gauge.system.handles: 169 (unit=count
+12:00:29.082 gauge.system.gc.gen0: 13 (unit=count
+12:00:29.086 gauge.system.gc.gen1: 6 (unit=count
+12:00:29.090 gauge.system.gc.gen2: 3 (unit=count
+12:00:29.094 gauge.system.gc.total_memory: 18.5042419433594 (unit=MB
+12:00:29.151 timing.DashboardScreen.RefreshQuickStats: 394ms
+12:00:29.189 counter.dashboard.initialized: 1count
+12:00:29.206 timing.Application.Startup: 2349ms
+12:00:30.916 timing.DashboardScreen.Render: 659ms
+12:00:32.942 timing.DashboardScreen.HandleInput: 1ms (key=Ctrl+Enter
+12:00:33.126 timing.DashboardScreen.Render: 67ms
+12:00:46.840 counter.dashboard.navigation.down: 1count
+12:00:46.846 timing.DashboardScreen.HandleInput: 12ms (key=DownArrow
+12:00:46.981 timing.DashboardScreen.Render: 49ms
+12:00:48.024 counter.dashboard.navigation.down: 2count
+12:00:48.028 timing.DashboardScreen.HandleInput: 12ms (key=DownArrow
+12:00:48.121 timing.DashboardScreen.Render: 21ms
+12:00:49.131 counter.dashboard.navigation.down: 3count
+12:00:49.134 timing.DashboardScreen.HandleInput: 5ms (key=DownArrow
+12:00:49.226 timing.DashboardScreen.Render: 27ms
+12:00:50.184 counter.dashboard.navigation.down: 4count
+12:00:50.187 timing.DashboardScreen.HandleInput: 4ms (key=DownArrow
+12:00:50.273 timing.DashboardScreen.Render: 20ms
+12:00:51.261 counter.dashboard.navigation.down: 5count
+12:00:51.264 timing.DashboardScreen.HandleInput: 4ms (key=DownArrow
+12:00:51.350 timing.DashboardScreen.Render: 16ms
+12:05:19.575 gauge.system.memory.working_set: 135.15625 (unit=MB
+12:05:19.683 gauge.system.memory.private: 304.09765625 (unit=MB
+12:05:19.696 gauge.system.cpu.time: 5840.91 (unit=ms
+12:05:19.713 gauge.system.threads: 18 (unit=count
+12:05:19.727 gauge.system.handles: 170 (unit=count
+12:05:19.744 gauge.system.gc.gen0: 10 (unit=count
+12:05:19.750 gauge.system.gc.gen1: 4 (unit=count
+12:05:19.755 gauge.system.gc.gen2: 2 (unit=count
+12:05:19.760 gauge.system.gc.total_memory: 20.3240356445312 (unit=MB
+12:05:19.843 timing.DashboardScreen.RefreshQuickStats: 346ms
+12:07:12.563 gauge.system.memory.working_set: 132.40234375 (unit=MB
+12:07:12.703 gauge.system.memory.private: 303.95703125 (unit=MB
+12:07:12.714 gauge.system.cpu.time: 5221.705 (unit=ms
+12:07:12.730 gauge.system.threads: 18 (unit=count
+12:07:12.745 gauge.system.handles: 170 (unit=count
+12:07:12.759 gauge.system.gc.gen0: 11 (unit=count
+12:07:12.763 gauge.system.gc.gen1: 5 (unit=count
+12:07:12.766 gauge.system.gc.gen2: 2 (unit=count
+12:07:12.770 gauge.system.gc.total_memory: 20.3700180053711 (unit=MB
+12:07:12.827 timing.DashboardScreen.RefreshQuickStats: 364ms
+12:07:12.882 counter.dashboard.initialized: 1count
+12:07:12.889 timing.Application.Startup: 2097ms
+12:11:14.017 gauge.system.memory.working_set: 134.109375 (unit=MB
+12:11:14.135 gauge.system.memory.private: 320.6484375 (unit=MB
+12:11:14.149 gauge.system.cpu.time: 5470.599 (unit=ms
+12:11:14.164 gauge.system.threads: 19 (unit=count
+12:11:14.180 gauge.system.handles: 170 (unit=count
+12:11:14.203 gauge.system.gc.gen0: 12 (unit=count
+12:11:14.210 gauge.system.gc.gen1: 5 (unit=count
+12:11:14.221 gauge.system.gc.gen2: 3 (unit=count
+12:11:14.234 gauge.system.gc.total_memory: 20.2768478393555 (unit=MB
+12:11:14.389 timing.DashboardScreen.RefreshQuickStats: 411ms
+12:15:20.231 gauge.system.memory.working_set: 140.28515625 (unit=MB
+12:15:20.331 gauge.system.memory.private: 326.2265625 (unit=MB
+12:15:20.342 gauge.system.cpu.time: 5912.994 (unit=ms
+12:15:20.359 gauge.system.threads: 19 (unit=count
+12:15:20.372 gauge.system.handles: 169 (unit=count
+12:15:20.388 gauge.system.gc.gen0: 13 (unit=count
+12:15:20.393 gauge.system.gc.gen1: 6 (unit=count
+12:15:20.397 gauge.system.gc.gen2: 3 (unit=count
+12:15:20.401 gauge.system.gc.total_memory: 18.5536422729492 (unit=MB
+12:15:20.459 timing.DashboardScreen.RefreshQuickStats: 382ms
+12:15:20.497 counter.dashboard.initialized: 1count
+12:15:20.514 timing.Application.Startup: 2185ms
+12:15:23.241 timing.DashboardScreen.Render: 652ms
+12:15:32.554 counter.dashboard.navigation.down: 1count
+12:15:32.560 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+12:15:32.704 timing.DashboardScreen.Render: 59ms
+12:20:21.859 gauge.system.memory.working_set: 140.140625 (unit=MB
+12:20:21.959 gauge.system.memory.private: 323.046875 (unit=MB
+12:20:21.971 gauge.system.cpu.time: 5863.572 (unit=ms
+12:20:21.985 gauge.system.threads: 19 (unit=count
+12:20:22.000 gauge.system.handles: 171 (unit=count
+12:20:22.016 gauge.system.gc.gen0: 11 (unit=count
+12:20:22.020 gauge.system.gc.gen1: 5 (unit=count
+12:20:22.026 gauge.system.gc.gen2: 2 (unit=count
+12:20:22.030 gauge.system.gc.total_memory: 20.4206619262695 (unit=MB
+12:20:22.107 timing.DashboardScreen.RefreshQuickStats: 332ms
+12:20:22.147 counter.dashboard.initialized: 1count
+12:20:22.163 timing.Application.Startup: 2079ms
+12:20:24.818 timing.DashboardScreen.Render: 785ms
+12:20:26.195 timing.DashboardScreen.Render: 55ms
+12:20:26.625 timing.DashboardScreen.Render: 65ms
+12:20:27.063 timing.DashboardScreen.Render: 34ms
+12:21:08.315 gauge.system.memory.working_set: 137.28515625 (unit=MB
+12:21:08.415 gauge.system.memory.private: 304.125 (unit=MB
+12:21:08.427 gauge.system.cpu.time: 5807.293 (unit=ms
+12:21:08.441 gauge.system.threads: 18 (unit=count
+12:21:08.454 gauge.system.handles: 171 (unit=count
+12:21:08.470 gauge.system.gc.gen0: 11 (unit=count
+12:21:08.475 gauge.system.gc.gen1: 5 (unit=count
+12:21:08.479 gauge.system.gc.gen2: 2 (unit=count
+12:21:08.484 gauge.system.gc.total_memory: 20.4289932250977 (unit=MB
+12:21:08.556 timing.DashboardScreen.RefreshQuickStats: 315ms
+12:21:08.595 counter.dashboard.initialized: 1count
+12:21:08.611 timing.Application.Startup: 2075ms
+12:21:11.421 timing.DashboardScreen.Render: 774ms
+12:21:12.772 timing.DashboardScreen.Render: 64ms
+12:21:13.191 timing.DashboardScreen.Render: 85ms
+12:21:13.811 timing.DashboardScreen.Render: 90ms
+12:21:14.284 timing.DashboardScreen.Render: 85ms
+12:21:33.655 gauge.system.memory.working_set: 136.859375 (unit=MB
+12:21:33.761 gauge.system.memory.private: 303.8671875 (unit=MB
+12:21:33.773 gauge.system.cpu.time: 5843.946 (unit=ms
+12:21:33.787 gauge.system.threads: 18 (unit=count
+12:21:33.800 gauge.system.handles: 171 (unit=count
+12:21:33.817 gauge.system.gc.gen0: 11 (unit=count
+12:21:33.822 gauge.system.gc.gen1: 5 (unit=count
+12:21:33.827 gauge.system.gc.gen2: 2 (unit=count
+12:21:33.832 gauge.system.gc.total_memory: 20.4435958862305 (unit=MB
+12:21:33.910 timing.DashboardScreen.RefreshQuickStats: 329ms
+12:21:33.951 counter.dashboard.initialized: 1count
+12:21:33.968 timing.Application.Startup: 2199ms
+12:21:36.542 timing.DashboardScreen.Render: 685ms
+12:21:37.678 timing.DashboardScreen.Render: 48ms
+12:21:38.129 timing.DashboardScreen.Render: 35ms
+12:21:38.748 timing.DashboardScreen.Render: 70ms
+12:48:40.216 gauge.system.memory.working_set: 135.5234375 (unit=MB
+12:48:40.315 gauge.system.memory.private: 320.81640625 (unit=MB
+12:48:40.327 gauge.system.cpu.time: 5736.997 (unit=ms
+12:48:40.344 gauge.system.threads: 19 (unit=count
+12:48:40.358 gauge.system.handles: 169 (unit=count
+12:48:40.374 gauge.system.gc.gen0: 12 (unit=count
+12:48:40.379 gauge.system.gc.gen1: 4 (unit=count
+12:48:40.384 gauge.system.gc.gen2: 2 (unit=count
+12:48:40.388 gauge.system.gc.total_memory: 20.2350158691406 (unit=MB
+12:48:40.448 timing.DashboardScreen.RefreshQuickStats: 333ms
+12:48:40.488 counter.dashboard.initialized: 1count
+12:48:40.505 timing.Application.Startup: 2175ms
+12:48:43.220 timing.DashboardScreen.Render: 670ms
+12:48:57.202 counter.application.shutdown: 1count
+12:49:04.138 gauge.system.memory.working_set: 139.515625 (unit=MB
+12:49:04.230 gauge.system.memory.private: 323.87890625 (unit=MB
+12:49:04.241 gauge.system.cpu.time: 6088.343 (unit=ms
+12:49:04.256 gauge.system.threads: 19 (unit=count
+12:49:04.268 gauge.system.handles: 169 (unit=count
+12:49:04.283 gauge.system.gc.gen0: 12 (unit=count
+12:49:04.287 gauge.system.gc.gen1: 5 (unit=count
+12:49:04.291 gauge.system.gc.gen2: 2 (unit=count
+12:49:04.295 gauge.system.gc.total_memory: 19.0650329589844 (unit=MB
+12:49:04.346 timing.DashboardScreen.RefreshQuickStats: 315ms
+12:49:04.384 counter.dashboard.initialized: 1count
+12:49:04.400 timing.Application.Startup: 2174ms
+12:49:07.097 timing.DashboardScreen.Render: 651ms
+12:49:14.503 counter.dashboard.navigation.down: 1count
+12:49:14.510 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+12:49:14.657 timing.DashboardScreen.Render: 65ms
+12:49:17.119 counter.dashboard.navigation.down: 2count
+12:49:17.127 timing.DashboardScreen.HandleInput: 12ms (key=DownArrow
+12:49:17.278 timing.DashboardScreen.Render: 67ms
+12:49:19.588 counter.dashboard.navigation.down: 3count
+12:49:19.592 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+12:49:19.701 timing.DashboardScreen.Render: 27ms
+12:49:24.936 counter.dashboard.navigation.up: 1count
+12:49:24.945 timing.DashboardScreen.HandleInput: 14ms (key=UpArrow
+12:49:25.069 timing.DashboardScreen.Render: 23ms
+12:49:27.179 counter.dashboard.navigation.up: 2count
+12:49:27.182 timing.DashboardScreen.HandleInput: 6ms (key=UpArrow
+12:49:27.291 timing.DashboardScreen.Render: 25ms
+12:49:30.076 counter.dashboard.navigation.up: 3count
+12:49:30.080 timing.DashboardScreen.HandleInput: 6ms (key=UpArrow
+12:49:30.169 timing.DashboardScreen.Render: 20ms
+12:49:37.552 counter.dashboard.navigation: 1count (screen=TimeTracking
+12:49:37.559 timing.DashboardScreen.HandleInput: 22ms (key=1
+12:49:37.570 timing.DashboardScreen.HandleInput: 46ms (key=Enter
+12:49:37.837 counter.screen.timetracking.refresh: 1count
+12:49:37.841 counter.screen.timetracking.initialized: 1count
+12:49:38.096 timing.TimeTrackingScreen.Render: 186ms
+12:49:40.433 timing.TimeTrackingScreen.HandleInput: 18ms (key=DownArrow
+12:49:40.511 timing.TimeTrackingScreen.Render: 7ms
+12:49:42.871 timing.TimeTrackingScreen.HandleInput: 9ms (key=D
+12:49:43.032 timing.TimeTrackingScreen.Render: 34ms
+12:49:46.179 counter.screen.timetracking.refresh: 2count
+12:49:46.185 counter.screen.timetracking.entry_deleted: 1count
+12:49:46.187 timing.TimeTrackingScreen.HandleInput: 141ms (key=Y
+12:49:46.267 timing.TimeTrackingScreen.Render: 15ms
+12:49:50.840 counter.application.shutdown: 1count
+12:50:40.757 gauge.system.memory.working_set: 137.03515625 (unit=MB
+12:50:40.855 gauge.system.memory.private: 319.84375 (unit=MB
+12:50:40.867 gauge.system.cpu.time: 5837.356 (unit=ms
+12:50:40.881 gauge.system.threads: 19 (unit=count
+12:50:40.894 gauge.system.handles: 171 (unit=count
+12:50:40.910 gauge.system.gc.gen0: 12 (unit=count
+12:50:40.914 gauge.system.gc.gen1: 5 (unit=count
+12:50:40.918 gauge.system.gc.gen2: 3 (unit=count
+12:50:40.922 gauge.system.gc.total_memory: 19.1169509887695 (unit=MB
+12:50:40.974 timing.DashboardScreen.RefreshQuickStats: 309ms
+12:50:41.012 counter.dashboard.initialized: 1count
+12:50:41.028 timing.Application.Startup: 1888ms
+12:50:43.610 timing.DashboardScreen.Render: 690ms
+12:50:45.724 counter.dashboard.navigation.down: 1count
+12:50:45.728 timing.DashboardScreen.HandleInput: 10ms (key=DownArrow
+12:50:45.850 timing.DashboardScreen.Render: 56ms
+12:50:46.824 counter.dashboard.navigation.up: 1count
+12:50:46.832 timing.DashboardScreen.HandleInput: 12ms (key=UpArrow
+12:50:46.949 timing.DashboardScreen.Render: 58ms
+12:50:51.492 counter.application.shutdown: 1count
+13:01:32.021 gauge.system.memory.working_set: 136.78125 (unit=MB
+13:01:32.129 gauge.system.memory.private: 322.1640625 (unit=MB
+13:01:32.159 gauge.system.cpu.time: 5646.724 (unit=ms
+13:01:32.172 gauge.system.threads: 19 (unit=count
+13:01:32.185 gauge.system.handles: 169 (unit=count
+13:01:32.201 gauge.system.gc.gen0: 12 (unit=count
+13:01:32.205 gauge.system.gc.gen1: 4 (unit=count
+13:01:32.209 gauge.system.gc.gen2: 2 (unit=count
+13:01:32.213 gauge.system.gc.total_memory: 17.4952621459961 (unit=MB
+13:01:32.274 timing.DashboardScreen.RefreshQuickStats: 344ms
+13:01:32.314 counter.dashboard.initialized: 1count
+13:01:32.326 timing.Application.Startup: 2027ms
+13:01:34.432 timing.DashboardScreen.Render: 727ms
+13:01:34.949 timing.DashboardScreen.Render: 68ms
+13:01:35.156 timing.DashboardScreen.Render: 62ms
+13:01:35.355 timing.DashboardScreen.Render: 48ms
+13:01:35.546 timing.DashboardScreen.Render: 48ms
+13:01:35.811 timing.DashboardScreen.Render: 75ms
+13:01:36.084 timing.DashboardScreen.Render: 89ms
+13:01:36.322 timing.DashboardScreen.Render: 18ms
+13:01:36.485 timing.DashboardScreen.Render: 36ms
+13:01:36.713 timing.DashboardScreen.Render: 37ms
+13:01:37.033 timing.DashboardScreen.Render: 110ms
+13:01:37.256 timing.DashboardScreen.Render: 37ms
+13:06:56.414 gauge.system.memory.working_set: 132.91796875 (unit=MB
+13:06:56.542 gauge.system.memory.private: 303.38671875 (unit=MB
+13:06:56.555 gauge.system.cpu.time: 5607.764 (unit=ms
+13:06:56.571 gauge.system.threads: 18 (unit=count
+13:06:56.586 gauge.system.handles: 169 (unit=count
+13:06:56.603 gauge.system.gc.gen0: 11 (unit=count
+13:06:56.608 gauge.system.gc.gen1: 4 (unit=count
+13:06:56.613 gauge.system.gc.gen2: 2 (unit=count
+13:06:56.618 gauge.system.gc.total_memory: 18.102783203125 (unit=MB
+13:06:56.681 timing.DashboardScreen.RefreshQuickStats: 387ms
+13:06:56.722 counter.dashboard.initialized: 1count
+13:06:56.736 timing.Application.Startup: 2105ms
+13:06:58.856 timing.DashboardScreen.Render: 735ms
+13:07:00.333 counter.dashboard.navigation.down: 1count
+13:07:00.338 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+13:07:00.408 timing.DashboardScreen.Render: 35ms
+13:07:00.916 counter.dashboard.navigation.down: 2count
+13:07:00.934 timing.DashboardScreen.HandleInput: 33ms (key=DownArrow
+13:07:01.003 timing.DashboardScreen.Render: 44ms
+13:07:01.054 counter.dashboard.navigation.down: 3count
+13:07:01.058 timing.DashboardScreen.HandleInput: 9ms (key=DownArrow
+13:07:01.107 timing.DashboardScreen.Render: 22ms
+13:07:01.266 counter.dashboard.navigation.down: 4count
+13:07:01.271 timing.DashboardScreen.HandleInput: 9ms (key=DownArrow
+13:07:01.338 timing.DashboardScreen.Render: 41ms
+13:07:01.850 counter.dashboard.navigation.up: 1count
+13:07:01.855 timing.DashboardScreen.HandleInput: 10ms (key=UpArrow
+13:07:01.911 timing.DashboardScreen.Render: 30ms
+13:07:01.994 counter.dashboard.navigation.up: 2count
+13:07:02.001 timing.DashboardScreen.HandleInput: 11ms (key=UpArrow
+13:07:02.070 timing.DashboardScreen.Render: 39ms
+13:07:02.156 counter.dashboard.navigation.up: 3count
+13:07:02.163 timing.DashboardScreen.HandleInput: 9ms (key=UpArrow
+13:07:02.215 timing.DashboardScreen.Render: 19ms
+13:07:02.794 counter.dashboard.navigation.up: 4count
+13:07:02.801 timing.DashboardScreen.HandleInput: 11ms (key=UpArrow
+13:07:02.864 timing.DashboardScreen.Render: 34ms
+13:07:04.902 counter.dashboard.navigation: 1count (screen=TimeTracking
+13:07:04.915 timing.DashboardScreen.HandleInput: 33ms (key=1
+13:07:04.920 timing.DashboardScreen.HandleInput: 56ms (key=Enter
+13:07:05.275 counter.screen.timetracking.refresh: 1count
+13:07:05.280 counter.screen.timetracking.initialized: 1count
+13:07:05.533 timing.TimeTrackingScreen.Render: 218ms
+13:07:06.783 timing.TimeTrackingScreen.HandleInput: 28ms (key=RightArrow
+13:07:06.830 timing.TimeTrackingScreen.Render: 23ms
+13:07:07.703 timing.TimeTrackingScreen.HandleInput: 22ms (key=LeftArrow
+13:07:07.744 timing.TimeTrackingScreen.Render: 11ms
+13:07:08.083 timing.TimeTrackingScreen.HandleInput: 22ms (key=LeftArrow
+13:07:08.123 timing.TimeTrackingScreen.Render: 9ms
+13:07:09.062 timing.TimeTrackingScreen.HandleInput: 18ms (key=RightArrow
+13:07:09.110 timing.TimeTrackingScreen.Render: 20ms
+13:07:13.838 timing.TimeTrackingScreen.HandleInput: 11ms (key=DownArrow
+13:07:13.873 timing.TimeTrackingScreen.Render: 10ms
+13:07:14.980 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+13:07:15.014 timing.TimeTrackingScreen.Render: 6ms
+13:07:15.186 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:07:15.219 timing.TimeTrackingScreen.Render: 6ms
+13:07:16.753 timing.TimeTrackingScreen.HandleInput: 11ms (key=UpArrow
+13:07:16.807 timing.TimeTrackingScreen.Render: 26ms
+13:07:16.887 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:07:16.914 timing.TimeTrackingScreen.Render: 6ms
+13:07:17.358 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:07:17.389 timing.TimeTrackingScreen.Render: 5ms
+13:10:41.465 timing.TimeTrackingScreen.HandleInput: 5ms (key=UpArrow
+13:10:41.503 timing.TimeTrackingScreen.Render: 12ms
+13:10:43.996 timing.TimeTrackingScreen.HandleInput: 3ms (key=Enter
+13:10:44.025 timing.TimeTrackingScreen.Render: 6ms
+13:10:53.066 gauge.system.memory.working_set: 136.62890625 (unit=MB
+13:10:53.178 gauge.system.memory.private: 321.734375 (unit=MB
+13:10:53.190 gauge.system.cpu.time: 5695.327 (unit=ms
+13:10:53.204 gauge.system.threads: 19 (unit=count
+13:10:53.217 gauge.system.handles: 171 (unit=count
+13:10:53.232 gauge.system.gc.gen0: 11 (unit=count
+13:10:53.236 gauge.system.gc.gen1: 4 (unit=count
+13:10:53.241 gauge.system.gc.gen2: 2 (unit=count
+13:10:53.245 gauge.system.gc.total_memory: 18.3731460571289 (unit=MB
+13:10:53.296 timing.DashboardScreen.RefreshQuickStats: 319ms
+13:10:53.333 counter.dashboard.initialized: 1count
+13:10:53.346 timing.Application.Startup: 1885ms
+13:10:55.700 timing.DashboardScreen.Render: 682ms
+13:11:09.067 counter.dashboard.navigation: 1count (screen=TimeTracking
+13:11:09.075 timing.DashboardScreen.HandleInput: 27ms (key=1
+13:11:09.079 timing.DashboardScreen.HandleInput: 41ms (key=Enter
+13:11:09.416 counter.screen.timetracking.refresh: 1count
+13:11:09.423 counter.screen.timetracking.initialized: 1count
+13:11:09.766 timing.TimeTrackingScreen.Render: 238ms
+13:11:11.291 timing.TimeTrackingScreen.HandleInput: 14ms (key=DownArrow
+13:11:11.368 timing.TimeTrackingScreen.Render: 7ms
+13:11:11.748 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:11:11.849 timing.TimeTrackingScreen.Render: 20ms
+13:11:11.900 timing.TimeTrackingScreen.HandleInput: 5ms (key=DownArrow
+13:11:11.971 timing.TimeTrackingScreen.Render: 7ms
+13:11:12.056 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:11:12.139 timing.TimeTrackingScreen.Render: 7ms
+13:11:12.224 timing.TimeTrackingScreen.HandleInput: 10ms (key=DownArrow
+13:11:12.341 timing.TimeTrackingScreen.Render: 7ms
+13:11:12.929 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:13.032 timing.TimeTrackingScreen.Render: 18ms
+13:11:13.483 timing.TimeTrackingScreen.HandleInput: 11ms (key=UpArrow
+13:11:13.576 timing.TimeTrackingScreen.Render: 5ms
+13:11:13.637 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:13.710 timing.TimeTrackingScreen.Render: 6ms
+13:11:13.791 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:13.869 timing.TimeTrackingScreen.Render: 9ms
+13:11:13.956 timing.TimeTrackingScreen.HandleInput: 2ms (key=UpArrow
+13:11:14.038 timing.TimeTrackingScreen.Render: 11ms
+13:11:14.124 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:14.204 timing.TimeTrackingScreen.Render: 8ms
+13:11:14.276 timing.TimeTrackingScreen.HandleInput: 4ms (key=UpArrow
+13:11:14.343 timing.TimeTrackingScreen.Render: 4ms
+13:11:15.433 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:11:15.517 timing.TimeTrackingScreen.Render: 10ms
+13:11:15.640 timing.TimeTrackingScreen.HandleInput: 9ms (key=DownArrow
+13:11:15.724 timing.TimeTrackingScreen.Render: 15ms
+13:11:15.790 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:11:15.851 timing.TimeTrackingScreen.Render: 4ms
+13:11:15.953 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:16.055 timing.TimeTrackingScreen.Render: 11ms
+13:11:16.103 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:11:16.180 timing.TimeTrackingScreen.Render: 5ms
+13:11:16.268 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:16.341 timing.TimeTrackingScreen.Render: 12ms
+13:11:17.257 timing.TimeTrackingScreen.HandleInput: 5ms (key=UpArrow
+13:11:17.326 timing.TimeTrackingScreen.Render: 4ms
+13:11:17.529 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:17.617 timing.TimeTrackingScreen.Render: 5ms
+13:11:17.700 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:17.787 timing.TimeTrackingScreen.Render: 20ms
+13:11:17.899 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:17.966 timing.TimeTrackingScreen.Render: 3ms
+13:11:18.093 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:18.168 timing.TimeTrackingScreen.Render: 8ms
+13:11:18.262 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:18.339 timing.TimeTrackingScreen.Render: 10ms
+13:11:18.422 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:18.489 timing.TimeTrackingScreen.Render: 8ms
+13:11:21.331 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+13:11:21.454 timing.TimeTrackingScreen.Render: 3ms
+13:11:21.485 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:21.556 timing.TimeTrackingScreen.Render: 5ms
+13:11:21.654 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+13:11:21.727 timing.TimeTrackingScreen.Render: 3ms
+13:11:21.802 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:21.866 timing.TimeTrackingScreen.Render: 6ms
+13:11:21.963 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:22.037 timing.TimeTrackingScreen.Render: 13ms
+13:11:22.131 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:22.267 timing.TimeTrackingScreen.Render: 5ms
+13:11:22.834 timing.TimeTrackingScreen.HandleInput: 5ms (key=DownArrow
+13:11:22.911 timing.TimeTrackingScreen.Render: 12ms
+13:11:23.512 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:23.585 timing.TimeTrackingScreen.Render: 10ms
+13:11:23.944 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:24.043 timing.TimeTrackingScreen.Render: 6ms
+13:11:24.109 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:24.177 timing.TimeTrackingScreen.Render: 6ms
+13:11:24.276 timing.TimeTrackingScreen.HandleInput: 2ms (key=UpArrow
+13:11:24.339 timing.TimeTrackingScreen.Render: 6ms
+13:11:24.443 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:24.509 timing.TimeTrackingScreen.Render: 6ms
+13:11:24.606 timing.TimeTrackingScreen.HandleInput: 5ms (key=UpArrow
+13:11:24.671 timing.TimeTrackingScreen.Render: 3ms
+13:11:24.772 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:24.846 timing.TimeTrackingScreen.Render: 8ms
+13:11:24.930 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:25.004 timing.TimeTrackingScreen.Render: 6ms
+13:11:25.224 timing.TimeTrackingScreen.HandleInput: 12ms (key=UpArrow
+13:11:25.348 timing.TimeTrackingScreen.Render: 6ms
+13:11:25.577 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:11:25.687 timing.TimeTrackingScreen.Render: 4ms
+13:11:25.723 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:25.815 timing.TimeTrackingScreen.Render: 9ms
+13:11:25.897 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:25.966 timing.TimeTrackingScreen.Render: 5ms
+13:11:26.042 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:26.112 timing.TimeTrackingScreen.Render: 6ms
+13:11:26.208 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:26.276 timing.TimeTrackingScreen.Render: 3ms
+13:11:26.371 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:11:26.443 timing.TimeTrackingScreen.Render: 4ms
+13:11:26.523 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+13:11:26.595 timing.TimeTrackingScreen.Render: 3ms
+13:11:26.674 timing.TimeTrackingScreen.HandleInput: 0ms (key=DownArrow
+13:11:26.736 timing.TimeTrackingScreen.Render: 4ms
+13:11:27.764 timing.TimeTrackingScreen.HandleInput: 9ms (key=UpArrow
+13:11:27.880 timing.TimeTrackingScreen.Render: 3ms
+13:11:27.908 timing.TimeTrackingScreen.HandleInput: 0ms (key=UpArrow
+13:11:27.973 timing.TimeTrackingScreen.Render: 9ms
+13:11:28.054 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:11:28.119 timing.TimeTrackingScreen.Render: 7ms
+13:11:28.216 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:28.285 timing.TimeTrackingScreen.Render: 7ms
+13:11:28.383 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:28.446 timing.TimeTrackingScreen.Render: 3ms
+13:11:28.546 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:28.615 timing.TimeTrackingScreen.Render: 6ms
+13:11:28.708 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:28.789 timing.TimeTrackingScreen.Render: 6ms
+13:11:28.873 timing.TimeTrackingScreen.HandleInput: 1ms (key=UpArrow
+13:11:28.935 timing.TimeTrackingScreen.Render: 3ms
+13:17:11.244 gauge.system.memory.working_set: 135.7265625 (unit=MB
+13:17:11.396 gauge.system.memory.private: 322.1640625 (unit=MB
+13:17:11.409 gauge.system.cpu.time: 5261.623 (unit=ms
+13:17:11.426 gauge.system.threads: 19 (unit=count
+13:17:11.441 gauge.system.handles: 169 (unit=count
+13:17:11.457 gauge.system.gc.gen0: 11 (unit=count
+13:17:11.462 gauge.system.gc.gen1: 4 (unit=count
+13:17:11.467 gauge.system.gc.gen2: 2 (unit=count
+13:17:11.471 gauge.system.gc.total_memory: 18.1197052001953 (unit=MB
+13:17:11.533 timing.DashboardScreen.RefreshQuickStats: 408ms
+13:17:11.574 counter.dashboard.initialized: 1count
+13:17:11.587 timing.Application.Startup: 2064ms
+13:17:51.004 gauge.system.memory.working_set: 132.34765625 (unit=MB
+13:17:51.128 gauge.system.memory.private: 319.0546875 (unit=MB
+13:17:51.141 gauge.system.cpu.time: 5218.957 (unit=ms
+13:17:51.158 gauge.system.threads: 19 (unit=count
+13:17:51.174 gauge.system.handles: 169 (unit=count
+13:17:51.192 gauge.system.gc.gen0: 11 (unit=count
+13:17:51.198 gauge.system.gc.gen1: 4 (unit=count
+13:17:51.203 gauge.system.gc.gen2: 2 (unit=count
+13:17:51.209 gauge.system.gc.total_memory: 18.0530166625977 (unit=MB
+13:17:51.269 timing.DashboardScreen.RefreshQuickStats: 384ms
+13:17:51.313 counter.dashboard.initialized: 1count
+13:17:51.328 timing.Application.Startup: 2069ms
+13:17:53.493 timing.DashboardScreen.Render: 778ms
+13:17:55.807 counter.dashboard.navigation.down: 1count
+13:17:55.812 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+13:17:55.894 timing.DashboardScreen.Render: 46ms
+13:17:56.381 counter.dashboard.navigation.down: 2count
+13:17:56.386 timing.DashboardScreen.HandleInput: 12ms (key=DownArrow
+13:17:56.493 timing.DashboardScreen.Render: 81ms
+13:17:56.724 counter.dashboard.navigation.down: 3count
+13:17:56.728 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+13:17:56.783 timing.DashboardScreen.Render: 30ms
+13:17:56.893 counter.dashboard.navigation.down: 4count
+13:17:56.898 timing.DashboardScreen.HandleInput: 7ms (key=DownArrow
+13:17:56.951 timing.DashboardScreen.Render: 29ms
+13:17:57.481 counter.dashboard.navigation.up: 1count
+13:17:57.487 timing.DashboardScreen.HandleInput: 9ms (key=UpArrow
+13:17:57.542 timing.DashboardScreen.Render: 25ms
+13:17:57.652 counter.dashboard.navigation.up: 2count
+13:17:57.658 timing.DashboardScreen.HandleInput: 8ms (key=UpArrow
+13:17:57.723 timing.DashboardScreen.Render: 40ms
+13:17:57.828 counter.dashboard.navigation.up: 3count
+13:17:57.839 timing.DashboardScreen.HandleInput: 14ms (key=UpArrow
+13:17:57.891 timing.DashboardScreen.Render: 19ms
+13:17:58.013 counter.dashboard.navigation.up: 4count
+13:17:58.018 timing.DashboardScreen.HandleInput: 7ms (key=UpArrow
+13:17:58.069 timing.DashboardScreen.Render: 22ms
+13:17:59.798 counter.dashboard.navigation: 1count (screen=TimeTracking
+13:17:59.807 timing.DashboardScreen.HandleInput: 30ms (key=1
+13:17:59.815 timing.DashboardScreen.HandleInput: 49ms (key=Enter
+13:18:00.190 counter.screen.timetracking.refresh: 1count
+13:18:00.196 counter.screen.timetracking.initialized: 1count
+13:18:00.457 timing.TimeTrackingScreen.Render: 224ms
+13:18:02.440 timing.TimeTrackingScreen.HandleInput: 21ms (key=DownArrow
+13:18:02.473 timing.TimeTrackingScreen.Render: 10ms
+13:18:02.813 timing.TimeTrackingScreen.HandleInput: 5ms (key=DownArrow
+13:18:02.865 timing.TimeTrackingScreen.Render: 23ms
+13:18:02.963 timing.TimeTrackingScreen.HandleInput: 4ms (key=DownArrow
+13:18:03.008 timing.TimeTrackingScreen.Render: 18ms
+13:18:03.122 timing.TimeTrackingScreen.HandleInput: 10ms (key=DownArrow
+13:18:03.161 timing.TimeTrackingScreen.Render: 14ms
+13:18:03.686 timing.TimeTrackingScreen.HandleInput: 8ms (key=DownArrow
+13:18:03.733 timing.TimeTrackingScreen.Render: 19ms
+13:18:03.926 timing.TimeTrackingScreen.HandleInput: 6ms (key=DownArrow
+13:18:03.965 timing.TimeTrackingScreen.Render: 9ms
+13:18:04.366 timing.TimeTrackingScreen.HandleInput: 15ms (key=UpArrow
+13:18:04.403 timing.TimeTrackingScreen.Render: 14ms
+13:18:04.505 timing.TimeTrackingScreen.HandleInput: 4ms (key=UpArrow
+13:18:04.558 timing.TimeTrackingScreen.Render: 26ms
+13:18:04.641 timing.TimeTrackingScreen.HandleInput: 2ms (key=UpArrow
+13:18:04.671 timing.TimeTrackingScreen.Render: 7ms
+13:18:04.792 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:18:04.830 timing.TimeTrackingScreen.Render: 15ms
+13:18:04.955 timing.TimeTrackingScreen.HandleInput: 6ms (key=UpArrow
+13:18:04.992 timing.TimeTrackingScreen.Render: 8ms
+13:18:05.103 timing.TimeTrackingScreen.HandleInput: 11ms (key=UpArrow
+13:18:05.134 timing.TimeTrackingScreen.Render: 8ms
+13:18:05.831 timing.TimeTrackingScreen.HandleInput: 6ms (key=DownArrow
+13:18:05.890 timing.TimeTrackingScreen.Render: 21ms
+13:18:05.971 timing.TimeTrackingScreen.HandleInput: 7ms (key=DownArrow
+13:18:06.009 timing.TimeTrackingScreen.Render: 15ms
+13:18:06.119 timing.TimeTrackingScreen.HandleInput: 10ms (key=DownArrow
+13:18:06.154 timing.TimeTrackingScreen.Render: 6ms
+13:18:06.275 timing.TimeTrackingScreen.HandleInput: 8ms (key=DownArrow
+13:18:06.302 timing.TimeTrackingScreen.Render: 6ms
+13:18:06.440 timing.TimeTrackingScreen.HandleInput: 10ms (key=DownArrow
+13:18:06.486 timing.TimeTrackingScreen.Render: 18ms
+13:18:06.588 timing.TimeTrackingScreen.HandleInput: 8ms (key=DownArrow
+13:18:06.616 timing.TimeTrackingScreen.Render: 5ms
+13:18:07.081 timing.TimeTrackingScreen.HandleInput: 2ms (key=UpArrow
+13:18:07.106 timing.TimeTrackingScreen.Render: 4ms
+13:18:07.252 timing.TimeTrackingScreen.HandleInput: 2ms (key=UpArrow
+13:18:07.282 timing.TimeTrackingScreen.Render: 6ms
+13:18:07.414 timing.TimeTrackingScreen.HandleInput: 9ms (key=UpArrow
+13:18:07.457 timing.TimeTrackingScreen.Render: 18ms
+13:18:07.544 timing.TimeTrackingScreen.HandleInput: 3ms (key=UpArrow
+13:18:07.579 timing.TimeTrackingScreen.Render: 8ms
+13:18:07.702 timing.TimeTrackingScreen.HandleInput: 4ms (key=UpArrow
+13:18:07.753 timing.TimeTrackingScreen.Render: 28ms
+13:18:08.064 timing.TimeTrackingScreen.HandleInput: 12ms (key=UpArrow
+13:18:08.100 timing.TimeTrackingScreen.Render: 11ms
+13:18:22.279 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:18:22.325 timing.TimeTrackingScreen.Render: 17ms
+13:18:22.397 timing.TimeTrackingScreen.HandleInput: 1ms (key=DownArrow
+13:18:22.426 timing.TimeTrackingScreen.Render: 9ms
+13:18:22.563 timing.TimeTrackingScreen.HandleInput: 11ms (key=DownArrow
+13:18:22.592 timing.TimeTrackingScreen.Render: 9ms
+13:18:22.703 timing.TimeTrackingScreen.HandleInput: 2ms (key=DownArrow
+13:18:22.733 timing.TimeTrackingScreen.Render: 4ms
+13:18:23.436 timing.TimeTrackingScreen.HandleInput: 5ms (key=DownArrow
+13:18:23.471 timing.TimeTrackingScreen.Render: 13ms
+13:18:23.604 timing.TimeTrackingScreen.HandleInput: 3ms (key=DownArrow
+13:18:23.646 timing.TimeTrackingScreen.Render: 14ms
+13:18:24.955 timing.TimeTrackingScreen.HandleInput: 3ms (key=D
+13:18:25.022 timing.TimeTrackingScreen.Render: 46ms
+13:18:26.835 timing.TimeTrackingScreen.HandleInput: 35ms (key=Shift+Y
+13:18:26.866 timing.TimeTrackingScreen.Render: 7ms
+13:42:25.670 gauge.system.memory.working_set: 135.56640625 (unit=MB
+13:42:25.791 gauge.system.memory.private: 321.62890625 (unit=MB
+13:42:25.804 gauge.system.cpu.time: 5670.927 (unit=ms
+13:42:25.885 gauge.system.threads: 19 (unit=count
+13:42:25.900 gauge.system.handles: 169 (unit=count
+13:42:25.917 gauge.system.gc.gen0: 12 (unit=count
+13:42:25.922 gauge.system.gc.gen1: 5 (unit=count
+13:42:25.926 gauge.system.gc.gen2: 2 (unit=count
+13:42:25.931 gauge.system.gc.total_memory: 17.088493347168 (unit=MB
+13:42:25.996 timing.DashboardScreen.RefreshQuickStats: 436ms
+13:42:26.037 counter.dashboard.initialized: 1count
+13:42:26.052 timing.Application.Startup: 2246ms
+13:42:28.099 timing.DashboardScreen.Render: 712ms
+13:43:00.401 counter.dashboard.navigation.down: 1count
+13:43:00.407 timing.DashboardScreen.HandleInput: 10ms (key=DownArrow
+13:43:00.506 timing.DashboardScreen.Render: 66ms
+13:43:01.116 counter.dashboard.navigation.down: 2count
+13:43:01.119 timing.DashboardScreen.HandleInput: 8ms (key=DownArrow
+13:43:01.193 timing.DashboardScreen.Render: 48ms
+13:43:01.374 counter.dashboard.navigation.down: 3count
+13:43:01.379 timing.DashboardScreen.HandleInput: 7ms (key=DownArrow
+13:43:01.433 timing.DashboardScreen.Render: 29ms
+13:43:01.787 counter.dashboard.navigation.down: 4count
+13:43:01.790 timing.DashboardScreen.HandleInput: 5ms (key=DownArrow
+13:43:01.834 timing.DashboardScreen.Render: 20ms
+13:43:02.983 counter.dashboard.navigation.down: 5count
+13:43:02.986 timing.DashboardScreen.HandleInput: 4ms (key=DownArrow
+13:43:03.032 timing.DashboardScreen.Render: 16ms
+13:43:25.974 counter.application.shutdown: 1count
+13:52:47.239 gauge.system.memory.working_set: 139.03125 (unit=MB
+13:52:47.346 gauge.system.memory.private: 322.015625 (unit=MB
+13:52:47.359 gauge.system.cpu.time: 5941.352 (unit=ms
+13:52:47.437 gauge.system.threads: 19 (unit=count
+13:52:47.450 gauge.system.handles: 171 (unit=count
+13:52:47.466 gauge.system.gc.gen0: 12 (unit=count
+13:52:47.470 gauge.system.gc.gen1: 5 (unit=count
+13:52:47.474 gauge.system.gc.gen2: 2 (unit=count
+13:52:47.478 gauge.system.gc.total_memory: 17.1377563476562 (unit=MB
+13:52:47.532 timing.DashboardScreen.RefreshQuickStats: 383ms
+13:52:47.570 counter.dashboard.initialized: 1count
+13:52:47.583 timing.Application.Startup: 1931ms
+13:52:49.575 timing.DashboardScreen.Render: 666ms
+13:52:52.836 counter.dashboard.navigation.down: 1count
+13:52:52.841 timing.DashboardScreen.HandleInput: 11ms (key=DownArrow
+13:52:52.927 timing.DashboardScreen.Render: 49ms
+13:52:53.758 counter.dashboard.navigation.up: 1count
+13:52:53.791 timing.DashboardScreen.HandleInput: 37ms (key=UpArrow
+13:52:53.883 timing.DashboardScreen.Render: 62ms
+13:53:15.412 counter.dashboard.navigation.down: 2count
+13:53:15.418 timing.DashboardScreen.HandleInput: 14ms (key=DownArrow
+13:53:15.482 timing.DashboardScreen.Render: 40ms
+13:53:16.016 counter.dashboard.navigation.down: 3count
+13:53:16.020 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+13:53:16.065 timing.DashboardScreen.Render: 23ms
+13:53:16.424 counter.dashboard.navigation.down: 4count
+13:53:16.426 timing.DashboardScreen.HandleInput: 6ms (key=DownArrow
+13:53:16.462 timing.DashboardScreen.Render: 14ms
+13:53:17.463 counter.dashboard.navigation: 1count (screen=Tasks
+13:53:17.470 timing.DashboardScreen.HandleInput: 33ms (key=4
+13:53:17.473 timing.DashboardScreen.HandleInput: 53ms (key=Enter
+13:53:17.513 timing.DashboardScreen.Render: 15ms
+13:53:19.859 counter.dashboard.navigation.up: 2count
+13:53:19.869 timing.DashboardScreen.HandleInput: 15ms (key=UpArrow
+13:53:19.910 timing.DashboardScreen.Render: 11ms
+13:53:20.905 counter.dashboard.navigation: 1count (screen=Projects
+13:53:20.914 timing.DashboardScreen.HandleInput: 16ms (key=3
+13:53:20.920 timing.DashboardScreen.HandleInput: 24ms (key=Enter
+13:53:20.975 timing.DashboardScreen.Render: 30ms

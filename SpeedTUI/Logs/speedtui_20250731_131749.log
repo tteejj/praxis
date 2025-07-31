@@ -1,0 +1,20 @@
+2025-07-31 13:17:49.392 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:17:50.251 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:17:50.358 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:17:50.563 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:17:51.333 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 13:17:52.470 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 13:17:52.500 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 13:17:52.568 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=169x44
+2025-07-31 13:17:59.880 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:17:59.924 [Debug] [SpeedTUI][TimeTrackingScreen] Initializing forms
+2025-07-31 13:17:59.947 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm created
+2025-07-31 13:18:00.033 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=3 Label=Project Name Placeholder=e.g., Website Redesign
+2025-07-31 13:18:00.070 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm fields added | FieldCount=9
+2025-07-31 13:18:00.098 [Debug] [SpeedTUI][FormManager] Added text field | FieldCount=3 Label=Project Name Placeholder=e.g., Website Redesign
+2025-07-31 13:18:00.152 [Debug] [SpeedTUI][TimeTrackingScreen] Current week initialized | WeekStarting=2025-07-28 WeekEnding=2025-08-01
+2025-07-31 13:18:26.820 [Debug] [SpeedTUI][TimeTrackingScreen] Delete confirmation input | SelectedEntry=6 Key=Shift+Y
+2025-07-31 13:18:26.830 [Debug] [SpeedTUI][TimeTrackingScreen] Delete cancelled by user
+2025-07-31 13:18:32.041 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 13:18:32.069 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | AverageFPS=494.1 TotalFrames=2040 AverageFrameTime=2.02 TotalUptime=00:00:39 RenderEngineUsed=True
+2025-07-31 13:18:32.075 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed

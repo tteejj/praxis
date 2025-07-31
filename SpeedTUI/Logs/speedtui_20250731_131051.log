@@ -1,0 +1,77 @@
+2025-07-31 13:10:51.609 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 13:10:52.374 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 13:10:52.472 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 13:10:52.659 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:10:53.349 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 13:10:54.422 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 13:10:54.507 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 13:10:54.588 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=169x44
+2025-07-31 13:10:54.719 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=DashboardScreen
+2025-07-31 13:11:09.141 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 13:11:09.180 [Debug] [SpeedTUI][TimeTrackingScreen] Initializing forms
+2025-07-31 13:11:09.202 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm created
+2025-07-31 13:11:09.284 [Debug] [SpeedTUI][FormManager] Added text field | Label=Project Name Placeholder=e.g., Website Redesign FieldCount=3
+2025-07-31 13:11:09.317 [Debug] [SpeedTUI][TimeTrackingScreen] AddForm fields added | FieldCount=9
+2025-07-31 13:11:09.328 [Debug] [SpeedTUI][FormManager] Added text field | Label=Project Name Placeholder=e.g., Website Redesign FieldCount=3
+2025-07-31 13:11:09.377 [Debug] [SpeedTUI][TimeTrackingScreen] Current week initialized | WeekEnding=2025-08-01 WeekStarting=2025-07-28
+2025-07-31 13:11:09.453 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:11.312 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:11.769 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:11.920 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:12.078 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:12.246 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:12.952 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:13.504 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:13.660 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:13.813 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:13.979 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:14.152 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:14.298 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:15.455 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:15.669 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:15.810 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:15.976 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:16.130 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:16.288 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:17.281 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:17.551 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:17.724 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:17.923 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:18.119 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:18.286 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:18.448 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:21.364 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:21.508 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:21.678 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:21.826 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:21.982 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:22.154 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:22.857 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:23.539 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:23.965 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:24.129 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:24.296 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:24.464 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:24.627 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:24.793 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:24.954 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:25.251 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:25.603 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:25.753 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:25.916 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:26.065 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:26.228 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:26.393 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:26.543 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:26.696 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:27.794 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:27.929 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:28.073 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:28.239 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:28.403 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:28.569 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:28.731 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:28.893 [Error] [SpeedTUI][EnhancedApplication] Failed to render screen | Exception=Method invocation failed because [InternalVT100] does not contain a method named 'Clear'. ScreenType=TimeTrackingScreen
+2025-07-31 13:11:39.880 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 13:11:39.907 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | RenderEngineUsed=True AverageFrameTime=3.05 TotalUptime=00:00:45 TotalFrames=2231 AverageFPS=327.8
+2025-07-31 13:11:39.912 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed

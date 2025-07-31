@@ -1,0 +1,8 @@
+2025-07-31 11:23:18.203 [Info] [EnhancedThemeManager][RegisterTheme] Registered theme | Name=default Description=Classic SpeedTUI default theme
+2025-07-31 11:23:18.524 [Info] [EnhancedThemeManager][RegisterTheme] Registered theme | Name=dark Description=Modern dark theme with purple accents
+2025-07-31 11:23:18.541 [Info] [EnhancedThemeManager][RegisterTheme] Registered theme | Name=matrix Description=Matrix-inspired green on black theme
+2025-07-31 11:23:18.551 [Info] [EnhancedThemeManager][RegisterTheme] Registered theme | Name=amber Description=Warm amber theme inspired by vintage terminals
+2025-07-31 11:23:18.567 [Info] [EnhancedThemeManager][RegisterTheme] Registered theme | Name=electric Description=Electric blue theme with cyan highlights
+2025-07-31 11:23:18.580 [Info] [EnhancedThemeManager][RegisterBuiltInThemes] Registered built-in themes | Themes=default, dark, matrix, amber, electric
+2025-07-31 11:23:18.622 [Info] [EnhancedThemeManager][SetTheme] Theme changed | OldTheme=default NewTheme=default
+2025-07-31 11:23:18.650 [Info] [EnhancedThemeManager][Constructor] Enhanced ThemeManager initialized with built-in themes

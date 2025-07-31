@@ -1,0 +1,16 @@
+2025-07-31 07:25:48.511 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 07:25:48.908 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:215 char:14
++     [string] HandleListInput([string]$key) {
++              ~~~~~~~~~~~~~~~
+Not all code path returns value within method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:267 char:14
++     [string] HandleAddInput([string]$key) {
++              ~~~~~~~~~~~~~~
+Not all code path returns value within method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/TimeTrackingScreen.ps1:284 char:14
++     [string] HandleEditInput([string]$key) {
++              ~~~~~~~~~~~~~~~
+Not all code path returns value within method.
+2025-07-31 07:25:49.185 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

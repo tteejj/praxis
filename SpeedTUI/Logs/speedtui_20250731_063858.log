@@ -1,0 +1,21 @@
+2025-07-31 06:38:58.660 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 06:38:58.981 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Screens/MonitoringScreen.ps1:85 char:40
++             $process = Get-Process -Id $PID
++                                        ~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/MonitoringScreen.ps1:107 char:40
++             $lines += "│ Process ID: $($PID.ToString().PadRight(10))  …
++                                        ~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/MonitoringScreen.ps1:107 char:146
++ … d\.hh\:mm\:ss').PadRight(15)) │ PowerShell: $($PSVersionTable.PSVersi …
++                                                 ~~~~~~~~~~~~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/MonitoringScreen.ps1:227 char:12
++     [bool] HandleInput([string]$key) {
++            ~~~~~~~~~~~
+Not all code path returns value within method.
+2025-07-31 06:38:59.247 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled

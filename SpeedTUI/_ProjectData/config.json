@@ -1,0 +1,127 @@
+{
+  "Editor": {
+    "UseTabs": false,
+    "AutoIndent": true,
+    "Encoding": "UTF8",
+    "AutoComplete": true,
+    "BracketMatching": true,
+    "ShowWhitespace": false,
+    "LineEndings": "CRLF",
+    "TabSize": 4,
+    "SyntaxHighlighting": true
+  },
+  "Shortcuts": {
+    "Replace": "Ctrl+H",
+    "Search": "Ctrl+F",
+    "Paste": "Ctrl+V",
+    "QuickCommand": "Ctrl+Shift+P",
+    "Open": "Ctrl+O",
+    "ToggleFullScreen": "F11",
+    "SelectAll": "Ctrl+A",
+    "Cut": "Ctrl+X",
+    "ShowHelp": "F1",
+    "TimeEntry": "Ctrl+T",
+    "Exit": "Ctrl+Q",
+    "Copy": "Ctrl+C",
+    "Undo": "Ctrl+Z",
+    "Save": "Ctrl+S",
+    "Redo": "Ctrl+Y",
+    "New": "Ctrl+N"
+  },
+  "Application": {
+    "StartupMode": "Dashboard",
+    "RefreshInterval": 5000,
+    "MaxLogFiles": 10,
+    "LogLevel": "Debug",
+    "AutoSave": true,
+    "BackupRetention": 30,
+    "Name": "SpeedTUI",
+    "Version": "1.0.0"
+  },
+  "Files": {
+    "CompressBackups": true,
+    "BackupDirectory": "Backups",
+    "ShowHiddenFiles": false,
+    "AutoBackup": true,
+    "BackupInterval": 24,
+    "DefaultDirectory": "_ProjectData",
+    "MaxBackups": 10
+  },
+  "UI": {
+    "WindowTitle": "SpeedTUI - PowerShell Terminal Interface",
+    "ShowBorders": true,
+    "HighlightCurrentLine": true,
+    "ShowLineNumbers": true,
+    "WordWrap": true,
+    "DefaultWidth": 120,
+    "ShowStatusBar": true,
+    "DefaultHeight": 30,
+    "ShowToolbar": true,
+    "FullScreen": false,
+    "Theme": "Default"
+  },
+  "Recent": {
+    "MaxFiles": 10,
+    "MaxSearches": 15,
+    "MaxCommands": 20,
+    "ClearOnExit": false,
+    "MaxProjects": 10
+  },
+  "Network": {
+    "ProxyUsername": "",
+    "ProxyServer": "",
+    "ProxyPort": 8080,
+    "ProxyEnabled": false,
+    "UpdateCheckInterval": 7,
+    "Timeout": 30,
+    "ProxyAuth": false,
+    "EnableUpdates": true
+  },
+  "_metadata": {
+    "Application": "SpeedTUI",
+    "Version": "1.0",
+    "LastModified": "2025-07-31T13:52:46.4855508-06:00"
+  },
+  "Commands": {
+    "EnableTemplates": true,
+    "ShowUsageCount": true,
+    "GroupByCategory": true,
+    "MaxRecentCommands": 20,
+    "DefaultLanguage": "PowerShell",
+    "CacheSearchResults": true,
+    "AutoCreateBackups": true,
+    "ShowFavorites": true
+  },
+  "Advanced": {
+    "MaxUndoLevels": 50,
+    "ShowPerformanceMetrics": false,
+    "EnableTelemetry": false,
+    "ThreadPoolSize": 4,
+    "AutoRecovery": true,
+    "EnableDebugMode": true,
+    "CacheSize": 100,
+    "RecoveryInterval": 300
+  },
+  "TimeTracking": {
+    "ValidateTimeEntries": true,
+    "AutoCalculateTotal": true,
+    "RoundingMinutes": 15,
+    "FiscalYearStart": "April",
+    "WeekStartDay": "Monday",
+    "RequireProjectCode": true,
+    "ShowWeekends": false,
+    "DefaultHoursPerDay": 8.0
+  },
+  "Colors": {
+    "Border": "Gray",
+    "Success": "Green",
+    "Accent": "DarkBlue",
+    "Info": "Cyan",
+    "Header": "Magenta",
+    "Warning": "Yellow",
+    "Selection": "Blue",
+    "Background": "Black",
+    "Error": "Red",
+    "Foreground": "White"
+  }
+}

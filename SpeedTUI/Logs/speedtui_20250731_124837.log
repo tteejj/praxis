@@ -1,0 +1,387 @@
+2025-07-31 12:48:38.072 [Debug] [SpeedTUI][Startup] Debug logging enabled with modular levels
+2025-07-31 12:48:38.343 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0-Enhanced starting up
+2025-07-31 12:48:39.310 [Info] [SpeedTUI][Startup] Debug mode enabled
+2025-07-31 12:48:39.365 [Info] [SpeedTUI][EnhancedApplication] Creating enhanced application with RenderEngine integration
+2025-07-31 12:48:39.407 [Info] [Terminal][Constructor] Initializing enhanced terminal
+2025-07-31 12:48:39.512 [Trace] [Terminal][UpdateDimensions] Terminal dimensions updated | Width=90 Height=23
+2025-07-31 12:48:39.547 [Info] [Terminal][Constructor] Enhanced terminal initialized | CacheEnabled=True Width=90 Height=23
+2025-07-31 12:48:39.585 [Trace] [RenderEngine][Constructor] Creating render engine
+2025-07-31 12:48:39.611 [Info] [RenderEngine][Constructor] RenderEngine created successfully
+2025-07-31 12:48:39.641 [Info] [SpeedTUI][EnhancedApplication] Enhanced application created successfully
+2025-07-31 12:48:39.656 [Info] [SpeedTUI][EnhancedApplication] Debug mode enabled - detailed logging active
+2025-07-31 12:48:39.775 [Info] [SpeedTUI][TimeTrackingService] Initialized for fiscal year: 2025-2026
+2025-07-31 12:48:40.508 [Info] [SpeedTUI][Startup] Enhanced application startup completed
+2025-07-31 12:48:41.595 [Info] [SpeedTUI][EnhancedApplication] Starting enhanced application | StartScreen=DashboardScreen
+2025-07-31 12:48:41.618 [Debug] [SpeedTUI][EnhancedApplication] Initializing application systems
+2025-07-31 12:48:41.634 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 12:48:41.743 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | CacheSize=2 Theme=default Width=90 Height=23
+2025-07-31 12:48:41.766 [Trace] [RenderEngine][Initialize] Initialize method started | AlreadyInitialized=False
+2025-07-31 12:48:41.771 [Info] [RenderEngine][Initialize] Initializing render engine
+2025-07-31 12:48:41.778 [Debug] [RenderEngine][Initialize] Initializing terminal
+2025-07-31 12:48:41.786 [Info] [Terminal][Initialize] Setting up enhanced terminal for TUI mode
+2025-07-31 12:48:41.824 [Info] [Terminal][Initialize] Enhanced terminal initialized successfully | CacheSize=2 Theme=default Width=90 Height=23
+2025-07-31 12:48:41.840 [Debug] [RenderEngine][Initialize] Creating render buffer | Width=90 Height=23
+2025-07-31 12:48:41.922 [Trace] [Guard][Positive] Validating positive parameter | ParamName=width IsPositive=True Value=90
+2025-07-31 12:48:41.931 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 12:48:41.935 [Trace] [Guard][Positive] Validating positive parameter | ParamName=height IsPositive=True Value=23
+2025-07-31 12:48:41.941 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 12:48:42.022 [Debug] [RenderBuffer][Constructor] Buffer initialized | Width=90 Height=23
+2025-07-31 12:48:42.036 [Info] [RenderEngine][Initialize] Render engine initialized successfully | Width=90 Height=23
+2025-07-31 12:48:42.088 [Trace] [RenderEngine][DefineRegion] Defining new region | Height=23 ExistingRegions=0 Y=0 Id=main Width=90 X=0
+2025-07-31 12:48:42.108 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=id IsNullOrEmpty=False
+2025-07-31 12:48:42.114 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:42.155 [Trace] [RenderRegion][Constructor] Creating render region | Id=main Height=23 Y=0 Width=90 X=0
+2025-07-31 12:48:42.164 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=id IsNullOrEmpty=False
+2025-07-31 12:48:42.186 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:42.220 [Trace] [Guard][NonNegative] Validating non-negative parameter | ParamName=x IsNonNegative=True Value=0
+2025-07-31 12:48:42.225 [Trace] [Guard][NonNegative] Non-negative validation passed
+2025-07-31 12:48:42.229 [Trace] [Guard][NonNegative] Validating non-negative parameter | ParamName=y IsNonNegative=True Value=0
+2025-07-31 12:48:42.234 [Trace] [Guard][NonNegative] Non-negative validation passed
+2025-07-31 12:48:42.241 [Trace] [Guard][Positive] Validating positive parameter | ParamName=width IsPositive=True Value=90
+2025-07-31 12:48:42.247 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 12:48:42.251 [Trace] [Guard][Positive] Validating positive parameter | ParamName=height IsPositive=True Value=23
+2025-07-31 12:48:42.256 [Trace] [Guard][Positive] Positive validation passed
+2025-07-31 12:48:42.283 [Debug] [RenderRegion][Constructor] Render region created successfully | Bounds=0,0 90x23 Id=main
+2025-07-31 12:48:42.292 [Debug] [RenderEngine][DefineRegion] Region defined successfully | Height=23 Y=0 Id=main Width=90 TotalRegions=1 X=0
+2025-07-31 12:48:42.309 [Info] [SpeedTUI][EnhancedApplication] Application initialized | TerminalSize=90x23
+2025-07-31 12:48:42.347 [Trace] [SpeedTUI][EnhancedApplication] Rendering screen flicker-free | ScreenType=DashboardScreen
+2025-07-31 12:48:42.367 [Trace] [RenderEngine][BeginFrame] Beginning frame | FrameCount=0 DirtyRegions=0
+2025-07-31 12:48:42.376 [Trace] [RenderEngine][BeginFrame] Frame begun successfully
+2025-07-31 12:48:42.391 [Trace] [RenderEngine][ClearRegion] Clearing region | RegionId=main
+2025-07-31 12:48:42.395 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:42.399 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:42.415 [Debug] [RenderEngine][ClearRegion] Clearing region buffer | Bounds=0,0 90x23 RegionId=main
+2025-07-31 12:48:42.458 [Trace] [RenderBuffer][ClearRegion] Clearing buffer region | Height=23 Y=0 BufferSize=90x23 Width=90 X=0
+2025-07-31 12:48:42.496 [Debug] [RenderBuffer][ClearRegion] Region cleared successfully | ActualBounds=0,0 to 90,23 CellsCleared=2070
+2025-07-31 12:48:42.515 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=False TotalDirtyRegions=0 RegionId=main
+2025-07-31 12:48:42.519 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:42.524 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:42.532 [Debug] [RenderEngine][MarkDirty] Region marked dirty | TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:42.536 [Trace] [RenderEngine][ClearRegion] Region cleared successfully
+2025-07-31 12:48:43.270 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=0 RegionId=main Text=╔════════════════════════════════════════════════════════════════════════════════════════╗ X=0
+2025-07-31 12:48:43.275 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.279 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.298 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.303 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.342 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=0 BufferSize=90x23 Text=╔════════════════════════════════════════════════════════════════════════════════════════╗ X=0
+2025-07-31 12:48:43.349 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.353 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.439 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=0 CharsWritten=90 X=0
+2025-07-31 12:48:43.444 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.448 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.453 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.456 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.460 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,0 RegionId=main
+2025-07-31 12:48:43.467 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=1 RegionId=main Text=║                                                                                        ║ X=0
+2025-07-31 12:48:43.479 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.486 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.489 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.494 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.497 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=1 BufferSize=90x23 Text=║                                                                                        ║ X=0
+2025-07-31 12:48:43.504 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.513 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.519 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=1 CharsWritten=90 X=0
+2025-07-31 12:48:43.524 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.529 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.533 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.537 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.543 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,1 RegionId=main
+2025-07-31 12:48:43.548 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=2 RegionId=main Text=║      ███████╗██████╗ ███████╗███████╗██████╗ ████████╗██╗   ██╗██╗    FAST • POWER...  ║ X=0
+2025-07-31 12:48:43.552 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.557 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.560 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.564 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.568 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=2 BufferSize=90x23 Text=║      ███████╗██████╗ ███████╗███████╗██████╗ ████████╗██╗   ██╗██╗    FAST • POWER...  ║ X=0
+2025-07-31 12:48:43.573 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.577 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.581 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=2 CharsWritten=90 X=0
+2025-07-31 12:48:43.586 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.590 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.595 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.598 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.601 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,2 RegionId=main
+2025-07-31 12:48:43.606 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=3 RegionId=main Text=║      ██╔════╝██╔══██╗██╔════╝██╔════╝██╔══██╗╚══██╔══╝██║   ██║██║                     ║ X=0
+2025-07-31 12:48:43.610 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.615 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.618 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.623 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.627 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=3 BufferSize=90x23 Text=║      ██╔════╝██╔══██╗██╔════╝██╔════╝██╔══██╗╚══██╔══╝██║   ██║██║                     ║ X=0
+2025-07-31 12:48:43.632 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.636 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.640 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=3 CharsWritten=90 X=0
+2025-07-31 12:48:43.645 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.649 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.654 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.659 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.663 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,3 RegionId=main
+2025-07-31 12:48:43.667 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=4 RegionId=main Text=║      ███████╗██████╔╝█████╗  █████╗  ██║  ██║   ██║   ██║   ██║██║    PowerShell T...  ║ X=0
+2025-07-31 12:48:43.672 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.676 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.680 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.684 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.688 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=4 BufferSize=90x23 Text=║      ███████╗██████╔╝█████╗  █████╗  ██║  ██║   ██║   ██║   ██║██║    PowerShell T...  ║ X=0
+2025-07-31 12:48:43.692 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.697 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.700 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=4 CharsWritten=90 X=0
+2025-07-31 12:48:43.705 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.710 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.714 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.717 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.720 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,4 RegionId=main
+2025-07-31 12:48:43.725 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=5 RegionId=main Text=║      ╚════██║██╔═══╝ ██╔══╝  ██╔══╝  ██║  ██║   ██║   ██║   ██║██║                     ║ X=0
+2025-07-31 12:48:43.730 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.737 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.773 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.778 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.781 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=5 BufferSize=90x23 Text=║      ╚════██║██╔═══╝ ██╔══╝  ██╔══╝  ██║  ██║   ██║   ██║   ██║██║                     ║ X=0
+2025-07-31 12:48:43.785 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.790 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.794 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=5 CharsWritten=90 X=0
+2025-07-31 12:48:43.798 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.802 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.806 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.809 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.812 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,5 RegionId=main
+2025-07-31 12:48:43.817 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=6 RegionId=main Text=║      ███████║██║     ███████╗███████╗██████╔╝   ██║   ╚██████╔╝██║    Version 1.0.0    ║ X=0
+2025-07-31 12:48:43.821 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.825 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.828 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.833 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.836 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=6 BufferSize=90x23 Text=║      ███████║██║     ███████╗███████╗██████╔╝   ██║   ╚██████╔╝██║    Version 1.0.0    ║ X=0
+2025-07-31 12:48:43.840 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.844 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.848 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=6 CharsWritten=90 X=0
+2025-07-31 12:48:43.853 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.857 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.867 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.870 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.872 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,6 RegionId=main
+2025-07-31 12:48:43.876 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=7 RegionId=main Text=║      ╚══════╝╚═╝     ╚══════╝╚══════╝╚═════╝    ╚═╝    ╚═════╝ ╚═╝                     ║ X=0
+2025-07-31 12:48:43.880 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.887 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.890 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.894 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.898 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=7 BufferSize=90x23 Text=║      ╚══════╝╚═╝     ╚══════╝╚══════╝╚═════╝    ╚═╝    ╚═════╝ ╚═╝                     ║ X=0
+2025-07-31 12:48:43.902 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.906 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.910 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=7 CharsWritten=90 X=0
+2025-07-31 12:48:43.914 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.918 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.922 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.926 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:43.929 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,7 RegionId=main
+2025-07-31 12:48:43.933 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=8 RegionId=main Text=║                                                                                        ║ X=0
+2025-07-31 12:48:43.941 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.946 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:43.949 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.953 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.957 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=8 BufferSize=90x23 Text=║                                                                                        ║ X=0
+2025-07-31 12:48:43.962 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:43.967 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:43.985 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=8 CharsWritten=90 X=0
+2025-07-31 12:48:43.991 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:43.995 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:43.999 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.002 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.006 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,8 RegionId=main
+2025-07-31 12:48:44.010 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=9 RegionId=main Text=║                            Thursday, July 31, 2025 - 12:48:42                          ║ X=0
+2025-07-31 12:48:44.015 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.021 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.024 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.028 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.032 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=9 BufferSize=90x23 Text=║                            Thursday, July 31, 2025 - 12:48:42                          ║ X=0
+2025-07-31 12:48:44.037 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.041 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.045 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=9 CharsWritten=90 X=0
+2025-07-31 12:48:44.052 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.057 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.062 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.065 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.069 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,9 RegionId=main
+2025-07-31 12:48:44.073 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=10 RegionId=main Text=╚════════════════════════════════════════════════════════════════════════════════════════╝ X=0
+2025-07-31 12:48:44.078 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.082 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.088 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.092 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.096 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=10 BufferSize=90x23 Text=╚════════════════════════════════════════════════════════════════════════════════════════╝ X=0
+2025-07-31 12:48:44.100 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.104 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.108 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=10 CharsWritten=90 X=0
+2025-07-31 12:48:44.112 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.119 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.123 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.126 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.130 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,10 RegionId=main
+2025-07-31 12:48:44.134 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=12 RegionId=main Text=╔════════════════════════════════════════════════════════════════════════════════════════╗ X=0
+2025-07-31 12:48:44.138 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.142 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.146 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.152 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.155 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=12 BufferSize=90x23 Text=╔════════════════════════════════════════════════════════════════════════════════════════╗ X=0
+2025-07-31 12:48:44.160 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.164 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.168 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=12 CharsWritten=90 X=0
+2025-07-31 12:48:44.172 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.177 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.181 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.186 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.189 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,12 RegionId=main
+2025-07-31 12:48:44.194 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=13 RegionId=main Text=║                                     Quick Statistics                                   ║ X=0
+2025-07-31 12:48:44.199 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.203 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.207 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.211 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.214 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=13 BufferSize=90x23 Text=║                                     Quick Statistics                                   ║ X=0
+2025-07-31 12:48:44.221 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.226 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.230 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=13 CharsWritten=90 X=0
+2025-07-31 12:48:44.234 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.238 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.243 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.246 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.251 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,13 RegionId=main
+2025-07-31 12:48:44.255 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=14 RegionId=main Text=╠════════════════════════════════════════════════════════════════════════════════════════╣ X=0
+2025-07-31 12:48:44.260 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.264 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.268 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.272 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.275 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=14 BufferSize=90x23 Text=╠════════════════════════════════════════════════════════════════════════════════════════╣ X=0
+2025-07-31 12:48:44.280 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.287 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.290 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=14 CharsWritten=90 X=0
+2025-07-31 12:48:44.295 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.299 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.303 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.307 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.310 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,14 RegionId=main
+2025-07-31 12:48:44.314 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=15 RegionId=main Text=║                                                                                        ║ X=0
+2025-07-31 12:48:44.323 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.332 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.335 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.339 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.343 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=15 BufferSize=90x23 Text=║                                                                                        ║ X=0
+2025-07-31 12:48:44.350 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.355 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.358 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=15 CharsWritten=90 X=0
+2025-07-31 12:48:44.363 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.368 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.372 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.375 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.378 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,15 RegionId=main
+2025-07-31 12:48:44.382 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=16 RegionId=main Text=║      📊 COMMANDS:    5         🎯 PROJECTS:    0         ⏱️  TIME ENTRIES:    7        ║ X=0
+2025-07-31 12:48:44.387 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.391 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.394 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.398 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.402 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=16 BufferSize=90x23 Text=║      📊 COMMANDS:    5         🎯 PROJECTS:    0         ⏱️  TIME ENTRIES:    7        ║ X=0
+2025-07-31 12:48:44.406 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.410 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.414 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=16 CharsWritten=90 X=0
+2025-07-31 12:48:44.420 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.425 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.429 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.432 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.435 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,16 RegionId=main
+2025-07-31 12:48:44.439 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=17 RegionId=main Text=║                                                                                        ║ X=0
+2025-07-31 12:48:44.444 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.448 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.454 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.460 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.463 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=17 BufferSize=90x23 Text=║                                                                                        ║ X=0
+2025-07-31 12:48:44.469 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.473 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.477 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=17 CharsWritten=90 X=0
+2025-07-31 12:48:44.485 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.489 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.494 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.497 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.500 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,17 RegionId=main
+2025-07-31 12:48:44.504 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=18 RegionId=main Text=║      📅 FISCAL YEAR: 2025-2026      💾 MEMORY:  147.4 MB      ⏰ UPTIME:  0.00:00       ║ X=0
+2025-07-31 12:48:44.509 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.513 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.516 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.520 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.523 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=18 BufferSize=90x23 Text=║      📅 FISCAL YEAR: 2025-2026      💾 MEMORY:  147.4 MB      ⏰ UPTIME:  0.00:00       ║ X=0
+2025-07-31 12:48:44.528 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.532 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.535 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=18 CharsWritten=90 X=0
+2025-07-31 12:48:44.540 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.547 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.551 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.554 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.558 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,18 RegionId=main
+2025-07-31 12:48:44.562 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=19 RegionId=main Text=║                                                                                        ║ X=0
+2025-07-31 12:48:44.566 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.571 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.574 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.581 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.584 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=19 BufferSize=90x23 Text=║                                                                                        ║ X=0
+2025-07-31 12:48:44.589 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.593 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.597 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=19 CharsWritten=90 X=0
+2025-07-31 12:48:44.601 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.606 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.610 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.615 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.619 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,19 RegionId=main
+2025-07-31 12:48:44.624 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=20 RegionId=main Text=╚════════════════════════════════════════════════════════════════════════════════════════╝ X=0
+2025-07-31 12:48:44.633 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.638 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.641 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.645 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.649 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=20 BufferSize=90x23 Text=╚════════════════════════════════════════════════════════════════════════════════════════╝ X=0
+2025-07-31 12:48:44.656 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.661 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.664 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=20 CharsWritten=90 X=0
+2025-07-31 12:48:44.669 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.673 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.677 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.680 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.683 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,20 RegionId=main
+2025-07-31 12:48:44.690 [Trace] [RenderEngine][WriteToRegion] Writing to region | TextLength=90 Y=22 RegionId=main Text=╔════════════════════════════════════════════════════════════════════════════════════════╗ X=0
+2025-07-31 12:48:44.695 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.699 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.702 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.707 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.710 [Trace] [RenderBuffer][WriteAt] Writing text to buffer | TextLength=90 Y=22 BufferSize=90x23 Text=╔════════════════════════════════════════════════════════════════════════════════════════╗ X=0
+2025-07-31 12:48:44.715 [Trace] [Guard][NotNull] Validating parameter | ParamName=text IsNull=False
+2025-07-31 12:48:44.722 [Trace] [Guard][NotNull] Parameter validation passed
+2025-07-31 12:48:44.726 [Trace] [RenderBuffer][WriteAt] Text written successfully | TotalChars=90 Y=22 CharsWritten=90 X=0
+2025-07-31 12:48:44.730 [Trace] [RenderEngine][MarkDirty] Marking region dirty | AlreadyDirty=True TotalDirtyRegions=1 RegionId=main
+2025-07-31 12:48:44.734 [Trace] [Guard][NotNullOrEmpty] Validating string parameter | ParamName=regionId IsNullOrEmpty=False
+2025-07-31 12:48:44.739 [Trace] [Guard][NotNullOrEmpty] String validation passed
+2025-07-31 12:48:44.742 [Trace] [RenderEngine][MarkDirty] Region already dirty
+2025-07-31 12:48:44.745 [Trace] [RenderEngine][WriteToRegion] Text written successfully | AbsoluteCoords=0,22 RegionId=main
+2025-07-31 12:48:44.761 [Trace] [RenderEngine][EndFrame] Ending frame | FrameCount=0 DirtyRegions=1
+2025-07-31 12:48:44.814 [Trace] [RenderEngine][Performance] Starting operation: Frame
+2025-07-31 12:48:44.820 [Debug] [RenderEngine][EndFrame] Computing buffer differences
+2025-07-31 12:48:44.841 [Trace] [RenderBuffer][GetDifferences] Computing buffer differences | BufferSize=90x23
+2025-07-31 12:48:44.937 [Debug] [RenderBuffer][GetDifferences] Differences computed | CellsCompared=2070 ChangedCells=1047 DifferenceCount=102 ChangePercentage=50.58
+2025-07-31 12:48:44.948 [Trace] [RenderEngine][EndFrame] Rendering differences | DifferenceCount=102
+2025-07-31 12:48:44.996 [Debug] [RenderEngine][EndFrame] Swapping buffers
+2025-07-31 12:48:45.014 [Trace] [RenderBuffer][Swap] Swapping render buffers
+2025-07-31 12:48:45.035 [Trace] [RenderBuffer][Clear] Clearing entire buffer | BufferSize=90x23
+2025-07-31 12:48:45.050 [Debug] [RenderBuffer][Clear] Buffer cleared successfully | CellsCleared=2070
+2025-07-31 12:48:45.054 [Trace] [RenderBuffer][Swap] Buffer swap completed successfully
+2025-07-31 12:48:45.080 [Trace] [RenderEngine][EndFrame] Frame completed | DifferencesRendered=102 DirtyRegionsCleared=1 FrameNumber=1 FrameTimeMs=0
+2025-07-31 12:48:45.116 [Debug] [RenderEngine][Performance] Completed operation: Frame | Operation=Frame ElapsedMs=291.2327
+2025-07-31 12:48:45.142 [Trace] [SpeedTUI][EnhancedApplication] Screen rendered successfully | LineCount=48
+2025-07-31 12:48:47.008 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=100 CurrentFPS=16286.6 AvgFrameTime=28.31
+2025-07-31 12:48:48.849 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=200 CurrentFPS=27548.2 AvgFrameTime=14.19
+2025-07-31 12:48:50.638 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=300 CurrentFPS=28089.9 AvgFrameTime=9.47
+2025-07-31 12:48:52.404 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=400 CurrentFPS=35211.3 AvgFrameTime=7.12
+2025-07-31 12:48:54.181 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=500 CurrentFPS=15267.2 AvgFrameTime=5.71
+2025-07-31 12:48:55.931 [Trace] [SpeedTUI][EnhancedApplication] Performance update | Frames=600 CurrentFPS=22471.9 AvgFrameTime=4.76
+2025-07-31 12:48:57.025 [Trace] [SpeedTUI][EnhancedApplication] Key pressed | Key=Ctrl+Q CurrentScreen=DashboardScreen KeyChar=17
+2025-07-31 12:48:57.052 [Info] [SpeedTUI][EnhancedApplication] Cleaning up enhanced application
+2025-07-31 12:48:57.067 [Trace] [RenderEngine][Cleanup] Cleanup method started | FrameCount=1 Initialized=True
+2025-07-31 12:48:57.070 [Info] [RenderEngine][Cleanup] Cleaning up render engine
+2025-07-31 12:48:57.073 [Debug] [RenderEngine][Cleanup] Cleaning up terminal
+2025-07-31 12:48:57.082 [Info] [Terminal][Cleanup] Restoring terminal state
+2025-07-31 12:48:57.163 [Info] [Terminal][Performance] Final performance statistics | CacheHitRate=0% TotalWriteOperations=0 TotalFrames=0 AverageFPS=0 FinalBatchSize=0 TotalCacheEntries=2
+2025-07-31 12:48:57.169 [Debug] [Terminal][Cleanup] Enhanced terminal state restored
+2025-07-31 12:48:57.177 [Info] [RenderEngine][Performance] Final render statistics | AverageFPS=Infinity AverageRenderMs=0 TotalFrames=1 TotalRenderTime=0
+2025-07-31 12:48:57.180 [Info] [RenderEngine][Cleanup] Render engine cleanup completed
+2025-07-31 12:48:57.189 [Info] [SpeedTUI][EnhancedApplication] Final performance statistics | TotalUptime=00:00:14 AverageFPS=224.7 RenderEngineUsed=True TotalFrames=659 AverageFrameTime=4.45
+2025-07-31 12:48:57.192 [Info] [SpeedTUI][EnhancedApplication] Enhanced application cleanup completed
+2025-07-31 12:48:57.459 [Info] [SpeedTUI][Shutdown] Enhanced application shutdown completed

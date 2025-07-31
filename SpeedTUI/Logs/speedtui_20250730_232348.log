@@ -1,0 +1,3 @@
+2025-07-30 23:23:49.125 [Debug] [Label][Constructor] Component created | Id=be62e429-d8b5-4de7-80cb-16d5b30d80f1 Type=Label
+2025-07-30 23:23:49.358 [Debug] [Label][Constructor] Label created with text | Text=Test
+2025-07-30 23:23:49.424 [Info] [Terminal][Constructor] Initializing Terminal

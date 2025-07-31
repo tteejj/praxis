@@ -1,0 +1,51 @@
+2025-07-31 06:35:43.622 [Info] [SpeedTUI][Startup] SpeedTUI 1.0.0 starting up
+2025-07-31 06:35:43.917 [Fatal] [SpeedTUI][Startup] Fatal startup error: At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:12 char:25
++ class DashboardScreen : Component {
++                         ~~~~~~~~~
+Unable to find type [Component].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:33 char:36
++             $this.ConfigService = [ConfigurationService]::new()
++                                    ~~~~~~~~~~~~~~~~~~~~
+Unable to find type [ConfigurationService].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:34 char:34
++             $this.TimeService = [TimeTrackingService]::new()
++                                  ~~~~~~~~~~~~~~~~~~~
+Unable to find type [TimeTrackingService].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:35 char:37
++             $this.CommandService = [CommandService]::new()
++                                     ~~~~~~~~~~~~~~
+Unable to find type [CommandService].
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:131 char:56
++             $memoryMB = [Math]::Round((Get-Process -Id $PID).WorkingS …
++                                                        ~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:132 char:58
++             $uptime = [DateTime]::Now - (Get-Process -Id $PID).StartT …
++                                                          ~~~~
+Variable is not assigned in the method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:224 char:14
++     [string] FormatActivityMessage([object]$metric) {
++              ~~~~~~~~~~~~~~~~~~~~~
+Not all code path returns value within method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:263 char:14
++     [string] HandleInput([string]$key) {
++              ~~~~~~~~~~~
+Not all code path returns value within method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:319 char:14
++     [string] NavigateToScreen([string]$screenName) {
++              ~~~~~~~~~~~~~~~~
+Not all code path returns value within method.
+
+At /home/teej/projects/github/SpeedTUI/Screens/DashboardScreen.ps1:400 char:36
++             "PowerShell Version: $($PSVersionTable.PSVersion)",
++                                    ~~~~~~~~~~~~~~~
+Variable is not assigned in the method.
+2025-07-31 06:35:44.185 [Info] [PerformanceMonitor][Disable] Performance monitoring disabled
