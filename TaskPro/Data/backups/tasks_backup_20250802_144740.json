@@ -132,7 +132,7 @@
     "ColorTheme": "personal",
     "SortOrder": 0,
     "Notes": "Weekly team sync agenda",
-    "ModifiedDate": "2025-08-02T14:47:40.3089757-06:00",
+    "ModifiedDate": "2025-08-02T10:20:30.0000000",
     "Tags": [],
     "DueDate": "2025-08-02T00:00:00.0000000",
     "Title": "Team meeting preparation",
@@ -141,21 +141,5 @@
     "SubtasksCollapsed": false,
     "CreatedDate": "2025-08-02T10:16:53.0000000",
     "ParentId": ""
-  },
-  {
-    "SubtaskColorTheme": "default",
-    "Priority": "Medium",
-    "ColorTheme": "default",
-    "SortOrder": 0,
-    "Notes": "",
-    "ModifiedDate": "2025-08-02T14:47:40.2329457-06:00",
-    "Tags": [],
-    "DueDate": null,
-    "Title": "sub",
-    "Id": "ef08a51d-8627-4b0e-b66e-a6b3351b8b65",
-    "Completed": false,
-    "SubtasksCollapsed": false,
-    "CreatedDate": "2025-08-02T14:47:40.2314615-06:00",
-    "ParentId": "f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3"
   }
 ]

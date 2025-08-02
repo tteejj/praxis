@@ -10,6 +10,13 @@ class TaskListScreen {
     [int]$Height
     [bool]$GlobalCollapseSubtasks = $false
     
+    # Inline editing state
+    [int]$EditingIndex = -1
+    [string]$EditingField = ""  # "title", "priority", "date", "tags"
+    [string]$EditingValue = ""
+    [SimpleTask]$EditingTask = $null
+    [bool]$IsNewTask = $false
+    
     # Modern RGB Colors
     [string]$HeaderColor = "`e[38;2;100;150;255m"     # Modern blue
     [string]$HighColor = "`e[38;2;255;100;100m"       # Coral red
@@ -27,13 +34,22 @@ class TaskListScreen {
     [string]$WeekColor = "`e[38;2;255;165;0m"          # Orange
     [string]$TodayColor = "`e[38;2;255;255;100m"       # Yellow
     [string]$FutureColor = "`e[38;2;80;200;120m"       # Green
+    [string]$EditHighlight = "`e[48;2;255;255;255;38;2;0;0;0m"  # White background, black text
     
-    # Column widths for new layout
-    [int]$StatusCol = 2      # "☐ "
-    [int]$PriorityCol = 4    # "High"
-    [int]$DateCol = 11       # "yyyy-mm-dd "
-    [int]$ArrowCol = 2       # "▼ "
+    # Column widths for new layout (with proper spacing)
+    [int]$StatusCol = 3      # "☐  "
+    [int]$PriorityCol = 5    # "High "
+    [int]$DateCol = 12       # "yyyy-mm-dd "
+    [int]$ArrowCol = 3       # "▼  "
     [int]$IndentWidth = 4    # "    " for subtasks
+    
+    # Pillbox characters
+    [string]$PillboxTopLeft = "╭"
+    [string]$PillboxTopRight = "╮"
+    [string]$PillboxBottomLeft = "╰"
+    [string]$PillboxBottomRight = "╯"
+    [string]$PillboxHorizontal = "─"
+    [string]$PillboxVertical = "│"
     
     TaskListScreen() {
         $this.TaskService = [SimpleTaskService]::new()
@@ -55,6 +71,66 @@ class TaskListScreen {
         }
     }
     
+    [int] GetItemHeight([int]$itemIndex) {
+        # Selected item gets pillbox (5 lines: spacer + top + content + content + bottom)
+        # Normal item gets 2 lines
+        if ($itemIndex -eq $this.SelectedIndex) {
+            return 5
+        } else {
+            return 2
+        }
+    }
+    
+    [int] CalculatePillboxWidth([SimpleTask]$task, [int]$level) {
+        # Calculate minimum width needed for content
+        $line1Length = $this.GetContentLength($task, $level)
+        
+        # Calculate tag line length
+        $line2Length = 0
+        if ($task.Tags.Count -gt 0) {
+            $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+            if ($level -eq 1) {
+                $indentSize += 7  # "    └─ "
+            }
+            $line2Length = $indentSize + 1 + ($task.Tags -join ", ").Length + 1  # "⟨tags⟩"
+        }
+        
+        # Use the longer of the two lines, plus borders and padding  
+        $contentWidth = [Math]::Max($line1Length, $line2Length)
+        $pillboxWidth = $contentWidth + 4  # "│" + " " + content + "│"
+        
+        # Ensure minimum width and don't exceed screen
+        $minWidth = 40
+        $maxWidth = $this.Width - 4
+        
+        return [Math]::Min($maxWidth, [Math]::Max($minWidth, $pillboxWidth))
+    }
+    
+    [void] RenderPillboxTop([System.Text.StringBuilder]$sb, [int]$width, [int]$y) {
+        [void]$sb.Append([VT]::MoveTo(0, $y))
+        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append($this.PillboxTopLeft)
+        [void]$sb.Append($this.PillboxHorizontal * ($width - 2))
+        [void]$sb.Append($this.PillboxTopRight)
+        [void]$sb.Append($this.NormalColor)
+    }
+    
+    [void] RenderPillboxBottom([System.Text.StringBuilder]$sb, [int]$width, [int]$y) {
+        [void]$sb.Append([VT]::MoveTo(0, $y))
+        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append($this.PillboxBottomLeft)
+        [void]$sb.Append($this.PillboxHorizontal * ($width - 2))
+        [void]$sb.Append($this.PillboxBottomRight)
+        [void]$sb.Append($this.NormalColor)
+    }
+    
+    [void] RenderPillboxSide([System.Text.StringBuilder]$sb, [int]$x, [int]$y) {
+        [void]$sb.Append([VT]::MoveTo($x, $y))
+        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append($this.PillboxVertical)
+        [void]$sb.Append($this.NormalColor)
+    }
+
     [string] GetDateColorAndText([SimpleTask]$task) {
         if ($task.DueDate -eq [datetime]::MinValue) {
             return $this.TagColor + "-".PadRight($this.DateCol - 1) + $this.NormalColor
@@ -137,85 +213,218 @@ class TaskListScreen {
         
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
         [void]$sb.Append($this.TagColor)
-        [void]$sb.Append("↑↓:Navigate  Ctrl+↑↓:Move  Space:Collapse  C:Collapse All  X:Toggle  Enter:Notes  T:Theme  R:Tags  Q:Quit")
+        if ($this.EditingIndex -ge 0) {
+            [void]$sb.Append("EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")
+        } else {
+            [void]$sb.Append("↑↓:Navigate  E:Edit  A:Add  N:New  S:Subtask  X:Toggle  Enter:Notes  T:Theme  R:Tags  Q:Quit")
+        }
         [void]$sb.Append($this.NormalColor)
         
-        # Hide cursor
-        [void]$sb.Append([VT]::HideCursor())
+        # Show/hide cursor based on editing state and position it correctly
+        if ($this.EditingIndex -ge 0) {
+            [void]$sb.Append([VT]::ShowCursor())
+            # Position cursor at the end of the editing field
+            $this.PositionCursorForEditing($sb)
+        } else {
+            [void]$sb.Append([VT]::HideCursor())
+        }
         
         return $sb.ToString()
     }
     
     [void] RenderTaskList([System.Text.StringBuilder]$sb) {
-        $listHeight = $this.Height - 5  # Header + column header + status bar
         $startY = 3
+        $currentY = $startY
+        $availableHeight = $this.Height - 5  # Header + status bar
         
-        # Calculate column positions
-        $titleStart = $this.StatusCol + $this.PriorityCol
-        $titleWidth = $this.Width - $titleStart - $this.DueDateCol - 2
+        # Calculate how many items we can show with dynamic heights
+        $visibleItems = @()
+        $totalHeight = 0
         
-        # Calculate visible range
-        $endIndex = [Math]::Min($this.ScrollTop + $listHeight, $this.FlatList.Count)
+        for ($i = $this.ScrollTop; $i -lt $this.FlatList.Count; $i++) {
+            $itemHeight = $this.GetItemHeight($i)
+            if ($totalHeight + $itemHeight -le $availableHeight) {
+                $visibleItems += $i
+                $totalHeight += $itemHeight
+            } else {
+                break
+            }
+        }
         
-        for ($i = $this.ScrollTop; $i -lt $endIndex; $i++) {
+        # Render each visible item
+        foreach ($i in $visibleItems) {
             $item = $this.FlatList[$i]
             $task = $item.Task
             $level = $item.Level
             $isLast = $item.IsLast
-            $y = $startY + ($i - $this.ScrollTop)
             $isSelected = ($i -eq $this.SelectedIndex)
             
-            [void]$sb.Append([VT]::MoveTo(0, $y))
-            
-            # Row background (alternating + selection)
             if ($isSelected) {
-                [void]$sb.Append($this.SelectedBg)
-            } elseif ($i % 2 -eq 0) {
-                [void]$sb.Append($this.EvenRowBg)
-            }
-            
-            # === COLUMN 1: STATUS (3 chars) ===
-            if ($level -eq 0 -and $task.Subtasks.Count -gt 0) {
-                if ($this.GlobalCollapseSubtasks -or $task.SubtasksCollapsed) {
-                    [void]$sb.Append("▶")  # Collapsed
-                } else {
-                    [void]$sb.Append("▼")  # Expanded
+                # === SELECTED ITEM WITH PILLBOX ===
+                
+                # Calculate optimal pillbox width
+                $pillboxWidth = $this.CalculatePillboxWidth($task, $level)
+                
+                # CRITICAL: Calculate the fixed right border position for BOTH lines
+                $rightBorderColumn = $pillboxWidth
+                
+                # Spacer line above
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append(" " * $this.Width)
+                $currentY++
+                
+                # Pillbox top
+                $this.RenderPillboxTop($sb, $pillboxWidth, $currentY)
+                $currentY++
+                
+                # Content line 1 with pillbox sides
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $this.RenderTaskContent($sb, $task, $level, $isLast, $false)
+                
+                # Move cursor to EXACT right border position
+                [void]$sb.Append([VT]::MoveTo($rightBorderColumn, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $currentY++
+                
+                # Content line 2 (tags) with pillbox sides
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                
+                # Render tag content
+                $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
+                if ($isEditingThis -and $this.EditingField -eq "tags") {
+                    # Show editing highlight for tags
+                    $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $indentSize += 7  # "    └─ "
+                    }
+                    [void]$sb.Append(" " * $indentSize)
+                    [void]$sb.Append($this.EditHighlight + "⟨" + $this.EditingValue + "⟩" + $this.NormalColor)
+                } elseif ($task.Tags.Count -gt 0) {
+                    # Normal tag display
+                    $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $indentSize += 7  # "    └─ "
+                    }
+                    [void]$sb.Append(" " * $indentSize)
+                    [void]$sb.Append($this.TagColor + "⟨" + ($task.Tags -join ", ") + "⟩" + $this.NormalColor)
+                } elseif ($isEditingThis -and $this.EditingField -eq "tags") {
+                    # Show empty tags field when editing
+                    $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $indentSize += 7  # "    └─ "
+                    }
+                    [void]$sb.Append(" " * $indentSize)
+                    [void]$sb.Append($this.EditHighlight + "⟨" + $this.EditingValue + "⟩" + $this.NormalColor)
                 }
+                
+                # Move cursor to EXACT same right border position
+                [void]$sb.Append([VT]::MoveTo($rightBorderColumn, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $currentY++
+                
+                # Pillbox bottom
+                $this.RenderPillboxBottom($sb, $pillboxWidth, $currentY)
+                $currentY++
+                
             } else {
-                [void]$sb.Append(" ")
+                # === NORMAL ITEM (2 lines) ===
+                
+                # Content line 1
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                $this.RenderTaskContent($sb, $task, $level, $isLast, $true)
+                $currentY++
+                
+                # Content line 2 (tags)
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                $this.RenderTagContent($sb, $task, $level)
+                [void]$sb.Append([VT]::ClearLine())
+                $currentY++
             }
-            [void]$sb.Append($task.GetStatusIcon())
-            [void]$sb.Append(" ")
-            
-            # === COLUMN 2: PRIORITY (8 chars) ===
-            if ($level -eq 0) {
-                $priorityText = $task.GetPriorityDisplay()
+        }
+        
+        # Clear remaining lines properly
+        while ($currentY -lt ($this.Height - 2)) {
+            [void]$sb.Append([VT]::MoveTo(0, $currentY))
+            [void]$sb.Append([VT]::ClearLine())
+            $currentY++
+        }
+    }
+    
+    [void] RenderTaskContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast, [bool]$clearToEnd) {
+        $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
+        
+        # COLUMN 1: STATUS (3 chars) - ☐ or ■
+        if ($isEditingThis -and $this.EditingField -eq "status") {
+            [void]$sb.Append($this.EditHighlight + $this.EditingValue.PadRight(3) + $this.NormalColor)
+        } else {
+            if ($task.Completed) {
+                [void]$sb.Append("■  ")  # Filled square for completed
+            } else {
+                [void]$sb.Append("☐  ")  # Open square for incomplete
+            }
+        }
+        
+        # COLUMN 2: PRIORITY (5 chars)
+        if ($level -eq 0) {
+            if ($isEditingThis -and $this.EditingField -eq "priority") {
+                [void]$sb.Append($this.EditHighlight + $this.EditingValue.PadRight(5) + $this.NormalColor)
+            } else {
+                $priorityText = switch ($task.Priority) {
+                    "High" { "High " }
+                    "Medium" { "Med  " }
+                    "Low" { "Low  " }
+                    default { "     " }
+                }
                 $priorityColor = switch ($task.Priority) {
                     "High" { $this.HighColor }
                     "Medium" { $this.MediumColor }
                     "Low" { $this.LowColor }
                     default { $this.TagColor }
                 }
-                [void]$sb.Append($priorityColor)
-                [void]$sb.Append($priorityText.PadRight($this.PriorityCol))
-                [void]$sb.Append($this.NormalColor)
-            } else {
-                [void]$sb.Append(" " * $this.PriorityCol)
+                [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor)
             }
-            
-            # === COLUMN 3: TITLE & TAGS (flexible width) ===
-            # Indentation for subtasks
-            if ($level -eq 1) {
-                if ($isLast) {
-                    [void]$sb.Append("└─ ")
-                } else {
-                    [void]$sb.Append("├─ ")
-                }
+        } else {
+            [void]$sb.Append("     ")  # Empty for subtasks
+        }
+        
+        # COLUMN 3: DATE (12 chars with color)
+        if ($level -eq 0) {
+            if ($isEditingThis -and $this.EditingField -eq "date") {
+                [void]$sb.Append($this.EditHighlight + $this.EditingValue.PadRight(11) + $this.NormalColor + " ")
             } else {
-                [void]$sb.Append("   ")
+                [void]$sb.Append($this.GetDateColorAndText($task))
+                [void]$sb.Append(" ")
             }
-            
-            # Task title color
+        } else {
+            [void]$sb.Append(" " * $this.DateCol)
+        }
+        
+        # COLUMN 4: ARROW (3 chars - closest to task)
+        if ($level -eq 0 -and $task.Subtasks.Count -gt 0) {
+            if ($this.GlobalCollapseSubtasks -or $task.SubtasksCollapsed) {
+                [void]$sb.Append("▶  ")  # Collapsed
+            } else {
+                [void]$sb.Append("▼  ")  # Expanded
+            }
+        } else {
+            [void]$sb.Append("   ")
+        }
+        
+        # COLUMN 5: TITLE (with indentation for subtasks)
+        if ($level -eq 1) {
+            if ($isLast) {
+                [void]$sb.Append("    └─ ")
+            } else {
+                [void]$sb.Append("    ├─ ")
+            }
+        }
+        
+        # Task title color and content
+        if ($isEditingThis -and $this.EditingField -eq "title") {
+            [void]$sb.Append($this.EditHighlight + $this.EditingValue + $this.NormalColor)
+        } else {
             if ($task.Completed) {
                 $taskColor = $this.CompletedColor
             } elseif ($level -eq 1) {
@@ -229,59 +438,48 @@ class TaskListScreen {
                 $taskColor = [ColorThemeService]::GetTaskColor($task.ColorTheme)
             }
             
-            [void]$sb.Append($taskColor)
-            
-            # Title
-            $titleText = $task.Title
-            $availableWidth = $titleWidth - 3  # Account for indentation
-            
-            # Calculate text length without color codes for padding
-            $displayLength = $task.Title.Length
-            
-            # Truncate title if needed (before adding tags)
-            if ($titleText.Length -gt $availableWidth - 10) {  # Leave room for tags
-                $titleText = $titleText.Substring(0, $availableWidth - 11) + "…"
-                $displayLength = $titleText.Length
-            }
-            
-            [void]$sb.Append($titleText)
-            
-            # Add tags in a subtle color
-            if ($task.Tags.Count -gt 0) {
-                [void]$sb.Append(" ")
-                [void]$sb.Append($this.TagColor)
-                [void]$sb.Append("#" + ($task.Tags -join " #"))
-                [void]$sb.Append($taskColor)
-                $displayLength += ($task.Tags -join " #").Length + 2  # Tags + " #"
-            }
-            
-            [void]$sb.Append($this.NormalColor)
-            
-            # Pad to end of title column
-            $padding = [Math]::Max(0, $availableWidth - $displayLength)
-            [void]$sb.Append(" " * $padding)
-            
-            # === COLUMN 4: DUE DATE (10 chars) ===
-            if ($level -eq 0) {
-                $dueDateText = $task.GetDueDateDisplay()
-                [void]$sb.Append($this.TagColor)
-                [void]$sb.Append($dueDateText.PadRight($this.DueDateCol))
-                [void]$sb.Append($this.NormalColor)
-            }
-            
-            # Clear to end of line and reset colors
-            [void]$sb.Append(" " * 2)
-            [void]$sb.Append($this.NormalColor)
+            [void]$sb.Append($taskColor + $task.Title + $this.NormalColor)
         }
         
-        # Clear remaining lines
-        for ($y = $endIndex - $this.ScrollTop + $startY; $y -lt ($this.Height - 2); $y++) {
-            [void]$sb.Append([VT]::MoveTo(0, $y))
-            [void]$sb.Append(" " * $this.Width)
+        # Clear to end of line if requested
+        if ($clearToEnd) {
+            $contentLength = $this.GetContentLength($task, $level)
+            $padding = $this.Width - $contentLength
+            [void]$sb.Append(" " * [Math]::Max(0, $padding))
         }
     }
     
+    [void] RenderTagContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level) {
+        if ($task.Tags.Count -gt 0) {
+            # Indent to align with title
+            $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+            if ($level -eq 1) {
+                $indentSize += 7  # "    └─ "
+            }
+            [void]$sb.Append(" " * $indentSize)
+            
+            # Tags in angle brackets
+            [void]$sb.Append($this.TagColor)
+            [void]$sb.Append("⟨" + ($task.Tags -join ", ") + "⟩")
+            [void]$sb.Append($this.NormalColor)
+        }
+    }
+    
+    [int] GetContentLength([SimpleTask]$task, [int]$level) {
+        $length = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+        if ($level -eq 1) {
+            $length += 7  # "    └─ "
+        }
+        $length += $task.Title.Length
+        return $length
+    }
+    
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # Handle editing mode input first
+        if ($this.EditingIndex -ge 0) {
+            return $this.HandleEditingInput($key)
+        }
+        
         switch ($key.Key) {
             ([System.ConsoleKey]::UpArrow) {
                 # Check for Ctrl+Up (move task up)
@@ -389,11 +587,15 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::N) {
-                $this.CreateNewTask()
+                # Start inline add new task (same as A key)
+                $this.StartInlineAdd()
                 return $true
             }
             ([System.ConsoleKey]::S) {
-                $this.CreateSubtask()
+                # Start inline subtask creation
+                if ($this.FlatList.Count -gt 0) {
+                    $this.StartInlineSubtask()
+                }
                 return $true
             }
             ([System.ConsoleKey]::D) {
@@ -439,6 +641,18 @@ class TaskListScreen {
                 }
                 return $true
             }
+            ([System.ConsoleKey]::E) {
+                # Start inline editing of current task
+                if ($this.FlatList.Count -gt 0) {
+                    $this.StartInlineEdit()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::A) {
+                # Start inline add new task
+                $this.StartInlineAdd()
+                return $true
+            }
             ([System.ConsoleKey]::Q) {
                 return $false
             }
@@ -448,12 +662,31 @@ class TaskListScreen {
     }
     
     [void] EnsureVisible() {
-        $listHeight = $this.Height - 4
-        
+        # Ensure selected item is visible with dynamic heights
         if ($this.SelectedIndex -lt $this.ScrollTop) {
             $this.ScrollTop = $this.SelectedIndex
-        } elseif ($this.SelectedIndex -ge ($this.ScrollTop + $listHeight)) {
-            $this.ScrollTop = $this.SelectedIndex - $listHeight + 1
+        } else {
+            # Check if selected item fits in current view
+            $availableHeight = $this.Height - 5
+            $totalHeight = 0
+            $needsScroll = $true
+            
+            for ($i = $this.ScrollTop; $i -le $this.SelectedIndex -and $i -lt $this.FlatList.Count; $i++) {
+                $itemHeight = $this.GetItemHeight($i)
+                $totalHeight += $itemHeight
+                
+                if ($i -eq $this.SelectedIndex) {
+                    if ($totalHeight -le $availableHeight) {
+                        $needsScroll = $false
+                    }
+                    break
+                }
+            }
+            
+            if ($needsScroll) {
+                # Scroll to show selected item
+                $this.ScrollTop = [Math]::Max(0, $this.SelectedIndex - 1)
+            }
         }
     }
     
@@ -702,6 +935,346 @@ class TaskListScreen {
         if ($confirm.KeyChar -eq 'y' -or $confirm.KeyChar -eq 'Y') {
             $this.TaskService.DeleteTask($item.Task.Id)
             $this.LoadTasks()
+        }
+    }
+    
+    # === INLINE EDITING METHODS ===
+    
+    [void] StartInlineEdit() {
+        $item = $this.FlatList[$this.SelectedIndex]
+        $this.EditingIndex = $this.SelectedIndex
+        $this.EditingTask = $item.Task
+        $this.EditingField = "priority"  # Start with priority (leftmost)
+        $this.EditingValue = $item.Task.Priority
+        $this.IsNewTask = $false
+    }
+    
+    [void] StartInlineAdd() {
+        # Create a new task and add it temporarily to the end
+        $newTask = [SimpleTask]::new("")
+        $this.FlatList.Add(@{
+            Task = $newTask
+            Level = 0
+            IsLast = $false
+        })
+        $this.EditingIndex = $this.FlatList.Count - 1
+        $this.EditingTask = $newTask
+        $this.EditingField = "priority"  # Start with priority (leftmost)
+        $this.EditingValue = ""
+        $this.SelectedIndex = $this.EditingIndex
+        $this.IsNewTask = $true
+        $this.EnsureVisible()
+    }
+    
+    [void] StartInlineSubtask() {
+        $item = $this.FlatList[$this.SelectedIndex]
+        $parentTask = if ($item.Task.IsParent()) { $item.Task } else { $this.TaskService.GetTask($item.Task.ParentId) }
+        
+        if (-not $parentTask) { return }
+        
+        # Create a new subtask and add it after the parent's subtasks
+        $newSubtask = [SimpleTask]::new("")
+        
+        # Find the position to insert (after last subtask of this parent)
+        $insertIndex = $this.SelectedIndex + 1
+        for ($i = $this.SelectedIndex + 1; $i -lt $this.FlatList.Count; $i++) {
+            $nextItem = $this.FlatList[$i]
+            if ($nextItem.Level -eq 1 -and $this.TaskService.GetParentTask($nextItem.Task.Id).Id -eq $parentTask.Id) {
+                $insertIndex = $i + 1
+            } else {
+                break
+            }
+        }
+        
+        $this.FlatList.Insert($insertIndex, @{
+            Task = $newSubtask
+            Level = 1
+            IsLast = $false
+        })
+        
+        $this.EditingIndex = $insertIndex
+        $this.EditingTask = $newSubtask
+        $this.EditingField = "priority"  # Start with priority (leftmost)
+        $this.EditingValue = ""
+        $this.SelectedIndex = $this.EditingIndex
+        $this.IsNewTask = $true
+        $this.EnsureVisible()
+    }
+    
+    [bool] HandleEditingInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::Enter) {
+                # For new tasks, only save after completing all fields
+                if ($this.IsNewTask) {
+                    if ($this.EditingField -eq "tags") {
+                        $this.SaveInlineEdit()
+                    } else {
+                        $this.NextEditField()
+                    }
+                } else {
+                    # For existing tasks, save immediately
+                    $this.SaveInlineEdit()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Escape) {
+                # Cancel editing
+                $this.CancelInlineEdit()
+                return $true
+            }
+            ([System.ConsoleKey]::Tab) {
+                # Check for Shift+Tab (reverse)
+                if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
+                    $this.PreviousEditField()
+                } else {
+                    $this.NextEditField()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Backspace) {
+                if ($this.EditingValue.Length -gt 0) {
+                    $this.EditingValue = $this.EditingValue.Substring(0, $this.EditingValue.Length - 1)
+                }
+                return $true
+            }
+            default {
+                # Add character to editing value
+                if ($key.KeyChar -and [char]::IsControl($key.KeyChar) -eq $false) {
+                    $this.EditingValue += $key.KeyChar
+                }
+                return $true
+            }
+        }
+        return $true
+    }
+    
+    [void] NextEditField() {
+        # Cycle through fields: priority -> date -> title -> tags -> save (for new) or priority (for existing)
+        switch ($this.EditingField) {
+            "priority" {
+                $this.EditingTask.Priority = $this.EditingValue
+                $this.EditingField = "date"
+                if ($this.EditingTask.DueDate -eq [datetime]::MinValue) {
+                    $this.EditingValue = ""
+                } else {
+                    $this.EditingValue = $this.EditingTask.DueDate.ToString("yyyy-MM-dd")
+                }
+            }
+            "date" {
+                if ($this.EditingValue) {
+                    try {
+                        $this.EditingTask.DueDate = [datetime]::Parse($this.EditingValue)
+                    } catch {
+                        # Invalid date, keep current
+                    }
+                }
+                $this.EditingField = "title"
+                $this.EditingValue = $this.EditingTask.Title
+            }
+            "title" {
+                $this.EditingTask.Title = $this.EditingValue
+                $this.EditingField = "tags"
+                $this.EditingValue = ($this.EditingTask.Tags -join ", ")
+            }
+            "tags" {
+                # Parse tags from input
+                if ($this.EditingValue) {
+                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+                    $this.EditingTask.Tags = $tagParts
+                } else {
+                    $this.EditingTask.Tags = @()
+                }
+                
+                if ($this.IsNewTask) {
+                    # For new tasks, we're done - will save on next Enter
+                    return
+                } else {
+                    # For existing tasks, cycle back to priority
+                    $this.EditingField = "priority"
+                    $this.EditingValue = $this.EditingTask.Priority
+                }
+            }
+        }
+    }
+    
+    [void] PreviousEditField() {
+        # Cycle backwards: priority <- date <- title <- tags
+        switch ($this.EditingField) {
+            "priority" {
+                $this.EditingTask.Priority = $this.EditingValue
+                $this.EditingField = "tags"
+                $this.EditingValue = ($this.EditingTask.Tags -join ", ")
+            }
+            "date" {
+                if ($this.EditingValue) {
+                    try {
+                        $this.EditingTask.DueDate = [datetime]::Parse($this.EditingValue)
+                    } catch {
+                        # Invalid date, keep current
+                    }
+                }
+                $this.EditingField = "priority"
+                $this.EditingValue = $this.EditingTask.Priority
+            }
+            "title" {
+                $this.EditingTask.Title = $this.EditingValue
+                $this.EditingField = "date"
+                if ($this.EditingTask.DueDate -eq [datetime]::MinValue) {
+                    $this.EditingValue = ""
+                } else {
+                    $this.EditingValue = $this.EditingTask.DueDate.ToString("yyyy-MM-dd")
+                }
+            }
+            "tags" {
+                # Parse tags from input
+                if ($this.EditingValue) {
+                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+                    $this.EditingTask.Tags = $tagParts
+                } else {
+                    $this.EditingTask.Tags = @()
+                }
+                $this.EditingField = "title"
+                $this.EditingValue = $this.EditingTask.Title
+            }
+        }
+    }
+    
+    [void] SaveInlineEdit() {
+        # Apply final field value
+        switch ($this.EditingField) {
+            "title" { $this.EditingTask.Title = $this.EditingValue }
+            "priority" { $this.EditingTask.Priority = $this.EditingValue }
+            "date" {
+                if ($this.EditingValue) {
+                    try {
+                        $this.EditingTask.DueDate = [datetime]::Parse($this.EditingValue)
+                    } catch {
+                        # Invalid date, keep current
+                    }
+                }
+            }
+            "tags" {
+                # Parse tags from input
+                if ($this.EditingValue) {
+                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+                    $this.EditingTask.Tags = $tagParts
+                } else {
+                    $this.EditingTask.Tags = @()
+                }
+            }
+        }
+        
+        # Save to service
+        if ($this.EditingTask.Title) {
+            if ($this.EditingTask.Id -eq [guid]::Empty) {
+                # New task - check if it's a subtask
+                $item = $this.FlatList[$this.EditingIndex]
+                if ($item.Level -eq 1) {
+                    # Find parent task
+                    for ($i = $this.EditingIndex - 1; $i -ge 0; $i--) {
+                        $parentItem = $this.FlatList[$i]
+                        if ($parentItem.Level -eq 0) {
+                            $this.TaskService.AddSubtask($parentItem.Task.Id, $this.EditingTask)
+                            break
+                        }
+                    }
+                } else {
+                    # Regular parent task
+                    $this.TaskService.AddTask($this.EditingTask)
+                }
+            } else {
+                # Existing task
+                $this.TaskService.UpdateTask($this.EditingTask)
+            }
+        } else {
+            # Empty title, remove if it was a new task
+            if ($this.EditingTask.Id -eq [guid]::Empty) {
+                $this.FlatList.RemoveAt($this.EditingIndex)
+            }
+        }
+        
+        $this.EndInlineEdit()
+    }
+    
+    [void] CancelInlineEdit() {
+        # Remove new task if it was being added
+        if ($this.EditingTask.Id -eq [guid]::Empty) {
+            $this.FlatList.RemoveAt($this.EditingIndex)
+            if ($this.SelectedIndex -ge $this.FlatList.Count) {
+                $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
+            }
+        }
+        $this.EndInlineEdit()
+    }
+    
+    [void] EndInlineEdit() {
+        $this.EditingIndex = -1
+        $this.EditingField = ""
+        $this.EditingValue = ""
+        $this.EditingTask = $null
+        $this.IsNewTask = $false
+        $this.LoadTasks()  # Refresh the list
+    }
+    
+    [void] PositionCursorForEditing([System.Text.StringBuilder]$sb) {
+        if ($this.EditingIndex -lt 0) { return }
+        
+        # Calculate the position of the editing field
+        $item = $this.FlatList[$this.EditingIndex]
+        $level = $item.Level
+        
+        # Find the Y position of the editing item
+        $startY = 3
+        $currentY = $startY
+        $foundY = -1
+        
+        # Calculate how many items we can show with dynamic heights
+        for ($i = $this.ScrollTop; $i -lt $this.FlatList.Count; $i++) {
+            $itemHeight = $this.GetItemHeight($i)
+            if ($i -eq $this.EditingIndex) {
+                # Found our editing item, it will be in pillbox mode (5 lines)
+                if ($this.EditingField -eq "tags") {
+                    $foundY = $currentY + 3  # Tag line is 3rd line of pillbox
+                } else {
+                    $foundY = $currentY + 2  # Content line is 2nd line of pillbox
+                }
+                break
+            }
+            $currentY += $itemHeight
+            if ($currentY -ge ($this.Height - 5)) { break }
+        }
+        
+        if ($foundY -ge 0) {
+            # Calculate X position based on field being edited
+            $x = 1  # Start after the left border "│"
+            
+            switch ($this.EditingField) {
+                "status" {
+                    $x += $this.EditingValue.Length
+                }
+                "priority" {
+                    $x += $this.StatusCol + $this.EditingValue.Length
+                }
+                "date" {
+                    $x += $this.StatusCol + $this.PriorityCol + $this.EditingValue.Length
+                }
+                "title" {
+                    $x += $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $x += 7  # "    └─ "
+                    }
+                    $x += $this.EditingValue.Length
+                }
+                "tags" {
+                    $x += $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $x += 7  # "    └─ "
+                    }
+                    $x += 1 + $this.EditingValue.Length  # "⟨" + content
+                }
+            }
+            
+            [void]$sb.Append([VT]::MoveTo($x, $foundY))
         }
     }
 }
