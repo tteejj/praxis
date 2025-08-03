@@ -1,0 +1,5 @@
+#!/bin/bash
+# cmdlib - Quick launcher for CommandLibrary
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec pwsh -File "$SCRIPT_DIR/CommandLibrary.ps1" "$@"
