@@ -1,38 +1,28 @@
-# CommandLibraryScreen.ps1 - Command library management screen
-# Browse, search, and manage reusable command strings with clipboard copy
+# CommandLibraryScreen.ps1 - Command library management screen using CRUDScreen base class
 
-class CommandLibraryScreen : Screen {
-    [SearchableListBox]$CommandList
-    [CommandService]$CommandService
-    [EventBus]$EventBus
-    hidden [hashtable]$EventSubscriptions = @{}
-    
-    CommandLibraryScreen() : base() {
+class CommandLibraryScreen : CRUDScreen {
+    CommandLibraryScreen() : base("CommandService", "Command") {
         $this.Title = "Command Library"
-        $this.DrawBackground = $true
     }
     
-    [void] OnInitialize() {
-        # Get services
-        $this.CommandService = $this.ServiceContainer.GetService("CommandService")
-        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
-        
-        # Create command list using SearchableListBox
-        $this.CommandList = [SearchableListBox]::new()
-        $this.CommandList.Title = "Commands"
-        $this.CommandList.ShowBorder = $true   # Component responsible for own visual boundaries
-        $this.CommandList.SearchPrompt = "Search commands... (t:tag d:desc g:group +and |or)"
+    # Override SetupDataGrid to use SearchableListBox instead of standard grid
+    [void] SetupDataGrid() {
+        # Create SearchableListBox for better command browsing
+        $this.DataGrid = [SearchableListBox]::new()
+        $this.DataGrid.Title = ""  # Don't show title in grid since screen has title
+        $this.DataGrid.ShowBorder = $false   # Remove borders per requirements
+        $this.DataGrid.SearchPrompt = "Search commands... (t:tag d:desc g:group +and |or)"
         
         # Set custom search filter for advanced syntax
-        $service = $this.CommandService
-        $this.CommandList.SearchFilter = {
+        $service = $this.DataService
+        $this.DataGrid.SearchFilter = {
             param($command, $query)
             $searchResults = $service.SearchCommands($query)
             return $searchResults -contains $command
         }.GetNewClosure()
         
         # Custom renderer for commands
-        $this.CommandList.ItemRenderer = {
+        $this.DataGrid.ItemRenderer = {
             param($command)
             if (-not $command) { return "" }
             
@@ -48,180 +38,70 @@ class CommandLibraryScreen : Screen {
         
         # Handle selection changes (Enter key)
         $screen = $this
-        $this.CommandList.OnSelectionChanged = {
+        $this.DataGrid.OnSelectionChanged = {
             $screen.CopySelectedCommand()
         }.GetNewClosure()
         
-        $this.CommandList.Initialize($this.ServiceContainer)
-        $this.AddChild($this.CommandList)
-        
-        # Load commands
-        $this.LoadCommands()
-        
-        # ShortcutManager is deprecated - shortcuts handled in HandleScreenInput
+        $this.DataGrid.Initialize($global:ServiceContainer)
+        $this.AddChild($this.DataGrid)
     }
     
-    [void] LoadCommands() {
-        $commands = $this.CommandService.GetAllCommands()
-        $this.CommandList.SetItems($commands)
+    # Override LoadData to load commands
+    [void] LoadData() {
+        $commands = $this.DataService.GetAllCommands()
+        $this.DataGrid.SetItems($commands)
+        $this.DataGrid.Invalidate()
+        $this.Invalidate()
     }
     
-    [void] FilterCommands() {
-        # Apply any active search filter
-        # SearchableListBox handles its own filtering, so this is just for refresh
-        $this.CommandList.Invalidate()
-    }
-    
-    [void] RegisterShortcuts() {
-        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
-        if (-not $shortcutManager) { 
-            if ($global:Logger) {
-                $global:Logger.Warning("CommandLibraryScreen: ShortcutManager not found in ServiceContainer")
-            }
-            return 
-        }
-        
-        # Register screen-specific shortcuts
-        $screen = $this
-        
-        $shortcutManager.RegisterShortcut(@{
-            Id = "commands.new"
-            Name = "New Command"
-            Description = "Create a new command"
-            KeyChar = 'n'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "CommandLibraryScreen"
-            Priority = 50
-            Action = { $screen.NewCommand() }.GetNewClosure()
-        })
-        
-        $shortcutManager.RegisterShortcut(@{
-            Id = "commands.edit"
-            Name = "Edit Command"
-            Description = "Edit the selected command"
-            KeyChar = 'e'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "CommandLibraryScreen"
-            Priority = 50
-            Action = { $screen.EditCommand() }.GetNewClosure()
-        })
-        
-        $shortcutManager.RegisterShortcut(@{
-            Id = "commands.delete"
-            Name = "Delete Command"
-            Description = "Delete the selected command"
-            KeyChar = 'd'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "CommandLibraryScreen"
-            Priority = 50
-            Action = { $screen.DeleteCommand() }.GetNewClosure()
-        })
-        
-        $shortcutManager.RegisterShortcut(@{
-            Id = "commands.copy"
-            Name = "Copy Command"
-            Description = "Copy selected command to clipboard"
-            Key = [System.ConsoleKey]::Enter
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "CommandLibraryScreen"
-            Priority = 50
-            Action = { $screen.CopySelectedCommand() }.GetNewClosure()
-        })
-    }
-    
-    [void] NewCommand() {
-        if ($global:Logger) {
-            $global:Logger.Info("CommandLibraryScreen.NewCommand: Called via shortcut")
-        }
+    # Override CRUD operations for command-specific behavior
+    [void] NewItem() {
         try {
-            $screen = [CommandEditDialog]::new()
-            $screen.Initialize($this.ServiceContainer)
+            $dialog = [CommandEditDialog]::new()
+            $dialog.Initialize($this.ServiceContainer)
             
-            $screen.SetCommand($null)  # New command
-            $parentScreen = $this
-            $screen.OnSave = {
-                param($command)
-                $parentScreen.LoadCommands()
-                $parentScreen.FilterCommands()
-            }.GetNewClosure()
-            
-            $global:ScreenManager.Push($screen)
+            $dialog.SetCommand($null)  # New command
+            $global:ScreenManager.Push($dialog)
         } catch {
             if ($global:Logger) {
-                $global:Logger.Error("CommandLibraryScreen.NewCommand: $($_.Exception.Message)")
+                $global:Logger.Error("CommandLibraryScreen.NewItem: $($_.Exception.Message)")
             }
         }
     }
     
-    [void] EditCommand() {
-        if ($global:Logger) {
-            $global:Logger.Info("CommandLibraryScreen.EditCommand: Called via shortcut")
-        }
-        $selectedCommand = $this.CommandList.GetSelectedItem()
+    [void] EditItem() {
+        $selectedCommand = $this.GetSelectedItem()
         if (-not $selectedCommand) { 
             if ($global:Logger) {
-                $global:Logger.Warning("CommandLibraryScreen.EditCommand: No command selected")
+                $global:Logger.Warning("CommandLibraryScreen.EditItem: No command selected")
             }
             return 
         }
         
         try {
-            $screen = [CommandEditDialog]::new()
-            $screen.Initialize($this.ServiceContainer)
+            $dialog = [CommandEditDialog]::new()
+            $dialog.Initialize($this.ServiceContainer)
             
-            $screen.SetCommand($selectedCommand)
-            $parentScreen = $this
-            $screen.OnSave = {
-                param($command)
-                $parentScreen.LoadCommands()
-                $parentScreen.FilterCommands()
-            }.GetNewClosure()
-            
-            $global:ScreenManager.Push($screen)
+            $dialog.SetCommand($selectedCommand)
+            $global:ScreenManager.Push($dialog)
         } catch {
             if ($global:Logger) {
-                $global:Logger.Error("CommandLibraryScreen.EditCommand: $($_.Exception.Message)")
+                $global:Logger.Error("CommandLibraryScreen.EditItem: $($_.Exception.Message)")
             }
         }
     }
     
-    [void] DeleteCommand() {
-        if ($global:Logger) {
-            $global:Logger.Info("CommandLibraryScreen.DeleteCommand: Called via shortcut")
-        }
-        $selectedCommand = $this.CommandList.GetSelectedItem()
-        if (-not $selectedCommand) { 
-            if ($global:Logger) {
-                $global:Logger.Warning("CommandLibraryScreen.DeleteCommand: No command selected")
-            }
-            return 
-        }
-        
-        try {
-            # Show confirmation dialog
-            $message = "Are you sure you want to delete this command?`n`n$($selectedCommand.GetDisplayText())"
-            $confirmScreen = [ConfirmationDialog]::new($message)
-            $confirmScreen.Title = "Delete Command"
-            $confirmScreen.Initialize($this.ServiceContainer)
-            $confirmScreen.OnPrimary = {
-                $this.CommandService.DeleteCommand($selectedCommand.Id)
-                $this.LoadCommands()
-                $this.FilterCommands()
-            }.GetNewClosure()
-            
-            $global:ScreenManager.Push($confirmScreen)
-        } catch {
-            if ($global:Logger) {
-                $global:Logger.Error("CommandLibraryScreen.DeleteCommand: $($_.Exception.Message)")
-            }
-        }
+    # Override PerformDelete for command-specific behavior
+    [void] PerformDelete($itemId) {
+        $this.DataService.DeleteCommand($itemId)
     }
     
+    # Command-specific methods
     [void] CopySelectedCommand() {
-        $selectedCommand = $this.CommandList.GetSelectedItem()
+        $selectedCommand = $this.GetSelectedItem()
         if ($selectedCommand) {
             try {
-                $this.CommandService.CopyToClipboard($selectedCommand.Id)
+                $this.DataService.CopyToClipboard($selectedCommand.Id)
                 
                 # Show toast notification
                 $toastService = $this.ServiceContainer.GetService('ToastService')
@@ -234,8 +114,7 @@ class CommandLibraryScreen : Screen {
                 }
                 
                 # Refresh the list to show updated usage count
-                $this.LoadCommands()
-                $this.FilterCommands()
+                $this.LoadData()
             } catch {
                 # Show error toast
                 $toastService = $this.ServiceContainer.GetService('ToastService')
@@ -251,7 +130,7 @@ class CommandLibraryScreen : Screen {
     }
     
     [void] RunCommand() {
-        $selectedCommand = $this.CommandList.GetSelectedItem()
+        $selectedCommand = $this.GetSelectedItem()
         if (-not $selectedCommand) { 
             if ($global:Logger) {
                 $global:Logger.Warning("CommandLibraryScreen.RunCommand: No command selected")
@@ -276,11 +155,10 @@ class CommandLibraryScreen : Screen {
             }
             
             # Update usage count
-            $this.CommandService.IncrementUseCount($selectedCommand.Id)
+            $this.DataService.IncrementUseCount($selectedCommand.Id)
             
             # Refresh the list to show updated usage count
-            $this.LoadCommands()
-            $this.FilterCommands()
+            $this.LoadData()
             
         } catch {
             # Show error toast
@@ -295,83 +173,62 @@ class CommandLibraryScreen : Screen {
         }
     }
     
-    # Search help removed - SearchableListBox should handle this
-    
-    # HandleInput removed - using ShortcutManager instead
-    
-    [void] OnBoundsChanged() {
-        if ($this.Width -le 0 -or $this.Height -le 0) { return }
-        
-        # CommandLibraryScreen has a single CommandList that takes the full area
-        if ($this.CommandList) {
-            $this.CommandList.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
-        }
-    }
-    
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Command Library screen shortcuts - direct implementation instead of deprecated ShortcutManager
+    # Override custom input handling for command-specific shortcuts
+    [bool] HandleCustomInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Command library specific shortcuts
         switch ($keyInfo.KeyChar) {
-            'n' { $this.NewCommand(); return $true }
-            'e' { $this.EditCommand(); return $true }
-            'd' { $this.DeleteCommand(); return $true }
             'r' { $this.RunCommand(); return $true }
         }
         
-        # Enter key for editing
+        # Override Enter to copy command instead of edit
         if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
-            $this.EditCommand()
+            $this.CopySelectedCommand()
             return $true
         }
         
-        return $false
+        return $false  # Not handled
     }
     
-    [string] GetHelpText() {
-        return @"
-# Command Library Help
-
-Store and manage reusable IDEA commands and scripts.
-
-## Navigation
-Tab               - Navigate between elements
-Arrow Keys        - Browse commands
-Enter             - Copy command to clipboard
-
-## Actions
-n                 - Add new command
-e                 - Edit selected command  
-d                 - Delete selected command
-Escape            - Return to main menu
-
-## Search Syntax
-The search box supports advanced filtering:
-
-Basic search      - Type any text to search all fields
-t:tag             - Search by tag (e.g., t:export)
-d:description     - Search in descriptions
-g:group           - Filter by group
-+                 - AND operator (all terms must match)
-|                 - OR operator (any term matches)
-
-## Examples
-t:export          - Find all export commands
-g:analysis +sum   - Analysis group AND contains "sum"
-t:idea|script     - Tagged as "idea" OR "script"
-
-## Usage Count
-★                 - Shows how many times used
-
----
-Press ESC to close help
-"@
-    }
-    
-    [void] OnActivated() {
-        ([Screen]$this).OnActivated()
+    # Override DeleteItem to use UnifiedDialog
+    [void] DeleteItem() {
+        $selectedCommand = $this.GetSelectedItem()
+        if (-not $selectedCommand) { 
+            if ($global:Logger) {
+                $global:Logger.Warning("CommandLibraryScreen.DeleteItem: No command selected")
+            }
+            return 
+        }
         
-        # Set initial focus to command list
-        if ($this.CommandList) {
-            $this.CommandList.Focus()
+        try {
+            # Show confirmation dialog using UnifiedDialog
+            $message = "Are you sure you want to delete this command?`n`n$($selectedCommand.GetDisplayText())"
+            $dialog = [UnifiedDialog]::new("Delete Command", 60, 12)
+            $dialog.AddField("message", "", $message)
+            $dialog.SetReadOnlyField("message", $true)
+            $dialog.SetButtons("Delete", "Cancel")
+            
+            $screen = $this
+            $commandId = $selectedCommand.Id
+            
+            $dialog.OnPrimary = {
+                $screen.PerformDelete($commandId)
+                $screen.RefreshItems()
+            }.GetNewClosure()
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("CommandLibraryScreen.DeleteItem: $($_.Exception.Message)")
+            }
         }
     }
+    
+    # Compatibility methods
+    [void] NewCommand() { $this.NewItem() }
+    [void] EditCommand() { $this.EditItem() }
+    [void] DeleteCommand() { $this.DeleteItem() }
+    [void] LoadCommands() { $this.LoadData() }
+    [void] FilterCommands() { $this.DataGrid.Invalidate() }
 }

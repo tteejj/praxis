@@ -1,0 +1,91 @@
+[
+  {
+    "Title": "@CurrentDate_YYYYMMDD",
+    "UseCount": 13,
+    "Group": "Built-in Functions",
+    "Tags": [
+      "function",
+      "date",
+      "idea"
+    ],
+    "Description": "Returns current date in YYYYMMDD format",
+    "CommandText": "@CurrentDate_YYYYMMDD",
+    "Id": "6f222d38-64fb-48b0-8daa-65494aa65db5",
+    "Created": "2025-07-25T21:50:13.0000000",
+    "LastUsed": "2025-07-29T23:05:52.9455294-06:00"
+  },
+  {
+    "Title": "@PromptForField",
+    "UseCount": 8,
+    "Group": "Built-in Functions",
+    "Tags": [
+      "function",
+      "field",
+      "input",
+      "idea"
+    ],
+    "Description": "Prompts user to select a field from the current database",
+    "CommandText": "@PromptForField(\"Select field:\")",
+    "Id": "de6a08cc-87f3-47ef-9fcb-4eef07a694eb",
+    "Created": "2025-07-25T21:50:13.0000000",
+    "LastUsed": "2025-07-29T23:05:56.2336591-06:00"
+  },
+  {
+    "Title": "Open Database",
+    "UseCount": 6,
+    "Group": "Database Operations",
+    "Tags": [
+      "database",
+      "open",
+      "idea"
+    ],
+    "Description": "Opens a database file in IDEA",
+    "CommandText": "Set db = Client.OpenDatabase(\"database.IMD\")",
+    "Id": "965db34d-c43d-416e-addf-ba847fc57a48",
+    "Created": "2025-07-25T21:50:13.0000000",
+    "LastUsed": "2025-07-29T23:05:52.6046546-06:00"
+  },
+  {
+    "Title": "Summarize by Field",
+    "UseCount": 3,
+    "Group": "Analysis",
+    "Tags": [
+      "summarize",
+      "group",
+      "analysis",
+      "idea"
+    ],
+    "Description": "Creates a summarization by specified field",
+    "CommandText": "Set task = db.Summarization\nTask.AddFieldToSummarize \"FIELD_NAME\"\nTask.OutputDBName = \"Summary_Output\"\ndbName = task.Run()",
+    "Id": "70d5af35-2849-4668-b713-d8151b8a11ef",
+    "Created": "2025-07-25T21:50:14.0000000",
+    "LastUsed": "2025-07-29T23:05:52.4575132-06:00"
+  },
+  {
+    "Title": "Export to Excel",
+    "UseCount": 3,
+    "Group": "Export",
+    "Tags": [
+      "export",
+      "excel",
+      "output",
+      "idea"
+    ],
+    "Description": "Exports current database to Excel format",
+    "CommandText": "Set task = db.ExportToExcel\nTask.OutputFile = \"output.xlsx\"\nTask.Run()",
+    "Id": "a67e4959-db5c-4a89-bd59-41ae0451bd57",
+    "Created": "2025-07-25T21:50:14.0000000",
+    "LastUsed": "2025-07-29T23:05:52.2378666-06:00"
+  },
+  {
+    "Title": "Test Command",
+    "UseCount": 4,
+    "Group": "",
+    "Tags": [],
+    "Description": "",
+    "CommandText": "echo 'test command'",
+    "Id": "a3458ed5-d2e3-4681-8665-c64f5dfccba1",
+    "Created": "2025-07-25T23:56:51.0000000",
+    "LastUsed": "2025-07-29T23:05:51.1419752-06:00"
+  }
+]

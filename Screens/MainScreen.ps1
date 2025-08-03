@@ -1,14 +1,13 @@
 # MainScreen.ps1 - Main screen with persistent menu navigation
 
 class MainScreen : Screen {
-    [MinimalListBox]$MenuList
     [Screen]$CurrentScreen
     [MinimalStatusBar]$StatusBar
     [EventBus]$EventBus
     [ContextPopup]$ActionPopup
     
-    # Menu items and corresponding screen types
-    hidden [hashtable]$MenuItems = @{
+    # Menu items in fixed order - using ordered hashtable for consistent display
+    hidden [System.Collections.Specialized.OrderedDictionary]$MenuItems = [ordered]@{
         "Projects" = [ProjectsScreen]
         "Tasks" = [TaskScreen] 
         "Time Entry" = [TimeEntryScreen]
@@ -20,7 +19,6 @@ class MainScreen : Screen {
     
     hidden [hashtable]$ScreenInstances = @{}
     hidden [string]$CurrentScreenName = "Projects"
-    hidden [bool]$MenuFocused = $true
     
     MainScreen() : base() {
         $this.Title = "PRAXIS"
@@ -28,19 +26,8 @@ class MainScreen : Screen {
     
     [void] OnInitialize() {
         if ($global:Logger) {
-            $global:Logger.Debug("MainScreen.OnInitialize: Starting menu-based initialization")
+            $global:Logger.Debug("MainScreen.OnInitialize: Starting full-screen initialization")
         }
-        
-        # Create menu list (left sidebar) - no border to avoid "loose leaf" look
-        $this.MenuList = [MinimalListBox]::new()
-        $this.MenuList.ShowBorder = $false
-        # Add menu items
-        foreach ($menuName in $this.MenuItems.Keys) {
-            $this.MenuList.Items.Add($menuName)
-        }
-        $this.MenuList.SelectedIndex = 0
-        $this.MenuList.Initialize($this.ServiceContainer)
-        $this.AddChild($this.MenuList)
         
         # Create status bar
         $this.StatusBar = [MinimalStatusBar]::new()
@@ -68,34 +55,29 @@ class MainScreen : Screen {
         $this.SwitchToScreen("Projects")
         
         if ($global:Logger) {
-            $global:Logger.Debug("MainScreen.OnInitialize: Menu-based initialization complete")
+            $global:Logger.Debug("MainScreen.OnInitialize: Full-screen initialization complete")
         }
     }
     
     [void] OnBoundsChanged() {
-        if (-not $this.MenuList -or -not $this.StatusBar) { return }
+        if (-not $this.StatusBar) { return }
         
-        # Layout: 20% menu, 80% content
-        $menuWidth = [int]($this.Width * 0.2)
-        $contentWidth = $this.Width - $menuWidth
+        # Full screen layout - no left panel
         $contentHeight = $this.Height - 1  # Reserve 1 line for status
         
-        # Position menu list (left side)
-        $this.MenuList.SetBounds(0, 0, $menuWidth, $contentHeight)
-        
-        # Position current screen (right side)  
+        # Position current screen (full width)
         if ($this.CurrentScreen) {
-            $this.CurrentScreen.SetBounds($menuWidth, 0, $contentWidth, $contentHeight)
+            $this.CurrentScreen.SetBounds($this.X, $this.Y, $this.Width, $contentHeight)
         }
         
         # Position status bar (bottom)
-        $this.StatusBar.SetBounds(0, $this.Height - 1, $this.Width, 1)
+        $this.StatusBar.SetBounds($this.X, $this.Y + $this.Height - 1, $this.Width, 1)
         
         ([Screen]$this).OnBoundsChanged()
     }
     
     [void] SwitchToScreen([string]$screenName) {
-        if (-not $this.MenuItems.ContainsKey($screenName)) {
+        if (-not $this.MenuItems.Contains($screenName)) {
             if ($global:Logger) {
                 $global:Logger.Warning("MainScreen.SwitchToScreen: Unknown screen '$screenName'")
             }
@@ -124,18 +106,6 @@ class MainScreen : Screen {
         $this.OnBoundsChanged()
         $this.CurrentScreen.OnActivated()
         
-        # Update menu selection
-        $menuKeys = @($this.MenuItems.Keys)
-        $menuIndex = -1
-        for ($i = 0; $i -lt $menuKeys.Count; $i++) {
-            if ($menuKeys[$i] -eq $screenName) {
-                $menuIndex = $i
-                break
-            }
-        }
-        if ($menuIndex -ge 0) {
-            $this.MenuList.SelectedIndex = $menuIndex
-        }
         
         # Update status
         $this.UpdateStatusBar()
@@ -146,96 +116,12 @@ class MainScreen : Screen {
     }
     
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Menu navigation (always available)
-        switch ($keyInfo.Key) {
-            ([System.ConsoleKey]::UpArrow) {
-                if ($this.MenuFocused) {
-                    $newIndex = [Math]::Max(0, $this.MenuList.SelectedIndex - 1)
-                    $this.MenuList.SelectedIndex = $newIndex
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::DownArrow) {
-                if ($this.MenuFocused) {
-                    $maxIndex = $this.MenuList.Items.Count - 1
-                    $newIndex = [Math]::Min($maxIndex, $this.MenuList.SelectedIndex + 1)
-                    $this.MenuList.SelectedIndex = $newIndex
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::Enter) {
-                if ($this.MenuFocused) {
-                    $selectedName = $this.MenuList.Items[$this.MenuList.SelectedIndex]
-                    $this.SwitchToScreen($selectedName)
-                    $this.SwitchFocusToContent()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::RightArrow) {
-                if ($this.MenuFocused) {
-                    $selectedName = $this.MenuList.Items[$this.MenuList.SelectedIndex]
-                    $this.SwitchToScreen($selectedName)
-                    $this.SwitchFocusToContent()
-                    return $true
-                }
-            }
-            ([System.ConsoleKey]::LeftArrow) {
-                if (-not $this.MenuFocused) {
-                    $this.SwitchFocusToMenu()
-                    return $true
-                }
-            }
-        }
-        
-        # Note: / and Escape are handled in HandleInput() at Priority 0
-        
+        # No menu navigation - just return false to let content handle input
         return $false
     }
     
-    [void] SwitchFocusToMenu() {
-        $focusManager = $this.ServiceContainer.GetService('FocusManager')
-        if ($focusManager -and $this.MenuList) {
-            $focusManager.SetFocus($this.MenuList)
-            $this.MenuFocused = $true
-            $this.MenuList.Invalidate()  # Force menu redraw with focus
-            if ($global:Logger) {
-                $global:Logger.Debug("MainScreen.SwitchFocusToMenu: Focus switched to menu")
-            }
-        }
-    }
     
-    [void] SwitchFocusToContent() {
-        if ($this.CurrentScreen) {
-            $focusManager = $this.ServiceContainer.GetService('FocusManager')
-            if ($focusManager) {
-                # Find first focusable element in current screen
-                $focusable = $this.FindFirstFocusable($this.CurrentScreen)
-                if ($focusable) {
-                    $focusManager.SetFocus($focusable)
-                }
-                $this.MenuFocused = $false
-                $this.MenuList.Invalidate()  # Force menu redraw without focus
-                if ($global:Logger) {
-                    $global:Logger.Debug("MainScreen.SwitchFocusToContent: Focus switched to content")
-                }
-            }
-        }
-    }
-    
-    [object] FindFirstFocusable($element) {
-        # Check if element itself is focusable
-        if ($element -and $element.PSObject.Properties['IsFocusable'] -and $element.IsFocusable) {
-            return $element
-        }
-        # Check children recursively
-        if ($element -and $element.PSObject.Properties['Children']) {
-            foreach ($child in $element.Children) {
-                $focusable = $this.FindFirstFocusable($child)
-                if ($focusable) { return $focusable }
-            }
-        }
-        return $null
-    }
+    # FindFirstFocusable method removed - now using FocusManager.FocusFirst() for consistency
 
     [void] ShowActionPopup() {
         if ($global:Logger) {
@@ -250,11 +136,20 @@ class MainScreen : Screen {
             return
         }
         
-        # Clear existing items
+        # Clear existing items and ensure popup is properly reset
         if ($this.ActionPopup.Items) {
             $this.ActionPopup.Items.Clear()
         }
         $this.ActionPopup.Title = "$($this.CurrentScreenName) Actions"
+        $this.ActionPopup.SelectedIndex = 0
+        
+        # Ensure popup is not already a child before adding
+        if ($this.Children.Contains($this.ActionPopup)) {
+            $this.RemoveChild($this.ActionPopup)
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.ShowActionPopup: Removed existing ActionPopup from children")
+            }
+        }
         
         # Position popup near current focus (center-ish)
         $this.ActionPopup.X = [int]($this.Width * 0.4)
@@ -383,11 +278,30 @@ class MainScreen : Screen {
             if ($global:Logger) {
                 $global:Logger.Debug("MainScreen.OnSelect: Item '$($selectedItem.Text)' was selected")
             }
+            # Remove popup from children and restore focus using memory system
+            $mainScreen.RemoveChild($mainScreen.ActionPopup)
+            $focusManager = $mainScreen.ServiceContainer.GetService('FocusManager')
+            if ($focusManager -and -not $focusManager.RestoreFocusContext()) {
+                # Fallback if focus memory fails
+                $mainScreen.SwitchFocusToContent()
+            }
         }.GetNewClosure()
         
         $this.ActionPopup.OnCancel = {
-            # Popup hides itself
+            # Remove popup from children and restore focus using memory system
+            $mainScreen.RemoveChild($mainScreen.ActionPopup)
+            $focusManager = $mainScreen.ServiceContainer.GetService('FocusManager')
+            if ($focusManager -and -not $focusManager.RestoreFocusContext()) {
+                # Fallback if focus memory fails
+                $mainScreen.SwitchFocusToContent()
+            }
         }.GetNewClosure()
+        
+        # Save current focus context before showing popup
+        $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        if ($focusManager) {
+            $focusManager.SaveFocusContext("ActionPopup")
+        }
         
         # Show the popup by adding it as a child and making it visible
         if (-not $this.Children.Contains($this.ActionPopup)) {
@@ -396,7 +310,6 @@ class MainScreen : Screen {
         $this.ActionPopup.Show()
         
         # Give focus to the popup so it can handle input
-        $focusManager = $this.ServiceContainer.GetService('FocusManager')
         if ($focusManager) {
             $focusManager.SetFocus($this.ActionPopup)
         }
@@ -406,11 +319,86 @@ class MainScreen : Screen {
         }
     }
     
+    [void] ShowScreenNavigationPopup() {
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.ShowScreenNavigationPopup: Creating screen navigation popup")
+        }
+        
+        # Create new popup for screen navigation
+        $this.ActionPopup = [ContextPopup]::new()
+        $this.ActionPopup.Initialize($this.ServiceContainer)
+        $this.ActionPopup.Title = "Navigate to Screen"
+        
+        # Store reference for closure
+        $mainScreen = $this
+        
+        # Add menu items for screen navigation
+        $index = 1
+        foreach ($screenName in $this.MenuItems.Keys) {
+            $displayName = "$index. $screenName"
+            # Capture screen name in closure
+            $targetScreenName = $screenName
+            $this.ActionPopup.AddItem($displayName, {
+                if ($global:Logger) {
+                    $global:Logger.Debug("MainScreen.ShowScreenNavigationPopup: Navigating to '$targetScreenName'")
+                }
+                $mainScreen.SwitchToScreen($targetScreenName)
+            }.GetNewClosure())
+            $index++
+        }
+        
+        # Handle popup events
+        $this.ActionPopup.OnSelect = {
+            param($selectedItem)
+            # Action was already executed by popup
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.OnSelect: Screen '$($selectedItem.Text)' was selected")
+            }
+            # Remove popup from children and restore focus
+            $mainScreen.RemoveChild($mainScreen.ActionPopup)
+            $focusManager = $mainScreen.ServiceContainer.GetService('FocusManager')
+            if ($focusManager -and -not $focusManager.RestoreFocusContext()) {
+                # Fallback if focus memory fails
+                $mainScreen.SwitchFocusToContent()
+            }
+        }.GetNewClosure()
+        
+        $this.ActionPopup.OnCancel = {
+            # Remove popup from children and restore focus
+            $mainScreen.RemoveChild($mainScreen.ActionPopup)
+            $focusManager = $mainScreen.ServiceContainer.GetService('FocusManager')
+            if ($focusManager -and -not $focusManager.RestoreFocusContext()) {
+                # Fallback if focus memory fails
+                $mainScreen.SwitchFocusToContent()
+            }
+        }.GetNewClosure()
+        
+        # Save current focus context before showing popup
+        $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        if ($focusManager) {
+            $focusManager.SaveFocusContext("ScreenNavigationPopup")
+        }
+        
+        # Show the popup by adding it as a child and making it visible
+        if (-not $this.Children.Contains($this.ActionPopup)) {
+            $this.AddChild($this.ActionPopup)
+        }
+        $this.ActionPopup.Show()
+        
+        # Give focus to the popup so it can handle input
+        if ($focusManager) {
+            $focusManager.SetFocus($this.ActionPopup)
+        }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("MainScreen.ShowScreenNavigationPopup: Screen navigation popup shown")
+        }
+    }
+    
     [void] UpdateStatusBar() {
         if ($this.StatusBar) {
-            $focusIndicator = if ($this.MenuFocused) { "MENU" } else { "CONTENT" }
             $this.StatusBar.LeftText = $this.CurrentScreenName
-            $this.StatusBar.CenterText = "Focus: $focusIndicator | ←/→ switch focus | / actions | ↑/↓ navigate"
+            $this.StatusBar.CenterText = "/ actions | ? screens | Navigation keys available"
             $this.StatusBar.RightText = Get-Date -Format "HH:mm"
         }
     }
@@ -418,17 +406,18 @@ class MainScreen : Screen {
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
         
-        # Set initial focus to menu when activated
-        $focusManager = $this.ServiceContainer.GetService('FocusManager')
-        if ($focusManager -and $this.MenuList) {
-            $focusManager.SetFocus($this.MenuList)
-            $this.MenuFocused = $true
+        # Set initial focus to current screen
+        if ($this.CurrentScreen) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                $focusManager.FocusFirst($this.CurrentScreen)
+            }
         }
         
         $this.UpdateStatusBar()
         
         if ($global:Logger) {
-            $global:Logger.Debug("MainScreen.OnActivated: Menu-based MainScreen activated")
+            $global:Logger.Debug("MainScreen.OnActivated: Full-screen MainScreen activated")
         }
     }
     
@@ -457,10 +446,24 @@ class MainScreen : Screen {
             return $true
         }
         
-        if ($keyInfo.Key -eq [System.ConsoleKey]::Escape) {
-            $this.SwitchFocusToMenu()
+        # Handle ? (Shift+/) for screen navigation
+        if ($keyInfo.KeyChar -eq '?') {
+            if ($global:Logger) {
+                $global:Logger.Debug("MainScreen.HandleInput: ? key pressed, calling ShowScreenNavigationPopup")
+            }
+            $this.ShowScreenNavigationPopup()
             $this.UpdateStatusBar()
             return $true
+        }
+        
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Escape) {
+            # If ActionPopup is visible, let it handle Escape first
+            if ($this.ActionPopup -and $this.ActionPopup.IsVisible) {
+                # The popup will handle Escape and call OnCancel which removes it
+                return $false  # Let popup handle it
+            }
+            # No menu to switch to - let content handle escape
+            return $false
         }
         
         # Priority 2: The single focused component gets the first chance to handle the key
@@ -478,11 +481,11 @@ class MainScreen : Screen {
             return $true # The screen's shortcut handled it. We are done.
         }
         
-        # Priority 4: If menu is not focused, delegate to current screen
+        # Priority 4: Delegate to current screen
         if ($global:Logger) {
-            $global:Logger.Debug("MainScreen.HandleInput: MenuFocused=$($this.MenuFocused), CurrentScreen=$($this.CurrentScreen -ne $null), Key='$($keyInfo.KeyChar)'")
+            $global:Logger.Debug("MainScreen.HandleInput: CurrentScreen=$($this.CurrentScreen -ne $null), Key='$($keyInfo.KeyChar)'")
         }
-        if (-not $this.MenuFocused -and $this.CurrentScreen) {
+        if ($this.CurrentScreen) {
             # First try the screen's HandleScreenInput method (for shortcuts like n, e, d)
             if ($this.CurrentScreen.PSObject.Methods['HandleScreenInput']) {
                 if ($global:Logger) {
@@ -510,8 +513,7 @@ class MainScreen : Screen {
     }
     
     [bool] ContainsElement($element) {
-        # Check if element is the menu list or in current screen
-        if ($element -eq $this.MenuList) { return $true }
+        # Check if element is in current screen
         if ($this.CurrentScreen -and $this.IsElementInScreen($element, $this.CurrentScreen)) { return $true }
         return $false
     }

@@ -1,0 +1,10 @@
+=== Excel Data Export ===
+Export Date: 2025-08-03 12:00:00
+Fields Exported: 4
+
+AuditorName           : John Smith
+RequestDate           : 2025-08-02
+SiteName              : Test Site Location
+TPName                : Technical Partner Name
+
+=== End of Export ===

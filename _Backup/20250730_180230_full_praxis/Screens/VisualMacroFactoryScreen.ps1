@@ -1,0 +1,796 @@
+# VisualMacroFactoryScreen.ps1 - Visual macro builder for IDEA scripts
+# Three-pane interface: Component Library | Macro Sequence | Context Panel
+
+class VisualMacroFactoryScreen : Screen {
+    # UI Components - Three panes
+    [SearchableListBox]$ComponentLibrary      # Left pane
+    [MinimalDataGrid]$MacroSequence           # Center pane
+    [MinimalDataGrid]$ContextPanel            # Right pane
+    
+    # Services
+    [MacroContextManager]$ContextManager
+    [FunctionRegistry]$FunctionRegistry
+    [CommandService]$CommandService
+    [EventBus]$EventBus
+    # [ShortcutManager]$ShortcutManager  # Removed - deprecated
+    [MacroService]$MacroService
+    
+    # Available actions
+    [System.Collections.ArrayList]$AvailableActions
+    [int]$SelectedSequenceIndex = -1
+    
+    VisualMacroFactoryScreen() : base() {
+        $this.Title = "Visual Macro Factory"
+        $this.DrawBackground = $true
+        $this.AvailableActions = [System.Collections.ArrayList]::new()
+    }
+    
+    [void] OnInitialize() {
+        # Get services
+        $this.CommandService = $this.ServiceContainer.GetService("CommandService")
+        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
+        # $this.ShortcutManager = $this.ServiceContainer.GetService('ShortcutManager')  # Removed - deprecated
+        
+        # Initialize macro services
+        $this.ContextManager = [MacroContextManager]::new()
+        $this.FunctionRegistry = [FunctionRegistry]::new()
+        $this.FunctionRegistry.SetCommandService($this.CommandService)
+        $this.ContextManager.SetFunctionRegistry($this.FunctionRegistry)
+        $this.MacroService = [MacroService]::new()
+        
+        # Create UI components
+        $this.CreateComponentLibrary()
+        $this.CreateMacroSequence()
+        $this.CreateContextPanel()
+        
+        # Register shortcuts
+        # $this.RegisterShortcuts()  # Removed - deprecated
+    }
+    
+    [void] LoadAvailableActions() {
+        if ($global:Logger) {
+            $global:Logger.Debug("VisualMacroFactoryScreen.LoadAvailableActions: Starting to load actions")
+        }
+        
+        # Load built-in actions
+        $this.AvailableActions.Add([SummarizationAction]::new()) | Out-Null
+        $this.AvailableActions.Add([AppendFieldAction]::new()) | Out-Null
+        $this.AvailableActions.Add([ExportToExcelAction]::new()) | Out-Null
+        
+        # Add custom IDEA@ command action
+        $this.AvailableActions.Add([CustomIdeaCommandAction]::new()) | Out-Null
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("VisualMacroFactoryScreen.LoadAvailableActions: Loaded $($this.AvailableActions.Count) actions")
+        }
+        
+        # Populate the component library with the loaded actions
+        $this.ComponentLibrary.SetItems($this.AvailableActions)
+        
+        # TODO: Load additional actions from Actions/ directory
+    }
+    
+    [void] CreateComponentLibrary() {
+        $this.ComponentLibrary = [SearchableListBox]::new()
+        $this.ComponentLibrary.Title = "📚 Component Library"
+        $this.ComponentLibrary.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.ComponentLibrary.SearchPrompt = "Search actions... (category:core type:export)"
+        
+        # Custom renderer for actions
+        $this.ComponentLibrary.ItemRenderer = {
+            param($action)
+            if (-not $action) { return "" }
+            return $action.GetDisplayText()
+        }
+        
+        # Handle selection change to add action
+        $screen = $this
+        $this.ComponentLibrary.OnSelectionChanged = {
+            # User can press Enter to add selected action
+        }.GetNewClosure()
+        
+        $this.ComponentLibrary.Initialize($this.ServiceContainer)
+        $this.AddChild($this.ComponentLibrary)
+        
+        # Load available actions
+        $this.LoadAvailableActions()
+    }
+    
+    [void] CreateMacroSequence() {
+        $this.MacroSequence = [MinimalDataGrid]::new()
+        $this.MacroSequence.Title = "🔧 Macro Sequence"
+        $this.MacroSequence.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.MacroSequence.ShowTitle = $true
+        
+        # Define columns for macro sequence
+        $columns = @(
+            @{ Name = "Step"; Width = 6; Alignment = "Center" },
+            @{ Name = "Action"; Width = 20; Alignment = "Left" },
+            @{ Name = "Description"; Width = 30; Alignment = "Left" },
+            @{ Name = "Status"; Width = 15; Alignment = "Center";
+                Formatter = { param($value)
+                    if ($value -match "✅") {
+                        return "`e[32m$value`e[0m" # Green
+                    } elseif ($value -match "⚠️") {
+                        return "`e[33m$value`e[0m" # Yellow
+                    }
+                    return $value
+                }
+            }
+        )
+        $this.MacroSequence.SetColumns($columns)
+        
+        # Note: MinimalDataGrid doesn't have OnSelectionChanged callback
+        # Selection tracking will be handled in HandleInput method
+        
+        $this.MacroSequence.Initialize($this.ServiceContainer)
+        $this.AddChild($this.MacroSequence)
+        
+        # Track sequence data
+        $this._sequenceData = [System.Collections.ArrayList]::new()
+    }
+    
+    [System.Collections.ArrayList]$_sequenceData = [System.Collections.ArrayList]::new()
+    
+    [void] AddActionToSequence() {
+        $selectedAction = $this.ComponentLibrary.GetSelectedItem()
+        if (-not $selectedAction) { return }
+        
+        # Clone the action for the sequence
+        $actionInstance = $selectedAction.Clone()
+        
+        # Add to sequence data
+        $sequenceItem = [PSCustomObject]@{
+            Step = $this._sequenceData.Count + 1
+            Action = $actionInstance.Name
+            Description = $actionInstance.Description
+            Status = "⚠️ Not configured"
+            Instance = $actionInstance
+        }
+        
+        $this._sequenceData.Add($sequenceItem) | Out-Null
+        $this.UpdateMacroSequence()
+        
+        # Show property dialog if action has properties
+        if ($actionInstance.Properties.Count -gt 0) {
+            $this.EditAction($sequenceItem)
+        }
+    }
+
+    [void] EditAction($sequenceItem) {
+        # Create action properties dialog
+        $dialog = [ActionPropertiesDialog]::new($sequenceItem.Instance)
+        $dialog.Initialize($this.ServiceContainer)
+        
+        $screen = $this
+        $dialog.OnSave = {
+            # Update status
+            $sequenceItem.Status = "✅ Configured"
+            $screen.UpdateMacroSequence()
+            $screen.UpdateContext()
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($dialog)
+    }
+    
+    [void] RemoveSelectedAction() {
+        if ($this.MacroSequence.SelectedIndex -lt 0) { return }
+        
+        $this._sequenceData.RemoveAt($this.MacroSequence.SelectedIndex)
+        
+        # Renumber steps
+        for ($i = 0; $i -lt $this._sequenceData.Count; $i++) {
+            $this._sequenceData[$i].Step = $i + 1
+        }
+        
+        $this.UpdateMacroSequence()
+        $this.UpdateContext()
+    }
+
+    [void] UpdateContext() {
+        $this.UpdateContextPanel()
+    }
+    
+    [void] MoveActionUp() {
+        $idx = $this.MacroSequence.SelectedIndex
+        if ($idx -le 0) { return }
+        
+        # Swap items
+        $temp = $this._sequenceData[$idx - 1]
+        $this._sequenceData[$idx - 1] = $this._sequenceData[$idx]
+        $this._sequenceData[$idx] = $temp
+        
+        # Update step numbers
+        $this._sequenceData[$idx - 1].Step = $idx
+        $this._sequenceData[$idx].Step = $idx + 1
+        
+        $this.UpdateMacroSequence()
+        $this.MacroSequence.SelectedIndex = $idx - 1
+    }
+    
+    [void] MoveActionDown() {
+        $idx = $this.MacroSequence.SelectedIndex
+        if ($idx -lt 0 -or $idx -ge $this._sequenceData.Count - 1) { return }
+        
+        # Swap items
+        $temp = $this._sequenceData[$idx + 1]
+        $this._sequenceData[$idx + 1] = $this._sequenceData[$idx]
+        $this._sequenceData[$idx] = $temp
+        
+        # Update step numbers
+        $this._sequenceData[$idx].Step = $idx + 1
+        $this._sequenceData[$idx + 1].Step = $idx + 2
+        
+        $this.UpdateMacroSequence()
+        $this.MacroSequence.SelectedIndex = $idx + 1
+    }
+    
+    [void] CreateContextPanel() {
+        $this.ContextPanel = [MinimalDataGrid]::new()
+        $this.ContextPanel.Title = "🎯 Macro Context"
+        $this.ContextPanel.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.ContextPanel.ShowTitle = $true
+        
+        # Define columns for context variables
+        $columns = @(
+            @{ Name = "Variable"; Width = 15; Alignment = "Left" },
+            @{ Name = "Type"; Width = 10; Alignment = "Left" },
+            @{ Name = "Value"; Width = 25; Alignment = "Left" },
+            @{ Name = "Source"; Width = 15; Alignment = "Left" }
+        )
+        $this.ContextPanel.SetColumns($columns)
+        
+        $this.ContextPanel.Initialize($this.ServiceContainer)
+        $this.AddChild($this.ContextPanel)
+        
+        # Initial context update
+        $this.UpdateContextPanel()
+        
+        # Set initial focus to component library
+        if ($this.ComponentLibrary) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                $focusManager.SetFocus($this.ComponentLibrary)
+            } else {
+                # Fallback if FocusManager not available
+                $this.ComponentLibrary.Focus()
+            }
+        }
+    }
+    
+    [void] RegisterShortcuts() {
+        # if (-not $this.ShortcutManager) { return }  # Removed - deprecated
+        
+        $screen = $this
+        
+        # A: Add action to sequence
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Enter: Edit selected action properties
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Delete/D: Remove selected action from sequence
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Ctrl+Up: Move action up in sequence
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Ctrl+Down: Move action down in sequence
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # F5: Generate and preview script
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Ctrl+S: Save macro
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Ctrl+O: Open macro
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+        
+        # Ctrl+N: New macro (clear)
+#        RegisterShortcut(@{ ... }) # Removed - deprecated
+    }
+    
+    [void] AddActionToSequence([BaseAction]$action) {
+        # Clone the action to avoid modifying the template
+        $newAction = $action.GetType()::new()
+        
+        $this.ContextManager.AddAction($newAction)
+        $this.UpdateMacroSequence()
+        $this.UpdateContextPanel()
+        
+        # Focus the macro sequence and select the new item
+        $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        if ($focusManager) {
+            $focusManager.SetFocus($this.MacroSequence)
+        } else {
+            # Fallback if FocusManager not available
+            $this.MacroSequence.Focus()
+        }
+        $this.MacroSequence.SelectedIndex = $this.ContextManager.Actions.Count - 1
+        $this.SelectedSequenceIndex = $this.MacroSequence.SelectedIndex
+    }
+    
+    [void] RemoveActionFromSequence([int]$index) {
+        $this.ContextManager.RemoveAction($index)
+        $this.UpdateMacroSequence()
+        $this.UpdateContextPanel()
+        
+        # Adjust selection
+        if ($this.SelectedSequenceIndex -ge $this.ContextManager.Actions.Count) {
+            $this.SelectedSequenceIndex = $this.ContextManager.Actions.Count - 1
+        }
+        $this.MacroSequence.SelectedIndex = $this.SelectedSequenceIndex
+    }
+    
+    [void] UpdateMacroSequence() {
+        $rows = @()
+        
+        for ($i = 0; $i -lt $this.ContextManager.Actions.Count; $i++) {
+            $action = $this.ContextManager.Actions[$i]
+            $context = $this.ContextManager.GetContextAtStep($i)
+            
+            # Get detailed validation status
+            $statusInfo = $action.GetValidationStatus($context)
+            $status = $statusInfo.Message
+            
+            $rows += @{
+                Step = ($i + 1).ToString()
+                Action = $action.Name
+                Description = $action.Description
+                Status = $status
+            }
+        }
+        
+        $this.MacroSequence.SetItems($rows)
+    }
+    
+    [void] UpdateContextPanel() {
+        $rows = @()
+        
+        # Get context for the selected step (or full context if none selected)
+        $context = if ($this.SelectedSequenceIndex -ge 0) {
+            $this.ContextManager.GetContextAtStep($this.SelectedSequenceIndex)
+        } else {
+            $this.ContextManager.GetFullContext()
+        }
+        
+        foreach ($varName in $context.Keys) {
+            $varInfo = $context[$varName]
+            $source = if ($varInfo.ContainsKey('ProducedBy')) { $varInfo.ProducedBy } else { "System" }
+            
+            $rows += @{
+                Variable = $varName
+                Type = $varInfo.Type
+                Value = if ($varInfo.ContainsKey('Value')) { $varInfo.Value } else { "<undefined>" }
+                Source = $source
+            }
+        }
+        
+        $this.ContextPanel.SetItems($rows)
+        
+        # Update title to show context step
+        if ($this.SelectedSequenceIndex -ge 0) {
+            $this.ContextPanel.Title = "🎯 Context at Step $($this.SelectedSequenceIndex + 1)"
+        } else {
+            $this.ContextPanel.Title = "🎯 Full Macro Context"
+        }
+    }
+
+    [void] NewMacro() {
+        if ($this._sequenceData.Count -gt 0) {
+            # Confirm before clearing
+            $dialog = [ConfirmationDialog]::new("Clear current macro and start new?")
+            $dialog.Initialize($this.ServiceContainer)
+            
+            $screen = $this
+            $dialog.OnPrimary = {
+                $screen._sequenceData.Clear()
+                $screen.UpdateMacroSequence()
+                $screen.UpdateContext()
+            }.GetNewClosure()
+            
+            $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    [void] PreviewGeneratedScript() {
+        try {
+            $script = $this.ContextManager.GenerateScript()
+            
+            # Show script in preview dialog
+            $previewDialog = [ScriptPreviewDialog]::new($script)
+            $previewDialog.Initialize($this.ServiceContainer)
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($previewDialog)
+            }
+            
+        } catch {
+            # Show error in confirmation dialog
+            $errorMessage = "Script Generation Error:`n`n$($_.Exception.Message)"
+            $errorDialog = [ConfirmationDialog]::new($errorMessage)
+            $errorDialog.Title = "Error"
+            $errorDialog.ShowCancel = $false
+            $errorDialog.ConfirmText = "OK"
+            $errorDialog.Initialize($this.ServiceContainer)
+            
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($errorDialog)
+            }
+            
+            if ($global:Logger) {
+                $global:Logger.Error("Script Generation Error: $($_.Exception.Message)")
+            }
+        }
+    }
+    
+    [void] SaveMacro() {
+        try {
+            # Create text input dialog for macro name
+            $nameDialog = [TextInputDialog]::new()
+            $nameDialog.Title = "Save Macro"
+            $nameDialog.Prompt = "Enter macro name:"
+            $nameDialog.Initialize($this.ServiceContainer)
+            
+            $screen = $this
+            $nameDialog.OnConfirm = {
+                param($macroName)
+                
+                if ([string]::IsNullOrWhiteSpace($macroName)) {
+                    return
+                }
+                
+                # Get description
+                $descDialog = [TextInputDialog]::new()
+                $descDialog.Title = "Macro Description"
+                $descDialog.Prompt = "Enter description (optional):"
+                $descDialog.Initialize($screen.ServiceContainer)
+                
+                $descDialog.OnConfirm = {
+                    param($description)
+                    
+                    try {
+                        # Save the macro
+                        $screen.MacroService.SaveMacro($macroName, $screen.ContextManager, $description)
+                        
+                        # Show success message
+                        $successDialog = [ConfirmationDialog]::new("Macro saved successfully!")
+                        $successDialog.Title = "Success"
+                        $successDialog.ShowCancel = $false
+                        $successDialog.ConfirmText = "OK"
+                        $successDialog.Initialize($screen.ServiceContainer)
+                        
+                        $global:ScreenManager.Push($successDialog)
+                    } catch {
+                        $errorDialog = [ConfirmationDialog]::new("Failed to save macro:`n$_")
+                        $errorDialog.Title = "Error"
+                        $errorDialog.ShowCancel = $false
+                        $errorDialog.ConfirmText = "OK"
+                        $errorDialog.Initialize($screen.ServiceContainer)
+                        
+                        $global:ScreenManager.Push($errorDialog)
+                    }
+                }.GetNewClosure()
+                
+                $global:ScreenManager.Push($descDialog)
+            }.GetNewClosure()
+            
+            $global:ScreenManager.Push($nameDialog)
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("SaveMacro error: $_")
+            }
+        }
+    }
+    
+    [void] OpenMacro() {
+        try {
+            # Get available macros
+            $macros = $this.MacroService.GetAvailableMacros()
+            
+            if ($macros.Count -eq 0) {
+                $dialog = [ConfirmationDialog]::new("No saved macros found.")
+                $dialog.Title = "Open Macro"
+                $dialog.ShowCancel = $false
+                $dialog.ConfirmText = "OK"
+                $dialog.Initialize($this.ServiceContainer)
+                $global:ScreenManager.Push($dialog)
+                return
+            }
+            
+            # Create selection dialog
+            $selectDialog = [SelectionDialog]::new()
+            $selectDialog.Title = "Open Macro"
+            $selectDialog.Prompt = "Select a macro to open:"
+            $selectDialog.Initialize($this.ServiceContainer)
+            
+            # Format macro list
+            $items = @()
+            foreach ($macro in $macros) {
+                $items += @{
+                    Display = "$($macro.Name) - $($macro.Description)"
+                    Value = $macro.Filename
+                    Macro = $macro
+                }
+            }
+            
+            $selectDialog.SetItems($items)
+            $selectDialog.ItemRenderer = { param($item) $item.Display }
+            
+            $screen = $this
+            $selectDialog.OnSelect = {
+                param($item)
+                
+                try {
+                    # Load the macro
+                    $newContextManager = $screen.MacroService.LoadMacro($item.Value)
+                    
+                    # Replace current context
+                    $screen.ContextManager = $newContextManager
+                    $screen.ContextManager.SetFunctionRegistry($screen.FunctionRegistry)
+                    
+                    # Update UI
+                    $screen.SelectedSequenceIndex = -1
+                    $screen.UpdateMacroSequence()
+                    $screen.UpdateContextPanel()
+                    
+                    if ($global:Logger) {
+                        $global:Logger.Info("Loaded macro: $($item.Macro.Name)")
+                    }
+                } catch {
+                    $errorDialog = [ConfirmationDialog]::new("Failed to load macro:`n$_")
+                    $errorDialog.Title = "Error"
+                    $errorDialog.ShowCancel = $false
+                    $errorDialog.ConfirmText = "OK"
+                    $errorDialog.Initialize($screen.ServiceContainer)
+                    
+                    $global:ScreenManager.Push($errorDialog)
+                }
+            }.GetNewClosure()
+            
+            $global:ScreenManager.Push($selectDialog)
+            
+        } catch {
+            if ($global:Logger) {
+                $global:Logger.Error("OpenMacro error: $_")
+            }
+        }
+    }
+
+    [string] OnRender() {
+        # Get base rendering
+        $baseRender = ([Screen]$this).OnRender()
+        
+        # Add vertical separators between panes
+        $sb = Get-PooledStringBuilder 1024
+        $sb.Append($baseRender)
+        
+        # Get theme for colors
+        $theme = $this.ServiceContainer.GetService('ThemeManager')
+        if ($theme) {
+            $borderColor = $theme.GetColor('border.normal')
+            $sb.Append($borderColor)
+            
+            # Calculate separator positions (must match OnBoundsChanged calculations)
+            $separatorWidth = 1
+            $leftWidth = [int]($this.Width * 0.3) - $separatorWidth
+            $centerWidth = [int]($this.Width * 0.4) - $separatorWidth
+            
+            $leftSeparatorX = $this.X + $leftWidth
+            $rightSeparatorX = $this.X + $leftWidth + $separatorWidth + $centerWidth
+            
+            # Draw left separator
+            for ($y = $this.Y + 1; $y -lt ($this.Y + $this.Height - 1); $y++) {
+                $sb.Append([VT]::MoveTo($leftSeparatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Add T-junctions for left separator
+            $sb.Append([VT]::MoveTo($leftSeparatorX, $this.Y))
+            $sb.Append('┬')
+            $sb.Append([VT]::MoveTo($leftSeparatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')
+            
+            # Draw right separator
+            for ($y = $this.Y + 1; $y -lt ($this.Y + $this.Height - 1); $y++) {
+                $sb.Append([VT]::MoveTo($rightSeparatorX, $y))
+                $sb.Append('│')
+            }
+            
+            # Add T-junctions for right separator
+            $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y))
+            $sb.Append('┬')
+            $sb.Append([VT]::MoveTo($rightSeparatorX, $this.Y + $this.Height - 1))
+            $sb.Append('┴')
+
+        }
+        
+        $result = $sb.ToString()
+        Return-PooledStringBuilder $sb
+        return $result
+    }
+    
+    # Override to provide help text
+    [string] GetHelpText() {
+        return @"
+# Visual Macro Factory Help
+
+Build IDEA macros visually by combining actions in sequence.
+
+## Navigation
+Tab               - Switch between panes
+Arrow Keys        - Navigate within lists
+Enter             - Edit action properties / Add action
+
+## Component Library (Left Pane)
+Double-click      - Add action to sequence
+Search            - Filter available actions
+
+## Macro Sequence (Center Pane)
+Enter             - Edit action properties
+Delete            - Remove selected action
+Ctrl+Up/Down      - Move action in sequence
+
+## Shortcuts
+F5                - Preview generated script
+Ctrl+S            - Save macro
+Ctrl+O            - Open saved macro
+Ctrl+N            - New macro (clear)
+
+## Status Indicators
+✅ Ready          - Action configured and ready
+⚠️ Configure      - Action needs configuration
+⚠️ Missing        - Required context missing
+
+---
+Press ESC to close help
+"@
+    }
+    
+    [void] OnBoundsChanged() {
+        if ($global:Logger) {
+            $global:Logger.Debug("VisualMacroFactoryScreen.OnBoundsChanged: Width=$($this.Width) Height=$($this.Height)")
+        }
+        
+        if ($this.Width -le 0 -or $this.Height -le 0) { 
+            if ($global:Logger) {
+                $global:Logger.Debug("VisualMacroFactoryScreen.OnBoundsChanged: Skipping due to zero bounds")
+            }
+            return 
+        }
+        
+        # Island Components Layout: 30% | 40% | 30% with gaps between islands
+        $gap = 2  # Standard island separation
+        $totalGapWidth = $gap * 2  # Gaps between 3 components
+        $availableWidth = $this.Width - $totalGapWidth
+        
+        $leftWidth = [int]($availableWidth * 0.3)
+        $centerWidth = [int]($availableWidth * 0.4)
+        $rightWidth = $availableWidth - $leftWidth - $centerWidth
+        
+        $contentHeight = $this.Height
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("VisualMacroFactoryScreen.OnBoundsChanged: ISLAND LAYOUT - leftWidth=$leftWidth centerWidth=$centerWidth rightWidth=$rightWidth gap=$gap")
+        }
+        
+        # Position Component Library Island (left)
+        if ($this.ComponentLibrary) {
+            $this.ComponentLibrary.SetBounds($this.X, $this.Y, $leftWidth, $contentHeight)
+        }
+        
+        # Position Macro Sequence Island (center) - with gap
+        if ($this.MacroSequence) {
+            $this.MacroSequence.SetBounds($this.X + $leftWidth + $gap, $this.Y, $centerWidth, $contentHeight)
+        }
+        
+        # Position Context Panel Island (right) - with gap  
+        if ($this.ContextPanel) {
+            $this.ContextPanel.SetBounds($this.X + $leftWidth + $gap + $centerWidth + $gap, $this.Y, $rightWidth, $contentHeight)
+        }
+    }
+    
+    [void] EditSelectedAction() {
+        if (-not $this.MacroSequence) { return }
+        
+        $selectedIndex = $this.MacroSequence.SelectedIndex
+        if ($selectedIndex -lt 0 -or $selectedIndex -ge $this.ContextManager.Actions.Count) { 
+            return 
+        }
+        
+        $action = $this.ContextManager.Actions[$selectedIndex]
+        if (-not $action) { return }
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("VisualMacroFactoryScreen.EditSelectedAction: Editing action $($action.Name) at index $selectedIndex")
+        }
+        
+        # Create and show the properties dialog
+        $dialog = [ActionPropertiesDialog]::new($action)
+        
+        # After the dialog closes, refresh the UI to reflect changes
+        $originalOnPrimary = $dialog.OnPrimary
+        $screen = $this
+        $dialog.OnPrimary = {
+            # Call the original handler first
+            if ($originalOnPrimary) {
+                & $originalOnPrimary
+            }
+            
+            # Then update our UI
+            $screen.UpdateMacroSequence()
+            $screen.UpdateContextPanel()
+            
+            if ($global:Logger) {
+                $global:Logger.Debug("VisualMacroFactoryScreen: Updated after editing action")
+            }
+        }.GetNewClosure()
+        
+        $global:ScreenManager.Push($dialog)
+    }
+    
+    [void] EditMacro() {
+        # Alias for OpenMacro - opens existing macro for editing
+        $this.OpenMacro()
+    }
+    
+    [void] DeleteMacro() {
+        # Not fully implemented - would need to show a list of saved macros to delete
+        $toastService = $this.ServiceContainer.GetService('ToastService')
+        if ($toastService) {
+            $toastService.Show("Delete macro not yet implemented", [ToastType]::Warning, 2000)
+        }
+    }
+    
+    [void] TestMacro() {
+        # Generate and execute the current macro script
+        try {
+            $script = $this.GenerateScript()
+            if ([string]::IsNullOrWhiteSpace($script)) {
+                $toastService = $this.ServiceContainer.GetService('ToastService')
+                if ($toastService) {
+                    $toastService.Show("No macro to test", [ToastType]::Warning, 2000)
+                }
+                return
+            }
+            
+            # Execute the script
+            $result = Invoke-Expression -Command $script
+            
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Macro executed successfully!", [ToastType]::Success, 2000)
+            }
+        }
+        catch {
+            $toastService = $this.ServiceContainer.GetService('ToastService')
+            if ($toastService) {
+                $toastService.Show("Macro failed: $($_.Exception.Message)", [ToastType]::Error, 3000)
+            }
+            
+            if ($global:Logger) {
+                $global:Logger.Error("VisualMacroFactoryScreen.TestMacro: Error executing macro: $_")
+            }
+        }
+    }
+    
+    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Visual Macro Factory screen shortcuts
+        switch ($keyInfo.KeyChar) {
+            'n' { $this.NewMacro(); return $true }
+            'e' { $this.EditMacro(); return $true }
+            'd' { $this.DeleteMacro(); return $true }
+            't' { $this.TestMacro(); return $true }
+        }
+        
+        # Enter key for editing
+        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
+            $this.EditMacro()
+            return $true
+        }
+        
+        return $false
+    }
+}

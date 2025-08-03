@@ -6,7 +6,7 @@ class Container : UIElement {
     [bool]$DrawBackground = $false
     hidden [string]$_cachedBackground = ""
     hidden [string]$_cachedBgColor = ""
-    hidden [ThemeManager]$Theme
+    hidden [object]$Theme
     
     Container() : base() {
     }
@@ -45,18 +45,31 @@ class Container : UIElement {
             return 
         }
         
-        $sb = Get-PooledStringBuilder ($this.Width * $this.Height * 2)
-        $line = [StringCache]::GetSpaces($this.Width)
+        # For screens at position 0,0, ensure we fill the entire console
+        $fillWidth = $this.Width
+        $fillHeight = $this.Height
+        if ($this.X -eq 0 -and $this.Y -eq 0 -and $this.GetType().BaseType.Name -eq 'Screen') {
+            # This is likely a full-screen component
+            try {
+                $fillWidth = [Math]::Max($this.Width, [Console]::WindowWidth)
+                $fillHeight = [Math]::Max($this.Height, [Console]::WindowHeight)
+            } catch {
+                # Fallback to component size if console size unavailable
+                $fillWidth = $this.Width
+                $fillHeight = $this.Height
+            }
+        }
         
-        for ($y = 0; $y -lt $this.Height; $y++) {
+        $sb = Get-PooledStringBuilder ($fillWidth * $fillHeight * 2)
+        $line = [StringCache]::GetSpaces($fillWidth)
+        
+        for ($y = 0; $y -lt $fillHeight; $y++) {
             $sb.Append([VT]::MoveTo($this.X, $this.Y + $y))
             if ($this._cachedBgColor) {
                 $sb.Append($this._cachedBgColor)
             }
             $sb.Append($line)
         }
-        
-        
         
         $this._cachedBackground = $sb.ToString()
         Return-PooledStringBuilder $sb

@@ -2,7 +2,7 @@
 
 BeforeAll {
     Import-Module "$PSScriptRoot/../../TestHelpers.psm1" -Force
-    . "$PSScriptRoot/../../../Services/EventBus.ps1"
+    Initialize-PraxisForTesting
 }
 
 Describe "EventBus Service" {

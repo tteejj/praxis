@@ -2,7 +2,7 @@
 
 BeforeAll {
     Import-Module "$PSScriptRoot/../../TestHelpers.psm1" -Force
-    . "$PSScriptRoot/../../../Core/BorderStyle.ps1"
+    Initialize-PraxisForTesting
 }
 
 Describe "BorderStyle Class" {

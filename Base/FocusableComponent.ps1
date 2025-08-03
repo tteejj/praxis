@@ -89,30 +89,11 @@ class FocusableComponent : Container {
         # }
     }
     
-    # Render with focus indication
+    # Render with focus indication - CLEAN approach like DialogField
     [string] OnRender() {
-        $sb = Get-PooledStringBuilder 1024
-        
-        # Render content first
-        $content = $this.RenderContent()
-        
-        if ($this.IsFocused -and $this.ShowFocusIndicator) {
-            if ($this.FocusStyle -eq 'border') {
-                # Draw clean focus border
-                $this.RenderFocusBorder($sb)
-            } else {
-                # Apply focus style to content
-                $sb.Append($this._focusPrefix)
-                $sb.Append($content)
-                $sb.Append($this._focusSuffix)
-            }
-        } else {
-            $sb.Append($content)
-        }
-        
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
+        # Let components handle their own focus styling
+        # No automatic borders or styling from base class
+        return $this.RenderContent()
     }
     
     # Override in derived classes to provide content

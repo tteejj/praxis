@@ -35,7 +35,28 @@ class ContextPopup : UIElement {
     
     [void] Hide() {
         $this.IsVisible = $false
+        
+        # Ensure focus is restored to a valid element
+        if ($this.ServiceContainer) {
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                $currentFocus = $focusManager.GetFocused()
+                if ($currentFocus -eq $this) {
+                    # We're currently focused but hiding, need to restore focus
+                    # Let the parent handle focus restoration
+                    if ($global:Logger) {
+                        $global:Logger.Debug("ContextPopup.Hide: Popup was focused, clearing focus")
+                    }
+                    $focusManager.ClearFocus()
+                }
+            }
+        }
+        
         $this.Invalidate()
+        
+        if ($global:Logger) {
+            $global:Logger.Debug("ContextPopup.Hide: Popup hidden")
+        }
     }
     
     
@@ -53,10 +74,10 @@ class ContextPopup : UIElement {
                 }
             }
         } else {
-            # Fallback colors if no theme
-            $this._normalColor = "`e[38;2;255;255;255m"
-            $this._selectedColor = "`e[38;2;255;255;0m" 
-            $this._borderColor = "`e[38;2;128;128;128m"
+            # NO FALLBACKS - theme MUST be valid
+            $this._normalColor = $this.Theme.GetColor('text.primary')
+            $this._selectedColor = $this.Theme.GetColor('color.primary')
+            $this._borderColor = $this.Theme.GetColor('border.normal')
         }
     }
     
@@ -67,9 +88,9 @@ class ContextPopup : UIElement {
         })
         
         # Auto-size popup based on content
-        $this.Height = [Math]::Min($this.Items.Count + 2, $this.MaxHeight) # +2 for border
+        $this.Height = [Math]::Min($this.Items.Count, $this.MaxHeight) # No borders
         $maxTextLength = ($this.Items | ForEach-Object { $_.Text.Length } | Measure-Object -Maximum).Maximum
-        $this.Width = [Math]::Min($maxTextLength + 4, $this.MaxWidth) # +4 for border and padding
+        $this.Width = [Math]::Min($maxTextLength + 2, $this.MaxWidth) # +2 for indicator and padding
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$keyInfo) {
@@ -93,14 +114,15 @@ class ContextPopup : UIElement {
             ([System.ConsoleKey]::Enter) {
                 if ($this.Items.Count -gt 0 -and $this.SelectedIndex -ge 0) {
                     $selectedItem = $this.Items[$this.SelectedIndex]
-                    $this.Hide()
-                    # Just execute the action directly
+                    # Execute action BEFORE hiding to maintain focus chain
                     if ($selectedItem.Action) {
                         if ($global:Logger) {
                             $global:Logger.Debug("ContextPopup.Enter: Executing action for '$($selectedItem.Text)'")
                         }
                         & $selectedItem.Action
                     }
+                    # Now hide and call OnSelect
+                    $this.Hide()
                     & $this.OnSelect $selectedItem
                 }
                 return $true
@@ -116,14 +138,15 @@ class ContextPopup : UIElement {
         if ($keyInfo.KeyChar -eq ' ') {
             if ($this.Items.Count -gt 0 -and $this.SelectedIndex -ge 0) {
                 $selectedItem = $this.Items[$this.SelectedIndex]
-                $this.Hide()
-                # Just execute the action directly
+                # Execute action BEFORE hiding to maintain focus chain
                 if ($selectedItem.Action) {
                     if ($global:Logger) {
                         $global:Logger.Debug("ContextPopup.Space: Executing action for '$($selectedItem.Text)'")
                     }
                     & $selectedItem.Action
                 }
+                # Now hide and call OnSelect
+                $this.Hide()
                 & $this.OnSelect $selectedItem
             }
             return $true
@@ -147,33 +170,23 @@ class ContextPopup : UIElement {
             # No background color - we're an overlay
             $bgColor = ""
         
-        # Simple clean border with proper theming
+        # No borders - clean rendering
         $sb.Append([VT]::Reset())
         
         # Calculate actual width based on longest item
-        $actualWidth = ($this.Items | ForEach-Object { $_.Text.Length } | Measure-Object -Maximum).Maximum + 4
+        $actualWidth = ($this.Items | ForEach-Object { $_.Text.Length } | Measure-Object -Maximum).Maximum + 2
         
-        # Top border
-        $sb.Append([VT]::MoveTo($this.X, $this.Y))
-        $sb.Append($this._borderColor)
-        $sb.Append("┌" + ("─" * ($actualWidth - 2)) + "┐")
-        
-        # Items with side borders
+        # Items without borders
         for ($i = 0; $i -lt $this.Items.Count; $i++) {
-            $y = $this.Y + $i + 1
-            
-            # Left border
-            $sb.Append([VT]::MoveTo($this.X, $y))
-            $sb.Append($this._borderColor)
-            $sb.Append("│")
+            $y = $this.Y + $i
             
             # Item content
-            $sb.Append([VT]::MoveTo($this.X + 1, $y))
+            $sb.Append([VT]::MoveTo($this.X, $y))
             
             $item = $this.Items[$i]
             $text = $item.Text
-            if ($text.Length -gt ($this.Width - 3)) {
-                $text = $text.Substring(0, $this.Width - 4) + "…"
+            if ($text.Length -gt ($this.Width - 2)) {
+                $text = $text.Substring(0, $this.Width - 3) + "…"
             }
             
             if ($i -eq $this.SelectedIndex) {
@@ -184,19 +197,9 @@ class ContextPopup : UIElement {
                 $sb.Append(" ")
             }
             
-            # Pad the text to fill the width minus borders and indicator
-            $sb.Append($text.PadRight($actualWidth - 3))
-            
-            # Right border
-            $sb.Append([VT]::MoveTo($this.X + $actualWidth - 1, $y))
-            $sb.Append($this._borderColor)
-            $sb.Append("│")
+            # Pad the text to fill the width
+            $sb.Append($text.PadRight($actualWidth - 1))
         }
-        
-        # Bottom border
-        $sb.Append([VT]::MoveTo($this.X, $this.Y + $this.Items.Count + 1))
-        $sb.Append($this._borderColor)
-        $sb.Append("└" + ("─" * ($actualWidth - 2)) + "┘")
         
         # Reset colors at the end to prevent bleeding
         $sb.Append([VT]::Reset())

@@ -1,41 +1,22 @@
-# EditTaskDialog.ps1 - Dialog for editing existing tasks
+# EditTaskDialog.ps1 - Dialog for editing existing tasks using UnifiedDialog
 
-class EditTaskDialog : BaseDialog {
+class EditTaskDialog : UnifiedDialog {
     [Task]$Task
-    [MinimalTextBox]$TitleBox
-    [MinimalTextBox]$DescriptionBox
     [MinimalListBox]$StatusList
     [MinimalListBox]$PriorityList
-    [MinimalTextBox]$ProgressBox
-    [scriptblock]$OnSave = {}
-    [scriptblock]$OnCancel = {}
     
-    EditTaskDialog([Task]$task) : base("Edit Task") {
+    EditTaskDialog([Task]$task) : base("Edit Task", 60, 18) {
         $this.Task = $task
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
-        $this.DialogWidth = 60
-        $this.DialogHeight = 20
-    }
-    
-    [void] InitializeContent() {
-        # Create title textbox
-        $this.TitleBox = [MinimalTextBox]::new()
-        $this.TitleBox.Text = $this.Task.Title
-        $this.TitleBox.Placeholder = "Enter task title..."
-        $this.TitleBox.ShowBorder = $false  # Dialog provides the border
-        $this.AddContentControl($this.TitleBox, 1)
         
-        # Create description textbox
-        $this.DescriptionBox = [MinimalTextBox]::new()
-        $this.DescriptionBox.Text = $this.Task.Description
-        $this.DescriptionBox.Placeholder = "Enter description (optional)..."
-        $this.DescriptionBox.ShowBorder = $false  # Dialog provides the border
-        $this.AddContentControl($this.DescriptionBox, 2)
+        # Add task fields using simplified UnifiedDialog API with current values
+        $this.AddField("title", "Task Title", $task.Title)
+        $this.AddField("description", "Description", $task.Description)
+        $this.AddField("progress", "Progress (0-100)", $task.Progress.ToString())
         
-        # Create status list
+        # Create status list box manually for more control
         $this.StatusList = [MinimalListBox]::new()
-        $this.StatusList.ShowBorder = $false  # Dialog provides the border
+        $this.StatusList.ShowBorder = $false
+        $this.StatusList.Height = 4
         $this.StatusList.SetItems(@(
             @{Name="Pending"; Value=[TaskStatus]::Pending},
             @{Name="In Progress"; Value=[TaskStatus]::InProgress},
@@ -50,11 +31,13 @@ class EditTaskDialog : BaseDialog {
                 break
             }
         }
-        $this.AddContentControl($this.StatusList, 3)
+        $this.StatusList | Add-Member -NotePropertyName "FieldName" -NotePropertyValue "status"
+        $this.AddControl($this.StatusList)
         
-        # Create priority list
+        # Create priority list box manually for more control
         $this.PriorityList = [MinimalListBox]::new()
-        $this.PriorityList.ShowBorder = $false  # Dialog provides the border
+        $this.PriorityList.ShowBorder = $false
+        $this.PriorityList.Height = 3
         $this.PriorityList.SetItems(@(
             @{Name="Low"; Value=[TaskPriority]::Low},
             @{Name="Medium"; Value=[TaskPriority]::Medium},
@@ -68,66 +51,72 @@ class EditTaskDialog : BaseDialog {
                 break
             }
         }
-        $this.AddContentControl($this.PriorityList, 4)
+        $this.PriorityList | Add-Member -NotePropertyName "FieldName" -NotePropertyValue "priority"
+        $this.AddControl($this.PriorityList)
         
-        # Create progress textbox
-        $this.ProgressBox = [MinimalTextBox]::new()
-        $this.ProgressBox.Text = $this.Task.Progress.ToString()
-        $this.ProgressBox.Placeholder = "0-100"
-        $this.ProgressBox.ShowBorder = $false  # Dialog provides the border
-        $this.AddContentControl($this.ProgressBox, 5)
+        # Set button labels
+        $this.SetButtons("Save", "Cancel")
         
-        # Set up primary action (Save)
+        # Set up submit handler with proper closure
         $dialog = $this
-        $this.OnPrimary = {
-            if ($dialog.TitleBox.Text.Trim()) {
-                $selectedStatus = $dialog.StatusList.GetSelectedItem()
-                $selectedPriority = $dialog.PriorityList.GetSelectedItem()
-                $progress = 0
-                if ([int]::TryParse($dialog.ProgressBox.Text, [ref]$progress)) {
-                    $progress = [Math]::Max(0, [Math]::Min(100, $progress))
-                }
-                
-                if ($dialog.OnSave) {
-                    & $dialog.OnSave @{
-                        Title = $dialog.TitleBox.Text
-                        Description = $dialog.DescriptionBox.Text
-                        Status = if ($selectedStatus) { $selectedStatus.Value } else { $dialog.Task.Status }
-                        Priority = if ($selectedPriority) { $selectedPriority.Value } else { $dialog.Task.Priority }
-                        Progress = $progress
-                    }
-                }
-            }
-        }.GetNewClosure()
-        
-        # Set up secondary action (Cancel)
-        $this.OnSecondary = {
-            if ($dialog.OnCancel) {
-                & $dialog.OnCancel
-            }
-        }.GetNewClosure()
+        $this.OnSubmit = { $dialog.SaveTask() }.GetNewClosure()
     }
     
-    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        # Custom positioning for task dialog
-        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
-        $currentY = $dialogY + 2
+    [void] SaveTask() {
+        # Get field values
+        $title = $this.GetFieldValue("title")
         
-        # Title
-        $this.TitleBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 3)
-        $currentY += 3
+        # Validate required fields
+        if ([string]::IsNullOrWhiteSpace($title)) {
+            # Show error - for now just return
+            return
+        }
         
-        # Description
-        $this.DescriptionBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 3)
-        $currentY += 3
+        # Get selected values
+        $selectedStatus = $this.StatusList.GetSelectedItem()
+        $selectedPriority = $this.PriorityList.GetSelectedItem()
         
-        # Status and Priority side by side
-        $halfWidth = [int](($controlWidth - 2) / 2)
-        $this.StatusList.SetBounds($dialogX + $this.DialogPadding, $currentY, $halfWidth, 5)
-        $this.PriorityList.SetBounds($dialogX + $this.DialogPadding + $halfWidth + 2, $currentY, $halfWidth, 5)
-        $currentY += 6
+        # Parse progress
+        $progress = 0
+        $progressText = $this.GetFieldValue("progress")
+        if ([int]::TryParse($progressText, [ref]$progress)) {
+            $progress = [Math]::Max(0, [Math]::Min(100, $progress))
+        }
         
-        # Progress
-        $this.ProgressBox.SetBounds($dialogX + $this.DialogPadding, $currentY, 20, 3)
+        # Update task properties
+        $this.Task.Title = $title
+        $this.Task.Description = $this.GetFieldValue("description")
+        $this.Task.Status = if ($selectedStatus) { $selectedStatus.Value } else { $this.Task.Status }
+        $this.Task.Priority = if ($selectedPriority) { $selectedPriority.Value } else { $this.Task.Priority }
+        $this.Task.Progress = $progress
+        $this.Task.UpdatedAt = [DateTime]::Now
+        
+        # Save via service
+        $taskService = $this.GetService("TaskService")
+        if ($taskService) {
+            try {
+                $taskService.UpdateTask($this.Task)
+                
+                # Manually refresh the tasks screen instead of using events
+                # Find the TasksScreen by type name to avoid loading order issues
+                if ($global:ScreenManager -and $global:ScreenManager.Screens.Count -gt 0) {
+                    foreach ($screen in $global:ScreenManager.Screens) {
+                        if ($screen.GetType().Name -eq "TasksScreen") {
+                            $screen.LoadData()
+                            break
+                        }
+                    }
+                }
+                
+                # Close dialog
+                $this.Close()
+                
+            } catch {
+                # Handle error - for now just log
+                if ($global:Logger) {
+                    $global:Logger.Error("Failed to update task: $_")
+                }
+            }
+        }
     }
 }

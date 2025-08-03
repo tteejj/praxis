@@ -40,12 +40,13 @@ $loadOrder = @(
     # Services (needed by base classes)
     "Services/Logger.ps1"
     "Services/EventBus.ps1"
+    "Core/EventNames.ps1"
     "Services/ConfigurationService.ps1"
+    "Core/ThemeValidator.ps1"
     "Services/ThemeManager.ps1"
     "Core/VT100_Extensions.ps1"
-    "Services/ThemeSystem.ps1"
+    # "Services/ThemeSystem.ps1"  # REMOVED - consolidated into ThemeManager
     "Utils/ThemeBuilder.ps1"
-    "Utils/ThemeStandardizer.ps1"
     "Themes/ThemeSynthwave.ps1"
     
     # Base classes
@@ -56,6 +57,9 @@ $loadOrder = @(
     
     # Core UI systems (needed by components and screens)
     "Core/BorderStyle.ps1"
+    "Core/RenderHelper.ps1"
+    "Core/SimpleRender.ps1"  # NEW SIMPLE RENDERER
+    "Core/CleanRender.ps1"  # CLEAN RENDERER WITH SINGLE BORDERS
     "Core/KeyboardShortcuts.ps1"
     "Core/AnimationHelper.ps1"
     "Core/SpacingSystem.ps1"
@@ -111,6 +115,7 @@ $loadOrder = @(
     "Components/MinimalListBox.ps1"
     "Components/ContextPopup.ps1"
     "Components/MinimalTextBox.ps1"
+    "Components/DialogField.ps1"
     "Components/MinimalDataGrid.ps1"
     "Components/MinimalStatusBar.ps1"
     # "Components/MinimalModal.ps1"  # Moved to backup - unused
@@ -124,14 +129,29 @@ $loadOrder = @(
     "Components/TabContainer.ps1"
     # "Components/MinimalTabContainer.ps1"  # Moved to backup - unused
     
-    # Layout Components (NEW!)
+    # Layout Components (MUST be before BaseDialog)
     "Components/HorizontalSplit.ps1"
     "Components/VerticalSplit.ps1"
     # "Components/GridPanel.ps1"  # Moved to backup - unused
     # "Components/DockPanel.ps1"  # Moved to backup - unused
     
-    # BaseDialog (after components are loaded)
+    # BaseDialog (after layout components)
     "Base/BaseDialog.ps1"
+    "Base/SimpleDialog.ps1"  # NEW SIMPLE DIALOG
+    "Base/CleanDialog.ps1"  # CLEAN DIALOG WITH PROPER RENDERING
+    
+    # NEW ARCHITECTURE - Phase 1 Foundation Classes
+    "Base/UnifiedDialog.ps1"  # REPLACES BaseDialog/SimpleDialog/CleanDialog
+    "Base/UnifiedScreen.ps1"  # UNIFIED BASE CLASS FOR SCREENS WITH PROPER BORDERS
+    "Base/CRUDScreen.ps1"     # ELIMINATES SCREEN BOILERPLATE
+    
+    # UNIFIED COMPONENTS - The ONE component system
+    "Components/UnifiedList.ps1"     # REPLACES MinimalDataGrid + SearchableListBox + MinimalListBox
+    "Components/UnifiedDataGrid.ps1" # Simple focused data grid component
+    "Components/SimpleList.ps1"      # Simple menu list component
+    "Components/UnifiedInput.ps1"    # REPLACES MinimalTextBox + DialogField
+    "Components/UnifiedButton.ps1"   # ENHANCES MinimalButton with unified theming
+    "Components/UnifiedFileTree.ps1" # ENHANCES RangerFileTree with unified theming
     
     # Context popup (after BaseDialog)
     # "Components/ContextPopup.ps1"  # Moved to backup - unused
@@ -143,6 +163,10 @@ $loadOrder = @(
     "Screens/ConfirmationDialog.ps1",
     "Screens/DestructiveActionDialog.ps1",
     "Screens/NewProjectDialog.ps1",
+    "Screens/SimpleNewProjectDialog.ps1",  # NEW SIMPLE VERSION
+    "Screens/CleanNewProjectDialog.ps1",  # CLEAN VERSION WITH PROPER BORDERS
+    "Screens/CleanConfirmationDialog.ps1",  # CLEAN confirmation dialog
+    "Screens/CleanTextInputDialog.ps1",  # CLEAN text input dialog
     "Screens/EditProjectDialog.ps1",
     "Screens/NewTaskDialog.ps1",
     "Screens/EditTaskDialog.ps1",
@@ -160,10 +184,17 @@ $loadOrder = @(
     "Screens/SelectionDialog.ps1",
     "Screens/ThemeEditorDialog.ps1",
     
+    # Load existing dialogs first (needed by new architecture)
+    # "Tests/NewProjectDialogNew.ps1",   # UnifiedDialog-based project creation  
+    # "Tests/EditProjectDialogNew.ps1",  # UnifiedDialog-based project editing
+    "Tests/UnifiedComponentsDemo.ps1",   # DEMO SCREEN - Shows all unified components working together
+    
     # Screens (after dialogs they depend on)
     # "Screens/TestScreen.ps1",  # Moved to backup - unused
     "Screens/ProjectDetailScreen.ps1",
     "Screens/ProjectsScreen.ps1",
+    "Screens/ProjectsScreenUnified.ps1",  # NEW UNIFIED - Uses UnifiedList instead of MinimalDataGrid
+    # "Tests/ProjectsScreenNew.ps1",      # NEW ARCHITECTURE - CRUDScreen-based Projects (disabled for now)
     "Screens/TaskScreen.ps1",
     # "Screens/DashboardScreen.ps1",  # Moved to backup - unused
     "Screens/SettingsScreen.ps1",
@@ -175,6 +206,7 @@ $loadOrder = @(
     # "Screens/MinimalShowcaseScreen.ps1",  # Moved to backup - unused
     # "Screens/LayoutExamplesScreen.ps1",  # Moved to backup - unused
     "Screens/KeyboardHelpOverlay.ps1",
+    "Screens/UnifiedMainScreen.ps1",  # UNIFIED MAIN SCREEN - Fixes menu theme and layout issues
     
     # Core systems (after KeyboardHelpOverlay)
     "Core/ScreenManager.ps1",
@@ -217,8 +249,8 @@ if ($Debug) {
     Write-Host "  Logger created at: $($logger.LogPath)" -ForegroundColor DarkGray
 }
 
-# Theme manager - Use enhanced version with semantic colors
-$themeManager = [EnhancedThemeManager]::new()
+# Theme manager
+$themeManager = [ThemeManager]::new()
 $global:ServiceContainer.Register("ThemeManager", $themeManager)
 
 # EventBus (after Logger and ThemeManager, before other services)
@@ -347,12 +379,12 @@ $global:ServiceContainer.Register("FileOperationService", $fileOperationService)
 # Synthwave themes already initialized after EventBus setup
 
 # Apply theme from configuration
-$currentTheme = $configService.Get("Theme.CurrentTheme", "matrix")
+$currentTheme = $configService.Get("Theme.CurrentTheme", "amber")
 if ($themeManager._themes.ContainsKey($currentTheme)) {
     $themeManager.SetTheme($currentTheme)
 } else {
-    # Fallback to matrix theme if configured theme doesn't exist
-    $themeManager.SetTheme("matrix")
+    # Fallback to amber theme if configured theme doesn't exist
+    $themeManager.SetTheme("amber")
 }
 
 # Update available themes in config to include synthwave
@@ -375,9 +407,9 @@ if ($Debug) { Write-Host "  ScreenManager registered" -ForegroundColor DarkGray 
 # Create main screen with tabs
 Write-Host "Creating main interface..." -ForegroundColor Cyan
 
-# Create and run main screen
-if ($Debug) { Write-Host "  Creating MainScreen..." -ForegroundColor DarkGray }
-$mainScreen = [MainScreen]::new()
+# Create and run main screen  
+if ($Debug) { Write-Host "  Creating MainScreen (with UnifiedList menu)..." -ForegroundColor DarkGray }
+$mainScreen = [UnifiedMainScreen]::new()
 
 if ($Debug) { Write-Host "  Pushing to ScreenManager..." -ForegroundColor DarkGray }
 $screenManager.Push($mainScreen)
@@ -426,3 +458,4 @@ try {
     $global:ServiceContainer.Cleanup()
     Write-Host "`nPRAXIS terminated." -ForegroundColor Cyan
 }
+

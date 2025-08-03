@@ -1,57 +1,20 @@
 {
-  "Tasks": {
-    "CompletedTaskRetention": 30,
-    "ShowCompletedTasks": true,
-    "DefaultPriority": "Medium"
+  "Performance": {
+    "MaxCacheSize": 100,
+    "RenderOptimization": true,
+    "EnableCaching": true
+  },
+  "Editor": {
+    "AutoSaveInterval": 0,
+    "TabSize": 4,
+    "ShowLineNumbers": true,
+    "HighlightCurrentLine": true,
+    "WordWrap": false,
+    "SyntaxHighlighting": true
   },
   "Templates": {
-    "Macros": {
-      "Items": [
-        {
-          "Actions": [
-            {
-              "Fields": [
-                "Amount",
-                "Category"
-              ],
-              "Type": "Summarization"
-            },
-            {
-              "FileName": "analysis_results.xlsx",
-              "Type": "ExportToExcel"
-            }
-          ],
-          "Name": "Basic Analysis",
-          "Description": "Standard analysis workflow"
-        }
-      ],
-      "Enabled": true
-    },
-    "Commands": {
-      "Items": [
-        {
-          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
-          "Name": "Export to CSV",
-          "Placeholders": [
-            "DATABASE",
-            "OUTPUT_FILE"
-          ],
-          "Description": "Export current database to CSV format"
-        },
-        {
-          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
-          "Name": "Join Databases",
-          "Placeholders": [
-            "PRIMARY",
-            "SECONDARY",
-            "KEY_FIELD"
-          ],
-          "Description": "Join two databases on a common field"
-        }
-      ],
-      "Enabled": true
-    },
     "TimeEntry": {
+      "Enabled": true,
       "Items": [
         {
           "DefaultHours": 0.25,
@@ -75,69 +38,104 @@
           "Description": "Weekly planning and review",
           "ProjectID": "Internal"
         }
-      ],
-      "Enabled": true
+      ]
+    },
+    "Macros": {
+      "Enabled": true,
+      "Items": [
+        {
+          "Actions": [
+            {
+              "Fields": [
+                "Amount",
+                "Category"
+              ],
+              "Type": "Summarization"
+            },
+            {
+              "FileName": "analysis_results.xlsx",
+              "Type": "ExportToExcel"
+            }
+          ],
+          "Name": "Basic Analysis",
+          "Description": "Standard analysis workflow"
+        }
+      ]
+    },
+    "Commands": {
+      "Enabled": true,
+      "Items": [
+        {
+          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
+          "Name": "Export to CSV",
+          "Placeholders": [
+            "DATABASE",
+            "OUTPUT_FILE"
+          ],
+          "Description": "Export current database to CSV format"
+        },
+        {
+          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
+          "Name": "Join Databases",
+          "Placeholders": [
+            "PRIMARY",
+            "SECONDARY",
+            "KEY_FIELD"
+          ],
+          "Description": "Join two databases on a common field"
+        }
+      ]
     }
   },
-  "Theme": {
-    "AvailableThemes": [
-      "amber",
-      "amber-black",
-      "default",
-      "matrix",
-      "matrix-rain",
-      "synthwave-84",
-      "synthwave-outrun"
-    ],
-    "CurrentTheme": "amber",
-    "EnableLiveEdit": true,
-    "UserCustomizations": {},
-    "EditTheme": "[Click to open theme editor]",
-    "ShowThemePreview": true
-  },
-  "Logging": {
-    "Level": "Debug",
-    "MaxFileSize": 10,
-    "MaxFiles": 5
-  },
-  "Performance": {
-    "EnableCaching": true,
-    "MaxCacheSize": 100,
-    "RenderOptimization": true
-  },
   "FileBrowser": {
-    "ShowFileSize": true,
+    "DefaultPath": "/home/teej/projects/github/praxis",
+    "SortDescending": false,
     "ShowHiddenFiles": true,
     "ShowModifiedDate": false,
+    "ShowFileSize": true,
     "IgnoredExtensions": [
       ".tmp",
       ".cache",
       ".log"
     ],
-    "DefaultPath": "/home/teej/projects/github/praxis",
-    "SortDescending": false,
     "SortBy": "Name"
   },
   "UI": {
+    "CompactMode": false,
     "UseGradients": false,
     "VerticalSpacing": 1,
-    "CompactMode": false,
     "GradientType": "vertical",
     "ShowScrollbars": true,
     "AnimationsEnabled": true
   },
+  "Tasks": {
+    "CompletedTaskRetention": 30,
+    "DefaultPriority": "Medium",
+    "ShowCompletedTasks": true
+  },
+  "Theme": {
+    "EnableLiveEdit": true,
+    "UserCustomizations": {},
+    "AvailableThemes": [
+      "amber",
+      "amber-black",
+      "default",
+      "synthwave-84",
+      "synthwave-outrun"
+    ],
+    "ShowThemePreview": true,
+    "EditTheme": "[Click to open theme editor]",
+    "CurrentTheme": "amber"
+  },
   "Projects": {
-    "BackupCount": 5,
     "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
     "AutoSave": true,
-    "BackupEnabled": true
+    "BackupEnabled": true,
+    "BackupCount": 5
   },
-  "Editor": {
-    "HighlightCurrentLine": true,
-    "WordWrap": false,
-    "AutoSaveInterval": 0,
-    "ShowLineNumbers": true,
-    "TabSize": 4,
-    "SyntaxHighlighting": true
+  "Logging": {
+    "MaxFiles": 5,
+    "MaxFileSize": 10,
+    "Level": "Debug"
   }
 }

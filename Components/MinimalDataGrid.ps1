@@ -11,7 +11,7 @@ class MinimalDataGrid : FocusableComponent {
     [bool]$ShowTitle = $true
     [bool]$ShowHeader = $true
     [bool]$ShowGridLines = $false
-    [bool]$ShowColumnSeparators = $true
+    [bool]$ShowColumnSeparators = $false
     [bool]$ShowRowNumbers = $false
     [bool]$AlternateRowColors = $false
     [int]$RowSpacing = 0  # Extra lines between rows
@@ -58,8 +58,13 @@ class MinimalDataGrid : FocusableComponent {
         ([FocusableComponent]$this).OnInitialize()
         $this.Theme = $this.ServiceContainer.GetService("ThemeManager")
         if ($this.Theme) {
-            $this.Theme.Subscribe({ $this.OnThemeChanged() })
-            $this.OnThemeChanged()
+            # Subscribe to theme changes
+            $this.Theme.Subscribe({
+                $this.UpdateThemeCache()
+                $this.Invalidate()
+            }.GetNewClosure())
+            
+            $this.UpdateThemeCache()
         }
     }
     
@@ -68,17 +73,22 @@ class MinimalDataGrid : FocusableComponent {
         $this.Invalidate()
     }
     
+    [void] UpdateThemeCache() {
+        $this.CacheThemeColors()
+    }
+    
     [void] CacheThemeColors() {
         if ($this.Theme) {
             $this._colors = @{
                 border = $this.Theme.GetColor('border.normal')
-                background = $this.Theme.GetBgColor('surface.background')
+                # background = removed to prevent grey bleed
                 header = $this.Theme.GetColor('list.header.text')
                 headerBg = $this.Theme.GetBgColor('list.header.background')
                 text = $this.Theme.GetColor('text.primary')
-                selectedText = $this.Theme.GetColor('menu.text.selected')
-                selectedBg = $this.Theme.GetBgColor('menu.background.selected')
-                gridLine = $this.Theme.GetColor('border.faint')
+                # Use focus reverse colors for selection to match UnifiedDialog
+                selectedText = $this.Theme.GetColor('focus.reverse.text')
+                selectedBg = $this.Theme.GetBgColor('focus.reverse.background')
+                gridLine = $this.Theme.GetColor('border.normal')
                 focusIndicator = $this.Theme.GetColor('color.primary')
                 titleColor = $this.Theme.GetColor('color.primary')
                 alternate = $this.Theme.GetColor('text.disabled')
@@ -264,7 +274,9 @@ class MinimalDataGrid : FocusableComponent {
         $this._viewportRows = [Math]::Max(0, [Math]::Floor($remainingHeight / $rowHeight))
     }
     
-    [string] OnRender() {
+        [string] OnRender() {
+        # Theme already set in OnInitialize
+        
         # Check if we have valid colors first
         if (-not $this._colors -or $this._colors.Count -eq 0) {
             return ""
@@ -523,15 +535,23 @@ class MinimalDataGrid : FocusableComponent {
             # Row background
             [void]$sb.Append([VT]::MoveTo($this._contentX, $rowY))
             
-            # Determine colors
-            $bgColor = $this._colors.background
-            $textColor = $this._colors.text
+            # Use RenderHelper for consistent row rendering (no background bleed)
+            $isSelected = ($i -eq $this.SelectedIndex)
             
-            if ($i -eq $this.SelectedIndex) {
-                $bgColor = $this._colors.selectedBg
-                $textColor = $this._colors.selectedText
-            } elseif ($this.AlternateRowColors -and ($i % 2 -eq 1)) {
-                $textColor = $this._colors.alternate
+            if ($isSelected) {
+                if ($this.IsFocused) {
+                    # REVERSE HIGHLIGHTING for focused selection
+                    $bgColor = $this._colors.focusReverseBg
+                    $textColor = $this._colors.focusReverseText
+                } else {
+                    # Normal selection when not focused
+                    $bgColor = $this._colors.selectedBg
+                    $textColor = $this._colors.selectedText
+                }
+            } else {
+                # Normal row: NO background color (prevents grey bleed)
+                $bgColor = ''  # No background
+                $textColor = $this.AlternateRowColors -and ($i % 2 -eq 1) ? $this._colors.alternate : $this._colors.text
             }
             
             [void]$sb.Append($bgColor)
@@ -590,7 +610,7 @@ class MinimalDataGrid : FocusableComponent {
                 $dataX += $neededWidth
             }
             
-            # Fill remaining width
+            # Fill remaining width - only for selected rows to prevent alignment issues
             $usedWidth = 3  # Selection indicator
             if ($this.ShowRowNumbers) { $usedWidth += 6 }
             foreach ($col in $this.Columns) {
@@ -602,17 +622,25 @@ class MinimalDataGrid : FocusableComponent {
             
             $remainingWidth = $this._contentWidth - $usedWidth
             if ($remainingWidth -gt 0) {
-                [void]$sb.Append([StringCache]::GetSpaces($remainingWidth))
+                if ($isSelected) {
+                    # Selected row: fill with background color
+                    [void]$sb.Append([StringCache]::GetSpaces($remainingWidth))
+                } else {
+                    # Normal row: reset colors first, then add spaces without background
+                    [void]$sb.Append([VT]::Reset())
+                    [void]$sb.Append([StringCache]::GetSpaces($remainingWidth))
+                }
             }
             
             # Reset colors to prevent bleed
             [void]$sb.Append([VT]::Reset())
             
             # Row spacing - skip if 0 for performance
-            if ($this.RowSpacing -gt 0) {
+            # Only add background if the row is selected, not for normal rows
+            if ($this.RowSpacing -gt 0 -and $isSelected) {
                 for ($s = 1; $s -le $this.RowSpacing; $s++) {
                     [void]$sb.Append([VT]::MoveTo($this._contentX, $rowY + $s))
-                    [void]$sb.Append($this._colors.background)
+                    [void]$sb.Append($bgColor)
                     [void]$sb.Append([StringCache]::GetSpaces($this._contentWidth))
                 }
             }
@@ -825,3 +853,6 @@ class GridColumn {
     [int]$Width
     [int]$MaxContentWidth
 }
+
+
+

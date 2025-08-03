@@ -1,129 +1,36 @@
-# TaskScreen.ps1 - Task management screen using DataGrid
+# TaskScreen.ps1 - Task management screen using CRUDScreen base class
 
-class TaskScreen : Screen {
-    [MinimalDataGrid]$TaskGrid
-    [TaskService]$TaskService
+class TaskScreen : CRUDScreen {
     [SubtaskService]$SubtaskService
     [ProjectService]$ProjectService
-    [hashtable]$StatusColors
-    [hashtable]$PriorityColors
-    [EventBus]$EventBus
-    hidden [hashtable]$EventSubscriptions = @{}
     hidden [bool]$ShowSubtasks = $true
     hidden [hashtable]$ProjectCache = @{}
     
-    # Layout settings
-    hidden [int]$StatusBarHeight = 0
-    
-    TaskScreen() : base() {
+    TaskScreen() : base("TaskService", "Task") {
         $this.Title = "Tasks"
     }
     
+    # Override OnInitialize to inject additional services
     [void] OnInitialize() {
-        # Critical debug for freeze investigation
-        if ($global:Logger) {
-            $global:Logger.Info("TaskScreen.OnInitialize: START")
-        }
+        # Call base initialization first (handles TaskService and EventBus)
+        ([CRUDScreen]$this).OnInitialize()
         
-        # Get services using proper dependency injection
-        $this.TaskService = $this.GetService("TaskService")
-        if (-not $this.TaskService) {
-            $this.TaskService = [TaskService]::new()
-            if ($this.ServiceContainer) {
-                $this.ServiceContainer.Register("TaskService", $this.TaskService)
-            } else {
-                $global:ServiceContainer.Register("TaskService", $this.TaskService)
-            }
-        }
-        
+        # Inject additional services needed by TaskScreen
         $this.SubtaskService = $this.GetService("SubtaskService")
-        if (-not $this.SubtaskService) {
-            $this.SubtaskService = [SubtaskService]::new()
-            if ($this.ServiceContainer) {
-                $this.ServiceContainer.Register("SubtaskService", $this.SubtaskService)
-            } else {
-                $global:ServiceContainer.Register("SubtaskService", $this.SubtaskService)
-            }
-        }
         
         $this.ProjectService = $this.GetService("ProjectService")
-        $this.EventBus = $this.GetService('EventBus')
+    }
+    
+    # Override SetupDataGrid to use UnifiedList and custom columns
+    [void] SetupDataGrid() {
+        # Create UnifiedList in DataGrid mode
+        $this.DataGrid = [UnifiedList]::new([UnifiedListMode]::DataGrid)
+        $this.DataGrid.Title = ""  # Don't show title in grid since screen has title
+        $this.DataGrid.ShowBorder = $false   # Remove borders per requirements
+        $this.DataGrid.ShowHeader = $true
+        $this.DataGrid.ShowColumnSeparators = $false
         
-        # Subscribe to events
-        if ($this.EventBus) {
-            # Capture reference to this screen instance
-            $screen = $this
-            
-            # Subscribe to task created events
-            $this.EventSubscriptions['TaskCreated'] = $this.EventBus.Subscribe('task.created', {
-                param($sender, $eventData)
-                $screen.LoadTasks()
-                # Select the new task if provided
-                if ($eventData.Task) {
-                    for ($i = 0; $i -lt $screen.TaskGrid.Items.Count; $i++) {
-                        if ($screen.TaskGrid.Items[$i].Id -eq $eventData.Task.Id) {
-                            $screen.TaskGrid.SelectIndex($i)
-                            break
-                        }
-                    }
-                }
-            }.GetNewClosure())
-            
-            # Subscribe to command events for this screen
-            $this.EventSubscriptions['CommandExecuted'] = $this.EventBus.Subscribe('command.executed', {
-                param($sender, $eventData)
-                if ($global:Logger) {
-                    $global:Logger.Debug("TaskScreen: Received CommandExecuted event - Command: $($eventData.Command), Target: $($eventData.Target)")
-                }
-                if ($eventData.Target -eq 'TaskScreen') {
-                    switch ($eventData.Command) {
-                        'NewTask' { 
-                            if ($global:Logger) {
-                                $global:Logger.Debug("TaskScreen: Executing NewTask command")
-                            }
-                            $screen.NewTask() 
-                        }
-                        'EditTask' { $screen.EditTask() }
-                        'DeleteTask' { $screen.DeleteTask() }
-                    }
-                }
-            }.GetNewClosure())
-            
-            # Subscribe to task updated events
-            $this.EventSubscriptions['TaskUpdated'] = $this.EventBus.Subscribe('task.updated', {
-                param($sender, $eventData)
-                $screen.LoadTasks()
-            }.GetNewClosure())
-            
-            # Subscribe to task deleted events
-            $this.EventSubscriptions['TaskDeleted'] = $this.EventBus.Subscribe('task.deleted', {
-                param($sender, $eventData)
-                $screen.LoadTasks()
-            }.GetNewClosure())
-        }
-        
-        # Set up color mappings
-        $this.StatusColors = @{
-            [TaskStatus]::Pending = "foreground"
-            [TaskStatus]::InProgress = "warning"
-            [TaskStatus]::Completed = "success"
-            [TaskStatus]::Cancelled = "disabled"
-        }
-        
-        $this.PriorityColors = @{
-            [TaskPriority]::Low = "success"
-            [TaskPriority]::Medium = "warning"
-            [TaskPriority]::High = "error"
-        }
-        
-        # Create DataGrid with columns
-        $this.TaskGrid = [MinimalDataGrid]::new()
-        $this.TaskGrid.Title = "Tasks"
-        $this.TaskGrid.ShowBorder = $true   # Component responsible for own visual boundaries
-        $this.TaskGrid.BorderType = [BorderType]::Rounded
-        $this.TaskGrid.ShowGridLines = $false
-        
-        # Define columns
+        # Define custom columns for tasks with subtask support
         $screen = $this
         $columns = @(
             @{
@@ -251,41 +158,14 @@ class TaskScreen : Screen {
             }
         )
         
-        $this.TaskGrid.SetColumns($columns)
-        $this.TaskGrid.Initialize($global:ServiceContainer)
-        $this.AddChild($this.TaskGrid)
-        
-        # Load tasks
-        $this.LoadTasks()
-        
-        # ShortcutManager is deprecated - shortcuts handled in HandleScreenInput
-        
-        # Critical debug for freeze investigation
-        if ($global:Logger) {
-            $global:Logger.Info("TaskScreen.OnInitialize: COMPLETED")
-        }
-    }
-
-    # Remove OnActivated override - base Screen class handles focus properly now
-    
-    [void] OnBoundsChanged() {
-        # Only update bounds if TaskGrid exists
-        if (-not $this.TaskGrid) { return }
-        
-        # Layout: Grid takes all space
-        $gridHeight = $this.Height
-        
-        # Task grid  
-        $this.TaskGrid.SetBounds(
-            $this.X,
-            $this.Y,
-            $this.Width,
-            $gridHeight
-        )
+        $this.DataGrid.SetColumns($columns)
+        $this.DataGrid.Initialize($global:ServiceContainer)
+        $this.AddChild($this.DataGrid)
     }
     
-    [void] LoadTasks() {
-        $tasks = $this.TaskService.GetAllTasks()
+    # Override LoadData to implement task-specific data loading
+    [void] LoadData() {
+        $tasks = $this.DataService.GetAllTasks()
         
         # Clear project cache for fresh lookups
         $this.ProjectCache.Clear()
@@ -313,52 +193,23 @@ class TaskScreen : Screen {
                 }
             }
             
-            $this.TaskGrid.SetItems($combinedItems)
+            $this.DataGrid.SetItems($combinedItems)
         } else {
-            $this.TaskGrid.SetItems($sorted)
-        }
-    }
-    
-    [void] NewTask() {
-        if ($global:Logger) {
-            $global:Logger.Info("TaskScreen.NewTask: Creating new task dialog")
+            $this.DataGrid.SetItems($sorted)
         }
         
-        # Create new task dialog
+        $this.DataGrid.Invalidate()
+        $this.Invalidate()
+    }
+    
+    # Override CRUD operations for task-specific behavior
+    [void] NewItem() {
         $dialog = [NewTaskDialog]::new()
-        
-        # EventBus will handle task creation and dialog closing
-        # Legacy callbacks are only set as fallback for non-EventBus scenarios
-        if (-not $this.EventBus) {
-            # Capture the screen reference
-            $screen = $this
-            $dialog.OnCreate = {
-                param($taskData)
-                
-                $task = $screen.TaskService.CreateTask($taskData)
-                $screen.LoadTasks()
-                
-                # Select the new task
-                for ($i = 0; $i -lt $screen.TaskGrid.Items.Count; $i++) {
-                    if ($screen.TaskGrid.Items[$i].Id -eq $task.Id) {
-                        $screen.TaskGrid.SelectIndex($i)
-                        break
-                    }
-                }
-                
-                # Don't call Pop() - BaseDialog handles that
-            }.GetNewClosure()
-            
-            # Don't need OnCancel - BaseDialog handles ESC by default
-        }
-        
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $global:ScreenManager.Push($dialog)
     }
     
-    [void] EditTask() {
-        $selected = $this.TaskGrid.GetSelectedItem()
+    [void] EditItem() {
+        $selected = $this.GetSelectedItem()
         if (-not $selected) { return }
         
         # Check if it's a subtask or main task
@@ -370,87 +221,29 @@ class TaskScreen : Screen {
         
         # Create edit task dialog
         $dialog = [EditTaskDialog]::new($selected)
-        # Capture references
-        $screen = $this
-        $task = $selected
-        $dialog.OnSave = {
-            param($taskData)
-            
-            # Update the task
-            $task.Title = $taskData.Title
-            $task.Description = $taskData.Description
-            $task.Status = $taskData.Status
-            $task.Priority = $taskData.Priority
-            $task.Progress = $taskData.Progress
-            $task.UpdatedAt = [DateTime]::Now
-            
-            # Save through service
-            $screen.TaskService.UpdateTask($task)
-            
-            # Publish task updated event
-            if ($screen.EventBus) {
-                $screen.EventBus.Publish([EventNames]::TaskUpdated, @{ Task = $task })
-            } else {
-                # Fallback if EventBus not available
-                $screen.LoadTasks()
-            }
-            
-            # Don't call Pop() - BaseDialog handles that
-        }.GetNewClosure()
-        
-        # Don't need OnCancel - BaseDialog handles ESC by default
-        
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $global:ScreenManager.Push($dialog)
     }
     
-    [void] DeleteTask() {
-        $selected = $this.TaskGrid.GetSelectedItem()
+    # Override PerformDelete to handle subtasks
+    [void] PerformDelete($itemId) {
+        $selected = $this.GetSelectedItem()
         if (-not $selected) { return }
         
         # Check if it's a subtask or main task
         $isSubtask = $selected.PSObject.Properties.Name -contains 'ParentTaskId'
-        $message = if ($isSubtask) {
-            "Are you sure you want to delete this subtask?`n`n$($selected.Title)"
+        
+        if ($isSubtask) {
+            # Delete subtask
+            $this.SubtaskService.DeleteSubtask($itemId)
         } else {
-            "Are you sure you want to delete this task?`n`n$($selected.Title)"
-        }
-        
-        # Show confirmation dialog
-        $dialog = [ConfirmationDialog]::new($message)
-        # Capture references
-        $screen = $this
-        $itemId = $selected.Id
-        $dialog.OnPrimary = {
-            if ($isSubtask) {
-                # Delete subtask
-                $screen.SubtaskService.DeleteSubtask($itemId)
-            } else {
-                # Delete task (and all its subtasks)
-                $screen.TaskService.DeleteTask($itemId)
-            }
-            
-            # Publish task deleted event
-            if ($screen.EventBus) {
-                $screen.EventBus.Publish([EventNames]::TaskDeleted, @{ TaskId = $itemId })
-            } else {
-                # Fallback if EventBus not available
-                $screen.LoadTasks()
-            }
-            
-            # Don't call Pop() - BaseDialog handles that
-        }.GetNewClosure()
-        
-        # Don't need OnCancel - BaseDialog handles ESC by default
-        
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
+            # Delete task (and all its subtasks)
+            $this.DataService.DeleteTask($itemId)
         }
     }
     
+    # Task-specific methods
     [void] CycleStatus() {
-        $selected = $this.TaskGrid.GetSelectedItem()
+        $selected = $this.GetSelectedItem()
         if (-not $selected) { return }
         
         # Cycle through status values
@@ -468,31 +261,21 @@ class TaskScreen : Screen {
             $this.SubtaskService.SaveSubtask($selected)
         } else {
             # Update task
-            $this.TaskService.UpdateTaskStatus($selected.Id, $newStatus)
+            $this.DataService.UpdateTaskStatus($selected.Id, $newStatus)
         }
         
-        # Publish task status changed event
-        if ($this.EventBus) {
-            $this.EventBus.Publish([EventNames]::TaskStatusChanged, @{ 
-                TaskId = $selected.Id
-                OldStatus = $selected.Status
-                NewStatus = $newStatus
-            })
-        } else {
-            # Fallback if EventBus not available
-            $this.LoadTasks()
-        }
+        $this.LoadData()
     }
     
     [void] AddSubtask() {
-        $selected = $this.TaskGrid.GetSelectedItem()
+        $selected = $this.GetSelectedItem()
         if (-not $selected -or -not $this.SubtaskService) { return }
         
         # Find the parent task (if selected item is a subtask, get its parent)
         $parentTask = $null
         if ($selected.PSObject.Properties.Name -contains 'ParentTaskId') {
             # Selected item is a subtask, find its parent
-            $parentTask = $this.TaskService.GetTask($selected.ParentTaskId)
+            $parentTask = $this.DataService.GetTask($selected.ParentTaskId)
         } else {
             # Selected item is a task
             $parentTask = $selected
@@ -502,286 +285,54 @@ class TaskScreen : Screen {
         
         # Create subtask dialog
         $dialog = [SubtaskDialog]::new($parentTask)
-        
-        # Set up callback for when subtask is saved
-        $screen = $this  # Capture reference for closure
-        $dialog.OnSave = {
-            param($subtaskData)
-            
-            # Create subtask using service
-            $properties = @{
-                ParentTaskId = $subtaskData.ParentTaskId
-                Title = $subtaskData.Title
-                Description = $subtaskData.Description
-                Priority = $subtaskData.Priority
-                Progress = $subtaskData.Progress
-                EstimatedMinutes = $subtaskData.EstimatedMinutes
-                ActualMinutes = $subtaskData.ActualMinutes
-                DueDate = $subtaskData.DueDate
-            }
-            
-            $screen.SubtaskService.CreateSubtask($properties)
-            $screen.LoadTasks()
-            
-            # Don't call Pop() - BaseDialog handles that
-        }.GetNewClosure()
-        
-        # Don't need OnCancel - BaseDialog handles ESC by default
-        
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $global:ScreenManager.Push($dialog)
     }
     
     [void] ToggleSubtaskView() {
         $this.ShowSubtasks = -not $this.ShowSubtasks
-        $this.LoadTasks()
+        $this.LoadData()
     }
     
     [void] EditSubtask([PSCustomObject]$subtask) {
         if (-not $subtask -or -not $this.SubtaskService) { return }
         
         # Get parent task for context
-        $parentTask = $this.TaskService.GetTask($subtask.ParentTaskId)
+        $parentTask = $this.DataService.GetTask($subtask.ParentTaskId)
         if (-not $parentTask) { return }
         
         # Create subtask dialog for editing
         $dialog = [SubtaskDialog]::new($parentTask, $subtask)
-        
-        # Set up callback for when subtask is updated
-        $screen = $this  # Capture reference for closure
-        $dialog.OnSave = {
-            param($subtaskData)
-            
-            # Update the existing subtask
-            $subtask.Title = $subtaskData.Title
-            $subtask.Description = $subtaskData.Description
-            $subtask.Status = $subtaskData.Status
-            $subtask.Priority = $subtaskData.Priority
-            $subtask.Progress = $subtaskData.Progress
-            $subtask.EstimatedMinutes = $subtaskData.EstimatedMinutes
-            $subtask.ActualMinutes = $subtaskData.ActualMinutes
-            $subtask.DueDate = $subtaskData.DueDate
-            $subtask.UpdatedAt = [DateTime]::Now
-            
-            # Save through service
-            $screen.SubtaskService.SaveSubtask($subtask)
-            $screen.LoadTasks()
-            
-            # Don't call Pop() - BaseDialog handles that
-        }.GetNewClosure()
-        
-        # Don't need OnCancel - BaseDialog handles ESC by default
-        
-        # Show dialog
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
+        $global:ScreenManager.Push($dialog)
     }
     
     [void] CyclePriority() {
-        $selected = $this.TaskGrid.GetSelectedItem()
+        $selected = $this.GetSelectedItem()
         if (-not $selected) { return }
         
         # Don't cycle priority for subtasks in this view
         if ($selected.PSObject.Properties.Name -contains 'ParentTaskId') { return }
         
-        $this.TaskService.CyclePriority($selected.Id)
-        $this.LoadTasks()
+        $this.DataService.CyclePriority($selected.Id)
+        $this.LoadData()
     }
     
-    [void] RegisterShortcuts() {
-        $shortcutManager = $this.ServiceContainer.GetService('ShortcutManager')
-        if (-not $shortcutManager) { 
-            if ($global:Logger) {
-                $global:Logger.Warning("TaskScreen: ShortcutManager not found")
-            }
-            return 
-        }
-        
-        # Capture screen reference for closures
-        $screen = $this
-        
-        # Enter: Edit task
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.edit_enter"
-            Name = "Edit Task"
-            Description = "Edit the selected task"
-            Key = [System.ConsoleKey]::Enter
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.EditTask() }.GetNewClosure()
-        })
-        
-        # Delete: Delete task
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.delete"
-            Name = "Delete Task"
-            Description = "Delete the selected task"
-            Key = [System.ConsoleKey]::Delete
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.DeleteTask() }.GetNewClosure()
-        })
-        
-        # F5: Refresh
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.refresh"
-            Name = "Refresh"
-            Description = "Refresh the task list"
-            Key = [System.ConsoleKey]::F5
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.LoadTasks() }.GetNewClosure()
-        })
-        
-        # n: New task
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.new"
-            Name = "New Task"
-            Description = "Create a new task"
-            KeyChar = 'n'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.NewTask() }.GetNewClosure()
-        })
-        
-        # e: Edit task
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.edit"
-            Name = "Edit Task"
-            Description = "Edit the selected task"
-            KeyChar = 'e'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.EditTask() }.GetNewClosure()
-        })
-        
-        # d: Delete task
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.delete_key"
-            Name = "Delete Task"
-            Description = "Delete the selected task"
-            KeyChar = 'd'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.DeleteTask() }.GetNewClosure()
-        })
-        
-        # r: Refresh
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.refresh_key"
-            Name = "Refresh"
-            Description = "Refresh the task list"
-            KeyChar = 'r'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.LoadTasks() }.GetNewClosure()
-        })
-        
-        # s: Cycle status
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.cycle_status"
-            Name = "Cycle Status"
-            Description = "Cycle task status"
-            KeyChar = 's'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.CycleStatus() }.GetNewClosure()
-        })
-        
-        # p: Cycle priority
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.cycle_priority"
-            Name = "Cycle Priority"
-            Description = "Cycle task priority"
-            KeyChar = 'p'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.CyclePriority() }.GetNewClosure()
-        })
-        
-        # t: Toggle subtask view
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.toggle_subtasks"
-            Name = "Toggle Subtasks"
-            Description = "Toggle subtask view"
-            KeyChar = 't'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.ToggleSubtaskView() }.GetNewClosure()
-        })
-        
-        # a: Add subtask
-        $shortcutManager.RegisterShortcut(@{
-            Id = "task.add_subtask"
-            Name = "Add Subtask"
-            Description = "Add subtask to selected task"
-            KeyChar = 'a'
-            # Scope = [ShortcutScope]::Screen
-            ScreenType = "TaskScreen"
-            Priority = 10
-            Action = { $screen.AddSubtask() }.GetNewClosure()
-        })
-        
-        if ($global:Logger) {
-            $global:Logger.Debug("TaskScreen.RegisterShortcuts: Registered all shortcuts")
-        }
-    }
-    
-    [bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # Task screen shortcuts - this is where they should be
+    # Override custom input handling for task-specific shortcuts
+    [bool] HandleCustomInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Task-specific shortcuts
         switch ($keyInfo.KeyChar) {
-            'n' { $this.NewTask(); return $true }
-            'e' { $this.EditTask(); return $true }
-            'd' { $this.DeleteTask(); return $true }
-            'r' { $this.LoadTasks(); return $true }
             's' { $this.CycleStatus(); return $true }
             'p' { $this.CyclePriority(); return $true }
             't' { $this.ToggleSubtaskView(); return $true }
             'a' { $this.AddSubtask(); return $true }
         }
         
-        # Enter key for editing
-        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
-            $this.EditTask()
-            return $true
-        }
-        
-        # Delete key for deleting
-        if ($keyInfo.Key -eq [System.ConsoleKey]::Delete) {
-            $this.DeleteTask()
-            return $true
-        }
-        
-        # F5 key for refresh
-        if ($keyInfo.Key -eq [System.ConsoleKey]::F5) {
-            $this.LoadTasks()
-            return $true
-        }
-        
-        return $false
+        return $false  # Not handled
     }
     
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 1024
-        
-        # Render base (background and children)
-        $sb.Append(([Container]$this).OnRender())
-
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
-    }
+    # Compatibility methods for MainScreen integration
+    [void] NewTask() { $this.NewItem() }
+    [void] EditTask() { $this.EditItem() }
+    [void] DeleteTask() { $this.DeleteItem() }
+    [void] LoadTasks() { $this.LoadData() }
+    [void] RefreshTasks() { $this.RefreshItems() }
 }

@@ -8,7 +8,7 @@ class MinimalStatusBar : UIElement {
     
     # Styling
     [bool]$ShowSeparator = $true
-    [string]$SeparatorChar = "│"
+    [string]$SeparatorChar = " • "
     [bool]$UseMinimalStyle = $true
     
     # Dynamic content providers

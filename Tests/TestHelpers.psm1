@@ -179,16 +179,37 @@ function Initialize-PraxisForTesting {
     
     # Load in correct order
     $loadOrder = @(
-        "Core/VT100.ps1"
-        "Core/BorderStyle.ps1"
+        # Core dependencies first
         "Core/StringCache.ps1"
+        "Core/ServiceContainer.ps1"
+        "Core/StringBuilderPool.ps1"
+        "Core/EventNames.ps1"
+        "Core/VT100.ps1"
+        
+        # Base classes (without dependencies on components)
         "Base/UIElement.ps1"
+        "Core/BorderStyle.ps1"
         "Base/Container.ps1"
-        "Base/Screen.ps1"
         "Base/FocusableComponent.ps1"
+        "Base/Screen.ps1"
+        "Base/BaseModel.ps1"
+        
+        # Models (Task.ps1 must load before Subtask.ps1 for enums)
+        "Models/Task.ps1"
         "Models/*.ps1"
+        
+        # Services (Logger and ThemeManager must load first)
+        "Services/Logger.ps1"
+        "Services/ThemeManager.ps1"
         "Services/*.ps1"
+        
+        # Components (including MinimalButton)
         "Components/*.ps1"
+        
+        # Base classes that depend on components/services
+        "Base/BaseDialog.ps1"
+        
+        # Screens
         "Screens/*.ps1"
     )
     

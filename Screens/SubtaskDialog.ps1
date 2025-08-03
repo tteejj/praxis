@@ -1,257 +1,71 @@
-# SubtaskDialog - Dialog for adding/editing subtasks using BaseDialog
+# SubtaskDialog - Dialog for adding/editing subtasks using UnifiedDialog
 
-class SubtaskDialog : BaseDialog {
+class SubtaskDialog : UnifiedDialog {
     [Task]$ParentTask = $null
     [Subtask]$Subtask = $null  # For editing existing subtasks
     [bool]$IsEditMode = $false
     
-    # Input fields
-    [MinimalTextBox]$TitleTextBox
-    [MinimalTextBox]$DescriptionTextBox
-    [MinimalTextBox]$EstimatedTimeTextBox
-    [MinimalTextBox]$ActualTimeTextBox
-    [MinimalTextBox]$DueDateTextBox
-    
-    # Dropdowns (simplified as text for now)
-    [MinimalTextBox]$PriorityTextBox
-    [MinimalTextBox]$ProgressTextBox
-    
     SubtaskDialog() : base("Add Subtask", 50, 16) {
-        $this.PrimaryButtonText = "Create"
-        $this.SecondaryButtonText = "Cancel"
+        $this.InitializeDialog()
     }
     
     SubtaskDialog([Task]$parentTask) : base("Add Subtask", 50, 16) {
         $this.ParentTask = $parentTask
-        $this.PrimaryButtonText = "Create"
-        $this.SecondaryButtonText = "Cancel"
+        $this.InitializeDialog()
     }
     
     SubtaskDialog([Task]$parentTask, $subtask) : base("Edit Subtask", 50, 16) {
         $this.ParentTask = $parentTask
         $this.Subtask = $subtask
         $this.IsEditMode = $true
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
+        $this.InitializeDialog()
     }
     
-    [void] InitializeContent() {
-        # Create input fields
-        $this.TitleTextBox = [MinimalTextBox]::new()
-        $this.TitleTextBox.Placeholder = "Enter subtask title..."
-        $this.TitleTextBox.ShowBorder = $false  # Dialog provides the border
+    [void] InitializeDialog() {
+        # Add fields using UnifiedDialog API
+        $titleValue = if ($this.IsEditMode -and $this.Subtask) { $this.Subtask.Title } else { "" }
+        $this.AddField("title", "Title", $titleValue)
         
-        if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Title']) {
-            $this.TitleTextBox.Text = $this.Subtask.Title
-        }
-        $this.AddContentControl($this.TitleTextBox, 1)
+        $descriptionValue = if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Description']) { $this.Subtask.Description } else { "" }
+        $this.AddField("description", "Description", $descriptionValue)
         
-        $this.DescriptionTextBox = [MinimalTextBox]::new()
-        $this.DescriptionTextBox.Placeholder = "Enter description (optional)..."
-        $this.DescriptionTextBox.ShowBorder = $false  # Dialog provides the border
+        $priorityValue = if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.Priority) { $this.Subtask.Priority.ToString() } else { "Medium" }
+        $this.AddField("priority", "Priority (Low/Medium/High)", $priorityValue)
         
-        if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.PSObject.Properties['Description']) {
-            $this.DescriptionTextBox.Text = $this.Subtask.Description
-        }
-        $this.AddContentControl($this.DescriptionTextBox, 2)
-        
-        $this.PriorityTextBox = [MinimalTextBox]::new()
-        $this.PriorityTextBox.Placeholder = "Priority (Low/Medium/High)"
-        $this.PriorityTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.PriorityTextBox.Height = 1
-        
-        if ($this.IsEditMode -and $this.Subtask -and $this.Subtask.Priority) {
-            $this.PriorityTextBox.Text = $this.Subtask.Priority.ToString()
-        } else {
-            $this.PriorityTextBox.Text = "Medium"
-        }
-        $this.AddContentControl($this.PriorityTextBox, 1)
-        
-        $this.ProgressTextBox = [MinimalTextBox]::new()
-        $this.ProgressTextBox.Placeholder = "Progress (0-100)"
-        $this.ProgressTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.ProgressTextBox.Height = 1
-        
-        if ($this.IsEditMode -and $this.Subtask) {
+        $progressValue = if ($this.IsEditMode -and $this.Subtask) { 
             $progress = if ($this.Subtask.PSObject.Properties['Progress']) { $this.Subtask.Progress } else { 0 }
-            $this.ProgressTextBox.Text = $progress.ToString()
-        } else {
-            $this.ProgressTextBox.Text = "0"
-        }
-        $this.AddContentControl($this.ProgressTextBox, 1)
+            $progress.ToString()
+        } else { "0" }
+        $this.AddField("progress", "Progress (0-100)", $progressValue)
         
-        $this.EstimatedTimeTextBox = [MinimalTextBox]::new()
-        $this.EstimatedTimeTextBox.Placeholder = "Estimated Time (minutes)"
-        $this.EstimatedTimeTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.EstimatedTimeTextBox.Height = 1
-        
-        if ($this.IsEditMode -and $this.Subtask) {
+        $estimatedValue = if ($this.IsEditMode -and $this.Subtask) {
             $estimated = if ($this.Subtask.PSObject.Properties['EstimatedMinutes']) { $this.Subtask.EstimatedMinutes } else { 0 }
-            if ($estimated -gt 0) {
-                $this.EstimatedTimeTextBox.Text = $estimated.ToString()
-            }
-        }
-        $this.AddContentControl($this.EstimatedTimeTextBox, 1)
+            if ($estimated -gt 0) { $estimated.ToString() } else { "" }
+        } else { "" }
+        $this.AddField("estimatedTime", "Estimated Time (minutes)", $estimatedValue)
         
-        $this.ActualTimeTextBox = [MinimalTextBox]::new()
-        $this.ActualTimeTextBox.Placeholder = "Actual Time (minutes)"
-        $this.ActualTimeTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.ActualTimeTextBox.Height = 1
-        
-        if ($this.IsEditMode -and $this.Subtask) {
+        $actualValue = if ($this.IsEditMode -and $this.Subtask) {
             $actual = if ($this.Subtask.PSObject.Properties['ActualMinutes']) { $this.Subtask.ActualMinutes } else { 0 }
-            if ($actual -gt 0) {
-                $this.ActualTimeTextBox.Text = $actual.ToString()
-            }
-        }
-        $this.AddContentControl($this.ActualTimeTextBox, 1)
+            if ($actual -gt 0) { $actual.ToString() } else { "" }
+        } else { "" }
+        $this.AddField("actualTime", "Actual Time (minutes)", $actualValue)
         
-        $this.DueDateTextBox = [MinimalTextBox]::new()
-        $this.DueDateTextBox.Placeholder = "Due Date (MM/DD/YYYY, optional)"
-        $this.DueDateTextBox.ShowBorder = $false  # Dialog provides the border
-        $this.DueDateTextBox.Height = 1
-        
-        if ($this.IsEditMode -and $this.Subtask) {
+        $dueDateValue = if ($this.IsEditMode -and $this.Subtask) {
             $dueDate = if ($this.Subtask.PSObject.Properties['DueDate']) { $this.Subtask.DueDate } else { [DateTime]::MinValue }
-            if ($dueDate -ne [DateTime]::MinValue) {
-                $this.DueDateTextBox.Text = $dueDate.ToString("MM/dd/yyyy")
-            }
+            if ($dueDate -ne [DateTime]::MinValue) { $dueDate.ToString("MM/dd/yyyy") } else { "" }
+        } else { "" }
+        $this.AddField("dueDate", "Due Date (MM/DD/YYYY)", $dueDateValue)
+        
+        # Set button labels based on mode
+        if ($this.IsEditMode) {
+            $this.SetButtons("Save", "Cancel")
+        } else {
+            $this.SetButtons("Create", "Cancel")
         }
-        $this.AddContentControl($this.DueDateTextBox, 1)
         
-        # Set custom handlers for BaseDialog
+        # Set up submit handler with proper closure
         $dialog = $this
-        $this.OnPrimary = {
-            $dialog.HandleSave()
-        }.GetNewClosure()
-        
-        $this.OnSecondary = {
-            if ($dialog.OnCancel) {
-                & $dialog.OnCancel
-            }
-            $dialog.CloseDialog()
-        }.GetNewClosure()
-    }
-    
-    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        # Custom layout: Stack inputs vertically
-        $padding = $this.DialogPadding
-        $currentY = $dialogY + 2  # Start after title
-        $inputWidth = $this.DialogWidth - ($padding * 2)
-        
-        # Title label and input
-        $currentY += 1  # Space before first field
-        $this.TitleTextBox.SetBounds(
-            $dialogX + $padding,
-            $currentY,
-            $inputWidth,
-            1
-        )
-        $currentY += 2
-        
-        # Description input (taller)
-        $currentY += 1  # Label space
-        $this.DescriptionTextBox.SetBounds(
-            $dialogX + $padding,
-            $currentY,
-            $inputWidth,
-            3
-        )
-        $currentY += 4
-        
-        # Priority and Progress on same row
-        $halfWidth = [int](($inputWidth - 2) / 2)
-        $currentY += 1  # Label space
-        $this.PriorityTextBox.SetBounds(
-            $dialogX + $padding,
-            $currentY,
-            $halfWidth,
-            1
-        )
-        
-        $this.ProgressTextBox.SetBounds(
-            $dialogX + $padding + $halfWidth + 2,
-            $currentY,
-            $halfWidth,
-            1
-        )
-        $currentY += 2
-        
-        # Estimated and Actual time on same row
-        $currentY += 1  # Label space
-        $this.EstimatedTimeTextBox.SetBounds(
-            $dialogX + $padding,
-            $currentY,
-            $halfWidth,
-            1
-        )
-        
-        $this.ActualTimeTextBox.SetBounds(
-            $dialogX + $padding + $halfWidth + 2,
-            $currentY,
-            $halfWidth,
-            1
-        )
-        $currentY += 2
-        
-        # Due date
-        $currentY += 1  # Label space
-        $this.DueDateTextBox.SetBounds(
-            $dialogX + $padding,
-            $currentY,
-            $inputWidth,
-            1
-        )
-    }
-    
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 2048
-        
-        # First render the base dialog
-        $baseRender = ([BaseDialog]$this).OnRender()
-        $sb.Append($baseRender)
-        
-        # Render field labels
-        $labelColor = $this.Theme.GetColor("dialog.title")
-        $padding = $this.DialogPadding
-        
-        # Title label
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.TitleTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Title:")
-
-        # Description label
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.DescriptionTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Description:")
-
-        # Priority and Progress labels
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.PriorityTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Priority:")
-
-        $halfWidth = [int](($this.DialogWidth - ($padding * 2) - 2) / 2)
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding + $halfWidth + 2, $this.ProgressTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Progress (%):")
-
-        # Estimated and Actual time labels
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.EstimatedTimeTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Estimated (min):")
-
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding + $halfWidth + 2, $this.ActualTimeTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Actual (min):")
-
-        # Due date label
-        $sb.Append([VT]::MoveTo($this._dialogBounds.X + $padding, $this.DueDateTextBox.Y - 1))
-        $sb.Append($labelColor)
-        $sb.Append("Due Date (MM/DD/YYYY):")
-
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
+        $this.OnSubmit = { $dialog.HandleSave() }.GetNewClosure()
     }
     
     [void] HandleSave() {
@@ -271,24 +85,24 @@ class SubtaskDialog : BaseDialog {
         }
         
         # Close dialog after successful save
-        $this.CloseDialog()
+        $this.Close()
     }
     
     [string] ValidateInputs() {
         # Validate title
-        $title = $this.TitleTextBox.Text.Trim()
+        $title = $this.GetFieldValue("title").Trim()
         if ([string]::IsNullOrEmpty($title)) {
             return "Title is required"
         }
         
         # Validate priority
-        $priority = $this.PriorityTextBox.Text.Trim()
+        $priority = $this.GetFieldValue("priority").Trim()
         if ($priority -notin @("Low", "Medium", "High")) {
             return "Priority must be Low, Medium, or High"
         }
         
         # Validate progress
-        $progressStr = $this.ProgressTextBox.Text.Trim()
+        $progressStr = $this.GetFieldValue("progress").Trim()
         $progress = 0
         if (-not [string]::IsNullOrEmpty($progressStr)) {
             if (-not [int]::TryParse($progressStr, [ref]$progress) -or $progress -lt 0 -or $progress -gt 100) {
@@ -297,7 +111,7 @@ class SubtaskDialog : BaseDialog {
         }
         
         # Validate estimated time
-        $estimatedStr = $this.EstimatedTimeTextBox.Text.Trim()
+        $estimatedStr = $this.GetFieldValue("estimatedTime").Trim()
         if (-not [string]::IsNullOrEmpty($estimatedStr)) {
             $estimated = 0
             if (-not [int]::TryParse($estimatedStr, [ref]$estimated) -or $estimated -lt 0) {
@@ -306,7 +120,7 @@ class SubtaskDialog : BaseDialog {
         }
         
         # Validate actual time
-        $actualStr = $this.ActualTimeTextBox.Text.Trim()
+        $actualStr = $this.GetFieldValue("actualTime").Trim()
         if (-not [string]::IsNullOrEmpty($actualStr)) {
             $actual = 0
             if (-not [int]::TryParse($actualStr, [ref]$actual) -or $actual -lt 0) {
@@ -315,7 +129,7 @@ class SubtaskDialog : BaseDialog {
         }
         
         # Validate due date
-        $dueDateStr = $this.DueDateTextBox.Text.Trim()
+        $dueDateStr = $this.GetFieldValue("dueDate").Trim()
         if (-not [string]::IsNullOrEmpty($dueDateStr)) {
             try {
                 [DateTime]::Parse($dueDateStr) | Out-Null
@@ -328,14 +142,14 @@ class SubtaskDialog : BaseDialog {
     }
     
     [PSCustomObject] CreateSubtaskData() {
-        # Parse inputs
-        $title = $this.TitleTextBox.Text.Trim()
-        $description = $this.DescriptionTextBox.Text.Trim()
-        $priorityStr = $this.PriorityTextBox.Text.Trim()
-        $progressStr = $this.ProgressTextBox.Text.Trim()
-        $estimatedStr = $this.EstimatedTimeTextBox.Text.Trim()
-        $actualStr = $this.ActualTimeTextBox.Text.Trim()
-        $dueDateStr = $this.DueDateTextBox.Text.Trim()
+        # Parse inputs using UnifiedDialog API
+        $title = $this.GetFieldValue("title").Trim()
+        $description = $this.GetFieldValue("description").Trim()
+        $priorityStr = $this.GetFieldValue("priority").Trim()
+        $progressStr = $this.GetFieldValue("progress").Trim()
+        $estimatedStr = $this.GetFieldValue("estimatedTime").Trim()
+        $actualStr = $this.GetFieldValue("actualTime").Trim()
+        $dueDateStr = $this.GetFieldValue("dueDate").Trim()
         
         # Convert priority
         $priority = switch ($priorityStr) {
@@ -385,7 +199,7 @@ class SubtaskDialog : BaseDialog {
     # Override HandleScreenInput to add Ctrl+Enter shortcut
     [bool] HandleScreenInput([System.ConsoleKeyInfo]$key) {
         # Let base class handle standard dialog shortcuts first
-        if (([BaseDialog]$this).HandleScreenInput($key)) {
+        if (([UnifiedDialog]$this).HandleScreenInput($key)) {
             return $true
         }
         

@@ -1,43 +1,34 @@
-# TimeEntryScreen.ps1 - Time entry screen based on working ProjectsScreen
+# TimeEntryScreen.ps1 - Time entry screen using CRUDScreen base class
 
-class TimeEntryScreen : Screen {
-    [MinimalDataGrid]$TimeGrid
+class TimeEntryScreen : CRUDScreen {
     [DateTime]$CurrentWeekFriday
-    [TimeTrackingService]$TimeService
     [ProjectService]$ProjectService
-    [EventBus]$EventBus
-    hidden [hashtable]$EventSubscriptions = @{}
     
-    TimeEntryScreen() : base() {
+    TimeEntryScreen() : base("TimeTrackingService", "TimeEntry") {
         $this.Title = "Time Entry"
     }
     
+    # Override OnInitialize to inject additional services and setup
     [void] OnInitialize() {
-        # Get services
-        $this.TimeService = $this.ServiceContainer.GetService("TimeTrackingService")
-        $this.ProjectService = $this.ServiceContainer.GetService("ProjectService")
-        $this.EventBus = $this.ServiceContainer.GetService('EventBus')
+        # Call base initialization first (handles TimeTrackingService and EventBus)
+        ([CRUDScreen]$this).OnInitialize()
+        
+        # Inject additional services needed by TimeEntryScreen
+        $this.ProjectService = $this.GetService("ProjectService")
         
         # Set to last week to show sample data (temporary for testing)
         # TODO: Remove this and use current week when we have current week data
-        $this.CurrentWeekFriday = $this.TimeService.GetCurrentWeekFriday().AddDays(-7)
-        
-        # Subscribe to events
-        if ($this.EventBus) {
-            $screen = $this
-            
-            # Subscribe to time entry updates
-            $this.EventSubscriptions['TimeEntryUpdated'] = $this.EventBus.Subscribe('timeentry.updated', {
-                param($sender, $eventData)
-                $screen.RefreshGrid()
-            }.GetNewClosure())
-        }
-        
-        # Create MinimalDataGrid with columns
-        $this.TimeGrid = [MinimalDataGrid]::new()
-        $this.TimeGrid.Title = $this.GetWeekTitle()
-        $this.TimeGrid.ShowBorder = $true   # Component responsible for own visual boundaries
-        $this.TimeGrid.BorderType = [BorderType]::Rounded
+        $this.CurrentWeekFriday = $this.DataService.GetCurrentWeekFriday().AddDays(-7)
+    }
+    
+    # Override SetupDataGrid to use UnifiedList with time entry columns
+    [void] SetupDataGrid() {
+        # Create UnifiedList in DataGrid mode
+        $this.DataGrid = [UnifiedList]::new([UnifiedListMode]::DataGrid)
+        $this.DataGrid.Title = $this.GetWeekTitle()
+        $this.DataGrid.ShowBorder = $false   # Remove borders per requirements
+        $this.DataGrid.ShowHeader = $true
+        $this.DataGrid.ShowColumnSeparators = $false
         
         # Get current day of week for highlighting
         $today = [DateTime]::Today
@@ -82,54 +73,22 @@ class TimeEntryScreen : Screen {
             @{ Name = "Total"; Header = "Total"; Width = 7; Getter = { param($item) $item.Total.ToString("F1") } }
         )
         
-        # Add as child first, then configure
-        $this.AddChild($this.TimeGrid)
-        $this.TimeGrid.SetColumns($columns)
-        
-        # Load initial data
-        $this.RefreshGrid()
-        
-        # REMOVED: RegisterShortcuts() - ShortcutManager deprecated
+        $this.DataGrid.SetColumns($columns)
+        $this.DataGrid.Initialize($global:ServiceContainer)
+        $this.AddChild($this.DataGrid)
     }
     
-    [void] OnBoundsChanged() {
-        if (-not $this.TimeGrid) { return }
-        # Grid uses full screen area  
-        $this.TimeGrid.SetBounds($this.X, $this.Y, $this.Width, $this.Height)
-    }
-    
-    [void] OnActivated() {
-        # Call base - this now handles focus via FocusFirst()
-        ([Screen]$this).OnActivated()
-        
-        # Refresh data when activated (this will also select first item via SetItems)
-        $this.RefreshGrid()
-    }
-    
-    [string] GetWeekTitle() {
-        $monday = $this.CurrentWeekFriday.AddDays(-4)
-        $weekText = "Week of $($monday.ToString('MM/dd/yyyy')) to $($this.CurrentWeekFriday.ToString('MM/dd/yyyy'))"
-        if ($this.IsCurrentWeek()) {
-            $weekText += " (Current)"
-        }
-        return "Time Entry - $weekText"
-    }
-    
-    [bool] IsCurrentWeek() {
-        $currentFriday = $this.TimeService.GetCurrentWeekFriday()
-        return $this.CurrentWeekFriday.Date -eq $currentFriday.Date
-    }
-    
-    [void] RefreshGrid() {
-        # Update title
-        $this.TimeGrid.Title = $this.GetWeekTitle()
+    # Override LoadData to implement time entry specific data loading
+    [void] LoadData() {
+        # Update title to reflect current week
+        $this.DataGrid.Title = $this.GetWeekTitle()
         
         # Update column headers to reflect current day
         $this.UpdateColumnHeaders()
         
         # Get entries for current week
         $weekString = $this.CurrentWeekFriday.ToString("yyyyMMdd")
-        $entries = $this.TimeService.GetWeekEntries($weekString)
+        $entries = $this.DataService.GetWeekEntries($weekString)
         
         # Sort by: Projects first (by name), then non-projects (by ID2)
         $sorted = $entries | Sort-Object @(
@@ -137,39 +96,14 @@ class TimeEntryScreen : Screen {
             @{Expression = {$_.Name}},
             @{Expression = {$_.ID2}}
         )
-        # Clear and repopulate grid using proper DataGrid method
-        $this.TimeGrid.SetItems($sorted)
-        $this.TimeGrid.Invalidate()
+        
+        $this.DataGrid.SetItems($sorted)
+        $this.DataGrid.Invalidate()
         $this.Invalidate()
     }
     
-    [void] ShowQuickEntry() {
-        try {
-            # Create quick entry dialog
-            $dialog = [QuickTimeEntryDialog]::new($this.CurrentWeekFriday)
-            
-            # Initialize dialog with ServiceContainer for theme
-            $dialog.Initialize($this.ServiceContainer)
-            $screen = $this
-            $dialog.OnSave = {
-                param($timeEntry)
-                # The dialog now saves entries directly via TimeService
-                $screen.RefreshGrid()
-            }.GetNewClosure()
-            
-            # Show dialog
-            if ($global:ScreenManager) {
-                $global:ScreenManager.Push($dialog)
-            }
-        }
-        catch {
-            if ($global:Logger) {
-                $global:Logger.Error("TimeEntryScreen.ShowQuickEntry: Error creating dialog: $_")
-            }
-        }
-    }
-    
-    [void] NewTimeEntry() {
+    # Override CRUD operations for time entry specific behavior
+    [void] NewItem() {
         # Show options dialog first
         $optionsDialog = [TimeEntryOptionsDialog]::new()
         $screen = $this
@@ -207,13 +141,6 @@ class TimeEntryScreen : Screen {
                     $entryDialog = [TimeEntryDialog]::new($project)
                     $entryDialog.Title = "New Time Entry - $($project.FullProjectName)"
                     
-                    $entryDialog.OnSave = {
-                        param($timeEntry)
-                        # Add to time service
-                        $screen.TimeService.AddTimeEntry($timeEntry)
-                        $screen.RefreshGrid()
-                    }.GetNewClosure()
-                    
                     if ($global:ScreenManager) {
                         $global:ScreenManager.Push($entryDialog)
                     }
@@ -226,12 +153,6 @@ class TimeEntryScreen : Screen {
             elseif ($option.Type -eq "manual") {
                 # Show manual entry dialog
                 $manualDialog = [ManualTimeEntryDialog]::new()
-                
-                $manualDialog.OnSave = {
-                    param($timeEntry)
-                    $screen.RefreshGrid()
-                }.GetNewClosure()
-                
                 if ($global:ScreenManager) {
                     $global:ScreenManager.Push($manualDialog)
                 }
@@ -243,42 +164,13 @@ class TimeEntryScreen : Screen {
         }
     }
     
-    [void] DeleteSelectedEntry() {
-        $selected = $this.TimeGrid.GetSelectedItem()
-        if (-not $selected) { return }
-        
-        # Show confirmation dialog
-        $message = "Delete time entry for $($selected.Name)?`n`nDate: $($selected.Day)`nHours: $($selected.Total)"
-        $dialog = [ConfirmationDialog]::new($message)
-        
-        $screen = $this
-        $projectId = $selected.ID2
-        $date = $selected.FullDate
-        
-        $dialog.OnPrimary = {
-            # Find and delete the entry
-            $entries = $screen.TimeService.GetTimeEntriesByProject($projectId)
-            foreach ($entry in $entries) {
-                if ($entry.Date.Date -eq $date.Date) {
-                    $screen.TimeService.DeleteTimeEntry($entry)
-                    break
-                }
-            }
-            $screen.RefreshGrid()
-        }.GetNewClosure()
-        
-        if ($global:ScreenManager) {
-            $global:ScreenManager.Push($dialog)
-        }
-    }
-    
-    [void] EditSelectedEntry() {
-        $selected = $this.TimeGrid.GetSelectedItem()
+    [void] EditItem() {
+        $selected = $this.GetSelectedItem()
         if (-not $selected) { return }
         
         # For editing, we need to find an actual time entry for a specific day
         # Let's create a simple date selection dialog or use the first day with hours
-        $entries = $this.TimeService.GetTimeEntriesByProject($selected.ID2)
+        $entries = $this.DataService.GetTimeEntriesByProject($selected.ID2)
         
         # Find entries for current week
         $weekStart = $this.CurrentWeekFriday.AddDays(-4).Date
@@ -310,16 +202,65 @@ class TimeEntryScreen : Screen {
         $dialog = [TimeEntryDialog]::new($project, $entryToEdit)
         $dialog.Title = "Edit Time Entry - $($selected.Name)"
         
-        $screen = $this
-        $dialog.OnSave = {
-            param($timeEntry)
-            # The dialog handles updating via TimeTrackingService
-            $screen.RefreshGrid()
-        }.GetNewClosure()
-        
         # Show dialog
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
+        }
+    }
+    
+    # Override PerformDelete for time entry specific behavior
+    [void] PerformDelete($itemId) {
+        $selected = $this.GetSelectedItem()
+        if (-not $selected) { return }
+        
+        # Find and delete the entry
+        $entries = $this.DataService.GetTimeEntriesByProject($selected.ID2)
+        
+        # Find entries for current week and delete them
+        $weekStart = $this.CurrentWeekFriday.AddDays(-4).Date
+        $weekEnd = $this.CurrentWeekFriday.Date
+        
+        $weekEntries = $entries | Where-Object { 
+            $_.Date -ge $weekStart -and $_.Date -le $weekEnd 
+        }
+        
+        foreach ($entry in $weekEntries) {
+            $this.DataService.DeleteTimeEntry($entry)
+        }
+    }
+    
+    # Time entry specific methods
+    [string] GetWeekTitle() {
+        $monday = $this.CurrentWeekFriday.AddDays(-4)
+        $weekText = "Week of $($monday.ToString('MM/dd/yyyy')) to $($this.CurrentWeekFriday.ToString('MM/dd/yyyy'))"
+        if ($this.IsCurrentWeek()) {
+            $weekText += " (Current)"
+        }
+        return "Time Entry - $weekText"
+    }
+    
+    [bool] IsCurrentWeek() {
+        $currentFriday = $this.DataService.GetCurrentWeekFriday()
+        return $this.CurrentWeekFriday.Date -eq $currentFriday.Date
+    }
+    
+    [void] ShowQuickEntry() {
+        try {
+            # Create quick entry dialog
+            $dialog = [QuickTimeEntryDialog]::new($this.CurrentWeekFriday)
+            
+            # Initialize dialog with ServiceContainer for theme
+            $dialog.Initialize($this.ServiceContainer)
+            
+            # Show dialog
+            if ($global:ScreenManager) {
+                $global:ScreenManager.Push($dialog)
+            }
+        }
+        catch {
+            if ($global:Logger) {
+                $global:Logger.Error("TimeEntryScreen.ShowQuickEntry: Error creating dialog: $_")
+            }
         }
     }
     
@@ -337,53 +278,11 @@ class TimeEntryScreen : Screen {
         $dialog = [TimeEntryDialog]::new($project)
         $dialog.Title = "New Time Entry - $($selected.Name)"
         
-        $screen = $this
-        $dialog.OnSave = {
-            param($timeEntry)
-            # Add to time service
-            $screen.TimeService.AddTimeEntry($timeEntry)
-            $screen.RefreshGrid()
-        }.GetNewClosure()
-        
         # Show dialog
         if ($global:ScreenManager) {
             $global:ScreenManager.Push($dialog)
         }
     }
-    
-[bool] HandleScreenInput([System.ConsoleKeyInfo]$keyInfo) {
-        # TimeEntry screen shortcuts - this is where they should be
-        switch ($keyInfo.KeyChar) {
-            'n' { $this.NewTimeEntry(); return $true }
-            'e' { $this.EditSelectedEntry(); return $true }
-            'd' { $this.DeleteSelectedEntry(); return $true }
-            'q' { $this.ShowQuickEntry(); return $true }
-            'c' { 
-                $this.CurrentWeekFriday = $this.TimeService.GetCurrentWeekFriday()
-                $this.RefreshGrid()
-                return $true
-            }
-        }
-        
-        # REMOVED: Arrow keys for week navigation - conflicts with menu focus switching
-        
-        # Enter key for editing
-        if ($keyInfo.Key -eq [System.ConsoleKey]::Enter) {
-            $this.EditSelectedEntry()
-            return $true
-        }
-        
-        return $false
-    }
-
-    [string] OnRender() {
-        $result = ([Screen]$this).OnRender()
-        return $result
-    }
-    
-    # REMOVED: RegisterShortcuts() method - ShortcutManager deprecated
-    # Shortcuts now handled directly in HandleScreenInput() method
-    
     
     [void] UpdateColumnHeaders() {
         # Update column headers to show current day indicator
@@ -392,7 +291,7 @@ class TimeEntryScreen : Screen {
         $isCurrentWeek = $this.IsCurrentWeek()
         
         # Get current columns
-        $columns = $this.TimeGrid.Columns
+        $columns = $this.DataGrid.Columns
         
         # Update day column headers
         foreach ($col in $columns) {
@@ -416,6 +315,27 @@ class TimeEntryScreen : Screen {
         }
         
         # Force grid rebuild
-        $this.TimeGrid.Invalidate()
+        $this.DataGrid.Invalidate()
     }
+    
+    # Override custom input handling for time entry specific shortcuts
+    [bool] HandleCustomInput([System.ConsoleKeyInfo]$keyInfo) {
+        # Time entry specific shortcuts
+        switch ($keyInfo.KeyChar) {
+            'q' { $this.ShowQuickEntry(); return $true }
+            'c' { 
+                $this.CurrentWeekFriday = $this.DataService.GetCurrentWeekFriday()
+                $this.LoadData()
+                return $true
+            }
+        }
+        
+        return $false  # Not handled
+    }
+    
+    # Compatibility methods for MainScreen integration
+    [void] NewTimeEntry() { $this.NewItem() }
+    [void] EditSelectedEntry() { $this.EditItem() }
+    [void] DeleteSelectedEntry() { $this.DeleteItem() }
+    [void] RefreshGrid() { $this.LoadData() }
 }

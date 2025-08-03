@@ -54,7 +54,9 @@ class ScreenManager {
     [void] Push([Screen]$screen) {
         if ($global:Logger) {
             $global:Logger.Info("ScreenManager.Push: Pushing screen $($screen.GetType().Name)")
-        }
+                
+        # Screen will get theme through its own initialization
+    }
         
         # Deactivate current
         if ($this._activeScreen) {
@@ -286,8 +288,8 @@ class ScreenManager {
         # Get rendered content
         $content = $this._activeScreen.Render()
         
-        # Clear screen if content changed significantly (like dialog closing)
-        if ($this._lastContent -eq "") {
+        # Clear screen if content changed significantly (like dialog closing) or first render
+        if ($this._lastContent -eq "" -or $this._frameCount -eq 0) {
             [Console]::Clear()
         }
         

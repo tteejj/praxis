@@ -1,165 +1,87 @@
-# EditProjectDialog.ps1 - Dialog for editing existing projects
+# EditProjectDialog.ps1 - Dialog for editing existing projects using UnifiedDialog
 
-class EditProjectDialog : BaseDialog {
+class EditProjectDialog : UnifiedDialog {
     [Project]$Project
-    [MinimalTextBox]$NameBox
-    [MinimalTextBox]$ID1Box
-    [MinimalTextBox]$ID2Box
-    [MinimalTextBox]$NoteBox
-    [MinimalTextBox]$CAAPathBox
-    [MinimalTextBox]$RequestPathBox
-    [MinimalTextBox]$T2020PathBox
-    [MinimalTextBox]$DueDateBox
     
-    EditProjectDialog([Project]$project) : base("Edit Project") {
+    EditProjectDialog([Project]$project) : base("Edit Project", 70, 20) {
         $this.Project = $project
-        $this.PrimaryButtonText = "Save"
-        $this.SecondaryButtonText = "Cancel"
-        $this.DialogWidth = 70
-        $this.DialogHeight = 24
+        
+        # Add project fields using simplified UnifiedDialog API with current values
+        $this.AddField("name", "Project Name", $project.FullProjectName)
+        $this.AddField("id1", "ID1", $project.ID1) 
+        $this.AddField("id2", "ID2", $project.ID2)
+        $this.AddField("notes", "Notes", $project.Note)
+        $this.AddField("caaPath", "CAA Path", $project.CAAPath)
+        $this.AddField("requestPath", "Request Path", $project.RequestPath)
+        $this.AddField("t2020Path", "T2020 Path", $project.T2020Path)
+        $this.AddField("dueDate", "Due Date (MM/DD/YYYY)", $project.DateDue.ToString("MM/dd/yyyy"))
+        
+        # Set button labels
+        $this.SetButtons("Save", "Cancel")
+        
+        # Set up submit handler with proper closure
+        $dialog = $this
+        $this.OnSubmit = { $dialog.SaveProject() }.GetNewClosure()
     }
     
-    [void] InitializeContent() {
-        # Create all project input fields with current values
-        $this.NameBox = [MinimalTextBox]::new()
-        $this.NameBox.Text = $this.Project.FullProjectName
-        $this.NameBox.Placeholder = "Enter full project name..."
-        $this.NameBox.ShowBorder = $false
-        $this.NameBox.Height = 1
-        $this.AddContentControl($this.NameBox, 1)
+    [void] SaveProject() {
+        # Get field values
+        $name = $this.GetFieldValue("name")
         
-        $this.ID1Box = [MinimalTextBox]::new()
-        $this.ID1Box.Text = $this.Project.ID1
-        $this.ID1Box.Placeholder = "Enter ID1..."
-        $this.ID1Box.ShowBorder = $false
-        $this.ID1Box.Height = 1
-        $this.AddContentControl($this.ID1Box, 2)
+        # Validate required fields
+        if ([string]::IsNullOrWhiteSpace($name)) {
+            # Show error - for now just return
+            return
+        }
         
-        $this.ID2Box = [MinimalTextBox]::new()
-        $this.ID2Box.Text = $this.Project.ID2
-        $this.ID2Box.Placeholder = "Enter ID2..."
-        $this.ID2Box.ShowBorder = $false
-        $this.ID2Box.Height = 1
-        $this.AddContentControl($this.ID2Box, 3)
+        # Parse due date
+        $dueDate = $this.Project.DateDue
+        $dueDateText = $this.GetFieldValue("dueDate")
+        if (-not [string]::IsNullOrWhiteSpace($dueDateText)) {
+            try {
+                $dueDate = [DateTime]::Parse($dueDateText)
+            } catch {
+                # Keep original date if parsing fails
+            }
+        }
         
-        $this.NoteBox = [MinimalTextBox]::new()
-        $this.NoteBox.Text = $this.Project.Note
-        $this.NoteBox.Placeholder = "Enter notes..."
-        $this.NoteBox.ShowBorder = $false
-        $this.NoteBox.Height = 1
-        $this.AddContentControl($this.NoteBox, 4)
+        # Update project properties
+        $this.Project.FullProjectName = $name
+        $this.Project.ID1 = $this.GetFieldValue("id1")
+        $this.Project.ID2 = $this.GetFieldValue("id2")
+        $this.Project.Note = $this.GetFieldValue("notes")
+        $this.Project.CAAPath = $this.GetFieldValue("caaPath")
+        $this.Project.RequestPath = $this.GetFieldValue("requestPath")
+        $this.Project.T2020Path = $this.GetFieldValue("t2020Path")
+        $this.Project.DateDue = $dueDate
+        $this.Project.UpdatedAt = [DateTime]::Now
         
-        $this.CAAPathBox = [MinimalTextBox]::new()
-        $this.CAAPathBox.Text = $this.Project.CAAPath
-        $this.CAAPathBox.Placeholder = "Enter CAA path..."
-        $this.CAAPathBox.ShowBorder = $false
-        $this.CAAPathBox.Height = 1
-        $this.AddContentControl($this.CAAPathBox, 5)
-        
-        $this.RequestPathBox = [MinimalTextBox]::new()
-        $this.RequestPathBox.Text = $this.Project.RequestPath
-        $this.RequestPathBox.Placeholder = "Enter request path..."
-        $this.RequestPathBox.ShowBorder = $false
-        $this.RequestPathBox.Height = 1
-        $this.AddContentControl($this.RequestPathBox, 6)
-        
-        $this.T2020PathBox = [MinimalTextBox]::new()
-        $this.T2020PathBox.Text = $this.Project.T2020Path
-        $this.T2020PathBox.Placeholder = "Enter T2020 path..."
-        $this.T2020PathBox.ShowBorder = $false
-        $this.T2020PathBox.Height = 1
-        $this.AddContentControl($this.T2020PathBox, 7)
-        
-        $this.DueDateBox = [MinimalTextBox]::new()
-        $this.DueDateBox.Text = $this.Project.DateDue.ToString("MM/dd/yyyy")
-        $this.DueDateBox.Placeholder = "Enter due date (MM/DD/YYYY)..."
-        $this.DueDateBox.ShowBorder = $false
-        $this.DueDateBox.Height = 1
-        $this.AddContentControl($this.DueDateBox, 8)
-        
-        # Set up primary action (Save)
-        $dialog = $this
-        $this.OnPrimary = {
-            if ($dialog.NameBox.Text.Trim()) {
-                # Parse due date
-                $dueDate = $dialog.Project.DateDue
-                if ($dialog.DueDateBox.Text.Trim()) {
-                    try {
-                        $dueDate = [DateTime]::Parse($dialog.DueDateBox.Text)
-                    } catch {
-                        # Keep original date if parsing fails
+        # Save via service
+        $projectService = $this.GetService("ProjectService")
+        if ($projectService) {
+            try {
+                $projectService.UpdateProject($this.Project)
+                
+                # Manually refresh the projects screen instead of using events
+                # Find the ProjectsScreen by type name to avoid loading order issues
+                if ($global:ScreenManager -and $global:ScreenManager.Screens.Count -gt 0) {
+                    foreach ($screen in $global:ScreenManager.Screens) {
+                        if ($screen.GetType().Name -eq "ProjectsScreen") {
+                            $screen.LoadData()
+                            break
+                        }
                     }
                 }
                 
-                # Update project properties
-                $dialog.Project.FullProjectName = $dialog.NameBox.Text
-                $dialog.Project.ID1 = $dialog.ID1Box.Text
-                $dialog.Project.ID2 = $dialog.ID2Box.Text
-                $dialog.Project.Note = $dialog.NoteBox.Text
-                $dialog.Project.CAAPath = $dialog.CAAPathBox.Text
-                $dialog.Project.RequestPath = $dialog.RequestPathBox.Text
-                $dialog.Project.T2020Path = $dialog.T2020PathBox.Text
-                $dialog.Project.DateDue = $dueDate
-                $dialog.Project.UpdatedAt = [DateTime]::Now
+                # Close dialog
+                $this.Close()
                 
-                # Save via service
-                $projectService = $global:ServiceContainer.GetService("ProjectService")
-                if ($projectService) {
-                    $projectService.UpdateProject($dialog.Project)
-                }
-                
-                # Publish event if EventBus available
-                if ($dialog.EventBus) {
-                    $dialog.EventBus.Publish([EventNames]::ProjectUpdated, @{ 
-                        Project = $dialog.Project 
-                    })
-                    
-                    $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
-                        Dialog = 'EditProjectDialog'
-                        Action = 'Save'
-                        Data = $dialog.Project
-                    })
+            } catch {
+                # Handle error - for now just log
+                if ($global:Logger) {
+                    $global:Logger.Error("Failed to update project: $_")
                 }
             }
-        }.GetNewClosure()
-        
-        # Set up secondary action (Cancel)
-        $this.OnSecondary = {
-            if ($dialog.EventBus) {
-                $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
-                    Dialog = 'EditProjectDialog'
-                    Action = 'Cancel'
-                })
-            }
-        }.GetNewClosure()
-    }
-    
-    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        # Custom positioning for all project fields (same as NewProjectDialog)
-        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
-        $currentY = $dialogY + 2
-        
-        $this.NameBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
-        $currentY += 2
-        
-        # Split ID fields horizontally
-        $halfWidth = [int](($controlWidth - 2) / 2)
-        $this.ID1Box.SetBounds($dialogX + $this.DialogPadding, $currentY, $halfWidth, 1)
-        $this.ID2Box.SetBounds($dialogX + $this.DialogPadding + $halfWidth + 2, $currentY, $halfWidth, 1)
-        $currentY += 2
-        
-        $this.NoteBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
-        $currentY += 2
-        
-        $this.CAAPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
-        $currentY += 2
-        
-        $this.RequestPathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
-        $currentY += 2
-        
-        $this.T2020PathBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
-        $currentY += 2
-        
-        $this.DueDateBox.SetBounds($dialogX + $this.DialogPadding, $currentY, $controlWidth, 1)
+        }
     }
 }

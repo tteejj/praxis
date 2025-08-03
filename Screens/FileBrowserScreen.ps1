@@ -25,6 +25,12 @@ class FileBrowserScreen : Screen {
         # Create and configure the ranger-style file tree
         $this.FileTree = [RangerFileTree]::new()
         $this.FileTree.CurrentPath = $defaultPath
+        
+        # Remove borders per unified architecture requirements
+        if ($this.FileTree | Get-Member -Name "ShowBorder" -MemberType Property) {
+            $this.FileTree.ShowBorder = $false
+        }
+        
         # Add the file tree as a child component BEFORE initializing
         # This ensures Parent is set correctly
         $this.AddChild($this.FileTree)
@@ -102,11 +108,12 @@ class FileBrowserScreen : Screen {
     # Override OnActivated to ensure FileTree gets focus
     [void] OnActivated() {
         ([Screen]$this).OnActivated()
-        # Use FocusFirst to focus the first focusable child (should be FileTree)
-        $this.FocusFirst()
+        
+        # Base Screen.OnActivated() already handles focusing first element
+        # No additional focus logic needed - let the base implementation handle it
         
         if ($global:Logger) {
-            # Check what got focused
+            # Check what got focused for debugging
             $focusedChild = $this.FindFocusedChild()
             if ($focusedChild) {
                 $global:Logger.Debug("  Focused child: $($focusedChild.GetType().Name)")
@@ -116,7 +123,13 @@ class FileBrowserScreen : Screen {
                 # Try direct focus as fallback
                 if ($this.FileTree) {
                     $global:Logger.Debug("  Attempting direct FileTree.Focus()")
-                    $this.FileTree.Focus()
+                    $focusManager = $this.ServiceContainer.GetService('FocusManager')
+                    if ($focusManager) {
+                        $focusManager.SetFocus($this.FileTree)
+                    } else {
+                        # Fallback if FocusManager not available
+                        $this.FileTree.Focus()
+                    }
                     # Check again
                     $focusedChild = $this.FindFocusedChild()
                     if ($focusedChild) {

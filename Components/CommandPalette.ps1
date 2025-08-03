@@ -92,8 +92,8 @@ class CommandPalette : Container {
                 $palette.EventBus.Publish([EventNames]::TabChanged, @{ TabIndex = 0 })
             }
             
-            # Create and show the dialog
-            $dialog = [NewProjectDialog]::new()
+            # Create and show the dialog - use CLEAN version
+            $dialog = [CleanNewProjectDialog]::new()
             $dialog.OnCreate = {
                 param($project)
                 if ($global:Logger) {

@@ -73,7 +73,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateComponentLibrary() {
         $this.ComponentLibrary = [SearchableListBox]::new()
         $this.ComponentLibrary.Title = "📚 Component Library"
-        $this.ComponentLibrary.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.ComponentLibrary.ShowBorder = $false   # Remove borders per unified architecture requirements
         $this.ComponentLibrary.SearchPrompt = "Search actions... (category:core type:export)"
         
         # Custom renderer for actions
@@ -99,7 +99,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateMacroSequence() {
         $this.MacroSequence = [MinimalDataGrid]::new()
         $this.MacroSequence.Title = "🔧 Macro Sequence"
-        $this.MacroSequence.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.MacroSequence.ShowBorder = $false   # Remove borders per unified architecture requirements
         $this.MacroSequence.ShowTitle = $true
         
         # Define columns for macro sequence
@@ -228,7 +228,7 @@ class VisualMacroFactoryScreen : Screen {
     [void] CreateContextPanel() {
         $this.ContextPanel = [MinimalDataGrid]::new()
         $this.ContextPanel.Title = "🎯 Macro Context"
-        $this.ContextPanel.ShowBorder = $true   # Component responsible for own visual boundaries
+        $this.ContextPanel.ShowBorder = $false   # Remove borders per unified architecture requirements
         $this.ContextPanel.ShowTitle = $true
         
         # Define columns for context variables
@@ -248,7 +248,13 @@ class VisualMacroFactoryScreen : Screen {
         
         # Set initial focus to component library
         if ($this.ComponentLibrary) {
-            $this.ComponentLibrary.Focus()
+            $focusManager = $this.ServiceContainer.GetService('FocusManager')
+            if ($focusManager) {
+                $focusManager.SetFocus($this.ComponentLibrary)
+            } else {
+                # Fallback if FocusManager not available
+                $this.ComponentLibrary.Focus()
+            }
         }
     }
     
@@ -294,7 +300,13 @@ class VisualMacroFactoryScreen : Screen {
         $this.UpdateContextPanel()
         
         # Focus the macro sequence and select the new item
-        $this.MacroSequence.Focus()
+        $focusManager = $this.ServiceContainer.GetService('FocusManager')
+        if ($focusManager) {
+            $focusManager.SetFocus($this.MacroSequence)
+        } else {
+            # Fallback if FocusManager not available
+            $this.MacroSequence.Focus()
+        }
         $this.MacroSequence.SelectedIndex = $this.ContextManager.Actions.Count - 1
         $this.SelectedSequenceIndex = $this.MacroSequence.SelectedIndex
     }

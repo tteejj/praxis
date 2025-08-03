@@ -1,0 +1,303 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+PRAXIS is a high-performance Terminal User Interface (TUI) framework built in PowerShell that emphasizes speed through string-based rendering, caching, and minimal object allocation. It combines architectural elegance with raw performance optimization.
+
+## How to Run
+
+```bash
+# Start the application
+pwsh -File Start.ps1
+
+# With debug output
+pwsh -File Start.ps1 -Debug
+
+# Performance monitoring
+pwsh -File Start.ps1 -Performance
+
+# Load framework only (for testing)
+pwsh -File Start.ps1 -LoadOnly
+```
+
+## Testing
+
+```bash
+# Run all tests
+pwsh -File Tests/Run-Tests.ps1
+
+# Run specific test path
+pwsh -File Tests/Run-Tests.ps1 -TestPath "Unit/Core"
+
+# Performance tests only
+pwsh -File Tests/Run-Tests.ps1 -PerformanceOnly
+
+# With code coverage
+pwsh -File Tests/Run-Tests.ps1 -CodeCoverage
+
+# CI mode (generates XML output)
+pwsh -File Tests/Run-Tests.ps1 -CI
+```
+
+## Architecture Overview
+
+PRAXIS follows a service-oriented architecture with dependency injection and event-driven communication:
+
+### Core Systems
+- **ServiceContainer**: Lightweight dependency injection container
+- **ScreenManager**: Manages screen lifecycle, rendering, and input handling
+- **EventBus**: Pub/sub event system for decoupled component communication
+- **FocusManager**: O(1) focus management across UI components
+- **ThemeManager**: Dynamic theming with pre-computed ANSI sequences
+
+### Rendering Pipeline
+1. **String-Based Rendering**: Components render to cached strings, not objects
+2. **Cache Invalidation**: Components only re-render when state changes
+3. **Pre-computed ANSI**: Theme colors and positioning calculated once
+4. **Double Buffering**: Content comparison prevents unnecessary screen updates
+
+### Class Hierarchy
+```
+UIElement (base)
+├── Container (layout management)
+│   ├── Screen (full-screen containers)
+│   └── Various layout containers
+├── FocusableComponent (input handling)
+└── ThemedComponent (theme integration)
+```
+
+## Key Performance Patterns
+
+### 1. Render Caching
+```powershell
+# Components cache rendered output
+hidden [string]$_renderCache = ""
+hidden [bool]$_cacheInvalid = $true
+
+[string] Render() {
+    if ($this._cacheInvalid) {
+        $this._renderCache = $this.OnRender()
+        $this._cacheInvalid = $false
+    }
+    return $this._renderCache
+}
+```
+
+### 2. String Pooling
+Use `Get-PooledStringBuilder` and `Return-PooledStringBuilder` for efficient string operations:
+```powershell
+$sb = Get-PooledStringBuilder 1024
+$sb.Append("content")
+$result = $sb.ToString()
+Return-PooledStringBuilder $sb
+```
+
+### 3. Pre-computed Values
+Cache expensive operations:
+```powershell
+# Pre-compute ANSI sequences
+$this._cachedPosition = [VT]::MoveTo($this.X, $this.Y)
+```
+
+## Service Registration Pattern
+
+Services are registered in `Start.ps1` in dependency order:
+```powershell
+# Core services first
+$logger = [Logger]::new()
+$global:ServiceContainer.Register("Logger", $logger)
+
+# Event system
+$eventBus = [EventBus]::new()
+$eventBus.Initialize($global:ServiceContainer)
+$global:ServiceContainer.Register("EventBus", $eventBus)
+```
+
+## Component Development Guidelines
+
+### Creating New Components
+1. Inherit from appropriate base class (`UIElement`, `FocusableComponent`, etc.)
+2. Override `OnRender()` for custom rendering
+3. Use `Invalidate()` to trigger re-rendering
+4. Register with `FocusManager` if focusable
+5. Subscribe to relevant events via `EventBus`
+
+### Performance Considerations
+- Avoid object allocation in `OnRender()`
+- Use string caching for repeated content
+- Pre-compute expensive values in `OnBoundsChanged()`
+- Batch UI updates using `InvalidateFocusOnly()` for focus-only changes
+
+## Event System Usage
+
+### Common Events
+```powershell
+# UI Events
+[EventNames]::FocusChanged
+[EventNames]::SelectionChanged
+[EventNames]::TabChanged
+
+# Data Events  
+[EventNames]::ProjectCreated
+[EventNames]::TaskUpdated
+[EventNames]::RefreshRequested
+
+# Application Events
+[EventNames]::ThemeChanged
+[EventNames]::ConfigChanged
+```
+
+### Event Patterns
+```powershell
+# Subscribe to events
+$eventBus.Subscribe([EventNames]::ThemeChanged, {
+    param($sender, $eventData)
+    $this.Invalidate()  # Trigger re-render
+})
+
+# Publish events
+$eventBus.Publish([EventNames]::DataChanged, @{
+    Source = "ProjectService"
+    Action = "Create"
+    ProjectId = $projectId
+})
+```
+
+## Screen and Dialog Development
+
+### Screen Structure
+```powershell
+class MyScreen : Screen {
+    [void] OnInitialize() {
+        # Initialize components, set up event handlers
+    }
+    
+    [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # Handle screen-specific input
+        return $false  # Return true if handled
+    }
+}
+```
+
+### Dialog Pattern
+```powershell
+class MyDialog : BaseDialog {
+    MyDialog() : base("Dialog Title", 60, 20) {
+        # Constructor with title and dimensions
+    }
+}
+```
+
+## Configuration and Settings
+
+### Settings Structure
+- Performance settings in `_Config/settings.json`
+- Project data in `_ProjectData/`
+- Logs in `_Logs/`
+- State backups in `_State/Backups/`
+
+### Theme System
+```powershell
+# Access current theme
+$themeManager = $this.ServiceContainer.GetService("ThemeManager")
+$colors = $themeManager.GetCurrentTheme()
+
+# Create themed content
+$content = "$($colors.Primary)Text$($colors.Reset)"
+```
+
+## Input Handling Chain
+
+Input flows through priority levels:
+1. **CommandPalette** (when visible) - highest priority
+2. **Active Screen** - screen-specific input handling  
+3. **FocusManager** - tab navigation and focus management
+4. **Emergency handlers** - Ctrl+Q, Ctrl+Esc for exit
+
+## File Loading Order
+
+`Start.ps1` loads files in strict dependency order:
+1. Core systems (StringCache, VT100, ServiceContainer)
+2. Services (Logger, EventBus, ConfigurationService)
+3. Base classes (UIElement, Container, Screen)
+4. Models and business logic
+5. Components and UI elements
+6. Screens and dialogs
+7. Main application screen
+
+## Debugging and Logging
+
+### Debug Mode
+```bash
+pwsh -File Start.ps1 -Debug
+```
+
+### Logger Usage
+```powershell
+$global:Logger.Info("Operation completed")
+$global:Logger.Debug("Debug information")
+$global:Logger.Error("Error occurred: $_")
+$global:Logger.LogException($_.Exception, "Context")
+```
+
+### Performance Monitoring
+- Use `-Performance` flag to enable performance tracking
+- ScreenManager tracks FPS and render times
+- StringBuilderPool monitors string allocation efficiency
+
+## Common Patterns and Anti-Patterns
+
+### ✅ DO:
+- Cache rendered strings in components
+- Use event system for loose coupling
+- Pre-compute expensive values
+- Batch UI updates where possible
+- Follow the established load order
+- Use service container for dependencies
+
+### ❌ DON'T:
+- Allocate objects in render loops
+- Directly reference other components
+- Skip cache invalidation after state changes
+- Use Console.WriteLine directly (use Logger)
+- Block the main thread with expensive operations
+- Modify UI from background threads
+
+## Testing Patterns
+
+### Unit Tests
+```powershell
+Describe "ComponentName" {
+    BeforeEach {
+        # Setup test environment
+        $component = [ComponentName]::new()
+    }
+    
+    It "Should render correctly" {
+        $result = $component.Render()
+        $result | Should -Not -BeNullOrEmpty
+    }
+}
+```
+
+### Performance Tests
+Located in `Tests/Performance/` - measure render times, memory usage, and responsiveness.
+
+## Key Files to Understand
+
+- `Start.ps1` - Application bootstrap and service registration
+- `Core/ScreenManager.ps1` - Main event loop and rendering
+- `Core/ServiceContainer.ps1` - Dependency injection
+- `Services/EventBus.ps1` - Event system implementation
+- `Base/UIElement.ps1` - Component base class
+- `Services/FocusManager.ps1` - Focus management system
+
+## Performance Targets
+
+- 60+ FPS on complex UIs
+- <16ms render times
+- Minimal memory allocation during steady state
+- Sub-100ms startup time for most screens
+- O(1) focus navigation performance

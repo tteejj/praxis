@@ -1,97 +1,45 @@
-# TextInputDialog.ps1 - Simple dialog for text input using BaseDialog
+# TextInputDialog.ps1 - Simple dialog for text input using UnifiedDialog
 
-class TextInputDialog : BaseDialog {
+class TextInputDialog : UnifiedDialog {
     [string]$Prompt
-    [string]$DefaultValue
-    [string]$Placeholder
-    [MinimalTextBox]$InputBox
     [scriptblock]$OnSubmit = {}
     
-    TextInputDialog([string]$prompt) : base("Input") {
+    TextInputDialog([string]$prompt) : base("Input", 50, 8) {
         $this.Prompt = $prompt
-        $this.DefaultValue = ""
-        $this.Placeholder = "Enter text..."
-        $this.DialogWidth = 50
-        $this.DialogHeight = 10
-        $this.PrimaryButtonText = "OK"
-        $this.SecondaryButtonText = "Cancel"
+        $this.InitializeFields("")
     }
     
-    TextInputDialog([string]$prompt, [string]$defaultValue) : base("Input") {
+    TextInputDialog([string]$prompt, [string]$defaultValue) : base("Input", 50, 8) {
         $this.Prompt = $prompt
-        $this.DefaultValue = $defaultValue
-        $this.Placeholder = "Enter text..."
-        $this.DialogWidth = 50
-        $this.DialogHeight = 10
-        $this.PrimaryButtonText = "OK"
-        $this.SecondaryButtonText = "Cancel"
+        $this.InitializeFields($defaultValue)
     }
     
-    [void] InitializeContent() {
-        # Create input textbox
-        $this.InputBox = [MinimalTextBox]::new()
-        $this.InputBox.Text = $this.DefaultValue
-        $this.InputBox.Placeholder = $this.Placeholder
-        $this.InputBox.ShowBorder = $false  # Dialog provides the border
-        $this.InputBox.Height = 1
-        $this.AddContentControl($this.InputBox, 1)
+    [void] InitializeFields([string]$defaultValue) {
+        # Add a single input field using simplified UnifiedDialog API
+        $this.AddField("input", $this.Prompt, $defaultValue)
         
-        # Set up primary action handler
+        # Set button labels
+        $this.SetButtons("OK", "Cancel")
+        
+        # Set up submit handler with proper closure
         $dialog = $this
-        $this.OnPrimary = {
-            if ($dialog.OnSubmit) {
-                & $dialog.OnSubmit $dialog.InputBox.Text
-            }
-        }.GetNewClosure()
-        
-        # OnCancel is automatically handled by BaseDialog's OnSecondary
+        $this.OnSubmit = { $dialog.SubmitInput() }.GetNewClosure()
     }
     
-    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        # Position the prompt label and input box
-        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+    [void] SubmitInput() {
+        $inputValue = $this.GetFieldValue("input")
         
-        # Calculate prompt lines
-        $promptLines = $this.Prompt -split "`n"
-        $currentY = $dialogY + 2
-        
-        # Position input box after prompt
-        $this.InputBox.SetBounds(
-            $dialogX + $this.DialogPadding,
-            $currentY + $promptLines.Count + 1,
-            $controlWidth,
-            1
-        )
-    }
-    
-    [string] OnRender() {
-        $sb = Get-PooledStringBuilder 1024
-        
-        # First render the base dialog
-        $baseRender = ([BaseDialog]$this).OnRender()
-        $sb.Append($baseRender)
-        
-        # Then render the prompt
-        if ($this.Prompt) {
-            $promptLines = $this.Prompt -split "`n"
-            $promptY = $this._dialogBounds.Y + 2
-            
-            foreach ($line in $promptLines) {
-                $sb.Append([VT]::MoveTo($this._dialogBounds.X + $this.DialogPadding, $promptY))
-                $sb.Append($this.Theme.GetColor("dialog.title"))
-                $sb.Append($line)
-                
-                $promptY++
-            }
+        # Call the submit callback if set
+        if ($this.OnSubmit) {
+            & $this.OnSubmit $inputValue
         }
         
-        $result = $sb.ToString()
-        Return-PooledStringBuilder $sb
-        return $result
+        # Close dialog
+        $this.Close()
     }
     
     # Helper method for compatibility
     [string] GetValue() {
-        return $this.InputBox.Text
+        return $this.GetFieldValue("input")
     }
 }

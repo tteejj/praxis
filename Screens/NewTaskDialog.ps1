@@ -1,124 +1,80 @@
-# NewTaskDialog.ps1 - Dialog for creating new tasks (refactored to use BaseDialog)
+# NewTaskDialog.ps1 - Dialog for creating new tasks using UnifiedDialog
 
-class NewTaskDialog : BaseDialog {
-    [MinimalTextBox]$TitleBox
-    [MinimalTextBox]$DescriptionBox
+class NewTaskDialog : UnifiedDialog {
     [MinimalListBox]$PriorityList
     
-    NewTaskDialog() : base("New Task", 50, 20) {
-        $this.PrimaryButtonText = "Create"
-        $this.SecondaryButtonText = "Cancel"
-    }
-    
-    [void] InitializeContent() {
-        # Create title textbox
-        $this.TitleBox = [MinimalTextBox]::new()
-        $this.TitleBox.Placeholder = "Enter task title..."
-        $this.TitleBox.ShowBorder = $false  # Dialog provides the border
-        $this.AddContentControl($this.TitleBox, 1)
+    NewTaskDialog() : base("New Task", 50, 16) {
+        # Add task fields using simplified UnifiedDialog API
+        $this.AddField("title", "Task Title", "")
+        $this.AddField("description", "Description", "")
         
-        # Create description textbox
-        $this.DescriptionBox = [MinimalTextBox]::new()
-        $this.DescriptionBox.Placeholder = "Enter description (optional)..."
-        $this.DescriptionBox.ShowBorder = $false  # Dialog provides the border
-        $this.AddContentControl($this.DescriptionBox, 2)
-        
-        # Create priority list
+        # Create priority list box manually for more control
         $this.PriorityList = [MinimalListBox]::new()
-        $this.PriorityList.ShowBorder = $true
+        $this.PriorityList.ShowBorder = $false
+        $this.PriorityList.Height = 3
         $this.PriorityList.SetItems(@("Low", "Medium", "High"))
         $this.PriorityList.SelectedIndex = 1  # Default to Medium
-        $this.AddContentControl($this.PriorityList, 3)
+        $this.PriorityList | Add-Member -NotePropertyName "FieldName" -NotePropertyValue "priority"
+        $this.AddControl($this.PriorityList)
         
-        # Set up primary action
+        # Set button labels
+        $this.SetButtons("Create", "Cancel")
+        
+        # Set up submit handler with proper closure
         $dialog = $this
-        $this.OnPrimary = {
-            if ($dialog.TitleBox.Text.Trim()) {
-                # Get selected priority
-                $selectedPriority = $dialog.PriorityList.GetSelectedItem()
-                $priority = switch ($selectedPriority) {
-                    "Low" { [TaskPriority]::Low }
-                    "High" { [TaskPriority]::High }
-                    default { [TaskPriority]::Medium }
-                }
-                
-                $taskData = @{
-                    Title = $dialog.TitleBox.Text.Trim()
-                    Description = $dialog.DescriptionBox.Text.Trim()
-                    Priority = $priority
-                }
-                
-                # Use EventBus if available
-                if ($dialog.EventBus) {
-                    # Create task via service
-                    $taskService = $global:ServiceContainer.GetService("TaskService")
-                    if ($taskService) {
-                        $newTask = $taskService.CreateTask($taskData)
-                        
-                        # Publish event
-                        $dialog.EventBus.Publish([EventNames]::TaskCreated, @{ 
-                            Task = $newTask 
-                        })
-                    }
-                    
-                    # Publish dialog closed event
-                    $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
-                        Dialog = 'NewTaskDialog'
-                        Action = 'Create'
-                        Data = $taskData
-                    })
-                } else {
-                    # Legacy callback support
-                    if ($dialog.OnCreate -and $dialog.OnCreate.GetType().Name -eq 'ScriptBlock') {
-                        & $dialog.OnCreate $taskData
-                    }
-                }
-            }
-        }.GetNewClosure()
-        
-        # Set up secondary action
-        $this.OnSecondary = {
-            # Publish dialog closed event
-            if ($dialog.EventBus) {
-                $dialog.EventBus.Publish([EventNames]::DialogClosed, @{ 
-                    Dialog = 'NewTaskDialog'
-                    Action = 'Cancel'
-                })
-            } else {
-                # Legacy callback support
-                if ($dialog.OnCancel -and $dialog.OnCancel.GetType().Name -eq 'ScriptBlock') {
-                    & $dialog.OnCancel
-                }
-            }
-        }.GetNewClosure()
+        $this.OnSubmit = { $dialog.CreateTask() }.GetNewClosure()
     }
     
-    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        # Custom positioning for task dialog controls
-        $controlWidth = $this.DialogWidth - ($this.DialogPadding * 2)
+    [void] CreateTask() {
+        # Get field values
+        $title = $this.GetFieldValue("title")
         
-        # Title box (leave space for dialog title)
-        $this.TitleBox.SetBounds(
-            $dialogX + $this.DialogPadding, 
-            $dialogY + 2, 
-            $controlWidth, 
-            3
-        )
+        # Validate required fields
+        if ([string]::IsNullOrWhiteSpace($title)) {
+            # Show error - for now just return
+            return
+        }
         
-        # Description box
-        $this.DescriptionBox.SetBounds(
-            $dialogX + $this.DialogPadding, 
-            $dialogY + 6, 
-            $controlWidth, 
-            3
-        )
+        # Get selected priority
+        $selectedPriority = $this.PriorityList.GetSelectedItem()
+        $priority = switch ($selectedPriority) {
+            "Low" { [TaskPriority]::Low }
+            "High" { [TaskPriority]::High }
+            default { [TaskPriority]::Medium }
+        }
         
-        # Priority list (make it smaller to leave room for buttons)
-        $this.PriorityList.SetBounds(
-            $dialogX + $this.DialogPadding, 
-            $dialogY + 10, 
-            $controlWidth, 
-            4
-        )
+        $taskData = @{
+            Title = $title.Trim()
+            Description = $this.GetFieldValue("description").Trim()
+            Priority = $priority
+        }
+        
+        # Get task service and create task
+        $taskService = $this.GetService("TaskService")
+        if ($taskService) {
+            try {
+                $newTask = $taskService.CreateTask($taskData)
+                
+                # Manually refresh the tasks screen instead of using events
+                # Find the TasksScreen by type name to avoid loading order issues
+                if ($global:ScreenManager -and $global:ScreenManager.Screens.Count -gt 0) {
+                    foreach ($screen in $global:ScreenManager.Screens) {
+                        if ($screen.GetType().Name -eq "TasksScreen") {
+                            $screen.LoadData()
+                            break
+                        }
+                    }
+                }
+                
+                # Close dialog
+                $this.Close()
+                
+            } catch {
+                # Handle error - for now just log
+                if ($global:Logger) {
+                    $global:Logger.Error("Failed to create task: $_")
+                }
+            }
+        }
     }
 }

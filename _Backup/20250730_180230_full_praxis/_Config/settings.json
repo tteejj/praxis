@@ -1,0 +1,141 @@
+{
+  "Performance": {
+    "RenderOptimization": true,
+    "EnableCaching": true,
+    "MaxCacheSize": 100
+  },
+  "Logging": {
+    "MaxFileSize": 10,
+    "Level": "Debug",
+    "MaxFiles": 5
+  },
+  "Tasks": {
+    "CompletedTaskRetention": 30,
+    "DefaultPriority": "Medium",
+    "ShowCompletedTasks": true
+  },
+  "Projects": {
+    "BackupCount": 5,
+    "AutoSave": true,
+    "DefaultPath": "/home/teej/projects/github/praxis/_ProjectData",
+    "BackupEnabled": true
+  },
+  "Theme": {
+    "CurrentTheme": "amber",
+    "ShowThemePreview": true,
+    "EnableLiveEdit": true,
+    "UserCustomizations": {},
+    "EditTheme": "[Click to open theme editor]",
+    "AvailableThemes": [
+      "amber",
+      "amber-black",
+      "default",
+      "synthwave-84",
+      "synthwave-outrun"
+    ]
+  },
+  "FileBrowser": {
+    "ShowHiddenFiles": true,
+    "DefaultPath": "/home/teej/projects/github/praxis",
+    "IgnoredExtensions": [
+      ".tmp",
+      ".cache",
+      ".log"
+    ],
+    "ShowFileSize": true,
+    "ShowModifiedDate": false,
+    "SortBy": "Name",
+    "SortDescending": false
+  },
+  "Editor": {
+    "SyntaxHighlighting": true,
+    "HighlightCurrentLine": true,
+    "AutoSaveInterval": 0,
+    "ShowLineNumbers": true,
+    "TabSize": 4,
+    "WordWrap": false
+  },
+  "UI": {
+    "VerticalSpacing": 1,
+    "AnimationsEnabled": true,
+    "CompactMode": false,
+    "GradientType": "vertical",
+    "ShowScrollbars": true,
+    "UseGradients": false
+  },
+  "Templates": {
+    "Macros": {
+      "Items": [
+        {
+          "Actions": [
+            {
+              "Fields": [
+                "Amount",
+                "Category"
+              ],
+              "Type": "Summarization"
+            },
+            {
+              "FileName": "analysis_results.xlsx",
+              "Type": "ExportToExcel"
+            }
+          ],
+          "Name": "Basic Analysis",
+          "Description": "Standard analysis workflow"
+        }
+      ],
+      "Enabled": true
+    },
+    "Commands": {
+      "Items": [
+        {
+          "Template": "IDEA@EXPORT DATABASE {DATABASE} TO {OUTPUT_FILE}.CSV",
+          "Name": "Export to CSV",
+          "Placeholders": [
+            "DATABASE",
+            "OUTPUT_FILE"
+          ],
+          "Description": "Export current database to CSV format"
+        },
+        {
+          "Template": "IDEA@JOIN DATABASE {PRIMARY} WITH {SECONDARY} ON {KEY_FIELD}",
+          "Name": "Join Databases",
+          "Placeholders": [
+            "PRIMARY",
+            "SECONDARY",
+            "KEY_FIELD"
+          ],
+          "Description": "Join two databases on a common field"
+        }
+      ],
+      "Enabled": true
+    },
+    "TimeEntry": {
+      "Items": [
+        {
+          "DefaultHours": 0.25,
+          "Name": "Daily Standup",
+          "DefaultDays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "Description": "Daily standup meeting",
+          "ProjectID": "Internal"
+        },
+        {
+          "DefaultHours": 1.0,
+          "Name": "Weekly Planning",
+          "DefaultDays": [
+            "Monday"
+          ],
+          "Description": "Weekly planning and review",
+          "ProjectID": "Internal"
+        }
+      ],
+      "Enabled": true
+    }
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "ExcelMappings": {
+    "SourceFile": "C:\\path\\to\\source.xlsx",
+    "DestFile": "C:\\path\\to\\destination.xlsx",
+    "FieldMappings": {
+      "InstallDate": {
+        "Cell": "L17",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "SiteName": {
+        "Cell": "W7",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "TPEmailAddress": {
+        "Cell": "X3",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "ModelNumber": {
+        "Cell": "J17",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "AssetName": {
+        "Cell": "H17",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "SiteAddress": {
+        "Cell": "W8",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "ManufacturerName": {
+        "Cell": "K17",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "TPName": {
+        "Cell": "W3",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "CorporateContact": {
+        "Cell": "W5",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "AuditType": {
+        "Cell": "W78",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "AuditorName": {
+        "Cell": "W10",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "CASNumber": {
+        "Cell": "G17",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "RequestDate": {
+        "Cell": "W23",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "TPPhoneNumber": {
+        "Cell": "Y3",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      },
+      "SerialNumber": {
+        "Cell": "I17",
+        "Sheet": "SVI-CAS",
+        "DestCell": "",
+        "DestSheet": "Output"
+      }
+    },
+    "SourceSheet": "SVI-CAS",
+    "DestSheet": "Output"
+  },
+  "InputConfig": {
+    "DestSheet": "Output",
+    "SourceFile": "C:\\path\\to\\source.xlsx",
+    "SourceSheet": "SVI-CAS",
+    "DestFile": "C:\\path\\to\\destination.xlsx"
+  },
+  "SourceMappings": {
+    "InspectorName": "W31",
+    "AttentionContactEmail": "X11",
+    "CorporateContactEmail": "X5",
+    "AuditorName": "W10",
+    "Capacity": "M17",
+    "SiteAddress": "W8",
+    "SiteCountry": "Z9",
+    "AssetName": "H17",
+    "CASNumber": "G17",
+    "SerialNumber": "I17",
+    "ModelNumber": "J17",
+    "Product": "P17",
+    "Piping": "R17",
+    "Monitoring": "S17",
+    "TPEmailAddress": "X3",
+    "RequestDate": "W23",
+    "SiteCity": "W9",
+    "InspectorLicense": "W33",
+    "CertificationNumber": "W29",
+    "TaxID": "W13",
+    "CapacityUnit": "N17",
+    "ManufacturerName": "K17",
+    "CorporateContactPhone": "Y5",
+    "TPPhoneNumber": "Y3",
+    "SiteState": "X9",
+    "AttentionContactPhone": "Y11",
+    "SiteName": "W7",
+    "DUNS": "X13",
+    "CorporateContact": "W5",
+    "Status": "T17",
+    "TankType": "O17",
+    "AttentionContact": "W11",
+    "NextInspectionDate": "W27",
+    "TPName": "W3",
+    "LeakDetection": "Q17",
+    "InstallDate": "L17",
+    "ComplianceDate": "W25",
+    "Comments": "U17",
+    "SiteZip": "Y9",
+    "AuditType": "W78"
+  },
+  "CompleteExcelMapping": {
+    "DestMappings": {
+      "DUNS": "",
+      "SiteZip": "",
+      "SiteCountry": "",
+      "Piping": "",
+      "TaxID": "",
+      "TPName": "",
+      "NextInspectionDate": "",
+      "AuditorName": "",
+      "AttentionContact": "",
+      "AttentionContactPhone": "",
+      "CapacityUnit": "",
+      "AttentionContactEmail": "",
+      "CorporateContactEmail": "",
+      "CorporateContactPhone": "",
+      "InspectorName": "",
+      "TankType": "",
+      "Product": "",
+      "SiteState": "",
+      "ComplianceDate": "",
+      "ManufacturerName": "",
+      "Comments": "",
+      "InspectorLicense": "",
+      "SiteName": "",
+      "SiteCity": "",
+      "ModelNumber": "",
+      "AssetName": "",
+      "SiteAddress": "",
+      "CorporateContact": "",
+      "TPPhoneNumber": "",
+      "Monitoring": "",
+      "AuditType": "",
+      "CASNumber": "",
+      "InstallDate": "",
+      "SerialNumber": "",
+      "Status": "",
+      "LeakDetection": "",
+      "TPEmailAddress": "",
+      "Capacity": "",
+      "RequestDate": "",
+      "CertificationNumber": ""
+    },
+    "Timestamp": "8/2/2025 3:49:16 PM",
+    "SourceMappings": {
+      "InspectorName": "W31",
+      "AttentionContactEmail": "X11",
+      "CorporateContactEmail": "X5",
+      "AuditorName": "W10",
+      "Capacity": "M17",
+      "SiteAddress": "W8",
+      "SiteCountry": "Z9",
+      "AssetName": "H17",
+      "CASNumber": "G17",
+      "SerialNumber": "I17",
+      "ModelNumber": "J17",
+      "Product": "P17",
+      "Piping": "R17",
+      "Monitoring": "S17",
+      "TPEmailAddress": "X3",
+      "RequestDate": "W23",
+      "SiteCity": "W9",
+      "InspectorLicense": "W33",
+      "CertificationNumber": "W29",
+      "TaxID": "W13",
+      "CapacityUnit": "N17",
+      "ManufacturerName": "K17",
+      "CorporateContactPhone": "Y5",
+      "TPPhoneNumber": "Y3",
+      "SiteState": "X9",
+      "AttentionContactPhone": "Y11",
+      "SiteName": "W7",
+      "DUNS": "X13",
+      "CorporateContact": "W5",
+      "Status": "T17",
+      "TankType": "O17",
+      "AttentionContact": "W11",
+      "NextInspectionDate": "W27",
+      "TPName": "W3",
+      "LeakDetection": "Q17",
+      "InstallDate": "L17",
+      "ComplianceDate": "W25",
+      "Comments": "U17",
+      "SiteZip": "Y9",
+      "AuditType": "W78"
+    },
+    "InputConfig": {
+      "DestSheet": "Output",
+      "SourceFile": "C:\\path\\to\\source.xlsx",
+      "SourceSheet": "SVI-CAS",
+      "DestFile": "C:\\path\\to\\destination.xlsx"
+    }
+  },
+  "DestMappings": {
+    "DUNS": "",
+    "SiteZip": "",
+    "SiteCountry": "",
+    "Piping": "",
+    "TaxID": "",
+    "TPName": "",
+    "NextInspectionDate": "",
+    "AuditorName": "",
+    "AttentionContact": "",
+    "AttentionContactPhone": "",
+    "CapacityUnit": "",
+    "AttentionContactEmail": "",
+    "CorporateContactEmail": "",
+    "CorporateContactPhone": "",
+    "InspectorName": "",
+    "TankType": "",
+    "Product": "",
+    "SiteState": "",
+    "ComplianceDate": "",
+    "ManufacturerName": "",
+    "Comments": "",
+    "InspectorLicense": "",
+    "SiteName": "",
+    "SiteCity": "",
+    "ModelNumber": "",
+    "AssetName": "",
+    "SiteAddress": "",
+    "CorporateContact": "",
+    "TPPhoneNumber": "",
+    "Monitoring": "",
+    "AuditType": "",
+    "CASNumber": "",
+    "InstallDate": "",
+    "SerialNumber": "",
+    "Status": "",
+    "LeakDetection": "",
+    "TPEmailAddress": "",
+    "Capacity": "",
+    "RequestDate": "",
+    "CertificationNumber": ""
+  },
+  "TextExportSettings": {
+    "SelectedFields": [
+      "RequestDate",
+      "SiteName"
+    ],
+    "ExportFormat": "JSON",
+    "LastUpdated": "8/2/2025 1:20:16 PM"
+  },
+  "ExportProfiles": {
+    "Basic Info": {
+      "Description": "Essential project information",
+      "SelectedFields": [
+        "SiteName",
+        "TPName",
+        "AuditType",
+        "AuditorName",
+        "RequestDate"
+      ],
+      "CreatedDate": "2025-08-02 15:30:29",
+      "UseCount": 0,
+      "ExportFormat": "CSV",
+      "Name": "Basic Info",
+      "LastUsed": "2025-08-02 15:30:29"
+    },
+    "Contact Details": {
+      "Description": "All contact information",
+      "SelectedFields": [
+        "TPEmailAddress",
+        "TPName",
+        "CorporateContact",
+        "TPPhoneNumber"
+      ],
+      "CreatedDate": "2025-08-02 15:30:29",
+      "UseCount": 0,
+      "ExportFormat": "CSV",
+      "Name": "Contact Details",
+      "LastUsed": "2025-08-02 15:30:29"
+    },
+    "Site Information": {
+      "Description": "Location and address details",
+      "SelectedFields": [
+        "SiteName",
+        "SiteAddress"
+      ],
+      "CreatedDate": "2025-08-02 15:30:29",
+      "UseCount": 0,
+      "ExportFormat": "TXT",
+      "Name": "Site Information",
+      "LastUsed": "2025-08-02 15:30:29"
+    },
+    "Asset Details": {
+      "Description": "Equipment and asset information",
+      "SelectedFields": [
+        "InstallDate",
+        "ModelNumber",
+        "AssetName",
+        "ManufacturerName",
+        "CASNumber",
+        "SerialNumber"
+      ],
+      "CreatedDate": "2025-08-02 15:30:29",
+      "UseCount": 0,
+      "ExportFormat": "JSON",
+      "Name": "Asset Details",
+      "LastUsed": "2025-08-02 15:30:29"
+    },
+    "Complete Export": {
+      "Description": "All available fields",
+      "SelectedFields": [
+        "InstallDate",
+        "SiteName",
+        "TPEmailAddress",
+        "ModelNumber",
+        "AssetName",
+        "SiteAddress",
+        "ManufacturerName",
+        "TPName",
+        "CorporateContact",
+        "AuditType",
+        "AuditorName",
+        "CASNumber",
+        "RequestDate",
+        "TPPhoneNumber",
+        "SerialNumber"
+      ],
+      "CreatedDate": "2025-08-02 15:30:29",
+      "UseCount": 11,
+      "ExportFormat": "CSV",
+      "Name": "Complete Export",
+      "LastUsed": "2025-08-02 18:38:41"
+    }
+  }
+}

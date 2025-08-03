@@ -1,24 +1,14 @@
-# TimeEntryOptionsDialog - Dialog for choosing time entry method
+# TimeEntryOptionsDialog - Dialog for choosing time entry method using UnifiedDialog
 
-class TimeEntryOptionsDialog : BaseDialog {
+class TimeEntryOptionsDialog : UnifiedDialog {
     [MinimalListBox]$OptionsBox
     [scriptblock]$OnOptionSelected = {}
     
-    TimeEntryOptionsDialog() : base("New Time Entry") {
-        $this.DialogWidth = 60
-        $this.DialogHeight = 16
-        $this.PrimaryButtonText = "Select"
-        $this.SecondaryButtonText = "Cancel"
-    }
-    
-    [void] InitializeContent() {
-        # Create options list
+    TimeEntryOptionsDialog() : base("New Time Entry", 60, 12) {
+        # Create options list manually for more control
         $this.OptionsBox = [MinimalListBox]::new()
-        $this.OptionsBox.ShowBorder = $true
-        $this.OptionsBox.BorderType = [BorderType]::Rounded
-        
-        # Store reference to dialog
-        $dialog = $this
+        $this.OptionsBox.ShowBorder = $false
+        $this.OptionsBox.Height = 6
         
         # Set up options
         $options = @(
@@ -40,36 +30,31 @@ class TimeEntryOptionsDialog : BaseDialog {
         }
         
         $this.OptionsBox.SetItems($options)
-        $this.AddContentControl($this.OptionsBox, 1)
+        $this.OptionsBox | Add-Member -NotePropertyName "FieldName" -NotePropertyValue "options"
+        $this.AddControl($this.OptionsBox)
         
-        # Handle Enter key on list item - this is called by MinimalListBox on Enter
+        # Set button labels
+        $this.SetButtons("Select", "Cancel")
+        
+        # Set up submit handler with proper closure
+        $dialog = $this
+        $this.OnSubmit = { $dialog.SelectOption() }.GetNewClosure()
+        
+        # Handle Enter key on list item
         $this.OptionsBox.OnSelectionChanged = {
             $selectedOption = $dialog.OptionsBox.GetSelectedItem()
             if ($selectedOption -and $dialog.OnOptionSelected) {
                 & $dialog.OnOptionSelected $selectedOption
-            }
-        }.GetNewClosure()
-        
-        # Configure primary button action
-        $this.OnPrimary = {
-            $selectedOption = $dialog.OptionsBox.GetSelectedItem()
-            if ($selectedOption -and $dialog.OnOptionSelected) {
-                & $dialog.OnOptionSelected $selectedOption
+                $dialog.Close()
             }
         }.GetNewClosure()
     }
     
-    [void] PositionContentControls([int]$dialogX, [int]$dialogY) {
-        $padding = 2
-        $controlWidth = $this.DialogWidth - ($padding * 2)
-        $listHeight = $this.DialogHeight - 8  # Leave room for title and buttons
-        
-        $this.OptionsBox.SetBounds(
-            $dialogX + $padding,
-            $dialogY + 2,
-            $controlWidth,
-            $listHeight
-        )
+    [void] SelectOption() {
+        $selectedOption = $this.OptionsBox.GetSelectedItem()
+        if ($selectedOption -and $this.OnOptionSelected) {
+            & $this.OnOptionSelected $selectedOption
+        }
+        $this.Close()
     }
-    
 }
