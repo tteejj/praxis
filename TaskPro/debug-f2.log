@@ -1,0 +1,218 @@
+08/04/2025 13:44:45: F2 pressed - switching to CommandLibrary
+08/04/2025 13:44:45: Starting SwitchToApp for CommandLibrary
+08/04/2025 13:44:45: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 13:44:47: AppManager::GetScreen returned: True
+08/04/2025 13:44:47: Setting current screen to CommandLibrary
+08/04/2025 13:44:47: Console dimensions: 113x28
+08/04/2025 13:44:47: Calling InitializeComponents on screen
+08/04/2025 13:44:47: InitializeComponents completed
+08/04/2025 13:44:47: Successfully switched to CommandLibrary
+08/04/2025 13:44:47: F2 SwitchToApp result: True
+08/04/2025 13:44:47: App switched, clearing screen and rendering new screen
+08/04/2025 13:44:47: Screen cleared, calling Render()
+08/04/2025 13:44:47: Render() completed, writing to console
+08/04/2025 13:44:47: Console write completed successfully
+08/04/2025 13:54:50: F2 pressed - switching to CommandLibrary
+08/04/2025 13:54:50: Starting SwitchToApp for CommandLibrary
+08/04/2025 13:54:50: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 13:54:51: AppManager::GetScreen returned: True
+08/04/2025 13:54:51: Setting current screen to CommandLibrary
+08/04/2025 13:54:51: Console dimensions: 113x28
+08/04/2025 13:54:51: Calling InitializeComponents on screen
+08/04/2025 13:54:51: InitializeComponents completed
+08/04/2025 13:54:51: Successfully switched to CommandLibrary
+08/04/2025 13:54:51: F2 SwitchToApp result: True
+08/04/2025 13:54:51: App switched, clearing screen and rendering new screen
+08/04/2025 13:54:51: Screen cleared, calling Render()
+08/04/2025 13:54:52: Render() completed, writing to console
+08/04/2025 13:54:52: Console write completed successfully
+08/04/2025 14:05:09: F2 pressed - switching to CommandLibrary
+08/04/2025 14:05:09: Starting SwitchToApp for CommandLibrary
+08/04/2025 14:05:09: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 14:05:10: AppManager::GetScreen returned: True
+08/04/2025 14:05:10: Setting current screen to CommandLibrary
+08/04/2025 14:05:10: Console dimensions: 113x28
+08/04/2025 14:05:10: Calling InitializeComponents on screen
+08/04/2025 14:05:11: InitializeComponents completed
+08/04/2025 14:05:11: Successfully switched to CommandLibrary
+08/04/2025 14:05:11: F2 SwitchToApp result: True
+08/04/2025 14:05:11: App switched, clearing screen and rendering new screen
+08/04/2025 14:05:11: Screen cleared, calling Render()
+08/04/2025 14:05:11: Render() completed, writing to console
+08/04/2025 14:05:11: Console write completed successfully
+08/04/2025 14:26:11: F2 pressed - switching to CommandLibrary
+08/04/2025 14:26:11: Starting SwitchToApp for CommandLibrary
+08/04/2025 14:26:11: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 14:26:11: AppManager::GetScreen returned: False
+08/04/2025 14:26:11: AppManager failed to load CommandLibrary screen
+08/04/2025 14:26:11: F2 SwitchToApp result: False
+08/04/2025 14:26:19: F2 pressed - switching to CommandLibrary
+08/04/2025 14:26:19: Starting SwitchToApp for CommandLibrary
+08/04/2025 14:26:19: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 14:26:19: AppManager::GetScreen returned: False
+08/04/2025 14:26:19: AppManager failed to load CommandLibrary screen
+08/04/2025 14:26:19: F2 SwitchToApp result: False
+08/04/2025 14:26:20: F1 pressed - switching to TaskPro
+08/04/2025 14:26:20: Starting SwitchToApp for TaskPro
+08/04/2025 14:26:20: Already on TaskPro, skipping
+08/04/2025 14:26:21: F2 pressed - switching to CommandLibrary
+08/04/2025 14:26:21: Starting SwitchToApp for CommandLibrary
+08/04/2025 14:26:21: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 14:26:21: AppManager::GetScreen returned: False
+08/04/2025 14:26:21: AppManager failed to load CommandLibrary screen
+08/04/2025 14:26:21: F2 SwitchToApp result: False
+08/04/2025 14:26:22: F3 pressed - switching to TimeTracker
+08/04/2025 14:26:22: Starting SwitchToApp for TimeTracker
+08/04/2025 14:26:22: Loading external app screen for TimeTracker via AppManager
+08/04/2025 14:26:23: AppManager::GetScreen returned: True
+08/04/2025 14:26:23: Setting current screen to TimeTracker
+08/04/2025 14:26:23: Console dimensions: 113x28
+08/04/2025 14:26:23: Calling Initialize on screen
+08/04/2025 14:26:23: Initialize completed
+08/04/2025 14:26:23: Successfully switched to TimeTracker
+08/04/2025 14:26:23: App switched, clearing screen and rendering new screen
+08/04/2025 14:26:23: Screen cleared, calling Render()
+08/04/2025 14:26:24: Render() completed, writing to console
+08/04/2025 14:26:24: Console write completed successfully
+08/04/2025 14:26:25: F2 pressed - switching to CommandLibrary
+08/04/2025 14:26:25: Starting SwitchToApp for CommandLibrary
+08/04/2025 14:26:25: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 14:26:25: AppManager::GetScreen returned: False
+08/04/2025 14:26:25: AppManager failed to load CommandLibrary screen
+08/04/2025 14:26:25: F2 SwitchToApp result: False
+08/04/2025 14:26:26: F1 pressed - switching to TaskPro
+08/04/2025 14:26:26: Starting SwitchToApp for TaskPro
+08/04/2025 14:26:26: Switching to TaskPro screen
+08/04/2025 14:26:26: Successfully switched to TaskPro
+08/04/2025 14:26:26: App switched, clearing screen and rendering new screen
+08/04/2025 14:26:26: Screen cleared, calling Render()
+08/04/2025 14:26:26: Render() completed, writing to console
+08/04/2025 14:26:26: Console write completed successfully
+08/04/2025 14:26:27: F2 pressed - switching to CommandLibrary
+08/04/2025 14:26:27: Starting SwitchToApp for CommandLibrary
+08/04/2025 14:26:27: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 14:26:27: AppManager::GetScreen returned: False
+08/04/2025 14:26:27: AppManager failed to load CommandLibrary screen
+08/04/2025 14:26:27: F2 SwitchToApp result: False
+08/04/2025 14:26:28: F1 pressed - switching to TaskPro
+08/04/2025 14:26:28: Starting SwitchToApp for TaskPro
+08/04/2025 14:26:28: Already on TaskPro, skipping
+08/04/2025 15:46:20: F2 pressed - switching to CommandLibrary
+08/04/2025 15:46:20: Starting SwitchToApp for CommandLibrary
+08/04/2025 15:46:20: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 15:46:22: AppManager::GetScreen returned: True
+08/04/2025 15:46:22: Setting current screen to CommandLibrary
+08/04/2025 15:46:22: Console dimensions: 113x28
+08/04/2025 15:46:22: Calling InitializeComponents on screen
+08/04/2025 15:46:22: InitializeComponents completed
+08/04/2025 15:46:22: Successfully switched to CommandLibrary
+08/04/2025 15:46:22: F2 SwitchToApp result: True
+08/04/2025 15:46:22: App switched, clearing screen and rendering new screen
+08/04/2025 15:46:22: Screen cleared, calling Render()
+08/04/2025 15:46:22: Render() completed, writing to console
+08/04/2025 15:46:22: Console write completed successfully
+08/04/2025 15:57:12: F2 pressed - switching to CommandLibrary
+08/04/2025 15:57:13: Starting SwitchToApp for CommandLibrary
+08/04/2025 15:57:13: Loading external app screen for CommandLibrary via AppManager
+08/04/2025 15:57:14: AppManager::GetScreen returned: True
+08/04/2025 15:57:14: Setting current screen to CommandLibrary
+08/04/2025 15:57:14: Console dimensions: 113x28
+08/04/2025 15:57:14: Calling InitializeComponents on screen
+08/04/2025 15:57:14: InitializeComponents completed
+08/04/2025 15:57:14: Successfully switched to CommandLibrary
+08/04/2025 15:57:14: F2 SwitchToApp result: True
+08/04/2025 15:57:14: App switched, clearing screen and rendering new screen
+08/04/2025 15:57:14: Screen cleared, calling Render()
+08/04/2025 15:57:14: Render() completed, writing to console
+08/04/2025 15:57:14: Console write completed successfully
+08/04/2025 16:06:59: F3 pressed - switching to TimeTracker
+08/04/2025 16:06:59: Starting SwitchToApp for TimeTracker
+08/04/2025 16:06:59: Loading external app screen for TimeTracker via AppManager
+08/04/2025 16:07:00: AppManager::GetScreen returned: True
+08/04/2025 16:07:00: Setting current screen to TimeTracker
+08/04/2025 16:07:00: Console dimensions: 135x35
+08/04/2025 16:07:00: Calling Initialize on screen
+08/04/2025 16:07:00: Initialize completed
+08/04/2025 16:07:00: Successfully switched to TimeTracker
+08/04/2025 16:07:00: App switched, clearing screen and rendering new screen
+08/04/2025 16:07:00: Screen cleared, calling Render()
+08/04/2025 16:07:01: Render() completed, writing to console
+08/04/2025 16:07:01: Console write completed successfully
+08/04/2025 16:17:22: F3 pressed - switching to TimeTracker
+08/04/2025 16:17:22: Starting SwitchToApp for TimeTracker
+08/04/2025 16:17:22: Loading external app screen for TimeTracker via AppManager
+08/04/2025 16:17:24: AppManager::GetScreen returned: True
+08/04/2025 16:17:24: Setting current screen to TimeTracker
+08/04/2025 16:17:24: Console dimensions: 135x35
+08/04/2025 16:17:24: Calling Initialize on screen
+08/04/2025 16:17:24: Initialize completed
+08/04/2025 16:17:24: Successfully switched to TimeTracker
+08/04/2025 16:17:24: App switched, clearing screen and rendering new screen
+08/04/2025 16:17:24: Screen cleared, calling Render()
+08/04/2025 16:17:24: Render() completed, writing to console
+08/04/2025 16:17:24: Console write completed successfully
+08/04/2025 16:23:42: F3 pressed - switching to TimeTracker
+08/04/2025 16:23:42: Starting SwitchToApp for TimeTracker
+08/04/2025 16:23:42: Loading external app screen for TimeTracker via AppManager
+08/04/2025 16:23:44: AppManager::GetScreen returned: True
+08/04/2025 16:23:44: Setting current screen to TimeTracker
+08/04/2025 16:23:44: Console dimensions: 135x35
+08/04/2025 16:23:45: Calling Initialize on screen
+08/04/2025 16:23:45: Initialize completed
+08/04/2025 16:23:45: Successfully switched to TimeTracker
+08/04/2025 16:23:45: App switched, clearing screen and rendering new screen
+08/04/2025 16:23:45: Screen cleared, calling Render()
+08/04/2025 16:23:46: Render() completed, writing to console
+08/04/2025 16:23:46: Console write completed successfully
+08/04/2025 16:40:15: F3 pressed - switching to TimeTracker
+08/04/2025 16:40:15: Starting SwitchToApp for TimeTracker
+08/04/2025 16:40:15: Loading external app screen for TimeTracker via AppManager
+08/04/2025 16:40:16: AppManager::GetScreen returned: True
+08/04/2025 16:40:16: Setting current screen to TimeTracker
+08/04/2025 16:40:16: Console dimensions: 135x35
+08/04/2025 16:40:16: Calling Initialize on screen
+08/04/2025 16:40:16: Initialize completed
+08/04/2025 16:40:16: Successfully switched to TimeTracker
+08/04/2025 16:40:16: App switched, clearing screen and rendering new screen
+08/04/2025 16:40:16: Screen cleared, calling Render()
+08/04/2025 16:40:17: Render() completed, writing to console
+08/04/2025 16:40:17: Console write completed successfully
+08/04/2025 16:58:15: F3 pressed - switching to TimeTracker
+08/04/2025 16:58:15: Starting SwitchToApp for TimeTracker
+08/04/2025 16:58:15: Loading external app screen for TimeTracker via AppManager
+08/04/2025 16:58:16: AppManager::GetScreen returned: True
+08/04/2025 16:58:16: Setting current screen to TimeTracker
+08/04/2025 16:58:16: Console dimensions: 135x35
+08/04/2025 16:58:16: Calling Initialize on screen
+08/04/2025 16:58:16: Initialize completed
+08/04/2025 16:58:16: Successfully switched to TimeTracker
+08/04/2025 16:58:16: App switched, clearing screen and rendering new screen
+08/04/2025 16:58:16: Screen cleared, calling Render()
+08/04/2025 16:58:17: Render() completed, writing to console
+08/04/2025 16:58:17: Console write completed successfully
+08/04/2025 17:46:13: F3 pressed - switching to TimeTracker
+08/04/2025 17:46:13: Starting SwitchToApp for TimeTracker
+08/04/2025 17:46:13: Loading external app screen for TimeTracker via AppManager
+08/04/2025 17:46:14: AppManager::GetScreen returned: True
+08/04/2025 17:46:14: Setting current screen to TimeTracker
+08/04/2025 17:46:14: Console dimensions: 135x35
+08/04/2025 17:46:14: Calling Initialize on screen
+08/04/2025 17:46:14: Initialize completed
+08/04/2025 17:46:14: Successfully switched to TimeTracker
+08/04/2025 17:46:14: App switched, clearing screen and rendering new screen
+08/04/2025 17:46:14: Screen cleared, calling Render()
+08/04/2025 17:46:15: Render() completed, writing to console
+08/04/2025 17:46:15: Console write completed successfully
+08/04/2025 19:03:53: F3 pressed - switching to TimeTracker
+08/04/2025 19:03:53: Starting SwitchToApp for TimeTracker
+08/04/2025 19:03:53: Loading external app screen for TimeTracker via AppManager
+08/04/2025 19:03:54: AppManager::GetScreen returned: True
+08/04/2025 19:03:54: Setting current screen to TimeTracker
+08/04/2025 19:03:54: Console dimensions: 113x28
+08/04/2025 19:03:54: Calling Initialize on screen
+08/04/2025 19:03:54: Initialize completed
+08/04/2025 19:03:54: Successfully switched to TimeTracker
+08/04/2025 19:03:54: App switched, clearing screen and rendering new screen
+08/04/2025 19:03:54: Screen cleared, calling Render()
+08/04/2025 19:03:55: Render() completed, writing to console
+08/04/2025 19:03:55: Console write completed successfully
