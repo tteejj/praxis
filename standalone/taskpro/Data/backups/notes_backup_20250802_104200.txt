@@ -1,6 +1,0 @@
-Review PR #142
-
-Focus areas:
-- Security implications
-- Performance impact
-- Code style

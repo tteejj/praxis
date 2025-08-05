@@ -1,0 +1,40 @@
+# unpackage.ps1 - Complete unpackaging script for Windows
+
+param(
+    [string]$BaseFileName = "standalone.zip.b64"
+)
+
+Write-Host "=== STEP 1: Joining base64 chunks ===" -ForegroundColor Yellow
+$parts = Get-ChildItem -Path . -Filter "$BaseFileName.part*" | Sort-Object { [int] ($_.Name -replace '.*\.part(\d+)$', '$1') }
+if ($parts.Count -eq 0) {
+    Write-Host "No parts found for $BaseFileName" -ForegroundColor Red
+    Write-Host "Make sure .part1, .part2, etc. files are in current directory" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Found $($parts.Count) parts" -ForegroundColor Cyan
+$combined = ""
+foreach ($part in $parts) {
+    $content = [System.IO.File]::ReadAllText($part.FullName)
+    $combined += $content
+    Write-Host "Added: $($part.Name) ($($content.Length) chars)" -ForegroundColor Green
+}
+
+[System.IO.File]::WriteAllText($BaseFileName, $combined)
+Write-Host "Joined: $BaseFileName ($($combined.Length) chars)`n" -ForegroundColor Green
+
+Write-Host "=== STEP 2: Decoding base64 to zip ===" -ForegroundColor Yellow
+$base64 = [System.IO.File]::ReadAllText($BaseFileName)
+$bytes = [System.Convert]::FromBase64String($base64)
+$zipFile = $BaseFileName -replace '\.b64$', ''
+[System.IO.File]::WriteAllBytes($zipFile, $bytes)
+Write-Host "Decoded: $BaseFileName -> $zipFile ($($bytes.Length) bytes)`n" -ForegroundColor Green
+
+Write-Host "=== NEXT STEPS ===" -ForegroundColor Cyan
+Write-Host "1. Manually unzip: $zipFile" -ForegroundColor White
+Write-Host "2. Run: pwsh restore-ps1.ps1" -ForegroundColor White
+
+# Clean up intermediate files
+Remove-Item $BaseFileName
+Get-ChildItem -Filter "$BaseFileName.part*" | Remove-Item
+Write-Host "`nCleaned up intermediate files" -ForegroundColor Gray

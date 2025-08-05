@@ -1,0 +1,25 @@
+#!/usr/bin/env pwsh
+# join-b64.ps1 - Join base64 chunks back together
+
+param(
+    [Parameter(Mandatory=$true)]
+    [string]$BaseFileName  # e.g., "standalone.zip.b64"
+)
+
+$parts = Get-ChildItem -Path . -Filter "$BaseFileName.part*" | Sort-Object Name
+if ($parts.Count -eq 0) {
+    Write-Host "No parts found for $BaseFileName" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Found $($parts.Count) parts" -ForegroundColor Cyan
+
+$combined = ""
+foreach ($part in $parts) {
+    $content = [System.IO.File]::ReadAllText($part.FullName)
+    $combined += $content
+    Write-Host "Added: $($part.Name) ($($content.Length) chars)" -ForegroundColor Green
+}
+
+[System.IO.File]::WriteAllText($BaseFileName, $combined)
+Write-Host "Recreated: $BaseFileName ($($combined.Length) chars)" -ForegroundColor Green

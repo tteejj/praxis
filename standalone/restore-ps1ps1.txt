@@ -1,0 +1,14 @@
+# restore-ps1.ps1 - Rename ps1.txt files back to .ps1
+
+Write-Host "=== STEP 4: Restoring .ps1 file extensions ===" -ForegroundColor Yellow
+
+$txtFiles = Get-ChildItem -Path . -Filter "*ps1.txt" -Recurse
+foreach ($file in $txtFiles) {
+    $baseName = $file.BaseName -replace 'ps1$', ''
+    $newName = $baseName + ".ps1"
+    Rename-Item -Path $file.FullName -NewName $newName
+    Write-Host "Renamed: $($file.Name) -> $newName" -ForegroundColor Green
+}
+
+Write-Host "Restored $($txtFiles.Count) files" -ForegroundColor Green
+Write-Host "`n=== UNPACKING COMPLETE ===" -ForegroundColor Cyan

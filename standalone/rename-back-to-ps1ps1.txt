@@ -1,0 +1,15 @@
+#!/usr/bin/env pwsh
+# rename-back-to-ps1.ps1 - Rename all ps1.txt files back to .ps1
+
+$txtFiles = Get-ChildItem -Path . -Filter "*ps1.txt" -Recurse
+
+foreach ($file in $txtFiles) {
+    $baseName = $file.BaseName -replace 'ps1$', ''
+    $newName = $baseName + ".ps1"
+    $newPath = Join-Path $file.Directory $newName
+    
+    Rename-Item -Path $file.FullName -NewName $newName
+    Write-Host "Renamed: $($file.Name) -> $newName" -ForegroundColor Green
+}
+
+Write-Host "Renamed $($txtFiles.Count) files" -ForegroundColor Cyan
