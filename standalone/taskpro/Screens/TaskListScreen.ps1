@@ -34,7 +34,7 @@ class TaskListScreen {
     [string]$WeekColor = "`e[38;2;255;165;0m"          # Orange
     [string]$TodayColor = "`e[38;2;255;255;100m"       # Yellow
     [string]$FutureColor = "`e[38;2;80;200;120m"       # Green
-    [string]$EditHighlight = "`e[48;2;255;255;255;38;2;0;0;0m"  # White background, black text
+    [string]$EditHighlight = "`e[47;30m"  # White background, black text (simpler ANSI)
     
     # Column widths for new layout (with proper spacing)
     [int]$StatusCol = 3      # "☐  "
@@ -129,6 +129,92 @@ class TaskListScreen {
         [void]$sb.Append($this.HeaderColor)
         [void]$sb.Append($this.PillboxVertical)
         [void]$sb.Append($this.NormalColor)
+    }
+
+    [string] ConvertPriorityInput([string]$input) {
+        # Convert h/m/l input to High/Medium/Low
+        $cleanInput = $input.ToLower().Trim()
+        if ($cleanInput -eq "h" -or $cleanInput -eq "high") {
+            return "High"
+        } elseif ($cleanInput -eq "m" -or $cleanInput -eq "medium") {
+            return "Medium"
+        } elseif ($cleanInput -eq "l" -or $cleanInput -eq "low") {
+            return "Low"
+        } else {
+            return $input  # Return as-is if not recognized
+        }
+    }
+
+    [datetime] ConvertDateInput([string]$input) {
+        # Convert yyyymmdd or mmdd to proper date
+        $input = $input.Trim()
+        if ($input -eq "") {
+            return [datetime]::MinValue
+        }
+        
+        try {
+            if ($input.Length -eq 8) {
+                # yyyymmdd format
+                $year = [int]$input.Substring(0, 4)
+                $month = [int]$input.Substring(4, 2)
+                $day = [int]$input.Substring(6, 2)
+                return [datetime]::new($year, $month, $day)
+            } elseif ($input.Length -eq 4) {
+                # mmdd format - use current year
+                $year = [datetime]::Now.Year
+                $month = [int]$input.Substring(0, 2)
+                $day = [int]$input.Substring(2, 2)
+                return [datetime]::new($year, $month, $day)
+            } else {
+                # Try to parse as regular date
+                return [datetime]::Parse($input)
+            }
+        } catch {
+            return [datetime]::MinValue
+        }
+    }
+
+    [void] RenderSubtaskPriorityAndDate([System.Text.StringBuilder]$sb, [SimpleTask]$task, [bool]$isEditingThis) {
+        # Render priority if set or being edited
+        if ($isEditingThis -and $this.EditingField -eq "priority") {
+            $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+            [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor + " ")
+        } elseif ($task.Priority -eq "High" -or $task.Priority -eq "Medium" -or $task.Priority -eq "Low") {
+            $priorityText = switch ($task.Priority) {
+                "High" { "H" }
+                "Medium" { "M" }
+                "Low" { "L" }
+            }
+            $priorityColor = switch ($task.Priority) {
+                "High" { $this.HighColor }
+                "Medium" { $this.MediumColor }
+                "Low" { $this.LowColor }
+            }
+            [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor + " ")
+        }
+        
+        # Render date if set or being edited
+        if ($isEditingThis -and $this.EditingField -eq "date") {
+            $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+            [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor + " ")
+        } elseif ($task.DueDate -ne [datetime]::MinValue) {
+            $compactDate = $task.DueDate.ToString("MM-dd")
+            $today = [datetime]::Today
+            $due = $task.DueDate.Date
+            $days = ($due - $today).Days
+            
+            # Use same colors as parent tasks
+            $dateColor = if ($days -lt 0) {
+                $this.OverdueColor
+            } elseif ($days -eq 0) {
+                $this.TodayColor
+            } elseif ($days -le 7) {
+                $this.WeekColor
+            } else {
+                $this.FutureColor
+            }
+            [void]$sb.Append($dateColor + $compactDate + $this.NormalColor + " ")
+        }
     }
 
     [string] GetDateColorAndText([SimpleTask]$task) {
@@ -300,7 +386,8 @@ class TaskListScreen {
                         $indentSize += 7  # "    └─ "
                     }
                     [void]$sb.Append(" " * $indentSize)
-                    [void]$sb.Append($this.EditHighlight + "⟨" + $this.EditingValue + "⟩" + $this.NormalColor)
+                    $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+                    [void]$sb.Append($this.EditHighlight + "⟨" + $displayValue + "⟩" + $this.NormalColor)
                 } elseif ($task.Tags.Count -gt 0) {
                     # Normal tag display
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
@@ -316,7 +403,8 @@ class TaskListScreen {
                         $indentSize += 7  # "    └─ "
                     }
                     [void]$sb.Append(" " * $indentSize)
-                    [void]$sb.Append($this.EditHighlight + "⟨" + $this.EditingValue + "⟩" + $this.NormalColor)
+                    $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+                    [void]$sb.Append($this.EditHighlight + "⟨" + $displayValue + "⟩" + $this.NormalColor)
                 }
                 
                 # Move cursor to EXACT same right border position
@@ -366,10 +454,12 @@ class TaskListScreen {
             }
         }
         
-        # COLUMN 2: PRIORITY (5 chars)
+        # COLUMN 2: PRIORITY (5 chars for parents, 1 char for subtasks)
         if ($level -eq 0) {
+            # Parent task - full priority display
             if ($isEditingThis -and $this.EditingField -eq "priority") {
-                [void]$sb.Append($this.EditHighlight + $this.EditingValue.PadRight(5) + $this.NormalColor)
+                $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+                [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor)
             } else {
                 $priorityText = switch ($task.Priority) {
                     "High" { "High " }
@@ -386,19 +476,23 @@ class TaskListScreen {
                 [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor)
             }
         } else {
-            [void]$sb.Append("     ")  # Empty for subtasks
+            # Subtasks don't show priority in columns - will show after tree chars
+            [void]$sb.Append("     ")  # Empty spacing for subtasks 
         }
         
-        # COLUMN 3: DATE (12 chars with color)
+        # COLUMN 3: DATE (12 chars for parents, 5 chars for subtasks)
         if ($level -eq 0) {
+            # Parent task - full date display
             if ($isEditingThis -and $this.EditingField -eq "date") {
-                [void]$sb.Append($this.EditHighlight + $this.EditingValue.PadRight(11) + $this.NormalColor + " ")
+                $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+                [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor)
             } else {
                 [void]$sb.Append($this.GetDateColorAndText($task))
                 [void]$sb.Append(" ")
             }
         } else {
-            [void]$sb.Append(" " * $this.DateCol)
+            # Subtasks don't show date in columns - will show after tree chars
+            [void]$sb.Append(" " * $this.DateCol)  # Empty spacing for subtasks
         }
         
         # COLUMN 4: ARROW (3 chars - closest to task)
@@ -419,11 +513,15 @@ class TaskListScreen {
             } else {
                 [void]$sb.Append("    ├─ ")
             }
+            
+            # Add priority and date right after tree chars for subtasks
+            $this.RenderSubtaskPriorityAndDate($sb, $task, $isEditingThis)
         }
         
         # Task title color and content
         if ($isEditingThis -and $this.EditingField -eq "title") {
-            [void]$sb.Append($this.EditHighlight + $this.EditingValue + $this.NormalColor)
+            $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
+            [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor)
         } else {
             if ($task.Completed) {
                 $taskColor = $this.CompletedColor
@@ -1059,7 +1157,7 @@ class TaskListScreen {
         # Cycle through fields: priority -> date -> title -> tags -> save (for new) or priority (for existing)
         switch ($this.EditingField) {
             "priority" {
-                $this.EditingTask.Priority = $this.EditingValue
+                $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
                 $this.EditingField = "date"
                 if ($this.EditingTask.DueDate -eq [datetime]::MinValue) {
                     $this.EditingValue = ""
@@ -1068,13 +1166,7 @@ class TaskListScreen {
                 }
             }
             "date" {
-                if ($this.EditingValue) {
-                    try {
-                        $this.EditingTask.DueDate = [datetime]::Parse($this.EditingValue)
-                    } catch {
-                        # Invalid date, keep current
-                    }
-                }
+                $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
                 $this.EditingField = "title"
                 $this.EditingValue = $this.EditingTask.Title
             }
@@ -1108,18 +1200,12 @@ class TaskListScreen {
         # Cycle backwards: priority <- date <- title <- tags
         switch ($this.EditingField) {
             "priority" {
-                $this.EditingTask.Priority = $this.EditingValue
+                $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
                 $this.EditingField = "tags"
                 $this.EditingValue = ($this.EditingTask.Tags -join ", ")
             }
             "date" {
-                if ($this.EditingValue) {
-                    try {
-                        $this.EditingTask.DueDate = [datetime]::Parse($this.EditingValue)
-                    } catch {
-                        # Invalid date, keep current
-                    }
-                }
+                $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
                 $this.EditingField = "priority"
                 $this.EditingValue = $this.EditingTask.Priority
             }
@@ -1150,15 +1236,9 @@ class TaskListScreen {
         # Apply final field value
         switch ($this.EditingField) {
             "title" { $this.EditingTask.Title = $this.EditingValue }
-            "priority" { $this.EditingTask.Priority = $this.EditingValue }
+            "priority" { $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue) }
             "date" {
-                if ($this.EditingValue) {
-                    try {
-                        $this.EditingTask.DueDate = [datetime]::Parse($this.EditingValue)
-                    } catch {
-                        # Invalid date, keep current
-                    }
-                }
+                $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
             }
             "tags" {
                 # Parse tags from input
@@ -1335,7 +1415,7 @@ class TaskListScreen {
         
         # Open the file with default system editor
         try {
-            if ($IsLinux -or $IsMacOS) {
+            if ([System.Environment]::OSVersion.Platform -eq "Unix" -or $env:OS -ne "Windows_NT") {
                 # Unix-like systems
                 if (Get-Command "xdg-open" -ErrorAction SilentlyContinue) {
                     Start-Process "xdg-open" -ArgumentList "`"$($mostRecentFile.FullName)`""

@@ -8,31 +8,25 @@
 $apps = @(
     @{
         Name = "TaskPro"
-        Path = "./TaskPro/TaskPro.ps1"
+        Path = "./taskpro/SimpleTaskPro.ps1"
         Icon = "📋"
         Description = "Task Management & Notes"
     },
     @{
         Name = "TimeTracker"
-        Path = "./TimeTracker/TimeTracker.ps1"
+        Path = "./timetracker/TimeTracker.ps1"
         Icon = "⏱️"
         Description = "Time Entry Management"
     },
     @{
         Name = "CommandLibrary"
-        Path = "./CommandLibrary/CommandLibrary.ps1"
+        Path = "./commandlibrary/CommandLibrary.ps1"
         Icon = "📚"
         Description = "Command Repository"
     },
     @{
-        Name = "MacroFactory"
-        Path = "./MacroFactory/MacroFactory.ps1"
-        Icon = "🔧"
-        Description = "Visual IDEA Macro Builder"
-    },
-    @{
         Name = "ExcelDataFlow"
-        Path = "./ExcelDataFlow/Start.ps1"
+        Path = "./exceldataflow/Start.ps1"
         Icon = "📊"
         Description = "Excel Data Management"
     }
