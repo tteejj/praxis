@@ -1,0 +1,258 @@
+[2025-08-04 09:30:09] [INFO] Theme 'default' passed validation
+[2025-08-04 09:30:09] [INFO] Theme 'default' passed validation
+[2025-08-04 09:30:09] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:30:09] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:30:09] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:30:09] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:30:09] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:30:38] [INFO] Theme 'default' passed validation
+[2025-08-04 09:30:38] [INFO] Theme 'default' passed validation
+[2025-08-04 09:30:38] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:30:38] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:30:38] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:30:38] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:30:38] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:31:27] [INFO] Theme 'default' passed validation
+[2025-08-04 09:31:27] [INFO] Theme 'default' passed validation
+[2025-08-04 09:31:27] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:31:27] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:31:27] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:31:27] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:31:27] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:31:56] [INFO] Theme 'default' passed validation
+[2025-08-04 09:31:56] [INFO] Theme 'default' passed validation
+[2025-08-04 09:31:56] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:31:56] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:31:56] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:31:56] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:31:56] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:32:26] [INFO] Theme 'default' passed validation
+[2025-08-04 09:32:26] [INFO] Theme 'default' passed validation
+[2025-08-04 09:32:26] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:32:26] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:32:26] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:32:26] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:32:26] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:32:55] [INFO] Theme 'default' passed validation
+[2025-08-04 09:32:55] [INFO] Theme 'default' passed validation
+[2025-08-04 09:32:55] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:32:55] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:32:55] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:32:55] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:32:55] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:32:56] [INFO] ScreenManager.Push: Pushing screen MacroFactoryScreen
+[2025-08-04 09:32:57] [ERROR] ScreenManager.Push: Error pushing screen - The property 'BorderColor' cannot be found on this object. Verify that the property exists and can be set.
+[2025-08-04 09:32:57] [ERROR] Stack trace: at UpdateFocusHighlight, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 333
+at OnActivated, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 157
+at Push, /home/teej/projects/github/praxis/Core/ScreenManager.ps1: line 83
+at <ScriptBlock>, /home/teej/projects/github/praxis/MacroFactory/MacroFactory.ps1: line 141
+[2025-08-04 09:33:21] [INFO] Theme 'default' passed validation
+[2025-08-04 09:33:21] [INFO] Theme 'default' passed validation
+[2025-08-04 09:33:21] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:33:21] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:33:21] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:33:21] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:33:21] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:33:23] [INFO] ScreenManager.Push: Pushing screen MacroFactoryScreen
+[2025-08-04 09:33:23] [INFO] ScreenManager.Push: Successfully pushed MacroFactoryScreen, Active=True
+[2025-08-04 09:33:23] [INFO] ScreenManager.Run: Starting main loop
+[2025-08-04 09:33:23] [INFO] Active screen: MacroFactoryScreen
+[2025-08-04 09:33:23] [INFO] Active screen.Active: True
+[2025-08-04 09:33:56] [INFO] Theme 'default' passed validation
+[2025-08-04 09:33:56] [INFO] Theme 'default' passed validation
+[2025-08-04 09:33:56] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:33:56] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:33:56] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:33:56] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:33:56] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:34:18] [INFO] Theme 'default' passed validation
+[2025-08-04 09:34:18] [INFO] Theme 'default' passed validation
+[2025-08-04 09:34:19] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:34:19] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:34:19] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:34:19] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:34:19] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:35:22] [INFO] Theme 'default' passed validation
+[2025-08-04 09:35:22] [INFO] Theme 'default' passed validation
+[2025-08-04 09:35:22] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:35:22] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:35:22] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:35:22] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:35:22] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:37:06] [INFO] Theme 'default' passed validation
+[2025-08-04 09:37:06] [INFO] Theme 'default' passed validation
+[2025-08-04 09:37:07] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:37:07] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:37:07] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:37:07] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:37:07] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:37:08] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:37:47] [INFO] Theme 'default' passed validation
+[2025-08-04 09:37:47] [INFO] Theme 'default' passed validation
+[2025-08-04 09:37:47] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:37:47] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:37:47] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:37:47] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:37:47] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:37:48] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:38:26] [INFO] Theme 'default' passed validation
+[2025-08-04 09:38:26] [INFO] Theme 'default' passed validation
+[2025-08-04 09:38:27] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:38:27] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:38:27] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:38:27] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:38:27] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:38:28] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:39:20] [INFO] Theme 'default' passed validation
+[2025-08-04 09:39:20] [INFO] Theme 'default' passed validation
+[2025-08-04 09:39:20] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:39:21] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:39:21] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:39:21] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:39:21] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:39:22] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:42:57] [INFO] Theme 'default' passed validation
+[2025-08-04 09:42:57] [INFO] Theme 'default' passed validation
+[2025-08-04 09:42:57] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:42:57] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:42:57] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:42:58] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:42:58] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:42:59] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:43:33] [INFO] Theme 'default' passed validation
+[2025-08-04 09:43:33] [INFO] Theme 'default' passed validation
+[2025-08-04 09:43:34] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:43:34] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:43:34] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:43:34] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:43:34] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:43:35] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:47:29] [INFO] Theme 'default' passed validation
+[2025-08-04 09:47:29] [INFO] Theme 'default' passed validation
+[2025-08-04 09:47:29] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:47:29] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:47:29] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:47:29] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:47:29] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:49:48] [INFO] Theme 'default' passed validation
+[2025-08-04 09:49:48] [INFO] Theme 'default' passed validation
+[2025-08-04 09:49:49] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:49:49] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:49:49] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:49:49] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:49:49] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:52:50] [INFO] Theme 'default' passed validation
+[2025-08-04 09:52:50] [INFO] Theme 'default' passed validation
+[2025-08-04 09:52:50] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:52:50] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:52:50] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:52:50] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:52:50] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:52:52] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:52:52] [WARN] Stack trace: at Subscribe, /home/teej/projects/github/praxis/Services/EventBus.ps1: line 55
+at Initialize, /home/teej/projects/github/praxis/MacroFactory/Components/SearchableListBox.ps1: line 52
+at CreateComponents, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 137
+at MacroFactoryScreen, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 30
+at <ScriptBlock>, /home/teej/projects/github/praxis/MacroFactory/MacroFactory.ps1: line 134
+[2025-08-04 09:56:35] [INFO] Theme 'default' passed validation
+[2025-08-04 09:56:35] [INFO] Theme 'default' passed validation
+[2025-08-04 09:56:35] [INFO] Theme 'amber' passed validation
+[2025-08-04 09:56:35] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 09:56:35] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 09:56:35] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 09:56:35] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 09:56:36] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 09:56:36] [WARN] Stack trace: at Subscribe, /home/teej/projects/github/praxis/Services/EventBus.ps1: line 55
+at Initialize, /home/teej/projects/github/praxis/MacroFactory/Components/SearchableListBox.ps1: line 52
+at CreateComponents, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 137
+at MacroFactoryScreen, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 30
+at <ScriptBlock>, /home/teej/projects/github/praxis/MacroFactory/MacroFactory.ps1: line 134
+at Launch-App, /home/teej/projects/github/praxis/PraxisLauncher.ps1: line 160
+at <ScriptBlock>, /home/teej/projects/github/praxis/PraxisLauncher.ps1: line 194
+[2025-08-04 10:02:44] [INFO] Theme 'default' passed validation
+[2025-08-04 10:02:44] [INFO] Theme 'default' passed validation
+[2025-08-04 10:02:44] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:02:44] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:02:44] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:02:44] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:02:44] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:02:46] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 10:02:46] [WARN] Stack trace: at Subscribe, /home/teej/projects/github/praxis/Services/EventBus.ps1: line 55
+at Initialize, /home/teej/projects/github/praxis/MacroFactory/Components/SearchableListBox.ps1: line 52
+at CreateComponents, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 155
+at OnBoundsChanged, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 233
+at SetBounds, /home/teej/projects/github/praxis/Base/UIElement.ps1: line 122
+at <ScriptBlock>, /home/teej/projects/github/praxis/MacroFactory/MacroFactory.ps1: line 138
+[2025-08-04 10:04:23] [INFO] Theme 'default' passed validation
+[2025-08-04 10:04:23] [INFO] Theme 'default' passed validation
+[2025-08-04 10:04:23] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:04:23] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:04:23] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:04:23] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:04:23] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:04:25] [WARN] Component initialization failed: You cannot call a method on a null-valued expression.
+[2025-08-04 10:04:25] [WARN] Stack trace: at Subscribe, /home/teej/projects/github/praxis/Services/EventBus.ps1: line 55
+at Initialize, /home/teej/projects/github/praxis/MacroFactory/Components/SearchableListBox.ps1: line 52
+at CreateComponents, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 155
+at OnBoundsChanged, /home/teej/projects/github/praxis/MacroFactory/Screens/MacroFactoryScreen.ps1: line 263
+at SetBounds, /home/teej/projects/github/praxis/Base/UIElement.ps1: line 122
+at <ScriptBlock>, /home/teej/projects/github/praxis/MacroFactory/MacroFactory.ps1: line 138
+[2025-08-04 10:17:12] [INFO] Theme 'default' passed validation
+[2025-08-04 10:17:12] [INFO] Theme 'default' passed validation
+[2025-08-04 10:17:12] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:17:12] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:17:12] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:17:12] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:17:12] [DEBUG]   Available themes: amber-black, default, amber
+[2025-08-04 10:17:12] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:17:13] [DEBUG] Components not ready yet, will populate later
+[2025-08-04 10:17:13] [DEBUG] Loaded 4 actions
+[2025-08-04 10:20:55] [INFO] Theme 'default' passed validation
+[2025-08-04 10:20:55] [INFO] Theme 'default' passed validation
+[2025-08-04 10:20:55] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:20:55] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:20:55] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:20:55] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:20:55] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:21:29] [INFO] Theme 'default' passed validation
+[2025-08-04 10:21:29] [INFO] Theme 'default' passed validation
+[2025-08-04 10:21:30] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:21:30] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:21:30] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:21:30] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:21:30] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:22:25] [INFO] Theme 'default' passed validation
+[2025-08-04 10:22:25] [INFO] Theme 'default' passed validation
+[2025-08-04 10:22:25] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:22:25] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:22:25] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:22:25] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:22:25] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:22:59] [INFO] Theme 'default' passed validation
+[2025-08-04 10:22:59] [INFO] Theme 'default' passed validation
+[2025-08-04 10:22:59] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:22:59] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:22:59] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:22:59] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:22:59] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:33:44] [INFO] Theme 'default' passed validation
+[2025-08-04 10:33:44] [INFO] Theme 'default' passed validation
+[2025-08-04 10:33:45] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:33:45] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:33:45] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:33:45] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:33:45] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 10:34:51] [INFO] Theme 'default' passed validation
+[2025-08-04 10:34:51] [INFO] Theme 'default' passed validation
+[2025-08-04 10:34:52] [INFO] Theme 'amber' passed validation
+[2025-08-04 10:34:52] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 10:34:52] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 10:34:52] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 10:34:52] [INFO] ThemeManager: Theme changed from 'default' to 'amber'
+[2025-08-04 11:23:09] [INFO] Theme 'default' passed validation
+[2025-08-04 11:23:09] [INFO] Theme 'default' passed validation
+[2025-08-04 11:23:09] [INFO] Theme 'amber' passed validation
+[2025-08-04 11:23:09] [INFO] Theme 'amber-black' passed validation
+[2025-08-04 11:23:09] [INFO] ThemeManager: Registered themes: default, matrix, amber, amber-black, matrix-rain
+[2025-08-04 11:23:09] [INFO] ThemeManager.SetTheme: Attempting to set theme to 'amber'
+[2025-08-04 11:23:09] [INFO] ThemeManager: Theme changed from 'default' to 'amber'

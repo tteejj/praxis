@@ -1,0 +1,4 @@
+Agenda:
+1. Sprint review
+2. Blockers discussion
+3. Next sprint planning

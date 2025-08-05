@@ -1,0 +1,30 @@
+{
+  "appStates": {
+    "commandlibrary": {
+      "lastSearch": "",
+      "selectedCommand": null
+    },
+    "timetracker": {
+      "selectedEntry": null,
+      "currentWeek": "20250804"
+    },
+    "taskpro": {
+      "selectedTaskId": null,
+      "scrollPosition": 0
+    }
+  },
+  "themes": {
+    "current": "default",
+    "settings": {}
+  },
+  "projects": [],
+  "metadata": {
+    "lastModified": "2025-08-04T11:52:56Z",
+    "description": "Praxis unified data file",
+    "version": "1.0.0",
+    "created": "2025-08-04T11:52:56Z"
+  },
+  "timeEntries": [],
+  "tasks": [],
+  "commands": []
+}

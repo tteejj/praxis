@@ -1,0 +1,395 @@
+{
+  "appStates": {
+    "timetracker": {
+      "selectedEntry": null,
+      "currentWeek": "20250804"
+    },
+    "commandlibrary": {
+      "selectedCommand": null,
+      "lastSearch": ""
+    },
+    "taskpro": {
+      "selectedTaskId": null,
+      "scrollPosition": 0
+    }
+  },
+  "tasks": [
+    {
+      "SubtaskColorTheme": "project",
+      "ColorTheme": "project",
+      "Title": "Update documentation",
+      "SubtasksCollapsed": false,
+      "Completed": false,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T10:16:53",
+      "Priority": "Low",
+      "Tags": [
+        "documentation",
+        "api",
+        "v2",
+        "low-priority"
+      ],
+      "ParentId": "",
+      "Id": "b51b2c70-c7f8-4598-86e4-ee7fa8e27699",
+      "DueDate": null,
+      "Notes": "API docs need updating for v2.0",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "work",
+      "ColorTheme": "work",
+      "Title": "Complete quarterly report",
+      "SubtasksCollapsed": false,
+      "Completed": false,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T10:32:07",
+      "Priority": "High",
+      "Tags": [
+        "work",
+        "finance",
+        "quarterly",
+        "deadline"
+      ],
+      "ParentId": "",
+      "Id": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "DueDate": "2025-08-05T10:16:53",
+      "Notes": "# Quarterly Report\n\n## Overview\nQ4 2024 financial report for board meeting.\n\n## Key Metrics\n- Revenue: Up 15%\n- Costs: Down 5%\n- Profit margin: 22%\n\n## Action Items\n1. Compile sales data\n2. Review expense reports\n3. Create projections",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "default",
+      "ColorTheme": "default",
+      "Title": "Future projections",
+      "SubtasksCollapsed": false,
+      "Completed": true,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T10:16:53",
+      "Priority": "Medium",
+      "Tags": [],
+      "ParentId": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Id": "a108f318-7a18-4494-9289-1f949a5b5b7c",
+      "DueDate": null,
+      "Notes": "",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "default",
+      "ColorTheme": "default",
+      "Title": "Revenue analysis",
+      "SubtasksCollapsed": false,
+      "Completed": true,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T10:16:53",
+      "Priority": "Medium",
+      "Tags": [],
+      "ParentId": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Id": "c5d0b3ca-aaa9-4eac-bfd6-7da89c56f053",
+      "DueDate": null,
+      "Notes": "",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "default",
+      "ColorTheme": "default",
+      "Title": "Cost breakdown",
+      "SubtasksCollapsed": false,
+      "Completed": true,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T10:16:53",
+      "Priority": "Medium",
+      "Tags": [],
+      "ParentId": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Id": "74c3afc0-a417-4a75-8e77-488be2974c09",
+      "DueDate": null,
+      "Notes": "",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "personal",
+      "ColorTheme": "personal",
+      "Title": "Team meeting preparation",
+      "SubtasksCollapsed": false,
+      "Completed": false,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T14:47:40",
+      "Priority": "High",
+      "Tags": [],
+      "ParentId": "",
+      "Id": "f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3",
+      "DueDate": "2025-08-02T00:00:00",
+      "Notes": "Weekly team sync agenda",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "default",
+      "ColorTheme": "default",
+      "Title": "sub",
+      "SubtasksCollapsed": false,
+      "Completed": false,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T14:47:40",
+      "Priority": "Medium",
+      "Tags": [],
+      "ParentId": "f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3",
+      "Id": "ef08a51d-8627-4b0e-b66e-a6b3351b8b65",
+      "DueDate": null,
+      "Notes": "",
+      "CreatedDate": "2025-08-02T14:47:40"
+    },
+    {
+      "SubtaskColorTheme": "completed",
+      "ColorTheme": "completed",
+      "Title": "Review code changes",
+      "SubtasksCollapsed": false,
+      "Completed": false,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-03T23:35:14.87946-06:00",
+      "Priority": "Medium",
+      "Tags": [
+        "subtag"
+      ],
+      "ParentId": "",
+      "Id": "11233ff1-d847-46e4-a5d4-891b000a9332",
+      "DueDate": "2025-08-03T10:16:53",
+      "Notes": "\n\nReview PR #142\n\nFocus areas:\n- Security implications\n- Performance impact\n- Code style",
+      "CreatedDate": "2025-08-02T10:16:53"
+    },
+    {
+      "SubtaskColorTheme": "default",
+      "ColorTheme": "default",
+      "Title": "Check security vulnerabilities",
+      "SubtasksCollapsed": false,
+      "Completed": true,
+      "SortOrder": 0,
+      "ModifiedDate": "2025-08-02T10:50:58",
+      "Priority": "Medium",
+      "Tags": [
+        "subtask-tag1",
+        "subtask-tag2"
+      ],
+      "ParentId": "11233ff1-d847-46e4-a5d4-891b000a9332",
+      "Id": "f1d1ddef-0e41-4a2d-afc8-84cc0c53037d",
+      "DueDate": null,
+      "Notes": "",
+      "CreatedDate": "2025-08-02T10:16:53"
+    }
+  ],
+  "commands": [
+    {
+      "Title": "Get running processes",
+      "Group": "PowerShell",
+      "CommandText": "Get-Process",
+      "Description": "Shows all running processes",
+      "Tags": [
+        "powershell",
+        "system"
+      ],
+      "Created": "2025-08-04T11:14:15.2657632-06:00",
+      "Id": "475390c3-1323-444f-8f8c-8724511ae5ef",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "List files detailed",
+      "Group": "PowerShell",
+      "CommandText": "Get-ChildItem -Force",
+      "Description": "Lists all files including hidden ones",
+      "Tags": [
+        "powershell",
+        "files"
+      ],
+      "Created": "2025-08-04T11:14:15.4894082-06:00",
+      "Id": "0317a831-9805-4267-a526-c879406cf77b",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Check disk space",
+      "Group": "PowerShell",
+      "CommandText": "Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID, Size, FreeSpace",
+      "Description": "Shows disk usage for all drives",
+      "Tags": [
+        "powershell",
+        "system"
+      ],
+      "Created": "2025-08-04T11:14:15.613664-06:00",
+      "Id": "fb6ab1b5-db89-4fb4-8887-8581cf10a75b",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Git status",
+      "Group": "Git",
+      "CommandText": "git status",
+      "Description": "Shows git repository status",
+      "Tags": [
+        "git",
+        "version-control"
+      ],
+      "Created": "2025-08-04T11:14:15.6508326-06:00",
+      "Id": "2b26cca7-8aab-49fd-9225-888ad71d56be",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Git log oneline",
+      "Group": "Git",
+      "CommandText": "git log --oneline -10",
+      "Description": "Shows last 10 commits in one line format",
+      "Tags": [
+        "git",
+        "history"
+      ],
+      "Created": "2025-08-04T11:14:15.6895517-06:00",
+      "Id": "bd404b88-c208-4303-964d-684ac907dbd0",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Git branch list",
+      "Group": "Git",
+      "CommandText": "git branch -a",
+      "Description": "Lists all branches including remote",
+      "Tags": [
+        "git",
+        "branch"
+      ],
+      "Created": "2025-08-04T11:14:15.7329382-06:00",
+      "Id": "7c015cfd-707c-48fa-b99c-f61510458b55",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Docker containers",
+      "Group": "Docker",
+      "CommandText": "docker ps -a",
+      "Description": "Lists all containers",
+      "Tags": [
+        "docker",
+        "containers"
+      ],
+      "Created": "2025-08-04T11:14:15.7498161-06:00",
+      "Id": "7cecb29b-fa53-4a96-a554-dd7323dababb",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Docker images",
+      "Group": "Docker",
+      "CommandText": "docker images",
+      "Description": "Lists all images",
+      "Tags": [
+        "docker",
+        "images"
+      ],
+      "Created": "2025-08-04T11:14:15.7728275-06:00",
+      "Id": "cd7b1a7e-d69a-4446-832c-5763bd0c6b41",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Docker system info",
+      "Group": "Docker",
+      "CommandText": "docker system df",
+      "Description": "Shows docker disk usage",
+      "Tags": [
+        "docker",
+        "system"
+      ],
+      "Created": "2025-08-04T11:14:15.8218776-06:00",
+      "Id": "734dd22e-c920-4fc9-aae3-60bf09a1f145",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Test connection",
+      "Group": "Network",
+      "CommandText": "Test-NetConnection google.com",
+      "Description": "Tests network connectivity",
+      "Tags": [
+        "network",
+        "test"
+      ],
+      "Created": "2025-08-04T11:14:15.8488412-06:00",
+      "Id": "d8872a23-bb05-4e87-a58a-09cf42d71664",
+      "UseCount": 0,
+      "LastUsed": ""
+    },
+    {
+      "Title": "Get IP config",
+      "Group": "Network",
+      "CommandText": "Get-NetIPConfiguration",
+      "Description": "Shows network configuration",
+      "Tags": [
+        "network",
+        "config"
+      ],
+      "Created": "2025-08-04T11:14:15.8746362-06:00",
+      "Id": "402f94f0-a0b2-4724-a959-b05906736c7c",
+      "UseCount": 0,
+      "LastUsed": ""
+    }
+  ],
+  "themes": {
+    "current": "default",
+    "settings": {}
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Praxis unified data - migrated from separate files",
+    "created": "2025-08-04T12:12:27Z",
+    "migrationDate": "2025-08-04T12:12:27Z",
+    "lastModified": "2025-08-04T12:12:27Z"
+  },
+  "timeEntries": [
+    {
+      "FiscalYear": "2025-2026",
+      "Friday": 0.0,
+      "Thursday": 0.0,
+      "Wednesday": 8.0,
+      "Modified": "2025-08-04 10:37:03",
+      "WeekEndingFriday": "20250808",
+      "Total": 23.5,
+      "Description": "Web Development Project",
+      "Id": "badaaba0-be28-4be9-ae27-b9124e3db651",
+      "Tuesday": 7.5,
+      "Monday": 8.0,
+      "ProjectCode": "PRJ001",
+      "IsProjectEntry": true,
+      "Created": "2025-08-04 10:37:02"
+    },
+    {
+      "FiscalYear": "2025-2026",
+      "Friday": 6.0,
+      "Thursday": 4.0,
+      "Wednesday": 0.0,
+      "Modified": "2025-08-04 10:37:03",
+      "WeekEndingFriday": "20250808",
+      "Total": 10.0,
+      "Description": "Database Migration",
+      "Id": "869f603a-e079-42eb-b7b8-9d0f5dbeef73",
+      "Tuesday": 0.0,
+      "Monday": 0.0,
+      "ProjectCode": "PRJ002",
+      "IsProjectEntry": true,
+      "Created": "2025-08-04 10:37:03"
+    },
+    {
+      "FiscalYear": "2025-2026",
+      "Friday": 2.0,
+      "Thursday": 0.0,
+      "Wednesday": 0.0,
+      "Modified": "2025-08-04 10:37:03",
+      "WeekEndingFriday": "20250808",
+      "Total": 2.0,
+      "Description": "Vacation",
+      "Id": "f6531d6a-7ce6-4513-b609-ce3c3da132ff",
+      "Tuesday": 0.0,
+      "Monday": 0.0,
+      "ProjectCode": "VAC",
+      "IsProjectEntry": false,
+      "Created": "2025-08-04 10:37:03"
+    }
+  ],
+  "projects": []
+}

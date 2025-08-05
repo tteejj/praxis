@@ -1,0 +1,30 @@
+[H[2J[3JAppManager initialized from: /home/teej/projects/github/praxis/TaskPro/Core/..
+BasePath set to: /home/teej/projects/github/praxis/TaskPro/Core/..
+PraxisDataService initialized: /home/teej/projects/github/praxis/_ProjectData/praxis-unified.json
+Loading unified data...
+No unified data file found, creating default structure...
+✓ Unified data saved: CreateDefaultData
+✓ Created default data structure
+Migrating SimpleTask data to unified storage...
+AppManager integration enabled
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Models/External/Command.ps1
+  ✓ Found: Models/External/Command.ps1
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Services/External/CommandService.ps1
+  ✓ Found: Services/External/CommandService.ps1
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Screens/External/CommandEditDialog.ps1
+  ✓ Found: Screens/External/CommandEditDialog.ps1
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Screens/External/CommandLibraryScreen.ps1
+  ✓ Found: Screens/External/CommandLibraryScreen.ps1
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Models/External/SimpleTimeEntry.ps1
+  ✓ Found: Models/External/SimpleTimeEntry.ps1
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Services/External/TimeTrackingService.ps1
+  ✓ Found: Services/External/TimeTrackingService.ps1
+  Checking: /home/teej/projects/github/praxis/TaskPro/Core/../Screens/External/TimeListScreen.ps1
+  ✓ Found: Screens/External/TimeListScreen.ps1
+Available apps: CommandLibrary, TimeTracker
+[2J[0;0H[38;2;100;150;255mTASKPRO - Task Manager[0m[1;0H[38;2;180;180;180mSt Pri  Date          Title[0m[2;0H════════════════════════════════════════════════════════════════════════════════[3;0H                                                                                [4;0H[38;2;100;150;255m╭[0m[38;2;180;180;180m─────────────────────────────────────────────────[0m[38;2;100;150;255m╮[0m[5;0H[38;2;100;150;255m│[0m[48;2;45;45;55m☐  [38;2;255;100;100mHigh [0m[38;2;255;100;100m2025-08-02[0m ▼  [38;2;80;200;120mTeam meeting preparation[0m[0m[5;51H[38;2;100;150;255m│[0m[6;0H[38;2;100;150;255m│[0m[48;2;45;45;55m Status: [38;2;180;180;180mActive[0m | Due: [38;2;255;100;100m2025-08-02[0m[0m[6;51H[38;2;100;150;255m│[0m[7;0H[38;2;100;150;255m╰[0m[38;2;180;180;180m─────────────────────────────────────────────────[0m[38;2;100;150;255m╯[0m[8;0H☐                          └─ [38;2;160;160;160msub[0m                                               [9;0H[2K[10;0H☐  [38;2;80;200;120mLow  [0m[38;2;180;180;180m-          [0m    [38;2;80;120;200mUpdate documentation[0m                                     [11;0H                       [38;2;180;180;180m⟨documentation, api, v2, low-priority⟩[0m[2K[12;0H☐  [38;2;255;165;0mMed  [0m[38;2;255;100;100m2025-08-03[0m ▼  [38;2;120;120;120mReview code changes[0m                                      [13;0H                       [38;2;180;180;180m⟨subtag⟩[0m[2K[14;0H■                          └─ [38;2;120;120;120mCheck security vulnerabilities[0m                    [15;0H                              [38;2;180;180;180m⟨subtask-tag1, subtask-tag2⟩[0m[2K[16;0H☐  [38;2;255;100;100mHigh [0m[38;2;255;165;0m2025-08-05[0m ▼  [38;2;100;150;255mComplete quarterly report[0m                                [17;0H                       [38;2;180;180;180m⟨work, finance, quarterly, deadline⟩[0m[2K[18;0H■                          ├─ [38;2;120;120;120mCost breakdown[0m                                    [19;0H[2K[20;0H■                          ├─ [38;2;120;120;120mRevenue analysis[0m                                  [21;0H[2K[22;0H════════════════════════════════════════════════════════════════════════════════[23;0H[38;2;180;180;180m↑↓:Navigate  E:Edit  A:Add  N:New  S:Subtask  X:Toggle  Enter:Notes  T:Task Color  ^T:Theme Settings  R:Tags  P:Export  Q:Quit[0m[?25l
+Error: Cannot see if a key has been pressed when either application does not have a console or when console input has been redirected from a file. Try Console.In.Peek.
+Shutting down PraxisDataService from TaskPro...
+✓ Unified data saved: Shutdown from TaskPro
+✓ Data safely persisted with backup
+TaskPro closed. Your tasks have been saved.

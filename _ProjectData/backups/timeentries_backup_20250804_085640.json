@@ -1,0 +1,50 @@
+[
+  {
+    "Wednesday": 0.0,
+    "Id": "6fcce807-1e55-4ac4-b398-f3b22474336a",
+    "Monday": 0.0,
+    "ProjectCode": null,
+    "Modified": "2025-08-04 08:52:39",
+    "Thursday": 0.0,
+    "Friday": 0.0,
+    "Created": "2025-08-04 07:04:03",
+    "IsProjectEntry": true,
+    "Tuesday": 0.0,
+    "WeekEndingFriday": "20250808",
+    "FiscalYear": "2025-2026",
+    "Description": null,
+    "Total": 0.0
+  },
+  {
+    "Wednesday": 0.0,
+    "Id": "c8e9c409-9452-4817-b465-e9094d9fdab1",
+    "Monday": 1.0,
+    "ProjectCode": "050",
+    "Modified": "2025-08-04 08:52:39",
+    "Thursday": 0.0,
+    "Friday": 0.0,
+    "Created": "2025-08-04 07:04:15",
+    "IsProjectEntry": false,
+    "Tuesday": 0.0,
+    "WeekEndingFriday": "20250808",
+    "FiscalYear": "2025-2026",
+    "Description": "meeting",
+    "Total": 1.0
+  },
+  {
+    "Wednesday": 0.0,
+    "Id": "b9fde9e2-b7d0-4aa9-ae00-54b15bfe460d",
+    "Monday": 0.0,
+    "ProjectCode": "123456789",
+    "Modified": "2025-08-04 08:53:29",
+    "Thursday": 3.0,
+    "Friday": 0.0,
+    "Created": "2025-08-04 08:52:54",
+    "IsProjectEntry": true,
+    "Tuesday": 0.0,
+    "WeekEndingFriday": "20250808",
+    "FiscalYear": "2025-2026",
+    "Description": "",
+    "Total": 3.0
+  }
+]

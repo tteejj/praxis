@@ -1,0 +1,199 @@
+{
+  "metadata": {
+    "description": "Praxis unified data file",
+    "lastModified": "2025-08-05T07:12:39Z",
+    "version": "1.0.0",
+    "created": "2025-08-04T19:17:29Z"
+  },
+  "commands": [],
+  "tasks": [
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": "2025-08-02T00:00:00.0000000",
+      "Id": "f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "High",
+      "SubtaskColorTheme": "personal",
+      "Completed": false,
+      "Tags": [],
+      "ColorTheme": "personal",
+      "Notes": "Weekly team sync agenda",
+      "ParentId": "",
+      "Title": "Team meeting preparation",
+      "ModifiedDate": "2025-08-02T14:47:40.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T14:47:40.0000000",
+      "SortOrder": 0,
+      "DueDate": null,
+      "Id": "ef08a51d-8627-4b0e-b66e-a6b3351b8b65",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Medium",
+      "SubtaskColorTheme": "default",
+      "Completed": false,
+      "Tags": [],
+      "ColorTheme": "default",
+      "Notes": "",
+      "ParentId": "f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3",
+      "Title": "sub",
+      "ModifiedDate": "2025-08-02T14:47:40.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": null,
+      "Id": "b51b2c70-c7f8-4598-86e4-ee7fa8e27699",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Low",
+      "SubtaskColorTheme": "project",
+      "Completed": false,
+      "Tags": [
+        "documentation",
+        "api",
+        "v2",
+        "low-priority"
+      ],
+      "ColorTheme": "project",
+      "Notes": "API docs need updating for v2.0",
+      "ParentId": "",
+      "Title": "Update documentation",
+      "ModifiedDate": "2025-08-02T10:16:53.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": "2025-08-03T10:16:53.0000000",
+      "Id": "11233ff1-d847-46e4-a5d4-891b000a9332",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Medium",
+      "SubtaskColorTheme": "completed",
+      "Completed": false,
+      "Tags": [
+        "subtag"
+      ],
+      "ColorTheme": "completed",
+      "Notes": "\n\nReview PR #142\n\nFocus areas:\n- Security implications\n- Performance impact\n- Code style",
+      "ParentId": "",
+      "Title": "Review code changes",
+      "ModifiedDate": "2025-08-03T23:35:14.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": null,
+      "Id": "f1d1ddef-0e41-4a2d-afc8-84cc0c53037d",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Medium",
+      "SubtaskColorTheme": "default",
+      "Completed": true,
+      "Tags": [
+        "subtask-tag1",
+        "subtask-tag2"
+      ],
+      "ColorTheme": "default",
+      "Notes": "",
+      "ParentId": "11233ff1-d847-46e4-a5d4-891b000a9332",
+      "Title": "Check security vulnerabilities",
+      "ModifiedDate": "2025-08-02T10:50:58.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": "2025-08-05T10:16:53.0000000",
+      "Id": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "High",
+      "SubtaskColorTheme": "work",
+      "Completed": false,
+      "Tags": [
+        "work",
+        "finance",
+        "quarterly",
+        "deadline"
+      ],
+      "ColorTheme": "work",
+      "Notes": "# Quarterly Report\n\n## Overview\nQ4 2024 financial report for board meeting.\n\n## Key Metrics\n- Revenue: Up 15%\n- Costs: Down 5%\n- Profit margin: 22%\n\n## Action Items\n1. Compile sales data\n2. Review expense reports\n3. Create projections",
+      "ParentId": "",
+      "Title": "Complete quarterly report",
+      "ModifiedDate": "2025-08-02T10:32:07.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": null,
+      "Id": "74c3afc0-a417-4a75-8e77-488be2974c09",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Medium",
+      "SubtaskColorTheme": "default",
+      "Completed": true,
+      "Tags": [],
+      "ColorTheme": "default",
+      "Notes": "",
+      "ParentId": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Title": "Cost breakdown",
+      "ModifiedDate": "2025-08-02T10:16:53.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": null,
+      "Id": "a108f318-7a18-4494-9289-1f949a5b5b7c",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Medium",
+      "SubtaskColorTheme": "default",
+      "Completed": true,
+      "Tags": [],
+      "ColorTheme": "default",
+      "Notes": "",
+      "ParentId": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Title": "Future projections",
+      "ModifiedDate": "2025-08-02T10:16:53.0000000"
+    },
+    {
+      "CreatedDate": "2025-08-02T10:16:53.0000000",
+      "SortOrder": 0,
+      "DueDate": null,
+      "Id": "c5d0b3ca-aaa9-4eac-bfd6-7da89c56f053",
+      "Column": "ToDo",
+      "SubtasksCollapsed": false,
+      "Priority": "Medium",
+      "SubtaskColorTheme": "default",
+      "Completed": true,
+      "Tags": [],
+      "ColorTheme": "default",
+      "Notes": "",
+      "ParentId": "176f5ccc-ff24-44e7-9f44-c5eb7279b585",
+      "Title": "Revenue analysis",
+      "ModifiedDate": "2025-08-02T10:16:53.0000000"
+    }
+  ],
+  "themes": {
+    "current": "default",
+    "settings": {}
+  },
+  "timeEntries": [],
+  "projects": [],
+  "appStates": {
+    "taskpro": {
+      "selectedTaskId": null,
+      "scrollPosition": 0
+    },
+    "commandlibrary": {
+      "lastSearch": "",
+      "selectedCommand": null
+    },
+    "timetracker": {
+      "currentWeek": "20250804",
+      "selectedEntry": null
+    }
+  }
+}

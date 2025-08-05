@@ -1,0 +1,50 @@
+[
+  {
+    "FiscalYear": "2025-2026",
+    "Friday": 0.0,
+    "Thursday": 0.0,
+    "Wednesday": 8.0,
+    "Modified": "2025-08-04 10:37:03",
+    "WeekEndingFriday": "20250808",
+    "Total": 23.5,
+    "Description": "Web Development Project",
+    "Id": "badaaba0-be28-4be9-ae27-b9124e3db651",
+    "Tuesday": 7.5,
+    "Monday": 8.0,
+    "ProjectCode": "PRJ001",
+    "IsProjectEntry": true,
+    "Created": "2025-08-04 10:37:02"
+  },
+  {
+    "FiscalYear": "2025-2026",
+    "Friday": 6.0,
+    "Thursday": 4.0,
+    "Wednesday": 0.0,
+    "Modified": "2025-08-04 10:37:03",
+    "WeekEndingFriday": "20250808",
+    "Total": 10.0,
+    "Description": "Database Migration",
+    "Id": "869f603a-e079-42eb-b7b8-9d0f5dbeef73",
+    "Tuesday": 0.0,
+    "Monday": 0.0,
+    "ProjectCode": "PRJ002",
+    "IsProjectEntry": true,
+    "Created": "2025-08-04 10:37:03"
+  },
+  {
+    "FiscalYear": "2025-2026",
+    "Friday": 2.0,
+    "Thursday": 0.0,
+    "Wednesday": 0.0,
+    "Modified": "2025-08-04 10:37:03",
+    "WeekEndingFriday": "20250808",
+    "Total": 2.0,
+    "Description": "Vacation",
+    "Id": "f6531d6a-7ce6-4513-b609-ce3c3da132ff",
+    "Tuesday": 0.0,
+    "Monday": 0.0,
+    "ProjectCode": "VAC",
+    "IsProjectEntry": false,
+    "Created": "2025-08-04 10:37:03"
+  }
+]
