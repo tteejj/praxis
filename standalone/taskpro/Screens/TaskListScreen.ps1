@@ -9,6 +9,8 @@ class TaskListScreen {
     [int]$Width
     [int]$Height
     [bool]$GlobalCollapseSubtasks = $false
+    [string]$CurrentFilter = "All"  # Filter mode: "All", "Today", "High", etc.
+    [string]$TagFilter = ""  # Tag-based filter like "work", "personal", etc.
     
     # Inline editing state
     [int]$EditingIndex = -1
@@ -17,11 +19,17 @@ class TaskListScreen {
     [SimpleTask]$EditingTask = $null
     [bool]$IsNewTask = $false
     
+    # Filter input state
+    [bool]$FilterInputActive = $false
+    [string]$FilterInputValue = ""
+    [int]$FilterInputCursor = 0
+    
     # Modern RGB Colors
     [string]$HeaderColor = "`e[38;2;100;150;255m"     # Modern blue
     [string]$HighColor = "`e[38;2;255;100;100m"       # Coral red
     [string]$MediumColor = "`e[38;2;255;165;0m"       # Orange
     [string]$LowColor = "`e[38;2;80;200;120m"         # Green
+    [string]$TodayColor = "`e[38;2;255;215;0m"        # Bright gold/yellow for TODAY
     [string]$SubtaskColor = "`e[38;2;160;160;160m"    # Medium gray
     [string]$SelectedBg = "`e[48;2;45;45;55m"         # Dark background highlight
     [string]$EvenRowBg = "`e[48;2;25;25;30m"          # Subtle dark background
@@ -32,7 +40,7 @@ class TaskListScreen {
     # Date colors
     [string]$OverdueColor = "`e[38;2;255;100;100m"    # Red
     [string]$WeekColor = "`e[38;2;255;165;0m"          # Orange
-    [string]$TodayColor = "`e[38;2;255;255;100m"       # Yellow
+    [string]$TodayDateColor = "`e[38;2;255;255;100m"       # Yellow
     [string]$FutureColor = "`e[38;2;80;200;120m"       # Green
     [string]$EditHighlight = "`e[47;30m"  # White background, black text (simpler ANSI)
     
@@ -63,12 +71,57 @@ class TaskListScreen {
     }
     
     [void] LoadTasks() {
-        $this.Tasks = $this.TaskService.GetParentTasks()
+        $allTasks = $this.TaskService.GetParentTasks()
+        $this.Tasks = $this.FilterTasks($allTasks)
         $this.BuildFlatList()
         
         if ($this.SelectedIndex -ge $this.FlatList.Count) {
             $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
         }
+    }
+    
+    [SimpleTask[]] FilterTasks([SimpleTask[]]$tasks) {
+        if ($this.CurrentFilter -eq "All" -and $this.TagFilter -eq "") {
+            return $tasks
+        }
+        
+        $filteredTasks = @()
+        $today = [datetime]::Today
+        
+        foreach ($task in $tasks) {
+            $includeTask = $false
+            
+            # Priority/Date filtering
+            switch ($this.CurrentFilter) {
+                "All" { $includeTask = $true }
+                "Today" {
+                    # Include if priority is "Today" OR due date is today
+                    $includeTask = ($task.Priority -eq "Today") -or 
+                                  ($task.DueDate -ne [datetime]::MinValue -and $task.DueDate.Date -eq $today)
+                }
+                "High" { $includeTask = ($task.Priority -eq "High") }
+                "Medium" { $includeTask = ($task.Priority -eq "Medium") }
+                "Low" { $includeTask = ($task.Priority -eq "Low") }
+            }
+            
+            # Tag filtering (additional filter)
+            if ($includeTask -and $this.TagFilter -ne "") {
+                $includeTask = $false
+                # Check if task has the filtered tag (case insensitive)
+                foreach ($tag in $task.Tags) {
+                    if ($tag.ToLower() -eq $this.TagFilter.ToLower()) {
+                        $includeTask = $true
+                        break
+                    }
+                }
+            }
+            
+            if ($includeTask) {
+                $filteredTasks += $task
+            }
+        }
+        
+        return $filteredTasks
     }
     
     [int] GetItemHeight([int]$itemIndex) {
@@ -132,24 +185,56 @@ class TaskListScreen {
     }
 
     [string] ConvertPriorityInput([string]$input) {
-        # Convert h/m/l input to High/Medium/Low
+        # Convert h/m/l/t input to High/Medium/Low/Today (only accept single letters)
         $cleanInput = $input.ToLower().Trim()
-        if ($cleanInput -eq "h" -or $cleanInput -eq "high") {
-            return "High"
-        } elseif ($cleanInput -eq "m" -or $cleanInput -eq "medium") {
-            return "Medium"
-        } elseif ($cleanInput -eq "l" -or $cleanInput -eq "low") {
-            return "Low"
-        } else {
-            return $input  # Return as-is if not recognized
+        switch ($cleanInput) {
+            "h" { return "High" }
+            "m" { return "Medium" }
+            "l" { return "Low" }
+            "t" { return "Today" }
+            default { 
+                return ""  # Return empty if invalid input
+            }
         }
+        return ""  # Explicit fallback return
     }
 
     [datetime] ConvertDateInput([string]$input) {
-        # Convert yyyymmdd or mmdd to proper date
-        $input = $input.Trim()
+        # Enhanced date input with quick entry shortcuts
+        $input = $input.Trim().ToLower()
         if ($input -eq "") {
             return [datetime]::MinValue
+        }
+        
+        $today = [datetime]::Today
+        
+        # Quick date shortcuts
+        switch ($input) {
+            "t" { return $today }
+            "today" { return $today }
+            "tom" { return $today.AddDays(1) }
+            "tomorrow" { return $today.AddDays(1) }
+            "mon" { return $this.GetNextWeekday([DayOfWeek]::Monday) }
+            "tue" { return $this.GetNextWeekday([DayOfWeek]::Tuesday) }
+            "wed" { return $this.GetNextWeekday([DayOfWeek]::Wednesday) }
+            "thu" { return $this.GetNextWeekday([DayOfWeek]::Thursday) }
+            "fri" { return $this.GetNextWeekday([DayOfWeek]::Friday) }
+            "sat" { return $this.GetNextWeekday([DayOfWeek]::Saturday) }
+            "sun" { return $this.GetNextWeekday([DayOfWeek]::Sunday) }
+        }
+        
+        # Relative date shortcuts (+3, +1w, etc.)
+        if ($input -match '^\+(\d+)$') {
+            $days = [int]$matches[1]
+            return $today.AddDays($days)
+        }
+        if ($input -match '^\+(\d+)w$') {
+            $weeks = [int]$matches[1]
+            return $today.AddDays($weeks * 7)
+        }
+        if ($input -match '^\+(\d+)m$') {
+            $months = [int]$matches[1]
+            return $today.AddMonths($months)
         }
         
         try {
@@ -173,30 +258,153 @@ class TaskListScreen {
             return [datetime]::MinValue
         }
     }
+    
+    [datetime] GetNextWeekday([DayOfWeek]$targetDay) {
+        $today = [datetime]::Today
+        $daysUntilTarget = ([int]$targetDay - [int]$today.DayOfWeek + 7) % 7
+        if ($daysUntilTarget -eq 0) {
+            $daysUntilTarget = 7  # Next week if today is the target day
+        }
+        return $today.AddDays($daysUntilTarget)
+    }
+    
+    [void] StartFilterInput() {
+        # Start complex filter input mode
+        $this.FilterInputActive = $true
+        $this.FilterInputValue = ""
+        $this.FilterInputCursor = 0
+    }
+    
+    [void] EndFilterInput([bool]$apply = $true) {
+        if ($apply -and $this.FilterInputValue.Trim() -ne "") {
+            $filterText = $this.FilterInputValue.Trim()
+            
+            # Parse filter: #tag for tag filter, priority names for priority filter
+            if ($filterText.StartsWith("#")) {
+                $this.TagFilter = $filterText.Substring(1)
+                $this.CurrentFilter = "All"  # Reset priority filter
+            } elseif ($filterText -eq "high" -or $filterText -eq "h") {
+                $this.CurrentFilter = "High"
+                $this.TagFilter = ""
+            } elseif ($filterText -eq "medium" -or $filterText -eq "med" -or $filterText -eq "m") {
+                $this.CurrentFilter = "Medium"
+                $this.TagFilter = ""
+            } elseif ($filterText -eq "low" -or $filterText -eq "l") {
+                $this.CurrentFilter = "Low"
+                $this.TagFilter = ""
+            } elseif ($filterText -eq "today" -or $filterText -eq "t") {
+                $this.CurrentFilter = "Today"
+                $this.TagFilter = ""
+            } elseif ($filterText -eq "all" -or $filterText -eq "*") {
+                $this.CurrentFilter = "All"
+                $this.TagFilter = ""
+            } else {
+                # Default to tag filter (without #)
+                $this.TagFilter = $filterText
+                $this.CurrentFilter = "All"
+            }
+            
+            $this.LoadTasks()
+        }
+        
+        $this.FilterInputActive = $false
+        $this.FilterInputValue = ""
+        $this.FilterInputCursor = 0
+    }
+    
+    [bool] HandleFilterInput([System.ConsoleKeyInfo]$key) {
+        switch ($key.Key) {
+            ([System.ConsoleKey]::Enter) {
+                $this.EndFilterInput($true)
+                return $true
+            }
+            ([System.ConsoleKey]::Escape) {
+                $this.EndFilterInput($false)
+                return $true
+            }
+            ([System.ConsoleKey]::Backspace) {
+                if ($this.FilterInputCursor -gt 0) {
+                    $this.FilterInputValue = $this.FilterInputValue.Remove($this.FilterInputCursor - 1, 1)
+                    $this.FilterInputCursor--
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::LeftArrow) {
+                if ($this.FilterInputCursor -gt 0) {
+                    $this.FilterInputCursor--
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::RightArrow) {
+                if ($this.FilterInputCursor -lt $this.FilterInputValue.Length) {
+                    $this.FilterInputCursor++
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Home) {
+                $this.FilterInputCursor = 0
+                return $true
+            }
+            ([System.ConsoleKey]::End) {
+                $this.FilterInputCursor = $this.FilterInputValue.Length
+                return $true
+            }
+            default {
+                # Handle printable characters with length validation
+                if (-not [char]::IsControl($key.KeyChar)) {
+                    $newValue = $this.FilterInputValue.Insert($this.FilterInputCursor, $key.KeyChar)
+                    # Limit filter input to reasonable length
+                    if ($newValue.Length -le 20) {
+                        $this.FilterInputValue = $newValue
+                        $this.FilterInputCursor++
+                    }
+                    return $true
+                }
+            }
+        }
+        return $false
+    }
 
     [void] RenderSubtaskPriorityAndDate([System.Text.StringBuilder]$sb, [SimpleTask]$task, [bool]$isEditingThis) {
         # Render priority if set or being edited
         if ($isEditingThis -and $this.EditingField -eq "priority") {
-            $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-            [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor + " ")
-        } elseif ($task.Priority -eq "High" -or $task.Priority -eq "Medium" -or $task.Priority -eq "Low") {
+            # Show active field with bright highlight (2 chars for subtask priority)
+            $fieldValue = $this.EditingValue.PadRight(2)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
+        } elseif ($isEditingThis -and ($task.Priority -eq "High" -or $task.Priority -eq "Medium" -or $task.Priority -eq "Low" -or $task.Priority -eq "Today")) {
+            # Show inactive field with dim highlight when editing other fields
+            $priorityText = switch ($task.Priority) {
+                "High" { "H " }
+                "Medium" { "M " }
+                "Low" { "L " }
+                "Today" { "T " }
+            }
+            [void]$sb.Append("`e[48;2;30;30;40m" + $priorityText + $this.NormalColor)
+        } elseif ($task.Priority -eq "High" -or $task.Priority -eq "Medium" -or $task.Priority -eq "Low" -or $task.Priority -eq "Today") {
             $priorityText = switch ($task.Priority) {
                 "High" { "H" }
                 "Medium" { "M" }
                 "Low" { "L" }
+                "Today" { "T" }
             }
             $priorityColor = switch ($task.Priority) {
                 "High" { $this.HighColor }
                 "Medium" { $this.MediumColor }
                 "Low" { $this.LowColor }
+                "Today" { $this.TodayColor }
             }
             [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor + " ")
         }
         
         # Render date if set or being edited
         if ($isEditingThis -and $this.EditingField -eq "date") {
-            $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-            [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor + " ")
+            # Show active field with bright highlight (6 chars for MM-dd format)
+            $fieldValue = $this.EditingValue.PadRight(6)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
+        } elseif ($isEditingThis -and $task.DueDate -ne [datetime]::MinValue) {
+            # Show inactive field with dim highlight when editing other fields
+            $compactDate = $task.DueDate.ToString("MM-dd").PadRight(6)
+            [void]$sb.Append("`e[48;2;30;30;40m" + $compactDate + $this.NormalColor)
         } elseif ($task.DueDate -ne [datetime]::MinValue) {
             $compactDate = $task.DueDate.ToString("MM-dd")
             $today = [datetime]::Today
@@ -207,7 +415,7 @@ class TaskListScreen {
             $dateColor = if ($days -lt 0) {
                 $this.OverdueColor
             } elseif ($days -eq 0) {
-                $this.TodayColor
+                $this.TodayDateColor
             } elseif ($days -le 7) {
                 $this.WeekColor
             } else {
@@ -228,7 +436,7 @@ class TaskListScreen {
         
         $dateText = $due.ToString("yyyy-MM-dd")
         $color = if ($daysDiff -lt 0) { $this.OverdueColor }
-                elseif ($daysDiff -eq 0) { $this.TodayColor }
+                elseif ($daysDiff -eq 0) { $this.TodayDateColor }
                 elseif ($daysDiff -le 7) { $this.WeekColor }
                 else { $this.FutureColor }
         
@@ -269,10 +477,17 @@ class TaskListScreen {
         # Clear screen
         [void]$sb.Append([VT]::Clear())
         
-        # Header
+        # Header with filter info
         [void]$sb.Append([VT]::MoveTo(0, 0))
         [void]$sb.Append($this.HeaderColor)
-        [void]$sb.Append("TASKPRO - Task Manager")
+        $headerText = "TASKPRO - Task Manager"
+        if ($this.CurrentFilter -ne "All") {
+            $headerText += " [Filter: $($this.CurrentFilter)]"
+        }
+        if ($this.TagFilter -ne "") {
+            $headerText += " [Tag: #$($this.TagFilter)]"
+        }
+        [void]$sb.Append($headerText)
         [void]$sb.Append($this.NormalColor)
         
         # Column headers
@@ -288,31 +503,50 @@ class TaskListScreen {
         [void]$sb.Append($this.NormalColor)
         
         [void]$sb.Append([VT]::MoveTo(0, 2))
-        [void]$sb.Append("═" * $this.Width)
+        [void]$sb.Append("─" * $this.Width)
         
         # Task list
         $this.RenderTaskList($sb)
         
         # Status bar
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 2))
-        [void]$sb.Append("═" * $this.Width)
+        [void]$sb.Append("─" * $this.Width)
         
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
         [void]$sb.Append($this.TagColor)
-        if ($this.EditingIndex -ge 0) {
+        if ($this.FilterInputActive) {
+            # Show filter input as a proper textbox
+            $filterPrompt = "Filter: "
+            [void]$sb.Append($filterPrompt)
+            $fieldWidth = 20
+            $fieldValue = $this.FilterInputValue.PadRight($fieldWidth)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
+            [void]$sb.Append("  Enter:Apply  Escape:Cancel  (#tag, high/med/low/today)")
+        } elseif ($this.EditingIndex -ge 0) {
             [void]$sb.Append("EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")
         } else {
-            [void]$sb.Append("↑↓:Navigate  E:Edit  A:Add  N:New  S:Subtask  X:Toggle  Enter:Notes  T:Theme  R:Tags  P:Project Export  Q:Quit")
+            [void]$sb.Append("↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:Cycle  F5:Color  Q:Quit")
         }
         [void]$sb.Append($this.NormalColor)
         
         # Show/hide cursor based on editing state and position it correctly
         if ($this.EditingIndex -ge 0) {
             [void]$sb.Append([VT]::ShowCursor())
+            # Set cursor to bright red so it's visible against white background
+            [void]$sb.Append("`e]12;#FF0000`e\")  # OSC sequence to set cursor color to red
             # Position cursor at the end of the editing field
             $this.PositionCursorForEditing($sb)
+        } elseif ($this.FilterInputActive) {
+            [void]$sb.Append([VT]::ShowCursor())
+            # Set cursor to bright red for visibility
+            [void]$sb.Append("`e]12;#FF0000`e\")
+            # Position cursor in filter input field
+            $filterCursorX = 8 + $this.FilterInputCursor  # "Filter: " = 8 chars
+            [void]$sb.Append([VT]::MoveTo($filterCursorX, $this.Height - 1))
         } else {
             [void]$sb.Append([VT]::HideCursor())
+            # Reset cursor color to default when hidden
+            [void]$sb.Append("`e]12;#FFFFFF`e\")  # Reset to white
         }
         
         return $sb.ToString()
@@ -348,11 +582,11 @@ class TaskListScreen {
             if ($isSelected) {
                 # === SELECTED ITEM WITH PILLBOX ===
                 
-                # Calculate optimal pillbox width
-                $pillboxWidth = $this.CalculatePillboxWidth($task, $level)
+                # Use full screen width for pillbox - much simpler!
+                $pillboxWidth = $this.Width
                 
-                # CRITICAL: Calculate the fixed right border position for BOTH lines
-                $rightBorderColumn = $pillboxWidth
+                # CRITICAL: Calculate the fixed right border position for BOTH lines  
+                $rightBorderColumn = $this.Width  # Right border at screen edge
                 
                 # Spacer line above
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
@@ -366,7 +600,7 @@ class TaskListScreen {
                 # Content line 1 with pillbox sides
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
                 [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
-                $this.RenderTaskContent($sb, $task, $level, $isLast, $false)
+                $this.RenderTaskContent($sb, $task, $level, $isLast, $false, $isSelected)
                 
                 # Move cursor to EXACT right border position
                 [void]$sb.Append([VT]::MoveTo($rightBorderColumn, $currentY))
@@ -380,14 +614,29 @@ class TaskListScreen {
                 # Render tag content
                 $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
                 if ($isEditingThis -and $this.EditingField -eq "tags") {
-                    # Show editing highlight for tags
+                    # Show active tags field with reverse video highlighting
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
                     if ($level -eq 1) {
                         $indentSize += 7  # "    └─ "
                     }
                     [void]$sb.Append(" " * $indentSize)
-                    $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-                    [void]$sb.Append($this.EditHighlight + "⟨" + $displayValue + "⟩" + $this.NormalColor)
+                    $existingTags = ($task.Tags -join ", ")
+                    $minWidth = 15
+                    $fieldWidth = [Math]::Max($minWidth, [Math]::Max($this.EditingValue.Length + 2, $existingTags.Length + 2))
+                    $displayValue = if ($this.EditingValue -ne "") { $this.EditingValue.PadRight($fieldWidth) } else { " ".PadRight($fieldWidth) }
+                    [void]$sb.Append("⟨" + "`e[7m" + $displayValue + "`e[0m" + "⟩")  # Reverse video
+                } elseif ($isEditingThis -and $task.Tags.Count -gt 0) {
+                    # Show inactive tags field with dim highlight when editing other fields
+                    $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $indentSize += 7  # "    └─ "
+                    }
+                    [void]$sb.Append(" " * $indentSize)
+                    $tagsText = ($task.Tags -join ", ")
+                    $minWidth = 15
+                    $fieldWidth = [Math]::Max($minWidth, $tagsText.Length + 2)
+                    $fieldValue = $tagsText.PadRight($fieldWidth)
+                    [void]$sb.Append("⟨" + "`e[48;2;30;30;40m" + $fieldValue + "`e[0m" + "⟩")  # Dim highlight
                 } elseif ($task.Tags.Count -gt 0) {
                     # Normal tag display
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
@@ -397,14 +646,26 @@ class TaskListScreen {
                     [void]$sb.Append(" " * $indentSize)
                     [void]$sb.Append($this.TagColor + "⟨" + ($task.Tags -join ", ") + "⟩" + $this.NormalColor)
                 } elseif ($isEditingThis -and $this.EditingField -eq "tags") {
-                    # Show empty tags field when editing
+                    # Show active empty tags field when editing tags
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
                     if ($level -eq 1) {
                         $indentSize += 7  # "    └─ "
                     }
                     [void]$sb.Append(" " * $indentSize)
-                    $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-                    [void]$sb.Append($this.EditHighlight + "⟨" + $displayValue + "⟩" + $this.NormalColor)
+                    $minWidth = 15
+                    $fieldWidth = [Math]::Max($minWidth, $this.EditingValue.Length + 5)
+                    $fieldValue = $this.EditingValue.PadRight($fieldWidth)
+                    [void]$sb.Append("⟨" + $this.EditHighlight + $fieldValue + $this.NormalColor + "⟩")
+                } elseif ($isEditingThis) {
+                    # Show empty tags field with dim highlight when editing other fields
+                    $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) {
+                        $indentSize += 7  # "    └─ "
+                    }
+                    [void]$sb.Append(" " * $indentSize)
+                    $minWidth = 15
+                    $fieldValue = " ".PadRight($minWidth)
+                    [void]$sb.Append("⟨" + "`e[48;2;30;30;40m" + $fieldValue + "`e[0m" + "⟩")  # Dim highlight
                 }
                 
                 # Move cursor to EXACT same right border position
@@ -421,12 +682,12 @@ class TaskListScreen {
                 
                 # Content line 1
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                $this.RenderTaskContent($sb, $task, $level, $isLast, $true)
+                $this.RenderTaskContent($sb, $task, $level, $isLast, $true, $isSelected)
                 $currentY++
                 
                 # Content line 2 (tags)
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                $this.RenderTagContent($sb, $task, $level)
+                $this.RenderTagContent($sb, $task, $level, $isLast, $isSelected)
                 [void]$sb.Append([VT]::ClearLine())
                 $currentY++
             }
@@ -440,12 +701,18 @@ class TaskListScreen {
         }
     }
     
-    [void] RenderTaskContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast, [bool]$clearToEnd) {
+    [void] RenderTaskContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast, [bool]$clearToEnd, [bool]$isSelected = $false) {
         $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
         
         # COLUMN 1: STATUS (3 chars) - ☐ or ■
         if ($isEditingThis -and $this.EditingField -eq "status") {
-            [void]$sb.Append($this.EditHighlight + $this.EditingValue.PadRight(3) + $this.NormalColor)
+            # Show active field with bright highlight
+            $fieldValue = $this.EditingValue.PadRight(2)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + " " + $this.NormalColor)
+        } elseif ($isEditingThis) {
+            # Show inactive field with dim highlight when editing other fields
+            $statusValue = if ($task.Completed) { "■" } else { "☐" }
+            [void]$sb.Append("`e[48;2;30;30;40m" + $statusValue.PadRight(2) + " " + $this.NormalColor)
         } else {
             if ($task.Completed) {
                 [void]$sb.Append("■  ")  # Filled square for completed
@@ -458,19 +725,32 @@ class TaskListScreen {
         if ($level -eq 0) {
             # Parent task - full priority display
             if ($isEditingThis -and $this.EditingField -eq "priority") {
-                $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-                [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor)
+                # Show active field with reverse video highlighting (1 char only)
+                $displayValue = if ($this.EditingValue -ne "") { $this.EditingValue } else { " " }
+                [void]$sb.Append("`e[7m" + $displayValue + "`e[0m" + "    ")  # Reverse video + spacing
+            } elseif ($isEditingThis) {
+                # Show inactive field with dim highlight when editing other fields (1 char)
+                $priorityText = switch ($task.Priority) {
+                    "High" { "H" }
+                    "Medium" { "M" }
+                    "Low" { "L" }
+                    "Today" { "T" }
+                    default { " " }
+                }
+                [void]$sb.Append("`e[48;2;30;30;40m" + $priorityText + "`e[0m" + "    ")  # Dim highlight + spacing
             } else {
                 $priorityText = switch ($task.Priority) {
-                    "High" { "High " }
-                    "Medium" { "Med  " }
-                    "Low" { "Low  " }
+                    "High" { "H    " }
+                    "Medium" { "M    " }
+                    "Low" { "L    " }
+                    "Today" { "T    " }
                     default { "     " }
                 }
                 $priorityColor = switch ($task.Priority) {
                     "High" { $this.HighColor }
                     "Medium" { $this.MediumColor }
                     "Low" { $this.LowColor }
+                    "Today" { $this.TodayColor }
                     default { $this.TagColor }
                 }
                 [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor)
@@ -484,8 +764,13 @@ class TaskListScreen {
         if ($level -eq 0) {
             # Parent task - full date display
             if ($isEditingThis -and $this.EditingField -eq "date") {
-                $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-                [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor)
+                # Show active field with reverse video highlighting (10 chars for date)
+                $displayValue = if ($this.EditingValue -ne "") { $this.EditingValue.PadRight(10) } else { " ".PadRight(10) }
+                [void]$sb.Append("`e[7m" + $displayValue + "`e[0m" + " ")  # Reverse video
+            } elseif ($isEditingThis) {
+                # Show inactive field with dim highlight when editing other fields
+                $dateText = if ($task.DueDate -eq [datetime]::MinValue) { " ".PadRight(10) } else { $task.DueDate.ToString("yyyy-MM-dd") }
+                [void]$sb.Append("`e[48;2;30;30;40m" + $dateText + "`e[0m" + " ")  # Dim highlight
             } else {
                 [void]$sb.Append($this.GetDateColorAndText($task))
                 [void]$sb.Append(" ")
@@ -508,10 +793,15 @@ class TaskListScreen {
         
         # COLUMN 5: TITLE (with indentation for subtasks)
         if ($level -eq 1) {
-            if ($isLast) {
-                [void]$sb.Append("    └─ ")
+            # Hide connectors when pillbox is selected on this subtask
+            if ($isSelected) {
+                [void]$sb.Append("       ")  # Same spacing as connectors but no symbols
             } else {
-                [void]$sb.Append("    ├─ ")
+                if ($isLast) {
+                    [void]$sb.Append("    └─ ")
+                } else {
+                    [void]$sb.Append("    ├─ ")
+                }
             }
             
             # Add priority and date right after tree chars for subtasks
@@ -520,8 +810,17 @@ class TaskListScreen {
         
         # Task title color and content
         if ($isEditingThis -and $this.EditingField -eq "title") {
-            $displayValue = if ($this.EditingValue) { $this.EditingValue + "█" } else { "█" }
-            [void]$sb.Append($this.EditHighlight + $displayValue + $this.NormalColor)
+            # Show active field with reverse video highlighting (expandable)
+            $minWidth = 20
+            $fieldWidth = [Math]::Max($minWidth, [Math]::Max($this.EditingValue.Length + 2, $task.Title.Length + 2))
+            $displayValue = if ($this.EditingValue -ne "") { $this.EditingValue.PadRight($fieldWidth) } else { " ".PadRight($fieldWidth) }
+            [void]$sb.Append("`e[7m" + $displayValue + "`e[0m")  # Reverse video
+        } elseif ($isEditingThis) {
+            # Show inactive field with dim highlight when editing other fields
+            $minWidth = 20
+            $fieldWidth = [Math]::Max($minWidth, $task.Title.Length + 2)
+            $titleValue = $task.Title.PadRight($fieldWidth)
+            [void]$sb.Append("`e[48;2;30;30;40m" + $titleValue + "`e[0m")  # Dim highlight
         } else {
             if ($task.Completed) {
                 $taskColor = $this.CompletedColor
@@ -547,14 +846,31 @@ class TaskListScreen {
         }
     }
     
-    [void] RenderTagContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level) {
-        if ($task.Tags.Count -gt 0) {
-            # Indent to align with title
-            $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
-            if ($level -eq 1) {
-                $indentSize += 7  # "    └─ "
+    [void] RenderTagContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast = $false, [bool]$isSelected = $false) {
+        # For subtasks, show tree continuation lines
+        if ($level -eq 1) {
+            # Render the tree structure columns first
+            [void]$sb.Append("   ")  # Status column spacing
+            [void]$sb.Append("     ")  # Priority column spacing
+            [void]$sb.Append(" " * $this.DateCol)  # Date column spacing
+            [void]$sb.Append("   ")  # Arrow column spacing
+            
+            # Tree continuation: show vertical line unless this subtask is selected OR it's the last one
+            if ($isSelected) {
+                [void]$sb.Append("       ")  # Same spacing as tree connectors but no symbols
+            } elseif ($isLast) {
+                [void]$sb.Append("       ")  # No continuation after last subtask
+            } else {
+                [void]$sb.Append("    │  ")  # Vertical continuation line
             }
-            [void]$sb.Append(" " * $indentSize)
+        }
+        
+        if ($task.Tags.Count -gt 0) {
+            # For level 0 tasks, need to indent properly
+            if ($level -eq 0) {
+                $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                [void]$sb.Append(" " * $indentSize)
+            }
             
             # Tags in angle brackets
             [void]$sb.Append($this.TagColor)
@@ -568,12 +884,25 @@ class TaskListScreen {
         if ($level -eq 1) {
             $length += 7  # "    └─ "
         }
-        $length += $task.Title.Length
+        
+        # Use editing value if this task is being edited
+        $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
+        if ($isEditingThis -and $this.EditingField -eq "title") {
+            $length += [Math]::Max($task.Title.Length, $this.EditingValue.Length)
+        } else {
+            $length += $task.Title.Length
+        }
+        
         return $length
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Handle editing mode input first
+        # Handle filter input mode first
+        if ($this.FilterInputActive) {
+            return $this.HandleFilterInput($key)
+        }
+        
+        # Handle editing mode input second
         if ($this.EditingIndex -ge 0) {
             return $this.HandleEditingInput($key)
         }
@@ -746,11 +1075,6 @@ class TaskListScreen {
                 }
                 return $true
             }
-            ([System.ConsoleKey]::A) {
-                # Start inline add new task
-                $this.StartInlineAdd()
-                return $true
-            }
             ([System.ConsoleKey]::P) {
                 # Open project ExcelDataFlow text export
                 if ($this.FlatList.Count -gt 0) {
@@ -758,8 +1082,60 @@ class TaskListScreen {
                 }
                 return $true
             }
+            ([System.ConsoleKey]::F1) {
+                # Toggle filter: All
+                $this.CurrentFilter = "All"
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F2) {
+                # Toggle filter: Today
+                $this.CurrentFilter = "Today" 
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F3) {
+                # Toggle filter: High Priority
+                $this.CurrentFilter = "High"
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F4) {
+                # Cycle through all filters
+                $filters = @("All", "Today", "High", "Medium", "Low")
+                $currentIndex = $filters.IndexOf($this.CurrentFilter)
+                $nextIndex = ($currentIndex + 1) % $filters.Count
+                $this.CurrentFilter = $filters[$nextIndex]
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F5) {
+                # Open color theme editor
+                $this.OpenThemeEditor()
+                return $true
+            }
             ([System.ConsoleKey]::Q) {
                 return $false
+            }
+            default {
+                # Handle filter commands starting with '/'
+                if ($key.KeyChar -eq '/' -and $this.EditingIndex -lt 0) {
+                    if ($this.FilterInputActive) {
+                        # If filter is already active, clear it
+                        $this.FilterInputValue = ""
+                        $this.FilterInputCursor = 0
+                    } else {
+                        # If filter exists, start with current filter value for editing
+                        if ($this.CurrentFilter -ne "All" -or $this.TagFilter -ne "") {
+                            $existingFilter = if ($this.TagFilter -ne "") { "#$($this.TagFilter)" } else { $this.CurrentFilter.ToLower() }
+                            $this.FilterInputValue = $existingFilter
+                            $this.FilterInputCursor = $existingFilter.Length
+                        }
+                        $this.StartFilterInput()
+                    }
+                    return $true
+                }
+                return $true
             }
         }
         
@@ -814,7 +1190,7 @@ class TaskListScreen {
         [Console]::SetCursorPosition(0, 0)
         Write-Host -NoNewline "$($this.HeaderColor)EDITING NOTES: $($parentTask.Title)$($this.NormalColor)"
         [Console]::SetCursorPosition(0, 1)
-        Write-Host -NoNewline ("═" * $this.Width)
+        Write-Host -NoNewline ("─" * $this.Width)
         [Console]::SetCursorPosition(0, $this.Height - 1)
         Write-Host -NoNewline "Ctrl+S:Save  Escape:Exit  " -ForegroundColor White
         
@@ -1050,7 +1426,15 @@ class TaskListScreen {
         $this.EditingIndex = $this.SelectedIndex
         $this.EditingTask = $item.Task
         $this.EditingField = "priority"  # Start with priority (leftmost)
-        $this.EditingValue = $item.Task.Priority
+        # Preserve existing priority when starting edit
+        $priorityChar = switch ($this.EditingTask.Priority) {
+            "High" { "h" }
+            "Medium" { "m" }
+            "Low" { "l" }
+            "Today" { "t" }
+            default { "" }
+        }
+        $this.EditingValue = $priorityChar
         $this.IsNewTask = $false
     }
     
@@ -1109,23 +1493,8 @@ class TaskListScreen {
     [bool] HandleEditingInput([System.ConsoleKeyInfo]$key) {
         switch ($key.Key) {
             ([System.ConsoleKey]::Enter) {
-                # For new tasks, save if we have a title, otherwise go to title field
-                if ($this.IsNewTask) {
-                    if ($this.EditingField -eq "title" -and $this.EditingValue.Trim() -ne "") {
-                        # Save immediately if we have a title
-                        $this.SaveInlineEdit()
-                    } elseif ($this.EditingField -ne "title") {
-                        # Jump to title field if not already there
-                        $this.EditingField = "title"
-                        $this.EditingValue = $this.EditingTask.Title
-                    } else {
-                        # We're on title field but it's empty - stay there
-                        # Don't advance or save
-                    }
-                } else {
-                    # For existing tasks, save immediately
-                    $this.SaveInlineEdit()
-                }
+                # Save immediately when Enter is pressed, regardless of field
+                $this.SaveInlineEdit()
                 return $true
             }
             ([System.ConsoleKey]::Escape) {
@@ -1134,7 +1503,7 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::Tab) {
-                # Check for Shift+Tab (reverse)
+                # Switch between fields for all tasks (new and existing)
                 if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
                     $this.PreviousEditField()
                 } else {
@@ -1148,10 +1517,62 @@ class TaskListScreen {
                 }
                 return $true
             }
+            ([System.ConsoleKey]::UpArrow) {
+                # Save and move up (like subtasks)
+                $this.SaveInlineEdit()
+                if ($this.SelectedIndex -gt 0) {
+                    $this.SelectedIndex--
+                    $this.EnsureVisible()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::DownArrow) {
+                # Save and move down (like subtasks)
+                $this.SaveInlineEdit()
+                if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
+                    $this.SelectedIndex++
+                    $this.EnsureVisible()
+                }
+                return $true
+            }
             default {
-                # Add character to editing value
+                # Add character to editing value with field-specific validation
                 if ($key.KeyChar -and [char]::IsControl($key.KeyChar) -eq $false) {
-                    $this.EditingValue += $key.KeyChar
+                    $newValue = $this.EditingValue + $key.KeyChar
+                    
+                    # Validate input based on field type
+                    $isValid = $false
+                    switch ($this.EditingField) {
+                        "status" {
+                            # Status: only accept ☐, ■, x, space, or single characters
+                            $isValid = $newValue.Length -le 1
+                        }
+                        "priority" {
+                            # Priority: only accept single letter shortcuts (h/m/l/t) - max 1 char
+                            $isValid = $newValue.Length -le 1 -and ($newValue -eq "" -or $newValue.ToLower() -match '^[hmlt]$')
+                        }
+                        "date" {
+                            # Date: max 10 chars, allow date formats and shortcuts
+                            $isValid = $newValue.Length -le 10 -and 
+                                      ($newValue -match '^[\d\-/tmowuehrsna\+]*$' -or $newValue -eq "")
+                        }
+                        "title" {
+                            # Title: reasonable length limit
+                            $isValid = $newValue.Length -le 80
+                        }
+                        "tags" {
+                            # Tags: reasonable length limit, allow tag characters
+                            $isValid = $newValue.Length -le 100 -and 
+                                      ($newValue -match '^[a-zA-Z0-9\-_,\s#]*$' -or $newValue -eq "")
+                        }
+                        default {
+                            $isValid = $true
+                        }
+                    }
+                    
+                    if ($isValid) {
+                        $this.EditingValue = $newValue
+                    }
                 }
                 return $true
             }
@@ -1160,34 +1581,40 @@ class TaskListScreen {
     }
     
     [void] NextEditField() {
-        # Cycle through fields: priority -> date -> title -> tags -> save (for new) or priority (for existing)
+        # Save current field value only if something was entered, then move to next field
         switch ($this.EditingField) {
             "priority" {
-                $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
-                $this.EditingField = "date"
-                if ($this.EditingTask.DueDate -eq [datetime]::MinValue) {
-                    $this.EditingValue = ""
-                } else {
-                    $this.EditingValue = $this.EditingTask.DueDate.ToString("yyyy-MM-dd")
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
                 }
+                $this.EditingField = "date"
+                # Preserve existing date when switching fields
+                $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
             }
             "date" {
-                $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
+                }
                 $this.EditingField = "title"
+                # Preserve existing title when switching fields
                 $this.EditingValue = $this.EditingTask.Title
             }
             "title" {
-                $this.EditingTask.Title = $this.EditingValue
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.Title = $this.EditingValue
+                }
                 $this.EditingField = "tags"
-                $this.EditingValue = ($this.EditingTask.Tags -join ", ")
+                # Preserve existing tags when switching fields
+                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
             }
             "tags" {
-                # Parse tags from input
-                if ($this.EditingValue) {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
                     $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
                     $this.EditingTask.Tags = $tagParts
-                } else {
-                    $this.EditingTask.Tags = @()
                 }
                 
                 if ($this.IsNewTask) {
@@ -1196,43 +1623,65 @@ class TaskListScreen {
                 } else {
                     # For existing tasks, cycle back to priority
                     $this.EditingField = "priority"
-                    $this.EditingValue = $this.EditingTask.Priority
+                    # Preserve existing priority when switching fields
+                    $priorityChar = switch ($this.EditingTask.Priority) {
+                        "High" { "h" }
+                        "Medium" { "m" }
+                        "Low" { "l" }
+                        "Today" { "t" }
+                        default { "" }
+                    }
+                    $this.EditingValue = $priorityChar
                 }
             }
         }
     }
     
     [void] PreviousEditField() {
-        # Cycle backwards: priority <- date <- title <- tags
+        # Save current field value only if something was entered, then move to previous field
         switch ($this.EditingField) {
             "priority" {
-                $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
+                }
                 $this.EditingField = "tags"
-                $this.EditingValue = ($this.EditingTask.Tags -join ", ")
+                # Preserve existing tags when switching fields
+                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
             }
             "date" {
-                $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
+                }
                 $this.EditingField = "priority"
-                $this.EditingValue = $this.EditingTask.Priority
+                # Preserve existing priority when switching fields
+                $priorityChar = switch ($this.EditingTask.Priority) {
+                    "High" { "h" }
+                    "Medium" { "m" }
+                    "Low" { "l" }
+                    "Today" { "t" }
+                    default { "" }
+                }
+                $this.EditingValue = $priorityChar
             }
             "title" {
-                $this.EditingTask.Title = $this.EditingValue
-                $this.EditingField = "date"
-                if ($this.EditingTask.DueDate -eq [datetime]::MinValue) {
-                    $this.EditingValue = ""
-                } else {
-                    $this.EditingValue = $this.EditingTask.DueDate.ToString("yyyy-MM-dd")
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.Title = $this.EditingValue
                 }
+                $this.EditingField = "date"
+                # Preserve existing date when switching fields
+                $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
             }
             "tags" {
-                # Parse tags from input
-                if ($this.EditingValue) {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
                     $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
                     $this.EditingTask.Tags = $tagParts
-                } else {
-                    $this.EditingTask.Tags = @()
                 }
                 $this.EditingField = "title"
+                # Preserve existing title when switching fields
                 $this.EditingValue = $this.EditingTask.Title
             }
         }
@@ -1257,49 +1706,50 @@ class TaskListScreen {
             }
         }
         
-        # Save to service
-        if ($global:Debug) { 
-            Write-Host "SaveInlineEdit: Title='$($this.EditingTask.Title)' IsNewTask=$($this.IsNewTask)" -ForegroundColor Cyan 
+        # Apply current editing value to the appropriate field
+        switch ($this.EditingField) {
+            "title" { $this.EditingTask.Title = $this.EditingValue.Trim() }
+            "priority" { $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue) }
+            "date" { $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue) }
+            "tags" {
+                if ($this.EditingValue.Trim()) {
+                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+                    $this.EditingTask.Tags = $tagParts
+                } else {
+                    $this.EditingTask.Tags = @()
+                }
+            }
         }
         
-        if ($this.EditingTask.Title) {
+        # Auto-tag for Today priority
+        if ($this.EditingTask.Priority -eq "Today" -and -not ($this.EditingTask.Tags -contains "today")) {
+            $this.EditingTask.Tags += "today"
+        }
+        
+        # Save to service if we have a title
+        if ($this.EditingTask.Title.Trim()) {
             if ($this.IsNewTask) {
                 # New task - check if it's a subtask
                 $item = $this.FlatList[$this.EditingIndex]
-                if ($global:Debug) { 
-                    Write-Host "SaveInlineEdit: Item Level=$($item.Level)" -ForegroundColor Cyan 
-                }
                 if ($item.Level -eq 1) {
                     # Find parent task
                     for ($i = $this.EditingIndex - 1; $i -ge 0; $i--) {
                         $parentItem = $this.FlatList[$i]
                         if ($parentItem.Level -eq 0) {
-                            if ($global:Debug) { 
-                                Write-Host "SaveInlineEdit: Adding subtask to parent $($parentItem.Task.Id)" -ForegroundColor Green 
-                            }
                             $this.TaskService.AddSubtask($parentItem.Task.Id, $this.EditingTask)
                             break
                         }
                     }
                 } else {
                     # Regular parent task
-                    if ($global:Debug) { 
-                        Write-Host "SaveInlineEdit: Adding parent task with title '$($this.EditingTask.Title)'" -ForegroundColor Green 
-                    }
                     $this.TaskService.AddTask($this.EditingTask)
                 }
             } else {
                 # Existing task
-                if ($global:Debug) { 
-                    Write-Host "SaveInlineEdit: Updating existing task" -ForegroundColor Yellow 
-                }
                 $this.TaskService.UpdateTask($this.EditingTask)
             }
         } else {
             # Empty title, remove if it was a new task
-            if ($global:Debug) { 
-                Write-Host "SaveInlineEdit: Empty title, removing new task" -ForegroundColor Red 
-            }
             if ($this.IsNewTask) {
                 $this.FlatList.RemoveAt($this.EditingIndex)
             }
@@ -1329,65 +1779,96 @@ class TaskListScreen {
     }
     
     [void] PositionCursorForEditing([System.Text.StringBuilder]$sb) {
-        if ($this.EditingIndex -lt 0) { return }
+        if ($this.EditingIndex -lt 0 -or -not $this.EditingTask) {
+            return
+        }
         
-        # Calculate the position of the editing field
+        # Calculate cursor position based on which field is being edited
         $item = $this.FlatList[$this.EditingIndex]
         $level = $item.Level
+        $isSelected = ($this.EditingIndex -eq $this.SelectedIndex)
         
-        # Find the Y position of the editing item
+        # Find the Y position of this item in the rendered list
         $startY = 3
         $currentY = $startY
-        $foundY = -1
+        $visibleIndex = -1
         
-        # Calculate how many items we can show with dynamic heights
         for ($i = $this.ScrollTop; $i -lt $this.FlatList.Count; $i++) {
-            $itemHeight = $this.GetItemHeight($i)
             if ($i -eq $this.EditingIndex) {
-                # Found our editing item, it will be in pillbox mode (5 lines)
-                if ($this.EditingField -eq "tags") {
-                    $foundY = $currentY + 3  # Tag line is 3rd line of pillbox
-                } else {
-                    $foundY = $currentY + 2  # Content line is 2nd line of pillbox
-                }
+                $visibleIndex = $currentY
                 break
             }
-            $currentY += $itemHeight
-            if ($currentY -ge ($this.Height - 5)) { break }
+            $currentY += $this.GetItemHeight($i)
         }
         
-        if ($foundY -ge 0) {
-            # Calculate X position based on field being edited
-            $x = 1  # Start after the left border "│"
-            
-            switch ($this.EditingField) {
-                "status" {
-                    $x += $this.EditingValue.Length
-                }
-                "priority" {
-                    $x += $this.StatusCol + $this.EditingValue.Length
-                }
-                "date" {
-                    $x += $this.StatusCol + $this.PriorityCol + $this.EditingValue.Length
-                }
-                "title" {
-                    $x += $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
-                    if ($level -eq 1) {
-                        $x += 7  # "    └─ "
-                    }
-                    $x += $this.EditingValue.Length
-                }
-                "tags" {
-                    $x += $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
-                    if ($level -eq 1) {
-                        $x += 7  # "    └─ "
-                    }
-                    $x += 1 + $this.EditingValue.Length  # "⟨" + content
+        if ($visibleIndex -eq -1) {
+            return  # Item not visible
+        }
+        
+        # Calculate cursor X position based on field and level
+        $cursorX = 0
+        $cursorY = $visibleIndex
+        
+        if ($isSelected) {
+            # Selected item with pillbox - add 1 for pillbox border and position in content line
+            $cursorY += 2  # Skip spacer and top border to get to content line
+        }
+        
+        switch ($this.EditingField) {
+            "status" {
+                # Status field starts at column 0, cursor at beginning
+                $cursorX = 0
+            }
+            "priority" {
+                if ($level -eq 0) {
+                    # Priority field starts after status column (3 chars), cursor at end of EditingValue
+                    $cursorX = 3 + $this.EditingValue.Length
+                } else {
+                    # Subtask priority appears after tree chars, cursor at end of EditingValue
+                    $cursorX = 3 + 5 + 12 + 3 + 7 + $this.EditingValue.Length
                 }
             }
-            
-            [void]$sb.Append([VT]::MoveTo($x, $foundY))
+            "date" {
+                if ($level -eq 0) {
+                    # Date field starts after status (3) + priority (5) = 8, cursor at end of EditingValue
+                    $cursorX = 8 + $this.EditingValue.Length
+                } else {
+                    # Subtask date appears after priority, cursor at end of EditingValue
+                    $priorityWidth = if ($this.EditingTask.Priority) { 2 } else { 0 }
+                    $cursorX = 3 + 5 + 12 + 3 + 7 + $priorityWidth + $this.EditingValue.Length
+                }
+            }
+            "title" {
+                if ($level -eq 0) {
+                    # Title starts after status (3) + priority (5) + date (12) + arrow (3) = 23, cursor at end of EditingValue
+                    $cursorX = 23 + $this.EditingValue.Length
+                } else {
+                    # Calculate position after tree chars and priority/date for subtasks, cursor at end of EditingValue
+                    $baseX = 3 + 5 + 12 + 3 + 7  # All columns + tree chars
+                    # Add priority and date widths if they exist
+                    if ($this.EditingTask.Priority) { $baseX += 2 }  # 2 chars for subtask priority
+                    if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $baseX += 6 }  # 6 chars for MM-dd
+                    $cursorX = $baseX + $this.EditingValue.Length
+                }
+            }
+            "tags" {
+                # Tags appear in the second line of pillbox (if selected)
+                if ($isSelected) {
+                    $cursorY += 1  # Move to tags line in pillbox
+                    $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+                    if ($level -eq 1) { $indentSize += 7 }
+                    # Position cursor inside the ⟨⟩ brackets at end of EditingValue: pillbox border + indent + "⟨" + text
+                    $cursorX = 1 + $indentSize + 1 + $this.EditingValue.Length
+                }
+            }
         }
+        
+        # Adjust for pillbox border when selected
+        if ($isSelected -and $this.EditingField -ne "tags") {
+            $cursorX += 1  # Add 1 for left pillbox border
+        }
+        
+        [void]$sb.Append([VT]::MoveTo($cursorX, $cursorY))
     }
     
     [void] OpenProjectTextExport() {
@@ -1471,5 +1952,34 @@ class TaskListScreen {
             Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
             [Console]::ReadKey($true) | Out-Null
         }
+    }
+    
+    [void] OpenThemeEditor() {
+        # Simple color picker for task themes
+        if ($this.FlatList.Count -eq 0 -or $this.SelectedIndex -lt 0) {
+            return
+        }
+        
+        $selectedTask = $this.FlatList[$this.SelectedIndex].Task
+        $currentTheme = $selectedTask.ColorTheme
+        
+        # Available themes from ColorThemeService
+        $themes = @("default", "urgent", "work", "personal", "project", "client", "research", "meeting", "deadline", "completed")
+        $currentIndex = $themes.IndexOf($currentTheme)
+        if ($currentIndex -eq -1) { $currentIndex = 0 }
+        
+        # Simple cycling through themes (can be enhanced later)
+        $nextIndex = ($currentIndex + 1) % $themes.Count
+        $newTheme = $themes[$nextIndex]
+        
+        # Update task theme
+        $selectedTask.ColorTheme = $newTheme 
+        $selectedTask.SubtaskColorTheme = $newTheme
+        
+        # Save the updated task
+        $this.TaskService.UpdateTask($selectedTask)
+        
+        # Refresh display
+        $this.LoadTasks()
     }
 }
