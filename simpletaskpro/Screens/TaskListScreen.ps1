@@ -16,6 +16,7 @@ class TaskListScreen {
     [int]$EditingIndex = -1
     [string]$EditingField = ""  # "title", "priority", "date", "tags"
     [string]$EditingValue = ""
+    [int]$EditingCursor = 0    # Cursor position within EditingValue
     [SimpleTask]$EditingTask = $null
     [bool]$IsNewTask = $false
     
@@ -103,6 +104,8 @@ class TaskListScreen {
     TaskListScreen() {
         $this.TaskService = [SimpleTaskService]::new()
         $this.FlatList = [System.Collections.Generic.List[object]]::new()
+        # Migrate existing notes to files (run once, safe to call multiple times)
+        $this.MigrateNotesToFiles()
         $this.LoadTasks()
     }
     
@@ -590,7 +593,7 @@ class TaskListScreen {
         } elseif ($this.EditingIndex -ge 0) {
             [void]$sb.Append("EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")
         } else {
-            [void]$sb.Append("↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:Cycle  F5:Color  Q:Quit")
+            [void]$sb.Append("↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:Cycle  F5:Color  F6:Projects  Q:Quit")
         }
         [void]$sb.Append($this.NormalColor)
         
@@ -972,7 +975,6 @@ class TaskListScreen {
             return $this.HandleEditingInput($key)
         }
         
-        
         switch ($key.Key) {
             ([System.ConsoleKey]::UpArrow) {
                 # Check for Ctrl+Up (move task up)
@@ -1072,10 +1074,8 @@ class TaskListScreen {
                 # Open notes editor
                 if ($this.FlatList.Count -gt 0) {
                     $item = $this.FlatList[$this.SelectedIndex]
-                    $parentTask = $this.TaskService.GetParentTask($item.Task.Id)
-                    if ($parentTask) {
-                        return $this.EditNotes($parentTask)
-                    }
+                    # Edit notes for the selected task (parent or subtask)
+                    return $this.EditNotes($item.Task)
                 }
                 return $true
             }
@@ -1148,18 +1148,49 @@ class TaskListScreen {
                 }
                 return $true
             }
+            ([System.ConsoleKey]::F1) {
+                # Toggle filter: All
+                $this.CurrentFilter = "All"
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F2) {
+                # Toggle filter: Today
+                $this.CurrentFilter = "Today" 
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F3) {
+                # Toggle filter: High Priority
+                $this.CurrentFilter = "High"
+                $this.LoadTasks()
+                return $true
+            }
+            ([System.ConsoleKey]::F4) {
+                # Cycle through all filters
+                $filters = @("All", "Today", "High", "Medium", "Low")
+                $currentIndex = $filters.IndexOf($this.CurrentFilter)
+                $nextIndex = ($currentIndex + 1) % $filters.Count
+                $this.CurrentFilter = $filters[$nextIndex]
+                $this.LoadTasks()
+                return $true
+            }
             ([System.ConsoleKey]::F5) {
                 # Open color theme editor
                 $this.OpenThemeEditor()
                 return $true
             }
+            ([System.ConsoleKey]::F6) {
+                # Open Project Management Screen
+                return $this.OpenProjectScreen()
+            }
             ([System.ConsoleKey]::Q) {
                 return $false
             }
             default {
-                # Check for + key (Plus Menu for Project Functions)
-                if ($key.KeyChar -eq '+') {
-                    return $this.ShowPlusMenu()
+                # Check for + key or = key (Project Management Screen)
+                if ($key.KeyChar -eq '+' -or $key.KeyChar -eq '=') {
+                    return $this.OpenProjectScreen()
                 }
                 
                 # Handle filter commands starting with '/'
@@ -1215,24 +1246,89 @@ class TaskListScreen {
         }
     }
     
-    [bool] EditNotes([SimpleTask]$parentTask) {
+    # Notes file management - each parent task has its own notes file
+    [string] GetNotesFilePath([SimpleTask]$task) {
+        # Get the parent task for the notes file
+        $parentTask = if ($task.IsParent()) { $task } else { $this.TaskService.GetTask($task.ParentId) }
+        if (-not $parentTask) { return "" }
+        
+        # Create notes directory if it doesn't exist
+        $notesDir = Join-Path $PSScriptRoot ".." "Data" "notes"
+        if (-not (Test-Path $notesDir)) {
+            New-Item -ItemType Directory -Path $notesDir -Force | Out-Null
+        }
+        
+        # Use parent task ID as filename
+        return Join-Path $notesDir "$($parentTask.Id).txt"
+    }
+    
+    [string] LoadNotesFromFile([SimpleTask]$task) {
+        $notesFile = $this.GetNotesFilePath($task)
+        if ($notesFile -and (Test-Path $notesFile)) {
+            try {
+                return [System.IO.File]::ReadAllText($notesFile)
+            } catch {
+                return ""
+            }
+        }
+        return ""
+    }
+    
+    [void] SaveNotesToFile([SimpleTask]$task, [string]$content) {
+        $notesFile = $this.GetNotesFilePath($task)
+        if ($notesFile) {
+            try {
+                # Atomic save: write to temp file first
+                $tempFile = "$notesFile.tmp"
+                [System.IO.File]::WriteAllText($tempFile, $content)
+                Move-Item -Path $tempFile -Destination $notesFile -Force
+            } catch {
+                # Clean up temp file if it exists
+                if (Test-Path "$notesFile.tmp") {
+                    Remove-Item -Path "$notesFile.tmp" -Force -ErrorAction SilentlyContinue
+                }
+                Write-Warning "Failed to save notes: $_"
+            }
+        }
+    }
+    
+    # Migrate existing notes from JSON to separate files (run once)
+    [void] MigrateNotesToFiles() {
+        $allTasks = $this.TaskService.GetParentTasks()
+        foreach ($parentTask in $allTasks) {
+            if (-not [string]::IsNullOrWhiteSpace($parentTask.Notes)) {
+                # Save existing notes to file
+                $this.SaveNotesToFile($parentTask, $parentTask.Notes)
+                # Clear notes from JSON (will be saved on next TaskService save)
+                $parentTask.Notes = ""
+            }
+        }
+    }
+    
+    [bool] EditNotes([SimpleTask]$task) {
         # Create full-screen editor (leave room for header and status)
         $editor = [FullNotesEditor]::new()
         $editor.SetBounds(0, 2, $this.Width, $this.Height - 3)
         
-        # Auto-recover from crash if available
-        $recoveredText = $editor.RecoverAutoSave()
+        # Get parent task for notes (subtasks share parent's notes)
+        $parentTask = if ($task.IsParent()) { $task } else { $this.TaskService.GetTask($task.ParentId) }
+        $parentTaskId = if ($parentTask) { $parentTask.Id } else { $task.Id }
+        
+        # Auto-recover from crash if available (task-specific)
+        $recoveredText = $editor.RecoverAutoSave($parentTaskId)
         if ($recoveredText) {
             # Automatically use recovered text
             $editor.SetText($recoveredText)
         } else {
-            $editor.SetText($parentTask.Notes)
+            # Load notes from file (parent task's notes file)
+            $notesContent = $this.LoadNotesFromFile($task)
+            $editor.SetText($notesContent)
         }
         
         # Show editor header immediately
         [Console]::Clear()
         [Console]::SetCursorPosition(0, 0)
-        Write-Host -NoNewline "$($this.HeaderColor)EDITING NOTES: $($parentTask.Title)$($this.NormalColor)"
+        Write-Host -NoNewline "$($this.HeaderColor)EDITING NOTES: $($task.Title)$($this.NormalColor)"
         [Console]::SetCursorPosition(0, 1)
         Write-Host -NoNewline ("─" * $this.Width)
         [Console]::SetCursorPosition(0, $this.Height - 1)
@@ -1258,8 +1354,7 @@ class TaskListScreen {
                     if ($key.Key -eq [System.ConsoleKey]::Escape) {
                         # Always auto-save on exit
                         if ($editor.HasUnsavedChanges()) {
-                            $parentTask.Notes = $editor.GetText()
-                            $this.TaskService.UpdateTask($parentTask)
+                            $this.SaveNotesToFile($task, $editor.GetText())
                             $saved = $true
                         }
                         break
@@ -1269,8 +1364,7 @@ class TaskListScreen {
                         [Console]::SetCursorPosition(0, $this.Height - 1)
                         Write-Host -NoNewline "Saving..." -ForegroundColor Green -BackgroundColor DarkGreen
                         
-                        $parentTask.Notes = $editor.GetText()
-                        $this.TaskService.UpdateTask($parentTask)
+                        $this.SaveNotesToFile($task, $editor.GetText())
                         $saved = $true
                         
                         # Show save confirmation immediately
@@ -1295,12 +1389,11 @@ class TaskListScreen {
             }
         } finally {
             # Always call OnExit to ensure auto-save
-            $editor.OnExit()
+            $editor.OnExit($parentTaskId)
             
-            # If we saved, ensure atomic save to actual task
+            # If we saved, ensure atomic save to notes file
             if ($saved -or $editor.HasUnsavedChanges()) {
-                $parentTask.Notes = $editor.GetText()
-                $this.TaskService.UpdateTask($parentTask)
+                $this.SaveNotesToFile($task, $editor.GetText())
             }
             
             [Console]::CursorVisible = $false
@@ -1479,6 +1572,7 @@ class TaskListScreen {
             default { "" }
         }
         $this.EditingValue = $priorityChar
+        $this.EditingCursor = $this.EditingValue.Length
         $this.IsNewTask = $false
     }
     
@@ -1494,6 +1588,7 @@ class TaskListScreen {
         $this.EditingTask = $newTask
         $this.EditingField = "title"  # Start with title for immediate input
         $this.EditingValue = ""
+        $this.EditingCursor = 0
         $this.SelectedIndex = $this.EditingIndex
         $this.IsNewTask = $true
         $this.EnsureVisible()
@@ -1529,6 +1624,7 @@ class TaskListScreen {
         $this.EditingTask = $newSubtask
         $this.EditingField = "title"  # Start with title for immediate input
         $this.EditingValue = ""
+        $this.EditingCursor = 0
         $this.SelectedIndex = $this.EditingIndex
         $this.IsNewTask = $true
         $this.EnsureVisible()
@@ -1556,9 +1652,36 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::Backspace) {
-                if ($this.EditingValue.Length -gt 0) {
-                    $this.EditingValue = $this.EditingValue.Substring(0, $this.EditingValue.Length - 1)
+                if ($this.EditingCursor -gt 0) {
+                    $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor - 1, 1)
+                    $this.EditingCursor--
                 }
+                return $true
+            }
+            ([System.ConsoleKey]::Delete) {
+                if ($this.EditingCursor -lt $this.EditingValue.Length) {
+                    $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor, 1)
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::LeftArrow) {
+                if ($this.EditingCursor -gt 0) {
+                    $this.EditingCursor--
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::RightArrow) {
+                if ($this.EditingCursor -lt $this.EditingValue.Length) {
+                    $this.EditingCursor++
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Home) {
+                $this.EditingCursor = 0
+                return $true
+            }
+            ([System.ConsoleKey]::End) {
+                $this.EditingCursor = $this.EditingValue.Length
                 return $true
             }
             ([System.ConsoleKey]::UpArrow) {
@@ -1582,7 +1705,7 @@ class TaskListScreen {
             default {
                 # Add character to editing value with field-specific validation
                 if ($key.KeyChar -and [char]::IsControl($key.KeyChar) -eq $false) {
-                    $newValue = $this.EditingValue + $key.KeyChar
+                    $newValue = $this.EditingValue.Insert($this.EditingCursor, $key.KeyChar)
                     
                     # Validate input based on field type
                     $isValid = $false
@@ -1616,6 +1739,7 @@ class TaskListScreen {
                     
                     if ($isValid) {
                         $this.EditingValue = $newValue
+                        $this.EditingCursor++
                     }
                 }
                 return $true
@@ -1635,6 +1759,7 @@ class TaskListScreen {
                 $this.EditingField = "date"
                 # Preserve existing date when switching fields
                 $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
             }
             "date" {
                 # Only update if user entered something
@@ -1644,6 +1769,7 @@ class TaskListScreen {
                 $this.EditingField = "title"
                 # Preserve existing title when switching fields
                 $this.EditingValue = $this.EditingTask.Title
+                $this.EditingCursor = $this.EditingValue.Length
             }
             "title" {
                 # Only update if user entered something
@@ -1653,6 +1779,7 @@ class TaskListScreen {
                 $this.EditingField = "tags"
                 # Preserve existing tags when switching fields
                 $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
             }
             "tags" {
                 # Only update if user entered something
@@ -1672,6 +1799,7 @@ class TaskListScreen {
                     default { "" }
                 }
                 $this.EditingValue = $priorityChar
+                $this.EditingCursor = $this.EditingValue.Length
             }
         }
     }
@@ -1687,6 +1815,7 @@ class TaskListScreen {
                 $this.EditingField = "tags"
                 # Preserve existing tags when switching fields
                 $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
             }
             "date" {
                 # Only update if user entered something
@@ -1703,6 +1832,7 @@ class TaskListScreen {
                     default { "" }
                 }
                 $this.EditingValue = $priorityChar
+                $this.EditingCursor = $this.EditingValue.Length
             }
             "title" {
                 # Only update if user entered something
@@ -1712,6 +1842,7 @@ class TaskListScreen {
                 $this.EditingField = "date"
                 # Preserve existing date when switching fields
                 $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
             }
             "tags" {
                 # Only update if user entered something
@@ -1722,6 +1853,7 @@ class TaskListScreen {
                 $this.EditingField = "title"
                 # Preserve existing title when switching fields
                 $this.EditingValue = $this.EditingTask.Title
+                $this.EditingCursor = $this.EditingValue.Length
             }
         }
     }
@@ -1812,6 +1944,7 @@ class TaskListScreen {
         $this.EditingIndex = -1
         $this.EditingField = ""
         $this.EditingValue = ""
+        $this.EditingCursor = 0
         $this.EditingTask = $null
         $this.IsNewTask = $false
         $this.LoadTasks()  # Refresh the list
@@ -1860,34 +1993,34 @@ class TaskListScreen {
             }
             "priority" {
                 if ($level -eq 0) {
-                    # Priority field starts after status column, cursor at end of EditingValue
-                    $cursorX = $this.COLUMN_STATUS + $this.EditingValue.Length
+                    # Priority field starts after status column, cursor at EditingCursor position
+                    $cursorX = $this.COLUMN_STATUS + $this.EditingCursor
                 } else {
-                    # Subtask priority appears after tree chars, cursor at end of EditingValue
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT + $this.EditingValue.Length
+                    # Subtask priority appears after tree chars, cursor at EditingCursor position
+                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT + $this.EditingCursor
                 }
             }
             "date" {
                 if ($level -eq 0) {
-                    # Date field starts after status + priority, cursor at end of EditingValue
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.EditingValue.Length
+                    # Date field starts after status + priority, cursor at EditingCursor position
+                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.EditingCursor
                 } else {
-                    # Subtask date appears after priority, cursor at end of EditingValue
+                    # Subtask date appears after priority, cursor at EditingCursor position
                     $priorityWidth = if ($this.EditingTask.Priority) { 2 } else { 0 }
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT + $priorityWidth + $this.EditingValue.Length
+                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT + $priorityWidth + $this.EditingCursor
                 }
             }
             "title" {
                 if ($level -eq 0) {
-                    # Title starts after all columns, cursor at end of EditingValue
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.EditingValue.Length
+                    # Title starts after all columns, cursor at EditingCursor position
+                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.EditingCursor
                 } else {
-                    # Calculate position after tree chars and priority/date for subtasks, cursor at end of EditingValue
+                    # Calculate position after tree chars and priority/date for subtasks, cursor at EditingCursor position
                     $baseX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT
                     # Add priority and date widths if they exist
                     if ($this.EditingTask.Priority) { $baseX += 2 }  # 2 chars for subtask priority
                     if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $baseX += 6 }  # 6 chars for MM-dd
-                    $cursorX = $baseX + $this.EditingValue.Length
+                    $cursorX = $baseX + $this.EditingCursor
                 }
             }
             "tags" {
@@ -1896,8 +2029,8 @@ class TaskListScreen {
                     $cursorY += 1  # Move to tags line in pillbox
                     $indentSize = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW
                     if ($level -eq 1) { $indentSize += $this.TREE_INDENT }
-                    # Position cursor inside the ⟨⟩ brackets at end of EditingValue: pillbox border + indent + "⟨" + text
-                    $cursorX = 1 + $indentSize + 1 + $this.EditingValue.Length
+                    # Position cursor inside the ⟨⟩ brackets at EditingCursor position: pillbox border + indent + "⟨" + text
+                    $cursorX = 1 + $indentSize + 1 + $this.EditingCursor
                 }
             }
         }
@@ -2222,368 +2355,31 @@ class TaskListScreen {
         }
     }
     
-    # Project Management Methods - Phase 2 Implementation
+    # Project Management Methods - Screen Transition
     
-    [bool] OpenProjectSettings([SimpleTask]$parentTask) {
-        if ($global:Debug) {
-            Write-Host "DEBUG: OpenProjectSettings called for task: $($parentTask.Title)" -ForegroundColor Green
-        }
-        try {
-            . "$PSScriptRoot/ProjectSettingsDialog.ps1"
-            $dialog = [ProjectSettingsDialog]::new()
-            if ($dialog.Show($parentTask)) {
-                $this.TaskService.UpdateTask($parentTask)
-                return $true
-            }
-        } catch {
-            if ($global:Debug) {
-                Write-Host "DEBUG: Error in OpenProjectSettings: $_" -ForegroundColor Red
-            }
-            # Fallback - show a simple message
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "Project Settings: $($parentTask.Title) " -ForegroundColor Yellow
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-        }
-        return $true
-    }
-    
-    [bool] OpenProjectFolder() {
-        $parentTask = $this.GetCurrentParentTask()
-        if ($parentTask -and $parentTask.ProjectFolderPath -and (Test-Path $parentTask.ProjectFolderPath)) {
-            try {
-                if ([System.Environment]::OSVersion.Platform -eq "Unix" -or $env:OS -ne "Windows_NT") {
-                    # Unix-like systems
-                    if (Get-Command "xdg-open" -ErrorAction SilentlyContinue) {
-                        Start-Process "xdg-open" -ArgumentList "`"$($parentTask.ProjectFolderPath)`""
-                    } elseif (Get-Command "open" -ErrorAction SilentlyContinue) {
-                        Start-Process "open" -ArgumentList "`"$($parentTask.ProjectFolderPath)`""
-                    } else {
-                        [Console]::SetCursorPosition(0, $this.Height)
-                        Write-Host -NoNewline "Folder path: $($parentTask.ProjectFolderPath) " -ForegroundColor Green
-                        Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-                        [Console]::ReadKey($true) | Out-Null
-                    }
-                } else {
-                    # Windows
-                    Start-Process explorer.exe -ArgumentList $parentTask.ProjectFolderPath
-                }
-            } catch {
-                [Console]::SetCursorPosition(0, $this.Height)
-                Write-Host -NoNewline "Could not open project folder: $_ " -ForegroundColor Red
-                Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-                [Console]::ReadKey($true) | Out-Null
-            }
-        } else {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "No project folder configured for this project " -ForegroundColor Yellow
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-        }
-        return $true
-    }
-    
-    [bool] OpenT2020CallLog() {
-        $parentTask = $this.GetCurrentParentTask()
-        if ($parentTask -and $parentTask.T2020CallLogFile -and (Test-Path $parentTask.T2020CallLogFile)) {
-            return $this.EditExternalFile($parentTask.T2020CallLogFile, "T2020 CALL LOG", $false)
-        } else {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "No T2020 call log file configured or file not found " -ForegroundColor Yellow
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-        }
-        return $true
-    }
-    
-    [bool] OpenExportDataFile() {
-        $parentTask = $this.GetCurrentParentTask()
-        if ($parentTask -and $parentTask.ExportDataFile -and (Test-Path $parentTask.ExportDataFile)) {
-            return $this.EditExternalFile($parentTask.ExportDataFile, "EXPORT DATA (READ-ONLY)", $true)
-        } else {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "No export data file configured or file not found " -ForegroundColor Yellow
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-        }
-        return $true
-    }
-    
-    [bool] OpenActionLog() {
-        if ($global:Debug) {
-            Write-Host "DEBUG: OpenActionLog called" -ForegroundColor Green
-        }
-        $parentTask = $this.GetCurrentParentTask()
-        if ($parentTask -and $parentTask.ProjectFolderPath) {
-            $actionLogPath = Join-Path $parentTask.ProjectFolderPath "$($parentTask.ActionLogName).txt"
-            
-            # Create action log if it doesn't exist
-            if (-not (Test-Path $actionLogPath)) {
-                try {
-                    $initialContent = "# Action Log for $($parentTask.Title)`n# Created: $(Get-Date)`n`n"
-                    [System.IO.File]::WriteAllText($actionLogPath, $initialContent)
-                } catch {
-                    [Console]::SetCursorPosition(0, $this.Height)
-                    Write-Host -NoNewline "Could not create action log file: $_ " -ForegroundColor Red
-                    Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-                    [Console]::ReadKey($true) | Out-Null
-                    return $true
-                }
-            }
-            
-            return $this.EditExternalFile($actionLogPath, "ACTION LOG", $false)
-        } else {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "No project folder configured " -ForegroundColor Yellow
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-        }
-        return $true
-    }
-    
-    [bool] EditExternalFile([string]$filePath, [string]$title, [bool]$readOnly) {
-        # Similar to EditNotes but for external files
-        $editor = [FullNotesEditor]::new()
-        $editor.SetBounds(0, 2, $this.Width, $this.Height - 3)
-        
-        try {
-            $content = [System.IO.File]::ReadAllText($filePath)
-            $editor.SetText($content)
-        } catch {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "Could not load file: $_ " -ForegroundColor Red
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-            return $true
-        }
-        
-        # Show editor header immediately
-        [Console]::Clear()
-        [Console]::SetCursorPosition(0, 0)
-        $titleColor = if ($readOnly) { $this.StatusBarColor } else { $this.HeaderColor }
-        Write-Host -NoNewline "$titleColor$title$($this.NormalColor)"
-        [Console]::SetCursorPosition(0, 1)
-        Write-Host -NoNewline ("─" * $this.Width)
-        [Console]::SetCursorPosition(0, $this.Height - 1)
-        
-        if ($readOnly) {
-            Write-Host -NoNewline "READ-ONLY  Press 'E' to edit in external editor  Escape:Exit  " -ForegroundColor Yellow
-        } else {
-            Write-Host -NoNewline "Ctrl+S:Save  Escape:Exit  " -ForegroundColor White
-        }
-        
-        # Initial render
-        Write-Host -NoNewline $editor.Render()
-        
-        # Edit loop
-        [Console]::CursorVisible = -not $readOnly
-        $saved = $false
-        $lastAutoSave = [datetime]::Now
-        
-        try {
-            while ($true) {
-                if ([Console]::KeyAvailable) {
-                    $key = [Console]::ReadKey($true)
-                    
-                    if ($key.Key -eq [System.ConsoleKey]::Escape) {
-                        # Auto-save on exit if not read-only
-                        if (-not $readOnly -and $editor.HasUnsavedChanges()) {
-                            [System.IO.File]::WriteAllText($filePath, $editor.GetText())
-                            $saved = $true
-                        }
-                        break
-                    } elseif ($readOnly -and ($key.KeyChar -eq 'E' -or $key.KeyChar -eq 'e')) {
-                        # Open in external editor for read-only mode
-                        try {
-                            if ([System.Environment]::OSVersion.Platform -eq "Unix" -or $env:OS -ne "Windows_NT") {
-                                # Unix-like systems
-                                if (Get-Command "xdg-open" -ErrorAction SilentlyContinue) {
-                                    Start-Process "xdg-open" -ArgumentList "`"$filePath`""
-                                } elseif (Get-Command "open" -ErrorAction SilentlyContinue) {
-                                    Start-Process "open" -ArgumentList "`"$filePath`""
-                                } else {
-                                    # Try common editors
-                                    $editors = @("nano", "vim", "vi", "gedit")
-                                    foreach ($ed in $editors) {
-                                        if (Get-Command $ed -ErrorAction SilentlyContinue) {
-                                            Start-Process $ed -ArgumentList "`"$filePath`""
-                                            break
-                                        }
-                                    }
-                                }
-                            } else {
-                                # Windows
-                                Start-Process notepad.exe -ArgumentList "`"$filePath`""
-                            }
-                        } catch {
-                            [Console]::SetCursorPosition(0, $this.Height - 1)
-                            Write-Host -NoNewline "Could not open external editor: $_ " -ForegroundColor Red
-                        }
-                    } elseif (-not $readOnly -and $key.Key -eq [System.ConsoleKey]::S -and 
-                             ($key.Modifiers -band [System.ConsoleModifiers]::Control)) {
-                        # Manual save for editable files
-                        [Console]::SetCursorPosition(0, $this.Height - 1)
-                        Write-Host -NoNewline "Saving..." -ForegroundColor Green -BackgroundColor DarkGreen
-                        
-                        try {
-                            [System.IO.File]::WriteAllText($filePath, $editor.GetText())
-                            $saved = $true
-                            
-                            [Console]::SetCursorPosition(0, $this.Height - 1)
-                            Write-Host -NoNewline "Saved!                                            " -ForegroundColor Green -BackgroundColor DarkGreen
-                        } catch {
-                            [Console]::SetCursorPosition(0, $this.Height - 1)
-                            Write-Host -NoNewline "Save failed: $_                                   " -ForegroundColor Red -BackgroundColor DarkRed
-                        }
-                    } elseif (-not $readOnly) {
-                        # Handle input only if not read-only
-                        if ($editor.HandleInput($key)) {
-                            Write-Host -NoNewline $editor.Render()
-                        }
-                    }
-                }
-                
-                # Auto-save for editable files
-                if (-not $readOnly -and ([datetime]::Now - $lastAutoSave).TotalSeconds -gt 10) {
-                    if ($editor.HasUnsavedChanges()) {
-                        try {
-                            [System.IO.File]::WriteAllText($filePath, $editor.GetText())
-                        } catch {
-                            # Silent failure for auto-save
-                        }
-                    }
-                    $lastAutoSave = [datetime]::Now
-                }
-                
-                Start-Sleep -Milliseconds 50
-            }
-        } finally {
-            # Final save attempt if needed
-            if (-not $readOnly -and $editor.HasUnsavedChanges()) {
-                try {
-                    [System.IO.File]::WriteAllText($filePath, $editor.GetText())
-                } catch {
-                    # Silent failure
-                }
-            }
-            
-            [Console]::CursorVisible = $false
-            $this.LoadTasks()
-        }
-        
-        return $true
-    }
-    
-    [SimpleTask] GetCurrentParentTask() {
-        if ($this.FlatList.Count -eq 0) { return $null }
-        $item = $this.FlatList[$this.SelectedIndex]
-        return if ($item.Task.IsParent()) { $item.Task } else { $this.TaskService.GetTask($item.Task.ParentId) }
-    }
-    
-    [bool] ShowPlusMenu() {
+    [bool] OpenProjectScreen() {
+        # Get current parent task for context
         if ($this.FlatList.Count -eq 0) {
             return $true
         }
         
-        # Get current parent task for context
         $item = $this.FlatList[$this.SelectedIndex]
         $parentTask = if ($item.Task.IsParent()) { $item.Task } else { $this.TaskService.GetTask($item.Task.ParentId) }
         if (-not $parentTask) {
             return $true
         }
         
-        # Show plus menu overlay
-        $menuItems = @(
-            @{ Key = "S"; Label = "Settings"; Description = "Project settings for '$($parentTask.Title)'" },
-            @{ Key = "T"; Label = "T2020"; Description = "Open T2020 call log" },
-            @{ Key = "O"; Label = "Folder"; Description = "Open project folder" },
-            @{ Key = "F"; Label = "Export"; Description = "View export data file (read-only)" },
-            @{ Key = "L"; Label = "Log"; Description = "Open/create action log" }
-        )
+        # Create and show the dedicated Project Management Screen
+        $projectScreen = [ProjectManagerScreen]::new()
+        $projectScreen.SetServices($this.TaskService, $this.ThemeService)
+        $projectScreen.SetParentTask($parentTask)
+        $projectScreen.SetBounds(0, 0, $this.Width, $this.Height)
         
-        # Calculate menu position (center of screen)
-        $menuWidth = 60
-        $menuHeight = 9  # Title + 5 items + borders
-        $menuX = ($this.Width - $menuWidth) / 2
-        $menuY = ($this.Height - $menuHeight) / 2
+        # Show the screen - this will handle all input until user returns
+        $projectScreen.Show()
         
-        # Save current screen area for restoration
-        $savedLines = @()
-        for ($i = $menuY; $i -lt ($menuY + $menuHeight); $i++) {
-            $savedLines += " " * $this.Width  # We can't actually read console, so just clear
-        }
-        
-        try {
-            # Draw menu box
-            [Console]::SetCursorPosition($menuX, $menuY)
-            Write-Host -NoNewline "┌" + ("─" * ($menuWidth - 2)) + "┐" -ForegroundColor Cyan
-            
-            [Console]::SetCursorPosition($menuX, $menuY + 1) 
-            Write-Host -NoNewline "│" + (" PROJECT FUNCTIONS ".PadLeft(($menuWidth - 2 + 18) / 2).PadRight($menuWidth - 2)) + "│" -ForegroundColor Cyan -BackgroundColor DarkBlue
-            
-            [Console]::SetCursorPosition($menuX, $menuY + 2)
-            Write-Host -NoNewline "├" + ("─" * ($menuWidth - 2)) + "┤" -ForegroundColor Cyan
-            
-            # Draw menu items
-            for ($i = 0; $i -lt $menuItems.Count; $i++) {
-                $menuItem = $menuItems[$i]
-                $itemY = $menuY + 3 + $i
-                [Console]::SetCursorPosition($menuX, $itemY)
-                Write-Host -NoNewline "│ " -ForegroundColor Cyan
-                Write-Host -NoNewline $menuItem.Key -ForegroundColor Yellow -BackgroundColor DarkGray
-                Write-Host -NoNewline " - " -ForegroundColor Cyan
-                Write-Host -NoNewline $menuItem.Label -ForegroundColor White
-                Write-Host -NoNewline ": $($menuItem.Description)" -ForegroundColor Gray
-                $padding = $menuWidth - 2 - " $($menuItem.Key) - $($menuItem.Label): $($menuItem.Description)".Length
-                Write-Host -NoNewline (" " * [Math]::Max(0, $padding)) + "│" -ForegroundColor Cyan
-            }
-            
-            # Bottom border
-            [Console]::SetCursorPosition($menuX, $menuY + 3 + $menuItems.Count)
-            Write-Host -NoNewline "│" + (" ESC to cancel ".PadLeft(($menuWidth - 2 + 14) / 2).PadRight($menuWidth - 2)) + "│" -ForegroundColor Cyan -BackgroundColor DarkRed
-            
-            [Console]::SetCursorPosition($menuX, $menuY + 4 + $menuItems.Count)
-            Write-Host -NoNewline "└" + ("─" * ($menuWidth - 2)) + "┘" -ForegroundColor Cyan
-            
-            # Wait for key selection
-            [Console]::CursorVisible = $false
-            while ($true) {
-                if ([Console]::KeyAvailable) {
-                    $key = [Console]::ReadKey($true)
-                    
-                    if ($key.Key -eq [System.ConsoleKey]::Escape) {
-                        break
-                    }
-                    
-                    $selectedKey = $key.KeyChar.ToString().ToUpper()
-                    $selectedItem = $menuItems | Where-Object { $_.Key -eq $selectedKey }
-                    
-                    if ($selectedItem) {
-                        # Execute the selected function
-                        switch ($selectedKey) {
-                            "S" { $this.OpenProjectSettings($parentTask) }
-                            "T" { $this.OpenT2020CallLog() }
-                            "O" { $this.OpenProjectFolder() }
-                            "F" { $this.OpenExportDataFile() }
-                            "L" { $this.OpenActionLog() }
-                        }
-                        break
-                    }
-                }
-                Start-Sleep -Milliseconds 50
-            }
-            
-        } finally {
-            # Clear the menu area (simple clear - just overwrite with spaces)
-            for ($i = $menuY; $i -lt ($menuY + $menuHeight); $i++) {
-                [Console]::SetCursorPosition(0, $i)
-                Write-Host (" " * $this.Width) -NoNewline
-            }
-            
-            # Force refresh of the main screen
-            $this.LoadTasks()
-            [Console]::CursorVisible = $false
-        }
+        # When we return, reload tasks in case anything changed
+        $this.LoadTasks()
         
         return $true
     }

@@ -17,13 +17,11 @@ class SimpleTask {
     [datetime]$CreatedDate
     [datetime]$ModifiedDate
     
-    # Project management fields
+    # Project management fields (Phase 1)
     [string]$ProjectFolderPath = ""      # Path to project folder
     [string]$T2020CallLogFile = ""       # Full path to T2020 call log file
     [string]$ExportDataFile = ""         # Full path to ExcelDataFlow export file
     [string]$ActionLogName = "action-log" # Name of action log file (without extension)
-    
-    # Display fields for project view
     [string]$ID1 = ""                    # Project code (3 chars display)
     [string]$ID2 = ""                    # Unique project ID (12 chars display)
     

@@ -38,7 +38,7 @@ Write-Host "=== STEP 3: Base64 encoding ===" -ForegroundColor Yellow
 $bytes = [System.IO.File]::ReadAllBytes($zipFile)
 $base64 = [System.Convert]::ToBase64String($bytes)
 $base64File = "$zipFile.b64"
-[System.IO.File]::WriteAllText($base64File, $base64)
+[System.IO.File]::WriteAllBytes($base64File, [System.Text.Encoding]::ASCII.GetBytes($base64))
 Write-Host "Encoded: $zipFile -> $base64File ($($base64.Length) chars)`n" -ForegroundColor Green
 
 Write-Host "=== STEP 4: Splitting into chunks ===" -ForegroundColor Yellow
@@ -52,7 +52,7 @@ for ($i = 0; $i -lt $chunkCount; $i++) {
     $chunk = $base64.Substring($start, $length)
     
     $chunkFile = "$base64File.part$($i + 1)"
-    [System.IO.File]::WriteAllText($chunkFile, $chunk)
+    [System.IO.File]::WriteAllBytes($chunkFile, [System.Text.Encoding]::ASCII.GetBytes($chunk))
     Write-Host "Created: $chunkFile ($length chars)" -ForegroundColor Green
 }
 
