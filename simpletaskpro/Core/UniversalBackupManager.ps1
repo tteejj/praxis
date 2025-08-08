@@ -7,11 +7,12 @@ class UniversalBackupManager {
     
     # Configuration per data type
     static [hashtable]$TypeConfig = @{
-        "tasks"     = @{ Pattern = "tasks_backup_{0}.json";          MaxVersions = 10; HashValidation = $true }
-        "notes"     = @{ Pattern = "notes_backup_{0}_{1}.txt";       MaxVersions = 10; HashValidation = $true }
-        "settings"  = @{ Pattern = "settings_backup_{0}.json";      MaxVersions = 5;  HashValidation = $true }
-        "external"  = @{ Pattern = "external_backup_{0}_{1}";       MaxVersions = 5;  HashValidation = $true }
-        "project"   = @{ Pattern = "project_backup_{0}_{1}.json";   MaxVersions = 10; HashValidation = $true }
+        "tasks"       = @{ Pattern = "tasks_backup_{0}.json";          MaxVersions = 10; HashValidation = $true }
+        "timeentries" = @{ Pattern = "timeentries_backup_{0}.json";    MaxVersions = 10; HashValidation = $true }
+        "notes"       = @{ Pattern = "notes_backup_{0}_{1}.txt";       MaxVersions = 10; HashValidation = $true }
+        "settings"    = @{ Pattern = "settings_backup_{0}.json";      MaxVersions = 5;  HashValidation = $true }
+        "external"    = @{ Pattern = "external_backup_{0}_{1}";       MaxVersions = 5;  HashValidation = $true }
+        "project"     = @{ Pattern = "project_backup_{0}_{1}.json";   MaxVersions = 10; HashValidation = $true }
     }
     
     # Registry of active auto-save handlers
@@ -24,8 +25,9 @@ class UniversalBackupManager {
         [UniversalBackupManager]::BackupRoot = Join-Path $programFolder "Data" "backups"
         
         # Ensure backup directory exists
-        if (-not (Test-Path [UniversalBackupManager]::BackupRoot)) {
-            New-Item -ItemType Directory -Path [UniversalBackupManager]::BackupRoot -Force | Out-Null
+        $rootPath = ([UniversalBackupManager]::BackupRoot)
+        if (-not (Test-Path $rootPath)) {
+            New-Item -ItemType Directory -Path $rootPath -Force | Out-Null
         }
         
         # Register global exit handlers (CRITICAL - do this once)
@@ -54,7 +56,8 @@ class UniversalBackupManager {
             } else {
                 $config.Pattern -f $timestamp
             }
-            $backupPath = Join-Path [UniversalBackupManager]::BackupRoot $backupFileName
+            $rootPath = ([UniversalBackupManager]::BackupRoot)
+            $backupPath = Join-Path $rootPath $backupFileName
             
             # STEP 2: ATOMIC BACKUP - Copy to temp first, then rename
             if (Test-Path $originalPath) {
@@ -206,7 +209,8 @@ class UniversalBackupManager {
             $config = [UniversalBackupManager]::TypeConfig[$dataType]
             $searchPattern = $config.Pattern -replace '\{[0-9]\}', '*'
             
-            $backups = Get-ChildItem -Path [UniversalBackupManager]::BackupRoot -Filter $searchPattern |
+            $rootPath = ([UniversalBackupManager]::BackupRoot)
+            $backups = Get-ChildItem -Path $rootPath -Filter $searchPattern |
                        Sort-Object -Property CreationTime -Descending
             
             if ($backups.Count -gt $maxVersions) {
@@ -227,7 +231,8 @@ class UniversalBackupManager {
             ($config.Pattern -f '*')
         }
         
-        return Get-ChildItem -Path [UniversalBackupManager]::BackupRoot -Filter $searchPattern |
+        $rootPath = ([UniversalBackupManager]::BackupRoot)
+        return Get-ChildItem -Path $rootPath -Filter $searchPattern |
                Sort-Object -Property CreationTime -Descending |
                ForEach-Object { $_.FullName }
     }

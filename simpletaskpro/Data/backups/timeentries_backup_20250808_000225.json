@@ -1,0 +1,53 @@
+﻿[
+  {
+    "Id": "13ef34ed-ca5e-4a08-b91c-ed14e60b98db",
+    "Friday": 0.0,
+    "ProjectCode": "v00123456789S",
+    "Total": 23.5,
+    "Wednesday": 8.0,
+    "Monday": 8.0,
+    "ID1Display": "WEB",
+    "WeekEndingFriday": "20250808",
+    "Modified": "2025-08-08 00:00:45",
+    "Created": "2025-08-07 19:55:56",
+    "IsProjectEntry": true,
+    "Thursday": 0.0,
+    "Description": "Web Development Project",
+    "FiscalYear": "2025-2026",
+    "Tuesday": 7.5
+  },
+  {
+    "Id": "e5951e49-9118-4b6a-a443-04653e23ab55",
+    "Friday": 6.0,
+    "ProjectCode": "PRJ002",
+    "Total": 10.0,
+    "Wednesday": 0.0,
+    "Monday": 0.0,
+    "ID1Display": "DB",
+    "WeekEndingFriday": "20250808",
+    "Modified": "2025-08-08 00:00:45",
+    "Created": "2025-08-07 19:55:56",
+    "IsProjectEntry": true,
+    "Thursday": 4.0,
+    "Description": "Database Migration",
+    "FiscalYear": "2025-2026",
+    "Tuesday": 0.0
+  },
+  {
+    "Id": "add93348-30ce-4846-876f-c77c914f3ced",
+    "Friday": 2.0,
+    "ProjectCode": null,
+    "Total": 2.0,
+    "Wednesday": 0.0,
+    "Monday": 0.0,
+    "ID1Display": "VAC",
+    "WeekEndingFriday": "20250808",
+    "Modified": "2025-08-08 00:00:45",
+    "Created": "2025-08-07 19:55:56",
+    "IsProjectEntry": false,
+    "Thursday": 0.0,
+    "Description": "Vacation",
+    "FiscalYear": "2025-2026",
+    "Tuesday": 0.0
+  }
+]

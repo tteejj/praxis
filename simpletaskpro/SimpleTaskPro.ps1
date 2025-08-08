@@ -15,13 +15,16 @@ $global:Debug = $Debug
 try {
     . "$PSScriptRoot/Core/StringCache.ps1"  # Load StringCache first
     . "$PSScriptRoot/Core/VT100.ps1"        # VT100 depends on StringCache
+    . "$PSScriptRoot/Core/UniversalBackupManager.ps1"  # Load backup system BEFORE everything else
     . "$PSScriptRoot/Core/GapBuffer.ps1"     # Core gap buffer implementation
     . "$PSScriptRoot/Core/FileBrowser.ps1"  # File browser must load before dialogs
     . "$PSScriptRoot/Core/FullNotesEditor.ps1"  # Full text editor with gap buffer
     . "$PSScriptRoot/Core/TagEditor.ps1"    # Tag editor for tasks
     . "$PSScriptRoot/Models/SimpleTask.ps1"
+    . "$PSScriptRoot/Models/SimpleTimeEntry.ps1"  # NEW: Time entry model
     . "$PSScriptRoot/Services/ColorThemeService.ps1"
     . "$PSScriptRoot/Services/SimpleTaskService.ps1"
+    . "$PSScriptRoot/Services/TimeTrackingService.ps1"  # NEW: Time tracking service
     . "$PSScriptRoot/Dialogs/ProjectSettingsDialog.ps1"
     . "$PSScriptRoot/Screens/ProjectManagerScreen.ps1"
     . "$PSScriptRoot/Screens/TaskListScreen.ps1"

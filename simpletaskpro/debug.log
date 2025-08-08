@@ -1,0 +1,14 @@
+TimeEntries: 3, TimeFlatList: 3
+Rendering entry 0 - Web Development Project at Y=4
+After render: currentY=8, height=4
+Rendering entry 1 - Database Migration at Y=8
+After render: currentY=9, height=1
+Rendering entry 2 - Vacation at Y=9
+After render: currentY=10, height=1
+TimeEntries: 3, TimeFlatList: 3
+Rendering entry 0 - Web Development Project at Y=4
+After render: currentY=8, height=4
+Rendering entry 1 - Database Migration at Y=8
+After render: currentY=9, height=1
+Rendering entry 2 - Vacation at Y=9
+After render: currentY=10, height=1

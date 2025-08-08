@@ -1,7 +1,5 @@
 # SimpleTaskService.ps1 - Task storage with parent/subtask support
-
-# Load the universal backup system
-. "$PSScriptRoot/../Core/UniversalBackupManager.ps1"
+# NOTE: UniversalBackupManager is loaded by main SimpleTaskPro.ps1
 
 class SimpleTaskService {
     [string]$DataFile
@@ -13,13 +11,14 @@ class SimpleTaskService {
         $this.EnsureDataDirectory()
         
         # Initialize universal backup system
-        [UniversalBackupManager]::Initialize($PSScriptRoot + "/..")
+        [UniversalBackupManager]::Initialize((Join-Path $PSScriptRoot ".."))
         
         # Register auto-save for critical data protection
+        $serviceInstance = $this  # Capture the current instance
         [UniversalBackupManager]::RegisterAutoSave(
             "tasks", 
             $this.DataFile, 
-            { $this.Save() }.GetNewClosure(),
+            { $serviceInstance.Save() }.GetNewClosure(),
             "tasks"
         )
         
@@ -122,6 +121,8 @@ class SimpleTaskService {
     
     [void] Save() {
         # BULLETPROOF SAVE: Use universal backup system for maximum data safety
+        $json = ""  # Declare outside try block for emergency backup access
+        
         try {
             $data = @()
             
@@ -149,12 +150,14 @@ class SimpleTaskService {
             Write-Warning "Failed to save tasks: $_"
             
             # CRITICAL: Even if primary save fails, try emergency backup
-            try {
-                $emergencyFile = "$($this.DataFile).emergency"
-                [System.IO.File]::WriteAllText($emergencyFile, $json)
-                Write-Warning "Emergency backup created at: $emergencyFile"
-            } catch {
-                Write-Warning "Emergency backup also failed: $_"
+            if ($json -and $json.Length -gt 0) {
+                try {
+                    $emergencyFile = "$($this.DataFile).emergency"
+                    [System.IO.File]::WriteAllText($emergencyFile, $json)
+                    Write-Warning "Emergency backup created at: $emergencyFile"
+                } catch {
+                    Write-Warning "Emergency backup also failed: $_"
+                }
             }
         }
     }

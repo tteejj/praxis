@@ -9,6 +9,9 @@ class SimpleTaskProApp {
     SimpleTaskProApp() {
         $this.Screen = [TaskListScreen]::new()
         
+        # Give screen access to app reference for F4 toggle
+        $this.Screen.SetAppReference($this)
+        
         # Register shutdown handler for crash recovery
         Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
             # This ensures auto-save on any exit
@@ -16,6 +19,22 @@ class SimpleTaskProApp {
                 $global:CurrentEditor.OnExit()
             }
         } | Out-Null
+    }
+    
+    # TIME ENTRY MODE SWITCHING
+    [void] SwitchToTimeEntry() {
+        try {
+            $this.Screen.SwitchToTimeEntryMode()
+        } catch {
+            Write-Host "`nError switching to time entry mode: $_" -ForegroundColor Red
+            if ($global:Debug) {
+                Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
+            }
+        }
+    }
+    
+    [void] SwitchToTasks() {
+        $this.Screen.SwitchToTaskMode()
     }
     
     [void] Run() {

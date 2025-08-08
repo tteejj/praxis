@@ -1,8 +1,6 @@
 # FullNotesEditor.ps1 - Full-featured text editor wrapper for task notes
 # Uses the complete text editor from Praxis with gap buffer, undo/redo, etc.
-
-# Load the universal backup system
-. "$PSScriptRoot/UniversalBackupManager.ps1"
+# NOTE: UniversalBackupManager is loaded by main SimpleTaskPro.ps1
 
 class FullNotesEditor {
     # The actual text content using gap buffer
@@ -106,11 +104,12 @@ class FullNotesEditor {
         $autoSaveKey = "notes_$filePath"
         
         # Register auto-save action
+        $editorInstance = $this  # Capture the current instance
         [UniversalBackupManager]::RegisterAutoSave(
             $autoSaveKey,
             $filePath,
             { 
-                $content = $this.GetText()
+                $content = $editorInstance.GetText()
                 [UniversalBackupManager]::AtomicSave($filePath, $content, "notes", $identifier)
             }.GetNewClosure(),
             "notes"
