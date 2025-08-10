@@ -7,11 +7,12 @@ class UniversalBackupManager {
     
     # Configuration per data type
     static [hashtable]$TypeConfig = @{
-        "tasks"       = @{ Pattern = "tasks_backup_{0}.json";          MaxVersions = 10; HashValidation = $true }
-        "timeentries" = @{ Pattern = "timeentries_backup_{0}.json";    MaxVersions = 10; HashValidation = $true }
-        "notes"       = @{ Pattern = "notes_backup_{0}_{1}.txt";       MaxVersions = 10; HashValidation = $true }
-        "settings"    = @{ Pattern = "settings_backup_{0}.json";      MaxVersions = 5;  HashValidation = $true }
-        "external"    = @{ Pattern = "external_backup_{0}_{1}";       MaxVersions = 5;  HashValidation = $true }
+        "tasks"          = @{ Pattern = "tasks_backup_{0}.json";          MaxVersions = 10; HashValidation = $true }
+        "timeentries"    = @{ Pattern = "timeentries_backup_{0}.json";    MaxVersions = 10; HashValidation = $true }
+        "excel-mappings" = @{ Pattern = "excel_mappings_backup_{0}.json"; MaxVersions = 10; HashValidation = $true }
+        "notes"          = @{ Pattern = "notes_backup_{0}_{1}.txt";       MaxVersions = 10; HashValidation = $true }
+        "settings"       = @{ Pattern = "settings_backup_{0}.json";      MaxVersions = 5;  HashValidation = $true }
+        "external"       = @{ Pattern = "external_backup_{0}_{1}";       MaxVersions = 5;  HashValidation = $true }
         "project"     = @{ Pattern = "project_backup_{0}_{1}.json";   MaxVersions = 10; HashValidation = $true }
     }
     

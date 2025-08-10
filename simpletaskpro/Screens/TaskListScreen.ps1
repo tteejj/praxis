@@ -1,10 +1,12 @@
 # TaskListScreen.ps1 - Simple task list with subtasks
+# Enhanced with FastLineBuilder and SmoothRenderer for better performance
 
 class TaskListScreen {
     [SimpleTaskService]$TaskService
     [SimpleTask[]]$Tasks
     [System.Collections.Generic.List[object]]$FlatList  # Flattened list for navigation
     [int]$SelectedIndex = 0
+    [int]$PreviousSelectedIndex = 0  # For animation tracking
     [int]$ScrollTop = 0
     [int]$Width
     [int]$Height
@@ -19,6 +21,10 @@ class TaskListScreen {
     [hashtable]$TaskLookup = @{}  # ID2 → SimpleTask mapping
     [object]$AppReference = $null
     
+    # Status messages
+    [string]$StatusMessage = ""
+    [datetime]$StatusMessageTime = [DateTime]::MinValue
+    
     # Time entry display state (when in TimeEntry mode)
     [System.Collections.Generic.List[object]]$TimeFlatList
     [int]$TimeSelectedIndex = 0
@@ -28,6 +34,7 @@ class TaskListScreen {
     [string]$TimeEditingValue = ""
     [SimpleTimeEntry]$TimeEditingEntry = $null
     [bool]$IsNewTimeEntry = $false
+    [bool]$IsTimeFilterActive = $true  # Start filtered (show only entries with time)
     
     # Time entry column widths (matching TimeTracker exactly)
     [int]$NameCol = 25       # Task name or time code description
@@ -137,10 +144,28 @@ class TaskListScreen {
     [string]$PillboxHorizontal = "─"
     [string]$PillboxVertical = "│"
     
+    # Enhanced rendering components - unified architecture
+    [FastLineBuilder]$LineBuilder  
+    [UnifiedRenderer]$Renderer      # Replaces SmoothRenderer with StringBuilder-only approach
+    # Removed UseEnhancedRendering toggle - enhanced rendering is now standard
+    # Removed EnableSlideAnimations toggle - animations are always enabled
+    
     TaskListScreen() {
         $this.TaskService = [SimpleTaskService]::new()
         $this.FlatList = [System.Collections.Generic.List[object]]::new()
         $this.TimeFlatList = [System.Collections.Generic.List[object]]::new()
+        
+        # Initialize unified rendering system - no fallback modes
+        try {
+            $this.LineBuilder = [FastLineBuilder]::new()
+            $this.Renderer = [UnifiedRenderer]::new()  # UnifiedRenderer uses pure StringBuilder approach
+            # Write-Host "Unified rendering system initialized successfully" -ForegroundColor Green
+        } catch {
+            Write-Warning "Unified rendering initialization failed: $_. Application may not function correctly."
+            throw "Critical rendering system failure: $_"
+        }
+        
+        # Using original hotkey system only
         
         # Initialize time service
         $this.TimeService = [TimeTrackingService]::new()
@@ -168,15 +193,20 @@ class TaskListScreen {
     }
     
     [void] LoadTaskLookup() {
-        if (-not $this.TimeService) { return }
+        if (-not $this.TimeService) { 
+            "DEBUG: TimeService not available for LoadTaskLookup $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            return 
+        }
         
         $allTasks = $this.TaskService.GetParentTasks()
+        "DEBUG: LoadTaskLookup - Got $($allTasks.Count) parent tasks $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         $this.TaskLookup.Clear()
         
         foreach ($task in $allTasks) {
             # Index by ID2 (if populated)
             if ($task.ID2) {
                 $this.TaskLookup[$task.ID2] = $task
+                "DEBUG: Added task to lookup: ID2=$($task.ID2), Title=$($task.Title) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
             }
             # Also index by regular Id as fallback
             $this.TaskLookup[$task.Id] = $task
@@ -185,10 +215,12 @@ class TaskListScreen {
             foreach ($subtask in $task.Subtasks) {
                 if ($subtask.ID2) {
                     $this.TaskLookup[$subtask.ID2] = $subtask
+                    "DEBUG: Added subtask to lookup: ID2=$($subtask.ID2), Title=$($subtask.Title) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
                 }
                 $this.TaskLookup[$subtask.Id] = $subtask
             }
         }
+        "DEBUG: TaskLookup loaded with $($this.TaskLookup.Keys.Count) keys $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
     }
     
     # TIME ENTRY MODE SWITCHING
@@ -216,8 +248,45 @@ class TaskListScreen {
     [void] LoadTimeEntries() {
         if (-not $this.TimeService) { return }
         
-        $this.TimeEntries = $this.TimeService.GetCurrentWeekEntries()
+        $allEntries = $this.TimeService.GetCurrentWeekEntries()
+        "DEBUG: LoadTimeEntries - allEntries count: $($allEntries.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+        
+        if ($this.IsTimeFilterActive) {
+            # Filtered: Only show entries with time > 0 this week
+            $this.TimeEntries = $allEntries | Where-Object { $_.Total -gt 0 }
+            "DEBUG: Filtered mode - TimeEntries count: $($this.TimeEntries.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+        } else {
+            # Unfiltered: Show all current week entries PLUS all projects as potential entries
+            $this.TimeEntries = @()
+            
+            # Add existing time entries
+            $this.TimeEntries += $allEntries
+            "DEBUG: After adding existing entries - TimeEntries count: $($this.TimeEntries.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            
+            # Add placeholder entries for all projects that don't have time logged yet
+            $existingProjectCodes = $allEntries | Where-Object { $_.ProjectCode } | ForEach-Object { $_.ProjectCode }
+            "DEBUG: Existing project codes: $($existingProjectCodes -join ', ') $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            "DEBUG: TaskLookup has $($this.TaskLookup.Keys.Count) keys $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            
+            foreach ($projectCode in $this.TaskLookup.Keys) {
+                $task = $this.TaskLookup[$projectCode]
+                # Only add if it's a project (has ID2) and doesn't already have a time entry
+                if ($task.ID2 -and $task.ID2 -notin $existingProjectCodes) {
+                    $placeholderEntry = [SimpleTimeEntry]::new()
+                    $placeholderEntry.ProjectCode = $task.ID2
+                    $placeholderEntry.Description = $task.Title
+                    $placeholderEntry.ID1Display = if ($task.ID1) { $task.ID1 } else { "" }
+                    $placeholderEntry.IsProjectEntry = $true
+                    $placeholderEntry.WeekEndingFriday = $this.TimeService.CurrentWeekFriday.ToString("yyyyMMdd")
+                    $this.TimeEntries += $placeholderEntry
+                    "DEBUG: Added placeholder for $($task.ID1) $($task.ID2) - $($task.Title) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+                }
+            }
+            "DEBUG: Final TimeEntries count: $($this.TimeEntries.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+        }
+        
         $this.BuildTimeFlatList()
+        "DEBUG: TimeFlatList count after build: $($this.TimeFlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         
         if ($this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
             $this.TimeSelectedIndex = [Math]::Max(0, $this.TimeFlatList.Count - 1)
@@ -228,10 +297,12 @@ class TaskListScreen {
         $this.TimeFlatList.Clear()
         
         foreach ($entry in $this.TimeEntries) {
-            $this.TimeFlatList.Add(@{
-                Entry = $entry
-                IsLast = $false
-            })
+            if ($entry) {  # Add null check
+                $this.TimeFlatList.Add(@{
+                    Entry = $entry
+                    IsLast = $false
+                })
+            }
         }
     }
     
@@ -707,19 +778,79 @@ class TaskListScreen {
     }
     
     [string] Render() {
+        $baseContent = ""
+        
         if ($this.CurrentMode -eq "TimeEntry") {
             try {
-                $result = $this.RenderTimeEntryMode()
-                return $result
+                $baseContent = $this.RenderTimeEntryMode()
             } catch {
                 # Fall back to task mode on error
                 # Error logging removed
                 $this.CurrentMode = "Tasks"
-                return $this.RenderTaskMode()
+                $baseContent = $this.RenderTaskModeEnhanced()
             }
         } else {
-            return $this.RenderTaskMode()
+            $baseContent = $this.RenderTaskModeEnhanced()
         }
+        
+        # Add modal system overlays
+        return $this.RenderWithOverlays($baseContent)
+    }
+    
+    [string] RenderWithOverlays([string]$baseContent) {
+        $sb = [System.Text.StringBuilder]::new()
+        [void]$sb.Append($baseContent)
+        
+        # Add status line with modal engine status
+        if ($this.ModalEngine) {
+            $statusLine = $this.ModalEngine.GetStatusLine()
+            if ($this.StatusMessage -and ([DateTime]::Now - $this.StatusMessageTime).TotalSeconds -lt 3) {
+                $statusLine += " | $($this.StatusMessage)"
+            }
+            
+            [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
+            [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
+            [void]$sb.Append($statusLine.PadRight($this.Width))
+            [void]$sb.Append([VT]::Reset())
+        }
+        
+        # Render help screen overlay
+        if ($this.ShowHelpScreen -and $this.ModalEngine) {
+            $helpContent = $this.ModalEngine.GenerateHelpScreen()
+            $helpLines = $helpContent -split "`n"
+            
+            $helpWidth = 65
+            $helpHeight = $helpLines.Count
+            $helpX = ($this.Width - $helpWidth) / 2
+            $helpY = ($this.Height - $helpHeight) / 2
+            
+            for ($i = 0; $i -lt $helpLines.Count; $i++) {
+                if ($helpY + $i -lt $this.Height -and $helpY + $i -ge 0) {
+                    [void]$sb.Append([VT]::MoveTo($helpX, $helpY + $i))
+                    [void]$sb.Append($helpLines[$i])
+                }
+            }
+        }
+        
+        # Render command palette overlay
+        if ($this.ShowCommandPalette -and $this.CommandPalette -and $this.CommandPalette.IsActive) {
+            $paletteHeight = [Math]::Min(15, $this.Height - 2)
+            $paletteWidth = [Math]::Min(80, $this.Width - 4)
+            $paletteX = ($this.Width - $paletteWidth) / 2
+            $paletteY = ($this.Height - $paletteHeight) / 2
+            
+            $paletteContent = $this.CommandPalette.Render($paletteWidth, $paletteHeight)
+            $paletteLines = $paletteContent -split "`n"
+            
+            for ($i = 0; $i -lt $paletteLines.Count; $i++) {
+                if ($paletteY + $i -lt $this.Height) {
+                    [void]$sb.Append([VT]::MoveTo($paletteX, $paletteY + $i))
+                    [void]$sb.Append($paletteLines[$i])
+                }
+            }
+        }
+        
+        return $sb.ToString()
     }
     
     [string] RenderTaskMode() {
@@ -744,7 +875,7 @@ class TaskListScreen {
         # Column headers
         [void]$sb.Append([VT]::MoveTo(0, 1))
         [void]$sb.Append($this.TagColor)
-        [void]$sb.Append("ID1  ")      # ID1 column (5 chars)
+        [void]$sb.Append(" ID1  ")     # SHIFTED RIGHT: ID1 column (5 chars)
         [void]$sb.Append("ID2           ") # ID2 column (14 chars)
         [void]$sb.Append("Created     ")   # Created date column (12 chars)
         [void]$sb.Append("Due         ")   # Due date column (12 chars)
@@ -752,39 +883,39 @@ class TaskListScreen {
         [void]$sb.Append($this.NormalColor)
         
         [void]$sb.Append([VT]::MoveTo(0, 2))
-        [void]$sb.Append("─" * $this.Width)
+        [void]$sb.Append(" " + ("─" * ($this.Width - 1)))  # SHIFTED RIGHT
         
         # Task list
         $this.RenderTaskList($sb)
         
         # Status bar
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 2))
-        [void]$sb.Append("─" * $this.Width)
+        [void]$sb.Append(" " + ("─" * ($this.Width - 1)))  # SHIFTED RIGHT
         
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
         [void]$sb.Append($this.TagColor)
         if ($this.FilterInputActive) {
             # Show filter input as a proper textbox
-            $filterPrompt = "Filter: "
+            $filterPrompt = " Filter: "  # SHIFTED RIGHT
             [void]$sb.Append($filterPrompt)
             $fieldWidth = 20
             $fieldValue = $this.FilterInputValue.PadRight($fieldWidth)
             [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
-            [void]$sb.Append("  Enter:Apply  Escape:Cancel  (#tag, high/med/low/today, clear)")
+            [void]$sb.Append("   Enter:Apply  Escape:Cancel  (#tag, high/med/low/today, clear)")  # SHIFTED RIGHT
         } elseif ($this.EditingIndex -ge 0) {
-            [void]$sb.Append("EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")
+            [void]$sb.Append(" EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")  # SHIFTED RIGHT
         } else {
-            [void]$sb.Append("↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:TimeEntry  F5:Color  F6:Projects  F7:Settings  F8:Folder  F9:T2020  F10:Export  F11:Log  F12:Cycle  Q:Quit")
+            [void]$sb.Append(" ↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:TimeEntry  F5:Color  F6:Excel  F7:Settings  F8:Folder  F9:T2020  F10:Export  F11:Log  F12:Cycle  Q:Quit")  # SHIFTED RIGHT
         }
         [void]$sb.Append($this.NormalColor)
         
-        # Show/hide cursor based on editing state and position it correctly
+        # Show/hide cursor based on editing state and position it correctly with enhanced positioning
         if ($this.EditingIndex -ge 0) {
             [void]$sb.Append([VT]::ShowCursor())
             # Set cursor to bright red so it's visible against white background
             [void]$sb.Append("`e]12;#FF0000`e\")  # OSC sequence to set cursor color to red
-            # Position cursor at the end of the editing field
-            $this.PositionCursorForEditing($sb)
+            # Use enhanced cursor positioning
+            $this.PositionEnhancedEditingCursor($sb)
         } elseif ($this.FilterInputActive) {
             [void]$sb.Append([VT]::ShowCursor())
             # Set cursor to bright red for visibility
@@ -801,32 +932,223 @@ class TaskListScreen {
         return $sb.ToString()
     }
     
+    # COMPLETE UNIFIED RENDERING - Pure StringBuilder, everything integrated
+    [string] RenderTaskModeEnhanced() {
+        # No fallback modes - unified rendering is the only rendering system
+        if ($this.LineBuilder -eq $null -or $this.Renderer -eq $null) {
+            throw "Critical error: Unified rendering system not initialized"
+        }
+        
+        # Build ENTIRE screen in single StringBuilder - no separate rendering calls
+        $sb = [System.Text.StringBuilder]::new()
+        [void]$sb.Append([VT]::Clear())
+        
+        # Header with filter info - using centralized theme system
+        [void]$sb.Append([VT]::MoveTo(0, 0))
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))  # Centralized theme instead of hardcoded
+        $headerText = " TASKPRO - Task Manager (Enhanced)"
+        if ($this.CurrentFilter -ne "All") {
+            $headerText += " [Filter: $($this.CurrentFilter)]"
+        }
+        if ($this.TagFilter -ne "") {
+            $headerText += " [Tag: #$($this.TagFilter)]"
+        }
+        [void]$sb.Append($headerText.PadRight($this.Width))
+        [void]$sb.Append($this.NormalColor)
+        
+        # Column headers
+        [void]$sb.Append([VT]::MoveTo(0, 1))
+        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append(" ID1  ")     # SHIFTED RIGHT: ID1 column (5 chars)
+        [void]$sb.Append("ID2           ") # ID2 column (14 chars)
+        [void]$sb.Append("Created     ")   # Created date column (12 chars)
+        [void]$sb.Append("Due         ")   # Due date column (12 chars)
+        [void]$sb.Append("  Title")        # Arrow + title
+        [void]$sb.Append($this.NormalColor)
+        
+        # Separator line
+        [void]$sb.Append([VT]::MoveTo(0, 2))
+        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append(" " + ("─" * ($this.Width - 1)))  # SHIFTED RIGHT
+        [void]$sb.Append($this.NormalColor)
+        
+        # Status bar with theme integration and theme picker hotkey
+        [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
+        [void]$sb.Append([AppThemeManager]::GetColor("StatusBar"))  # Centralized theme
+        $currentTheme = [AppThemeManager]::GetCurrentThemeName()
+        $status = "  [N]ew [E]dit [D]elete [F]ilter [T]ags [M]ode [F4]Time [F5]Commands [Ctrl+Shift+T]heme:$currentTheme ESC:Quit "
+        [void]$sb.Append($status.PadRight($this.Width))
+        [void]$sb.Append($this.NormalColor)
+        
+        # COMPLETE TASK RENDERING WITH PILLBOX INTEGRATION
+        if ($this.FlatList.Count -gt 0) {
+            # Calculate visible area
+            $startY = 3
+            $availableHeight = $this.Height - 5
+            $currentY = $startY
+            
+            # Render each task completely in StringBuilder
+            for ($i = $this.ScrollTop; $i -lt $this.FlatList.Count -and ($currentY - $startY) -lt $availableHeight; $i++) {
+                $item = $this.FlatList[$i]
+                $task = $item.Task
+                $level = $item.Level
+                $isLast = $item.IsLast
+                $isSelected = ($i -eq $this.SelectedIndex)
+                
+                # Position cursor
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                
+                if ($isSelected) {
+                    # SELECTED ITEM: Render with pillbox
+                    
+                    # Top border
+                    [void]$sb.Append([AppThemeManager]::GetPillboxColor())
+                    [void]$sb.Append("╭" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╮")
+                    [void]$sb.Append([VT]::Reset())
+                    $currentY++
+                    
+                    # Content line with borders
+                    [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                    [void]$sb.Append([AppThemeManager]::GetPillboxColor() + "│")
+                    
+                    # Get content from FastLineBuilder (without selection highlighting)
+                    $contentLine = $this.LineBuilder.BuildContentLine($task, $level, $isLast, $false, $this)
+                    # Remove the leading space that FastLineBuilder adds for pillbox
+                    if ($contentLine.StartsWith(" ")) {
+                        $contentLine = $contentLine.Substring(1)
+                    }
+                    [void]$sb.Append($contentLine)
+                    
+                    # Pad to right border using visual length calculation
+                    $visualLength = $this.LineBuilder.GetContentLength($task, $level, $this)  # Already excludes leading space
+                    $usedWidth = 1 + $visualLength  # 1 for left border
+                    $paddingNeeded = $this.Width - $usedWidth - 1  # 1 for right border
+                    if ($paddingNeeded -gt 0) {
+                        [void]$sb.Append([StringCache]::GetSpaces($paddingNeeded))
+                    }
+                    [void]$sb.Append([AppThemeManager]::GetPillboxColor() + "│")
+                    [void]$sb.Append([VT]::Reset())
+                    $currentY++
+                    
+                    # Tag line with borders
+                    [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                    [void]$sb.Append([AppThemeManager]::GetPillboxColor() + "│")
+                    
+                    # Get tag line from FastLineBuilder
+                    $tagLine = $this.LineBuilder.BuildTagLine($task, $level, $isLast, $false, $this)
+                    # Remove the leading space that FastLineBuilder adds for pillbox
+                    if ($tagLine.StartsWith(" ")) {
+                        $tagLine = $tagLine.Substring(1)
+                    }
+                    [void]$sb.Append($tagLine)
+                    
+                    # Pad to right border - strip VT100 codes for accurate length
+                    $tagVisualLength = ($tagLine -replace '\e\[[0-9;]*m', '').Length
+                    $usedWidth = 1 + $tagVisualLength  # 1 for left border
+                    $paddingNeeded = $this.Width - $usedWidth - 1  # 1 for right border
+                    if ($paddingNeeded -gt 0) {
+                        [void]$sb.Append([StringCache]::GetSpaces($paddingNeeded))
+                    }
+                    [void]$sb.Append([AppThemeManager]::GetPillboxColor() + "│")
+                    [void]$sb.Append([VT]::Reset())
+                    $currentY++
+                    
+                    # Bottom border
+                    [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                    [void]$sb.Append([AppThemeManager]::GetPillboxColor())
+                    [void]$sb.Append("╰" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╯")
+                    [void]$sb.Append([VT]::Reset())
+                    $currentY++
+                    
+                } else {
+                    # NORMAL ITEM: Render without pillbox
+                    
+                    # Content line
+                    $contentLine = $this.LineBuilder.BuildContentLine($task, $level, $isLast, $false, $this)
+                    [void]$sb.Append($contentLine)
+                    $currentY++
+                    
+                    # Tag line
+                    [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                    $tagLine = $this.LineBuilder.BuildTagLine($task, $level, $isLast, $false, $this)
+                    [void]$sb.Append($tagLine)
+                    $currentY++
+                }
+            }
+            
+            # Clear remaining lines
+            while ($currentY -lt ($this.Height - 2)) {
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append([VT]::ClearLine())
+                $currentY++
+            }
+            
+            $this.PreviousSelectedIndex = $this.SelectedIndex
+            
+        } else {
+            # No tasks message using StringBuilder approach
+            [void]$sb.Append([VT]::MoveTo(2, 5))
+            [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
+            [void]$sb.Append("No tasks match the current filter.")
+            [void]$sb.Append([VT]::Reset())
+        }
+        
+        # Cursor management integrated with StringBuilder
+        if ($this.EditingIndex -ge 0) {
+            [void]$sb.Append([VT]::ShowCursor())
+            [void]$sb.Append("`e]12;#FF0000`e\")  # Red cursor for visibility
+            # Position cursor using enhanced positioning
+            $this.PositionEnhancedEditingCursor($sb)
+        } else {
+            [void]$sb.Append([VT]::HideCursor())
+            [void]$sb.Append("`e]12;#FFFFFF`e\")  # Reset cursor color
+        }
+        
+        # Return complete screen - single StringBuilder output eliminates dual output conflicts
+        return $sb.ToString()
+    }
+    
+    # Theme cycling - replaces animation toggles
+    [void] CycleTheme() {
+        $newTheme = [AppThemeManager]::CycleTheme()
+        # Theme change affects entire application immediately
+        Write-Host "Switched to theme: $newTheme" -ForegroundColor Green
+    }
+    
+    # Helper to update selected index with animation tracking
+    [void] SetSelectedIndex([int]$newIndex) {
+        $this.PreviousSelectedIndex = $this.SelectedIndex
+        $this.SelectedIndex = $newIndex
+    }
+    
     # TIME ENTRY RENDERING (EXACT COPY OF TIMETRACKER FUNCTIONALITY)
     [string] RenderTimeEntryMode() {
-        $sb = [System.Text.StringBuilder]::new()
-        
-        # Clear screen
-        [void]$sb.Append([VT]::Clear())
+        try {
+            "DEBUG: Starting RenderTimeEntryMode... $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            $sb = [System.Text.StringBuilder]::new()
+            
+            # Clear screen
+            [void]$sb.Append([VT]::Clear())
         
         # Header
         [void]$sb.Append([VT]::MoveTo(0, 0))
-        [void]$sb.Append($this.HeaderColor)
-        [void]$sb.Append("TASKPRO - TIME ENTRY")
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
+        [void]$sb.Append(" TASKPRO - TIME ENTRY".PadRight($this.Width))
+        [void]$sb.Append([VT]::Reset())
         
         # Week display
         [void]$sb.Append([VT]::MoveTo(0, 1))
-        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         $weekText = $this.TimeService.GetWeekDisplayString()
         if ($this.TimeService.IsCurrentWeek()) {
             $weekText += " (Current Week)"
         }
-        [void]$sb.Append($weekText)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append(" " + $weekText.PadRight($this.Width - 1))
+        [void]$sb.Append([VT]::Reset())
         
         # Column headers
         [void]$sb.Append([VT]::MoveTo(0, 2))
-        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         
         $currentDay = $this.GetCurrentDayOfWeek()
         $monHeader = if ($currentDay -eq "monday") { "▸Mon" } else { "Mon" }
@@ -835,7 +1157,7 @@ class TaskListScreen {
         $thuHeader = if ($currentDay -eq "thursday") { "▸Thu" } else { "Thu" }
         $friHeader = if ($currentDay -eq "friday") { "▸Fri" } else { "Fri" }
         
-        [void]$sb.Append("Name".PadRight($this.NameCol))
+        [void]$sb.Append(" Name".PadRight($this.NameCol))
         [void]$sb.Append("ID1".PadRight($this.ID1Col))
         [void]$sb.Append("ID2".PadRight($this.ID2Col))
         [void]$sb.Append($monHeader.PadRight($this.MonCol))
@@ -843,27 +1165,31 @@ class TaskListScreen {
         [void]$sb.Append($wedHeader.PadRight($this.WedCol))
         [void]$sb.Append($thuHeader.PadRight($this.ThuCol))
         [void]$sb.Append($friHeader.PadRight($this.FriCol))
-        [void]$sb.Append("Total")
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append("Total".PadRight($this.Width - ($this.NameCol + $this.ID1Col + $this.ID2Col + $this.MonCol + $this.TueCol + $this.WedCol + $this.ThuCol + $this.FriCol)))
+        [void]$sb.Append([VT]::Reset())
         
         [void]$sb.Append([VT]::MoveTo(0, 3))
-        [void]$sb.Append("═" * $this.Width)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
+        [void]$sb.Append(" " + [StringCache]::GetRepeatedChar('─', $this.Width - 1))
+        [void]$sb.Append([VT]::Reset())
         
         # Time entry list
         $this.RenderTimeList($sb)
         
         # Status bar
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 2))
-        [void]$sb.Append("═" * $this.Width)
+        [void]$sb.Append([AppThemeManager]::GetColor("StatusBar"))
+        [void]$sb.Append(" " + [StringCache]::GetRepeatedChar('─', $this.Width - 1))
+        [void]$sb.Append([VT]::Reset())
         
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
-        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("StatusBar"))
         if ($this.TimeEditingIndex -ge 0) {
-            [void]$sb.Append("EDITING [$($this.TimeEditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel  F4:Tasks")
+            [void]$sb.Append("  EDITING [$($this.TimeEditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel  F4:Tasks".PadRight($this.Width))
         } else {
-            [void]$sb.Append("↑↓:Navigate  E:Edit  A:Add  D:Delete  C:Current Week  ←→:Week Nav  F4:Tasks")
+            [void]$sb.Append("  ↑↓:Navigate  E:Edit  A:Add  D:Delete  C:Current Week  ←→:Week Nav  F4:Tasks".PadRight($this.Width))
         }
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # Show/hide cursor based on editing state
         if ($this.TimeEditingIndex -ge 0) {
@@ -873,7 +1199,14 @@ class TaskListScreen {
             [void]$sb.Append([VT]::HideCursor())
         }
         
-        return $sb.ToString()
+            "DEBUG: RenderTimeEntryMode completed successfully $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            return $sb.ToString()
+        } catch {
+            "ERROR in RenderTimeEntryMode: $_ $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            "Stack trace: $($_.ScriptStackTrace)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            # Return safe fallback
+            return "[VT]::Clear() + ""Time Entry Error - Check debug-timeentry.log"""
+        }
     }
     
     [string] GetCurrentDayOfWeek() {
@@ -895,9 +1228,11 @@ class TaskListScreen {
     }
     
     [void] RenderTimeList([System.Text.StringBuilder]$sb) {
-        $startY = 4
-        $currentY = $startY
-        $availableHeight = $this.Height - 6  # Header + status bar
+        try {
+            "DEBUG: Starting RenderTimeList, TimeFlatList.Count = $($this.TimeFlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            $startY = 4
+            $currentY = $startY
+            $availableHeight = $this.Height - 6  # Header + status bar
         
         # Calculate how many items we can show with dynamic heights
         $visibleItems = @()
@@ -914,12 +1249,24 @@ class TaskListScreen {
         }
         
         
-        # Render time entries using original logic
-        $visibleItems = 0
+        # Check if we have any time entries to display
+        if ($this.TimeFlatList.Count -eq 0) {
+            # No time entries message
+            [void]$sb.Append([VT]::MoveTo(2, $startY + 2))
+            [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
+            [void]$sb.Append("No time entries for this week. Press 'N' to add a new entry.")
+            [void]$sb.Append([VT]::Reset())
+            return
+        }
+        
+        # Render time entries using calculated visible items
         for ($i = $this.TimeScrollTop; $i -lt $this.TimeFlatList.Count -and $currentY -lt ($this.Height - 2); $i++) {
             $item = $this.TimeFlatList[$i]
             $entry = $item.Entry
             $isSelected = ($i -eq $this.TimeSelectedIndex)
+            
+            # Skip if entry is null
+            if (-not $entry) { continue }
             
             # Render the time entry row
             if ($isSelected) {
@@ -930,19 +1277,35 @@ class TaskListScreen {
                 
                 # Top border
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxTopLeft + ($this.PillboxHorizontal * ($this.Width - 2)) + $this.PillboxTopRight + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetPillboxColor())
+                [void]$sb.Append("╭" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╮")
+                [void]$sb.Append([VT]::Reset())
                 $currentY++
                 
                 # Content line with borders
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetPillboxColor() + "│")
+                
+                # Render content and pad to fit pillbox width
                 $this.RenderTimeContent($sb, $entry, $isSelected)
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                
+                # Calculate actual content width (sum of all column widths)
+                $totalContentWidth = $this.NameCol + $this.ID1Col + $this.ID2Col + $this.MonCol + $this.TueCol + $this.WedCol + $this.ThuCol + $this.FriCol + $this.TotalCol
+                $availableWidth = $this.Width - 2  # Account for left and right borders
+                $paddingNeeded = $availableWidth - $totalContentWidth
+                if ($paddingNeeded -gt 0) {
+                    [void]$sb.Append(" " * $paddingNeeded)
+                }
+                
+                [void]$sb.Append([AppThemeManager]::GetPillboxColor() + "│")
+                [void]$sb.Append([VT]::Reset())
                 $currentY++
                 
                 # Bottom border
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxBottomLeft + ($this.PillboxHorizontal * ($this.Width - 2)) + $this.PillboxBottomRight + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetPillboxColor())
+                [void]$sb.Append("╰" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╯")
+                [void]$sb.Append([VT]::Reset())
                 $currentY++
             } else {
                 # Normal row rendering
@@ -955,14 +1318,18 @@ class TaskListScreen {
                 [void]$sb.Append("")
                 $currentY++
             }
-            $visibleItems++
         }
         
-        # Clear remaining lines
-        while ($currentY -lt ($this.Height - 2)) {
-            [void]$sb.Append([VT]::MoveTo(0, $currentY))
-            [void]$sb.Append([VT]::ClearLine())
-            $currentY++
+            # Clear remaining lines
+            while ($currentY -lt ($this.Height - 2)) {
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append([VT]::ClearLine())
+                $currentY++
+            }
+            "DEBUG: RenderTimeList completed successfully $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+        } catch {
+            "ERROR in RenderTimeList: $_ $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            "Stack trace: $($_.ScriptStackTrace)" | Out-File -FilePath "./debug-timeentry.log" -Append
         }
     }
     
@@ -997,14 +1364,14 @@ class TaskListScreen {
         if (-not $nameDisplay) { $nameDisplay = "" }
         
         if ($isEditingThis -and $this.TimeEditingField -eq "name") {
-            [void]$sb.Append($this.EditHighlight + $this.TimeEditingValue.PadRight($this.NameCol) + $this.NormalColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight") + $this.TimeEditingValue.PadRight($this.NameCol) + [VT]::Reset())
         } else {
             $truncatedName = if ($nameDisplay.Length -gt ($this.NameCol - 1)) { 
                 $nameDisplay.Substring(0, $this.NameCol - 1) 
             } else { 
                 $nameDisplay 
             }
-            [void]$sb.Append($this.TagColor + $truncatedName.PadRight($this.NameCol) + $this.NormalColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("Value") + $truncatedName.PadRight($this.NameCol) + [VT]::Reset())
         }
         
         # ID1 column (project code or time code)
@@ -1019,10 +1386,10 @@ class TaskListScreen {
         if (-not $id1Display) { $id1Display = "-" }
         
         if ($isEditingThis -and $this.TimeEditingField -eq "id1") {
-            [void]$sb.Append($this.EditHighlight + $this.TimeEditingValue.PadRight($this.ID1Col) + $this.NormalColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight") + $this.TimeEditingValue.PadRight($this.ID1Col) + [VT]::Reset())
         } else {
-            $color = if ($entry.IsTimeCode()) { $this.TimeCodeColor } else { $this.ProjectColor }
-            [void]$sb.Append($color + $id1Display.PadRight($this.ID1Col) + $this.NormalColor)
+            $color = if ($entry.IsTimeCode()) { [AppThemeManager]::GetColor("Field") } else { [AppThemeManager]::GetColor("Value") }
+            [void]$sb.Append($color + $id1Display.PadRight($this.ID1Col) + [VT]::Reset())
         }
         
         # ID2 column (project ID2 or empty for time codes)
@@ -1030,10 +1397,10 @@ class TaskListScreen {
         if (-not $id2Display) { $id2Display = "-" }
         
         if ($isEditingThis -and $this.TimeEditingField -eq "id2") {
-            [void]$sb.Append($this.EditHighlight + $this.TimeEditingValue.PadRight($this.ID2Col) + $this.NormalColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight") + $this.TimeEditingValue.PadRight($this.ID2Col) + [VT]::Reset())
         } else {
-            $color = if ($entry.IsTimeCode()) { $this.TimeCodeColor } else { $this.ProjectColor }
-            [void]$sb.Append($color + $id2Display.PadRight($this.ID2Col) + $this.NormalColor)
+            $color = if ($entry.IsTimeCode()) { [AppThemeManager]::GetColor("Field") } else { [AppThemeManager]::GetColor("Value") }
+            [void]$sb.Append($color + $id2Display.PadRight($this.ID2Col) + [VT]::Reset())
         }
         
         # DAY HOURS columns
@@ -1055,15 +1422,15 @@ class TaskListScreen {
         $isCurrentDay = ($dayName -eq $currentDay)
         
         if ($isEditingThis -and $this.TimeEditingField -eq $dayName) {
-            [void]$sb.Append($this.EditHighlight + $this.TimeEditingValue.PadRight($colWidth) + $this.NormalColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight") + $this.TimeEditingValue.PadRight($colWidth) + [VT]::Reset())
         } else {
             $hoursText = if ($hours -gt 0) { $hours.ToString("F1") } else { "" }
             if ($isCurrentDay) {
-                $color = $this.CurrentDayColor
+                $color = [AppThemeManager]::GetColor("CurrentDay")
             } else {
-                $color = $this.LowColor
+                $color = [AppThemeManager]::GetColor("Muted")
             }
-            [void]$sb.Append($color + $hoursText.PadRight($colWidth) + $this.NormalColor)
+            [void]$sb.Append($color + $hoursText.PadRight($colWidth) + [VT]::Reset())
         }
     }
     
@@ -1139,11 +1506,12 @@ class TaskListScreen {
                 $pillboxWidth = $this.Width
                 
                 # CRITICAL: Calculate the fixed right border position for BOTH lines  
-                $rightBorderColumn = $this.Width  # Right border at screen edge
+                $rightBorderColumn = $this.Width - 1  # Right border inside screen bounds
                 
-                # Spacer line above
+                # Spacer line above with tree connectors
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append(" " * $this.Width)
+                # For selected items (pillbox), use same spacing logic as normal items
+                $this.RenderTreeSpacingLine($sb, $i)
                 $currentY++
                 
                 # Pillbox top
@@ -1252,6 +1620,160 @@ class TaskListScreen {
             [void]$sb.Append([VT]::ClearLine())
             $currentY++
         }
+    }
+    
+    # Enhanced task rendering that integrates with original pillbox system
+    [void] RenderEnhancedTaskList([System.Text.StringBuilder]$sb) {
+        $startY = 3
+        $currentY = $startY
+        $availableHeight = $this.Height - 5  # Header + status bar
+        
+        # Calculate visible items the same way as original
+        $visibleItems = @()
+        $totalHeight = 0
+        
+        for ($i = $this.ScrollTop; $i -lt $this.FlatList.Count; $i++) {
+            $itemHeight = $this.GetItemHeight($i)
+            if ($totalHeight + $itemHeight -le $availableHeight) {
+                $visibleItems += $i
+                $totalHeight += $itemHeight
+            } else {
+                break
+            }
+        }
+        
+        # Render each visible item with enhanced components but original pillbox logic
+        foreach ($i in $visibleItems) {
+            $item = $this.FlatList[$i]
+            $task = $item.Task
+            $level = $item.Level
+            $isLast = $item.IsLast
+            $isSelected = ($i -eq $this.SelectedIndex)
+            
+            if ($isSelected) {
+                # === SELECTED ITEM WITH PILLBOX - full screen width accounting for borders ===
+                $pillboxWidth = $this.Width
+                
+                # Spacer line above with tree connectors
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                $this.RenderTreeSpacingLine($sb, $i)
+                $currentY++
+                
+                # Pillbox top
+                $this.RenderPillboxTop($sb, $pillboxWidth, $currentY)
+                $currentY++
+                
+                # Content line 1 with pillbox sides - FastLineBuilder handles pillbox indentation
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $contentLine = $this.LineBuilder.BuildContentLine($task, $level, $isLast, $isSelected, $this)
+                [void]$sb.Append($contentLine)
+                # Right border positioned to leave space for content + left border
+                [void]$sb.Append([VT]::MoveTo($this.Width - 1, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $currentY++
+                
+                # Content line 2 (tags) with pillbox sides - FastLineBuilder handles pillbox indentation
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $tagLine = $this.LineBuilder.BuildTagLine($task, $level, $isLast, $isSelected, $this)
+                [void]$sb.Append($tagLine)
+                # Right border positioned to leave space for content + left border
+                [void]$sb.Append([VT]::MoveTo($this.Width - 1, $currentY))
+                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                $currentY++
+                
+                # Pillbox bottom
+                $this.RenderPillboxBottom($sb, $pillboxWidth, $currentY)
+                $currentY++
+            } else {
+                # === NORMAL ITEM (non-selected) ===
+                # Content line 1 - use enhanced line builder with screen reference
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                $contentLine = $this.LineBuilder.BuildContentLine($task, $level, $isLast, $isSelected, $this)
+                [void]$sb.Append($contentLine)
+                $currentY++
+                
+                # Content line 2 (tags) - use enhanced line builder with screen reference
+                [void]$sb.Append([VT]::MoveTo(0, $currentY))
+                $tagLine = $this.LineBuilder.BuildTagLine($task, $level, $isLast, $isSelected, $this)
+                [void]$sb.Append($tagLine)
+                $currentY++
+            }
+        }
+        
+        # Clear remaining lines properly (same as original)
+        while ($currentY -lt ($this.Height - 2)) {
+            [void]$sb.Append([VT]::MoveTo(0, $currentY))
+            [void]$sb.Append([VT]::ClearLine())
+            $currentY++
+        }
+    }
+    
+    # Enhanced cursor positioning for editing using FastLineBuilder - updated for unified rendering
+    [void] PositionEnhancedEditingCursor([System.Text.StringBuilder]$sb) {
+        if ($this.EditingIndex -lt 0 -or $this.EditingIndex -ge $this.FlatList.Count) { return }
+        
+        $item = $this.FlatList[$this.EditingIndex]
+        $task = $item.Task
+        $level = $item.Level
+        
+        # Calculate cursor position based on unified rendering layout
+        $startY = 3  # Start Y for task list
+        $currentY = $startY
+        
+        # Count items before the editing item to find Y position
+        for ($i = $this.ScrollTop; $i -lt $this.EditingIndex -and $i -lt $this.FlatList.Count; $i++) {
+            if ($i -eq $this.SelectedIndex) {
+                # Selected item with pillbox: 4 lines (top + content + tags + bottom)
+                $currentY += 4
+            } else {
+                # Normal item: 2 lines (content + tags)
+                $currentY += 2
+            }
+        }
+        
+        # If we're editing the selected item, cursor is inside the pillbox
+        if ($this.EditingIndex -eq $this.SelectedIndex) {
+            # FastLineBuilder expects startY to be the content line position
+            # Content line is at $currentY + 1 (after top border)
+            $contentLineY = $currentY + 1
+            
+            # Use FastLineBuilder to calculate exact cursor position
+            # It will automatically adjust Y for tags field (+1 from content line)
+            $cursorPos = $this.LineBuilder.GetEditingCursorPosition($task, $level, $this.EditingField, $this.EditingCursor, $contentLineY)
+            # Adjust X position for pillbox left border (add 1 for │)
+            $cursorX = $cursorPos.X + 1
+            [void]$sb.Append([VT]::MoveTo($cursorX, $cursorPos.Y))
+        } else {
+            # Editing non-selected item (shouldn't happen but handle gracefully)
+            $cursorPos = $this.LineBuilder.GetEditingCursorPosition($task, $level, $this.EditingField, $this.EditingCursor, $currentY)
+            [void]$sb.Append([VT]::MoveTo($cursorPos.X, $cursorPos.Y))
+        }
+    }
+    
+    [void] RenderTreeSpacingLine([System.Text.StringBuilder]$sb, [int]$itemIndex) {
+        if ($itemIndex -ge $this.FlatList.Count) { return }
+        
+        $item = $this.FlatList[$itemIndex]
+        $level = $item.Level
+        
+        if ($level -eq 1) {
+            # For subtasks, show the tree connector on spacing line
+            $isLast = $item.IsLast
+            if ($isLast) {
+                [void]$sb.Append("    └─ ")
+            } else {
+                [void]$sb.Append("    ├─ ")
+            }
+        } else {
+            # For parent tasks, show continuation if they have subtasks
+            $task = $item.Task
+            if ($task.Subtasks.Count -gt 0) {
+                [void]$sb.Append("    │  ")
+            }
+        }
+        [void]$sb.Append([VT]::ClearLine())
     }
     
     [void] RenderTaskContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast, [bool]$clearToEnd, [bool]$isSelected = $false) {
@@ -1409,7 +1931,7 @@ class TaskListScreen {
     }
     
     [void] RenderTagContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast = $false, [bool]$isSelected = $false) {
-        # For subtasks, show tree continuation lines
+        # For subtasks, ALWAYS show tree continuation lines (unless selected)
         if ($level -eq 1) {
             # Render the tree structure columns first
             [void]$sb.Append("   ")  # Status column spacing
@@ -1417,27 +1939,43 @@ class TaskListScreen {
             [void]$sb.Append(" " * $this.DateCol)  # Date column spacing
             [void]$sb.Append("   ")  # Arrow column spacing
             
-            # Tree continuation: show vertical line unless this subtask is selected OR it's the last one
+            # Tree connectors: show proper branch connectors unless this subtask is selected
             if ($isSelected) {
                 [void]$sb.Append("       ")  # Same spacing as tree connectors but no symbols
-            } elseif ($isLast) {
-                [void]$sb.Append("       ")  # No continuation after last subtask
             } else {
-                [void]$sb.Append("    │  ")  # Vertical continuation line
+                if ($isLast) {
+                    [void]$sb.Append("    └─ ")
+                } else {
+                    [void]$sb.Append("    ├─ ")
+                }
+            }
+        } elseif ($level -eq 0) {
+            # For parent tasks with subtasks, show continuation line
+            if ($task.Subtasks.Count -gt 0 -and -not $isSelected) {
+                [void]$sb.Append("   ")  # Status column spacing
+                [void]$sb.Append("     ")  # Priority column spacing
+                [void]$sb.Append(" " * $this.DateCol)  # Date column spacing
+                [void]$sb.Append("   ")  # Arrow column spacing
+                [void]$sb.Append("    │  ")  # Vertical continuation line to subtasks
             }
         }
         
+        # Always add proper spacing for level 0 tasks when no tree continuation was added
+        if ($level -eq 0 -and (-not ($task.Subtasks.Count -gt 0 -and -not $isSelected))) {
+            $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
+            [void]$sb.Append(" " * $indentSize)
+        }
+        
+        # Show tags if they exist, otherwise add spaces to preserve line content
         if ($task.Tags.Count -gt 0) {
-            # For level 0 tasks, need to indent properly
-            if ($level -eq 0) {
-                $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
-                [void]$sb.Append(" " * $indentSize)
-            }
-            
-            # Tags in angle brackets
             [void]$sb.Append($this.TagColor)
             [void]$sb.Append("⟨" + ($task.Tags -join ", ") + "⟩")
             [void]$sb.Append($this.NormalColor)
+            # Add spaces to ensure content survives VT clearing
+            [void]$sb.Append("     ")
+        } else {
+            # Add spaces so the line has content that survives VT clearing
+            [void]$sb.Append("     ")
         }
     }
     
@@ -1459,15 +1997,10 @@ class TaskListScreen {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        
         # Handle time entry mode
         if ($this.CurrentMode -eq "TimeEntry") {
             return $this.HandleTimeEntryInput($key)
-        }
-        
-        # Handle F4 toggle for switching to time entry
-        if ($key.Key -eq [System.ConsoleKey]::F4 -and $this.TimeService) {
-            $this.AppReference.SwitchToTimeEntry()
-            return $true
         }
         
         # Handle filter input mode first
@@ -1478,6 +2011,149 @@ class TaskListScreen {
         # Handle editing mode input second
         if ($this.EditingIndex -ge 0) {
             return $this.HandleEditingInput($key)
+        }
+        
+        # Handle F4 toggle for switching to time entry
+        if ($key.Key -eq [System.ConsoleKey]::F4 -and $this.TimeService) {
+            $this.AppReference.SwitchToTimeEntry()
+            return $true
+        }
+        
+        # Handle F5 toggle for switching to command library
+        if ($key.Key -eq [System.ConsoleKey]::F5 -and $this.AppReference) {
+            $this.AppReference.SwitchToCommands()
+            return $true
+        }
+        
+        # Handle global theme picker hotkey - Ctrl+Shift+T
+        if ($key.Key -eq [System.ConsoleKey]::T -and 
+            ($key.Modifiers -band [System.ConsoleModifiers]::Control) -and 
+            ($key.Modifiers -band [System.ConsoleModifiers]::Shift)) {
+            $this.CycleTheme()
+            return $true
+        }
+        
+        # Handle input keys - original functionality
+        switch ($key.Key) {
+            ([System.ConsoleKey]::UpArrow) {
+                # Check for Ctrl+Up (move task up)
+                if ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
+                    if ($this.FlatList.Count -gt 0) {
+                        $item = $this.FlatList[$this.SelectedIndex]
+                        $taskId = $item.Task.Id
+                        if ($global:Debug) { Write-Host "Moving task up: $taskId" -ForegroundColor Cyan }
+                        
+                        $this.TaskService.MoveTaskUp($taskId)
+                        $this.LoadTasks()
+                        
+                        # Find the moved task and select it
+                        $newIndex = -1
+                        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                            if ($this.FlatList[$i].Task.Id -eq $taskId) {
+                                $newIndex = $i
+                                break
+                            }
+                        }
+                        if ($newIndex -ge 0) { $this.SelectedIndex = $newIndex }
+                        $this.EnsureVisible()
+                    }
+                } else {
+                    # Normal up navigation
+                    if ($this.SelectedIndex -gt 0) {
+                        $this.SetSelectedIndex($this.SelectedIndex - 1)
+                        $this.EnsureVisible()
+                    }
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::DownArrow) {
+                # Check for Ctrl+Down (move task down)
+                if ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
+                    if ($this.FlatList.Count -gt 0) {
+                        $item = $this.FlatList[$this.SelectedIndex]
+                        $taskId = $item.Task.Id
+                        if ($global:Debug) { Write-Host "Moving task down: $taskId" -ForegroundColor Cyan }
+                        
+                        $this.TaskService.MoveTaskDown($taskId)
+                        $this.LoadTasks()
+                        
+                        # Find the moved task and select it
+                        $newIndex = -1
+                        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                            if ($this.FlatList[$i].Task.Id -eq $taskId) {
+                                $newIndex = $i
+                                break
+                            }
+                        }
+                        if ($newIndex -ge 0) { $this.SelectedIndex = $newIndex }
+                        $this.EnsureVisible()
+                    }
+                } else {
+                    # Normal down navigation
+                    if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
+                        $this.SetSelectedIndex($this.SelectedIndex + 1)
+                        $this.EnsureVisible()
+                    }
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Spacebar) {
+                # Toggle collapse
+                if ($this.FlatList.Count -gt 0) {
+                    $item = $this.FlatList[$this.SelectedIndex]
+                    if ($item.Level -eq 0 -and $item.Task.Subtasks.Count -gt 0) {
+                        $item.Task.SubtasksCollapsed = -not $item.Task.SubtasksCollapsed
+                        $this.TaskService.UpdateTask($item.Task)
+                        $this.LoadTasks()
+                    }
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::X) {
+                # Toggle completion
+                if ($this.FlatList.Count -gt 0) {
+                    $item = $this.FlatList[$this.SelectedIndex]
+                    $item.Task.IsCompleted = -not $item.Task.IsCompleted
+                    $this.TaskService.UpdateTask($item.Task)
+                    $this.LoadTasks()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::N) {
+                # New task
+                $this.StartNewTask()
+                return $true
+            }
+            ([System.ConsoleKey]::E) {
+                # Edit task
+                if ($this.FlatList.Count -gt 0) {
+                    $this.StartInlineEdit("title")
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::D) {
+                # Delete task
+                if ($this.FlatList.Count -gt 0) {
+                    $this.DeleteCurrentTask()
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Escape) {
+                return $false  # Exit application
+            }
+            default {
+                return $false
+            }
+        }
+        
+        return $false
+        
+        # Handle global theme picker hotkey - Ctrl+Shift+T
+        if ($key.Key -eq [System.ConsoleKey]::T -and 
+            ($key.Modifiers -band [System.ConsoleModifiers]::Control) -and 
+            ($key.Modifiers -band [System.ConsoleModifiers]::Shift)) {
+            $this.CycleTheme()
+            return $true
         }
         
         switch ($key.Key) {
@@ -1516,7 +2192,7 @@ class TaskListScreen {
                 } else {
                     # Normal navigation
                     if ($this.SelectedIndex -gt 0) {
-                        $this.SelectedIndex--
+                        $this.SetSelectedIndex($this.SelectedIndex - 1)
                         $this.EnsureVisible()
                     }
                 }
@@ -1557,7 +2233,7 @@ class TaskListScreen {
                 } else {
                     # Normal navigation
                     if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
-                        $this.SelectedIndex++
+                        $this.SetSelectedIndex($this.SelectedIndex + 1)
                         $this.EnsureVisible()
                     }
                 }
@@ -1671,6 +2347,16 @@ class TaskListScreen {
                 $this.LoadTasks()
                 return $true
             }
+            ([System.ConsoleKey]::Z) {
+                # Toggle enhanced rendering
+                $this.ToggleEnhancedRendering()
+                return $true
+            }
+            ([System.ConsoleKey]::Y) {
+                # Toggle slide animations
+                $this.ToggleSlideAnimations()
+                return $true
+            }
             ([System.ConsoleKey]::F12) {
                 # Cycle through all filters
                 $filters = @("All", "Today", "High", "Medium", "Low")
@@ -1686,8 +2372,9 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::F6) {
-                # Open Project Management Screen
-                return $this.OpenProjectScreen()
+                # Open Excel Data Management Screen
+                "DEBUG: F6 key pressed $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                return $this.OpenExcelScreen()
             }
             ([System.ConsoleKey]::F7) {
                 # Project Settings
@@ -1713,6 +2400,7 @@ class TaskListScreen {
                 return $false
             }
             default {
+                
                 # Check for + key or = key (Project Management Screen)
                 if ($key.KeyChar -eq '+' -or $key.KeyChar -eq '=') {
                     return $this.OpenProjectScreen()
@@ -1740,6 +2428,38 @@ class TaskListScreen {
         }
         
         return $true
+    }
+    
+    
+    # Command palette integration
+    [void] ShowCommandPalette() {
+        if ($this.CommandPalette) {
+            $this.CommandPalette.Show()
+            $this.ShowCommandPalette = $true
+        }
+    }
+    
+    [void] ShowCommandLine() {
+        # Implementation for : command mode
+        $this.ShowCommandPalette()
+    }
+    
+    [void] ShowSearchLine() {
+        # Implementation for / search mode
+        $this.StartFilterInput()
+    }
+    
+    [void] HideInputLines() {
+        # Hide any input lines
+        $this.ShowCommandPalette = $false
+        if ($this.FilterInputActive) {
+            $this.FilterInputActive = $false
+        }
+    }
+    
+    [void] SetStatusMessage([string]$message) {
+        $this.StatusMessage = $message
+        $this.StatusMessageTime = [DateTime]::Now
     }
     
     [void] EnsureVisible() {
@@ -2087,16 +2807,9 @@ class TaskListScreen {
         $item = $this.FlatList[$this.SelectedIndex]
         $this.EditingIndex = $this.SelectedIndex
         $this.EditingTask = $item.Task
-        $this.EditingField = "priority"  # Start with priority (leftmost)
-        # Preserve existing priority when starting edit
-        $priorityChar = switch ($this.EditingTask.Priority) {
-            "High" { "h" }
-            "Medium" { "m" }
-            "Low" { "l" }
-            "Today" { "t" }
-            default { "" }
-        }
-        $this.EditingValue = $priorityChar
+        $this.EditingField = "id1"  # Start with ID1 (leftmost field)
+        # Preserve existing ID1 when starting edit
+        $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
         $this.EditingCursor = $this.EditingValue.Length
         $this.IsNewTask = $false
     }
@@ -2275,7 +2988,59 @@ class TaskListScreen {
     
     [void] NextEditField() {
         # Save current field value only if something was entered, then move to next field
+        # Field cycle: id1 → id2 → created → priority → date → title → tags → id1 (cycle)
         switch ($this.EditingField) {
+            "id1" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.ID1 = $this.EditingValue.Trim().Substring(0, [Math]::Min(3, $this.EditingValue.Trim().Length))
+                }
+                $this.EditingField = "id2"
+                # Preserve existing ID2 when switching fields
+                $this.EditingValue = if ($this.EditingTask.ID2) { $this.EditingTask.ID2 } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "id2" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.ID2 = $this.EditingValue.Trim().Substring(0, [Math]::Min(12, $this.EditingValue.Trim().Length))
+                }
+                $this.EditingField = "created"
+                # Preserve existing created date when switching fields
+                $this.EditingValue = if ($this.EditingTask.CreatedDate -ne [datetime]::MinValue) { $this.EditingTask.CreatedDate.ToString("yyyy-MM-dd") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "created" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "" -and $this.EditingValue.Trim() -ne "clear") {
+                    $this.EditingTask.CreatedDate = $this.ConvertDateInput($this.EditingValue)
+                } elseif ($this.EditingValue.Trim() -eq "clear") {
+                    $this.EditingTask.CreatedDate = [datetime]::MinValue
+                }
+                
+                # Get editing item to check level
+                $item = $this.FlatList[$this.EditingIndex]
+                if ($item.Level -eq 0) {
+                    # Parent task: skip priority field and go directly to date
+                    $this.EditingField = "date"
+                    # Preserve existing date when switching fields
+                    $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
+                    $this.EditingCursor = $this.EditingValue.Length
+                } else {
+                    # Subtask: go to priority field (which exists for subtasks)
+                    $this.EditingField = "priority"
+                    # Preserve existing priority when switching fields
+                    $priorityChar = switch ($this.EditingTask.Priority) {
+                        "High" { "h" }
+                        "Medium" { "m" }
+                        "Low" { "l" }
+                        "Today" { "t" }
+                        default { "" }
+                    }
+                    $this.EditingValue = $priorityChar
+                    $this.EditingCursor = $this.EditingValue.Length
+                }
+            }
             "priority" {
                 # Only update if user entered something
                 if ($this.EditingValue.Trim() -ne "") {
@@ -2313,17 +3078,10 @@ class TaskListScreen {
                     $this.EditingTask.Tags = $tagParts
                 }
                 
-                # Always cycle back to priority - consistent behavior
-                $this.EditingField = "priority"
-                # Preserve existing priority when switching fields
-                $priorityChar = switch ($this.EditingTask.Priority) {
-                    "High" { "h" }
-                    "Medium" { "m" }
-                    "Low" { "l" }
-                    "Today" { "t" }
-                    default { "" }
-                }
-                $this.EditingValue = $priorityChar
+                # Always cycle back to id1 - complete cycle
+                $this.EditingField = "id1"
+                # Preserve existing ID1 when switching fields
+                $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
                 $this.EditingCursor = $this.EditingValue.Length
             }
         }
@@ -2331,15 +3089,48 @@ class TaskListScreen {
     
     [void] PreviousEditField() {
         # Save current field value only if something was entered, then move to previous field
+        # Reverse field cycle: tags ← title ← date ← priority ← created ← id2 ← id1 ← tags (cycle)
         switch ($this.EditingField) {
+            "id1" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.ID1 = $this.EditingValue.Trim().Substring(0, [Math]::Min(3, $this.EditingValue.Trim().Length))
+                }
+                $this.EditingField = "tags"
+                # Preserve existing tags when switching fields
+                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "id2" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingTask.ID2 = $this.EditingValue.Trim().Substring(0, [Math]::Min(12, $this.EditingValue.Trim().Length))
+                }
+                $this.EditingField = "id1"
+                # Preserve existing ID1 when switching fields
+                $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "created" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "" -and $this.EditingValue.Trim() -ne "clear") {
+                    $this.EditingTask.CreatedDate = $this.ConvertDateInput($this.EditingValue)
+                } elseif ($this.EditingValue.Trim() -eq "clear") {
+                    $this.EditingTask.CreatedDate = [datetime]::MinValue
+                }
+                $this.EditingField = "id2"
+                # Preserve existing ID2 when switching fields
+                $this.EditingValue = if ($this.EditingTask.ID2) { $this.EditingTask.ID2 } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
             "priority" {
                 # Only update if user entered something
                 if ($this.EditingValue.Trim() -ne "") {
                     $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
                 }
-                $this.EditingField = "tags"
-                # Preserve existing tags when switching fields
-                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
+                $this.EditingField = "created"
+                # Preserve existing created date when switching fields
+                $this.EditingValue = if ($this.EditingTask.CreatedDate -ne [datetime]::MinValue) { $this.EditingTask.CreatedDate.ToString("yyyy-MM-dd") } else { "" }
                 $this.EditingCursor = $this.EditingValue.Length
             }
             "date" {
@@ -2384,29 +3175,30 @@ class TaskListScreen {
     }
     
     [void] SaveInlineEdit() {
-        # Apply final field value
+        # Apply final field value to task
         switch ($this.EditingField) {
-            "title" { $this.EditingTask.Title = $this.EditingValue }
-            "priority" { $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue) }
+            "id1" { 
+                $this.EditingTask.ID1 = $this.EditingValue.Trim().Substring(0, [Math]::Min(3, $this.EditingValue.Trim().Length))
+            }
+            "id2" { 
+                $this.EditingTask.ID2 = $this.EditingValue.Trim().Substring(0, [Math]::Min(12, $this.EditingValue.Trim().Length))
+            }
+            "created" {
+                if ($this.EditingValue.Trim() -eq "" -or $this.EditingValue.Trim() -eq "clear") {
+                    $this.EditingTask.CreatedDate = [datetime]::MinValue
+                } else {
+                    $this.EditingTask.CreatedDate = $this.ConvertDateInput($this.EditingValue)
+                }
+            }
+            "title" { 
+                $this.EditingTask.Title = $this.EditingValue.Trim()
+            }
+            "priority" { 
+                $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
+            }
             "date" {
                 $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
             }
-            "tags" {
-                # Parse tags from input
-                if ($this.EditingValue) {
-                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
-                    $this.EditingTask.Tags = $tagParts
-                } else {
-                    $this.EditingTask.Tags = @()
-                }
-            }
-        }
-        
-        # Apply current editing value to the appropriate field
-        switch ($this.EditingField) {
-            "title" { $this.EditingTask.Title = $this.EditingValue.Trim() }
-            "priority" { $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue) }
-            "date" { $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue) }
             "tags" {
                 if ($this.EditingValue.Trim()) {
                     $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
@@ -2806,7 +3598,7 @@ class TaskListScreen {
                 
                 # Show help
                 [Console]::SetCursorPosition(0, $startY + 4)
-                [Console]::Write("↑↓:Adjust ±10  ←→:Switch Field  Enter:Apply  Escape:Cancel")
+                [Console]::Write(" ↑↓:Adjust ±10  ←→:Switch Field  Enter:Apply  Escape:Cancel")  # SHIFTED RIGHT
                 
                 # Handle input
                 if ([Console]::KeyAvailable) {
@@ -2926,6 +3718,18 @@ class TaskListScreen {
         if ($dialog.Show($parentTask)) {
             $this.TaskService.UpdateTask($parentTask)
             $this.LoadTasks()
+        }
+        return $true
+    }
+
+    [bool] OpenExcelScreen() {
+        # Switch to Excel Data Management screen
+        "DEBUG: OpenExcelScreen called $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($this.AppReference) {
+            "DEBUG: AppReference exists, calling SwitchToExcel $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            $this.AppReference.SwitchToExcel()
+        } else {
+            "DEBUG: No AppReference available $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         }
         return $true
     }
@@ -3131,11 +3935,6 @@ class TaskListScreen {
                 }
                 return $true
             }
-            ([System.ConsoleKey]::A) {
-                # Start inline add new entry
-                $this.StartTimeInlineAdd()
-                return $true
-            }
             ([System.ConsoleKey]::D) {
                 $this.DeleteTimeEntry()
                 return $true
@@ -3143,6 +3942,30 @@ class TaskListScreen {
             ([System.ConsoleKey]::C) {
                 $this.TimeService.NavigateToCurrentWeek()
                 $this.LoadTimeEntries()
+                return $true
+            }
+            ([System.ConsoleKey]::P) {
+                # Toggle filter - show all projects vs only projects with time
+                $this.IsTimeFilterActive = -not $this.IsTimeFilterActive
+                $this.LoadTimeEntries()
+                return $true
+            }
+            ([System.ConsoleKey]::N) {
+                try {
+                    # First unfilter to show all projects as potential time entries
+                    $this.IsTimeFilterActive = $false
+                    $this.LoadTimeEntries()
+                    
+                    # Then add new time entry inline (like task N key)
+                    $this.StartTimeInlineAdd()
+                    return $true
+                } catch {
+                    return $false
+                }
+            }
+            ([System.ConsoleKey]::A) {
+                # Add project time entry - show project picker
+                $this.StartProjectTimeEntry()
                 return $true
             }
         }
@@ -3209,33 +4032,13 @@ class TaskListScreen {
     
     [void] StartTimeInlineAdd() {
         try {
-            # Show choice dialog: "Project Work" or "Time Code"
-            $choice = $this.ShowTimeAddTypeDialog()
+            # Create a new time entry and add it temporarily to the end (like task inline add)
+            $newEntry = [SimpleTimeEntry]::new()
             
-            if ($choice -eq "Project") {
-                $selectedTask = $this.ShowTimeTaskPickerDialog()
-                if (-not $selectedTask) { return }
-                
-                $newEntry = [SimpleTimeEntry]::new()
-                $newEntry.ProjectCode = $selectedTask.ID2  # Use ID2 as project code
-                $newEntry.Description = $selectedTask.Title
-                $newEntry.ID1Display = $selectedTask.ID1
-                $newEntry.IsProjectEntry = $true
-                
-            } elseif ($choice -eq "TimeCode") {
-                $timeCode = Read-Host "Enter time code (VAC, SICK, etc.)"
-                if ([string]::IsNullOrEmpty($timeCode)) { return }
-                
-                $description = Read-Host "Enter description"
-                
-                $newEntry = [SimpleTimeEntry]::new()
-                $newEntry.ProjectCode = ""  # No ID2 for time codes
-                $newEntry.Description = $description
-                $newEntry.ID1Display = $timeCode.ToUpper()
-                $newEntry.IsProjectEntry = $false
-            } else {
-                return  # User cancelled
-            }
+            $newEntry.ProjectCode = ""  # Start empty for non-project entries
+            $newEntry.Description = ""  # Start empty
+            $newEntry.ID1Display = ""  # Start empty for user input
+            $newEntry.IsProjectEntry = $false  # Default to non-project (VAC, SICK, etc.)
             
             # Set the week ending friday using the service's current week
             if ($this.TimeService -and $this.TimeService.CurrentWeekFriday) {
@@ -3251,7 +4054,7 @@ class TaskListScreen {
             
             $this.TimeEditingIndex = $this.TimeFlatList.Count - 1
             $this.TimeEditingEntry = $newEntry
-            $this.TimeEditingField = "monday"  # Skip name/id fields, go straight to hours
+            $this.TimeEditingField = "id1"  # Start with ID1 (time code) for immediate input
             $this.TimeEditingValue = ""
             $this.TimeSelectedIndex = $this.TimeEditingIndex
             $this.IsNewTimeEntry = $true
@@ -3259,6 +4062,7 @@ class TaskListScreen {
             $this.EnsureTimeVisible()
         }
         catch {
+            
             # Reset editing state to safe values
             $this.TimeEditingIndex = -1
             $this.TimeEditingField = ""
@@ -3268,47 +4072,56 @@ class TaskListScreen {
         }
     }
     
-    [string] ShowTimeAddTypeDialog() {
-        # Simple console-based choice dialog
-        Write-Host "`nAdd time entry:" -ForegroundColor Yellow
-        Write-Host "1. Project work (linked to task)"
-        Write-Host "2. Time code (VAC, SICK, etc.)"
-        Write-Host "Choice (1-2): " -NoNewline
+    [void] StartProjectTimeEntry() {
+        # First ensure task lookup is populated
+        $this.LoadTaskLookup()
         
-        $input = Read-Host
-        switch ($input) {
-            "1" { return "Project" }
-            "2" { return "TimeCode" }
-            default { return "" }
-        }
-        return ""  # Explicit return for all code paths
-    }
-    
-    [SimpleTask] ShowTimeTaskPickerDialog() {
-        # Simple console-based task picker
-        $availableTasks = $this.TaskService.GetParentTasks() | Where-Object { -not $_.Completed }
-        if ($availableTasks.Count -eq 0) {
-            Write-Host "No active tasks available" -ForegroundColor Yellow
-            return $null
+        # Get all projects (tasks with ID2)
+        $projects = @()
+        foreach ($key in $this.TaskLookup.Keys) {
+            $task = $this.TaskLookup[$key]
+            if ($task.ID2) {  # Only include tasks with project codes (ID2)
+                $projects += @{
+                    Task = $task
+                    Display = "$($task.ID1) $($task.ID2) - $($task.Title)"
+                }
+            }
         }
         
-        Write-Host "`nSelect task:" -ForegroundColor Yellow
-        for ($i = 0; $i -lt $availableTasks.Count; $i++) {
-            $task = $availableTasks[$i]
-            $display = "$($i + 1). $($task.Title)"
-            if ($task.ID1) { $display += " [$($task.ID1)]" }
-            if ($task.ID2) { $display += " [$($task.ID2)]" }
-            Write-Host $display
-        }
-        Write-Host "Choice (1-$($availableTasks.Count)): " -NoNewline
-        
-        $input = Read-Host
-        $index = 0
-        if ([int]::TryParse($input, [ref]$index) -and $index -ge 1 -and $index -le $availableTasks.Count) {
-            return $availableTasks[$index - 1]
+        if ($projects.Count -eq 0) {
+            return  # No projects available
         }
         
-        return $null
+        # Show project selection (simplified - just pick first one for now)
+        $selectedProject = $projects[0].Task
+        
+        # Create a new time entry for the selected project
+        $newEntry = [SimpleTimeEntry]::new()
+        $newEntry.ProjectCode = $selectedProject.ID2
+        $newEntry.Description = $selectedProject.Title
+        $newEntry.ID1Display = if ($selectedProject.ID1) { $selectedProject.ID1 } else { "" }
+        $newEntry.IsProjectEntry = $true
+        
+        # Set the week ending friday using the service's current week
+        if ($this.TimeService -and $this.TimeService.CurrentWeekFriday) {
+            $newEntry.WeekEndingFriday = $this.TimeService.CurrentWeekFriday.ToString("yyyyMMdd")
+        }
+        
+        # Add to the time flat list for inline editing
+        $this.TimeFlatList.Add(@{
+            Entry = $newEntry
+            IsLast = $false
+        })
+        
+        # Set selection and editing state to start with Monday hours
+        $this.TimeSelectedIndex = $this.TimeFlatList.Count - 1
+        $this.TimeEditingIndex = $this.TimeSelectedIndex
+        $this.TimeEditingEntry = $newEntry
+        $this.TimeEditingField = "monday"  # Start editing Monday hours
+        $this.TimeEditingValue = "0"
+        $this.IsNewTimeEntry = $true
+        
+        $this.EnsureTimeVisible()
     }
     
     [void] NextTimeEditField() {
@@ -3316,13 +4129,20 @@ class TaskListScreen {
         switch ($this.TimeEditingField) {
             "name" {
                 $this.TimeEditingEntry.Description = $this.TimeEditingValue
-                $this.TimeEditingField = "id1"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.ID1Display) { $this.TimeEditingEntry.ID1Display } else { "" }
+                # After name, go to monday for time codes (they don't need id1/id2 editing after creation)
+                $this.TimeEditingField = "monday"
+                $this.TimeEditingValue = if ($this.TimeEditingEntry.Monday -gt 0) { $this.TimeEditingEntry.Monday.ToString() } else { "" }
             }
             "id1" {
                 $this.TimeEditingEntry.ID1Display = $this.TimeEditingValue
-                $this.TimeEditingField = "id2"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.ProjectCode) { $this.TimeEditingEntry.ProjectCode } else { "" }
+                # For non-project entries (time codes), skip id2 and go straight to name/description
+                if ($this.TimeEditingEntry.IsProjectEntry) {
+                    $this.TimeEditingField = "id2"
+                    $this.TimeEditingValue = if ($this.TimeEditingEntry.ProjectCode) { $this.TimeEditingEntry.ProjectCode } else { "" }
+                } else {
+                    $this.TimeEditingField = "name"
+                    $this.TimeEditingValue = if ($this.TimeEditingEntry.Description) { $this.TimeEditingEntry.Description } else { "" }
+                }
             }
             "id2" {
                 $this.TimeEditingEntry.ProjectCode = $this.TimeEditingValue

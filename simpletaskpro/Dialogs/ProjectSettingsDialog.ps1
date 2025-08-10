@@ -26,15 +26,8 @@ class ProjectSettingsDialog {
     [int]$BrowserScrollTop = 0
     [int]$BrowserOriginField = -1  # Track which field started the browser
     
-    # Colors - same approach as TaskListScreen
-    [string]$HeaderColor = "`e[38;2;100;150;255m"    # Modern blue
-    [string]$FieldColor = "`e[38;2;255;215;0m"      # Yellow
-    [string]$ValueColor = "`e[38;2;250;248;240m"     # White
-    [string]$ButtonColor = "`e[38;2;80;200;120m"     # Green
-    [string]$SelectedBg = "`e[48;2;255;215;0;30m"    # Yellow bg, black text
-    [string]$BrowserColor = "`e[38;2;180;180;180m"   # Gray
-    [string]$BrowserSelectedBg = "`e[48;2;45;45;55;37m" # Blue bg, white text
-    [string]$NormalColor = "`e[0m"                   # Reset
+    # Colors now use centralized theme system - no hardcoded colors
+    # All colors retrieved dynamically from AppThemeManager
     
     [bool] Show([SimpleTask]$task) {
         $this.Task = $task
@@ -138,10 +131,10 @@ class ProjectSettingsDialog {
         [void]$sb.Append([VT]::Clear())
         [void]$sb.Append([VT]::MoveTo(0, 0))
         
-        # Header
-        [void]$sb.Append($this.HeaderColor)
+        # Header with centralized theme
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         [void]$sb.Append("PROJECT SETTINGS - $($this.OriginalTitle)")
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         [void]$sb.Append([VT]::MoveTo(0, 1))
         [void]$sb.Append("─" * [Console]::WindowWidth)
         
@@ -154,18 +147,18 @@ class ProjectSettingsDialog {
             $displayValue = if ($fieldValue.Length -gt 60) { $fieldValue.Substring(0, 57) + "..." } else { $fieldValue }
             
             if ($this.SelectedField -eq $i) {
-                [void]$sb.Append($this.SelectedBg)
+                [void]$sb.Append([AppThemeManager]::GetBackgroundColor("Selected"))
                 [void]$sb.Append("■ $($this.FieldLabels[$i])")
                 [void]$sb.Append((" " * (30 - $this.FieldLabels[$i].Length)))
                 [void]$sb.Append($displayValue)
-                [void]$sb.Append($this.NormalColor)
+                [void]$sb.Append([VT]::Reset())
             } else {
-                [void]$sb.Append($this.FieldColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Field"))
                 [void]$sb.Append("  $($this.FieldLabels[$i])")
-                [void]$sb.Append($this.ValueColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Value"))
                 [void]$sb.Append((" " * (30 - $this.FieldLabels[$i].Length)))
                 [void]$sb.Append($displayValue)
-                [void]$sb.Append($this.NormalColor)
+                [void]$sb.Append([VT]::Reset())
             }
             $y += 2
         }

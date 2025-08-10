@@ -1,0 +1,216 @@
+[
+  {
+    "Id": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+    "Title": "Git",
+    "CommandText": "",
+    "Description": "Git version control commands",
+    "GroupId": "",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": null,
+    "Commands": [
+      {
+        "Id": "66d5ff21-5530-4996-a4a1-f00fa7ee774a",
+        "Title": "Git Log",
+        "CommandText": "git log --oneline -10",
+        "Description": "Show recent commits",
+        "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": [
+          "git",
+          "log",
+          "history"
+        ],
+        "Commands": [],
+        "CreatedDate": "2025-08-10T00:08:12.71433-06:00",
+        "ModifiedDate": "2025-08-10T00:08:12.7147812-06:00"
+      },
+      {
+        "Id": "f05510c1-ed6b-4a04-964e-1ee343bca14a",
+        "Title": "Git Status",
+        "CommandText": "git status",
+        "Description": "Show working tree status",
+        "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": [
+          "git",
+          "status"
+        ],
+        "Commands": [],
+        "CreatedDate": "2025-08-10T00:08:12.6753076-06:00",
+        "ModifiedDate": "2025-08-10T00:08:12.6757822-06:00"
+      },
+      {
+        "Id": "cdc59685-22d6-41cc-8f98-5f4e4cc717ec",
+        "Title": "New Command",
+        "CommandText": "",
+        "Description": "New command description",
+        "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": null,
+        "Commands": [],
+        "CreatedDate": "2025-08-10T14:21:25.0832936-06:00",
+        "ModifiedDate": "2025-08-10T14:21:29.1557855-06:00"
+      },
+      {
+        "Id": "58a3bfc9-d051-4c81-adab-6d3f5da55ef9",
+        "Title": "New CommandN",
+        "CommandText": "",
+        "Description": "New command description",
+        "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": [],
+        "Commands": [],
+        "CreatedDate": "2025-08-10T14:24:51.7913185-06:00",
+        "ModifiedDate": "2025-08-10T14:25:08.0592947-06:00"
+      }
+    ],
+    "CreatedDate": "2025-08-10T00:08:12.6522922-06:00",
+    "ModifiedDate": "2025-08-10T14:24:51.8615911-06:00"
+  },
+  {
+    "Id": "66d5ff21-5530-4996-a4a1-f00fa7ee774a",
+    "Title": "Git Log",
+    "CommandText": "git log --oneline -10",
+    "Description": "Show recent commits",
+    "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": [
+      "git",
+      "log",
+      "history"
+    ],
+    "Commands": [],
+    "CreatedDate": "2025-08-10T00:08:12.71433-06:00",
+    "ModifiedDate": "2025-08-10T00:08:12.7147812-06:00"
+  },
+  {
+    "Id": "f05510c1-ed6b-4a04-964e-1ee343bca14a",
+    "Title": "Git Status",
+    "CommandText": "git status",
+    "Description": "Show working tree status",
+    "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": [
+      "git",
+      "status"
+    ],
+    "Commands": [],
+    "CreatedDate": "2025-08-10T00:08:12.6753076-06:00",
+    "ModifiedDate": "2025-08-10T00:08:12.6757822-06:00"
+  },
+  {
+    "Id": "cdc59685-22d6-41cc-8f98-5f4e4cc717ec",
+    "Title": "New Command",
+    "CommandText": "",
+    "Description": "New command description",
+    "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": null,
+    "Commands": [],
+    "CreatedDate": "2025-08-10T14:21:25.0832936-06:00",
+    "ModifiedDate": "2025-08-10T14:21:29.1557855-06:00"
+  },
+  {
+    "Id": "58a3bfc9-d051-4c81-adab-6d3f5da55ef9",
+    "Title": "New CommandN",
+    "CommandText": "",
+    "Description": "New command description",
+    "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": [],
+    "Commands": [],
+    "CreatedDate": "2025-08-10T14:24:51.7913185-06:00",
+    "ModifiedDate": "2025-08-10T14:25:08.0592947-06:00"
+  },
+  {
+    "Id": "60241c2d-4d20-4b6b-8ab2-7415be9effad",
+    "Title": "PowerShell",
+    "CommandText": "",
+    "Description": "PowerShell system commands",
+    "GroupId": "",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": null,
+    "Commands": [
+      {
+        "Id": "c41e93f6-ff66-4a87-8e74-855c70231af4",
+        "Title": "Disk Usage",
+        "CommandText": "Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID,Size,FreeSpace",
+        "Description": "Show disk space usage",
+        "GroupId": "60241c2d-4d20-4b6b-8ab2-7415be9effad",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": [
+          "powershell",
+          "system",
+          "disk"
+        ],
+        "Commands": [],
+        "CreatedDate": "2025-08-10T00:08:12.7259384-06:00",
+        "ModifiedDate": "2025-08-10T00:08:12.7264297-06:00"
+      },
+      {
+        "Id": "8d913de3-ff19-42ce-951b-da1a6e378e94",
+        "Title": "Get Processes",
+        "CommandText": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10",
+        "Description": "Show top CPU processes",
+        "GroupId": "60241c2d-4d20-4b6b-8ab2-7415be9effad",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": [
+          "powershell",
+          "system",
+          "processes"
+        ],
+        "Commands": [],
+        "CreatedDate": "2025-08-10T00:08:12.7238018-06:00",
+        "ModifiedDate": "2025-08-10T00:08:12.7243004-06:00"
+      }
+    ],
+    "CreatedDate": "2025-08-10T00:08:12.7224066-06:00",
+    "ModifiedDate": "2025-08-10T00:08:12.727226-06:00"
+  },
+  {
+    "Id": "c41e93f6-ff66-4a87-8e74-855c70231af4",
+    "Title": "Disk Usage",
+    "CommandText": "Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID,Size,FreeSpace",
+    "Description": "Show disk space usage",
+    "GroupId": "60241c2d-4d20-4b6b-8ab2-7415be9effad",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": [
+      "powershell",
+      "system",
+      "disk"
+    ],
+    "Commands": [],
+    "CreatedDate": "2025-08-10T00:08:12.7259384-06:00",
+    "ModifiedDate": "2025-08-10T00:08:12.7264297-06:00"
+  },
+  {
+    "Id": "8d913de3-ff19-42ce-951b-da1a6e378e94",
+    "Title": "Get Processes",
+    "CommandText": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10",
+    "Description": "Show top CPU processes",
+    "GroupId": "60241c2d-4d20-4b6b-8ab2-7415be9effad",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": [
+      "powershell",
+      "system",
+      "processes"
+    ],
+    "Commands": [],
+    "CreatedDate": "2025-08-10T00:08:12.7238018-06:00",
+    "ModifiedDate": "2025-08-10T00:08:12.7243004-06:00"
+  }
+]
