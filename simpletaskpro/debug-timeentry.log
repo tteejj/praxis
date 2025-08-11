@@ -363,3 +363,1032 @@ DEBUG: Starting RenderTimeEntryMode... 08/11/2025 00:04:16
 DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/11/2025 00:04:16
 DEBUG: RenderTimeList completed successfully 08/11/2025 00:04:16
 DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 00:04:16
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 09:07:20
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 09:07:20
+DEBUG: TimeFlatList count after build: 2 08/11/2025 09:07:20
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:20
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/11/2025 09:07:20
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:20
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:20
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 09:07:24
+DEBUG: After adding existing entries - TimeEntries count: 2 08/11/2025 09:07:24
+DEBUG: Existing project codes:  08/11/2025 09:07:24
+DEBUG: TaskLookup has 0 keys 08/11/2025 09:07:24
+DEBUG: Final TimeEntries count: 2 08/11/2025 09:07:24
+DEBUG: TimeFlatList count after build: 2 08/11/2025 09:07:24
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:24
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 3 08/11/2025 09:07:24
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:24
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:24
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 09:07:29
+DEBUG: After adding existing entries - TimeEntries count: 2 08/11/2025 09:07:29
+DEBUG: Existing project codes:  08/11/2025 09:07:29
+DEBUG: TaskLookup has 0 keys 08/11/2025 09:07:29
+DEBUG: Final TimeEntries count: 2 08/11/2025 09:07:29
+DEBUG: TimeFlatList count after build: 2 08/11/2025 09:07:29
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:29
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/11/2025 09:07:29
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:29
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:29
+DEBUG: LoadTaskLookup - Got 7 parent tasks 08/11/2025 09:07:30
+DEBUG: Added task to lookup: ID2=222333444555, Title=test proj 08/11/2025 09:07:30
+DEBUG: TaskLookup loaded with 13 keys 08/11/2025 09:07:30
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:30
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 3 08/11/2025 09:07:30
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:30
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:30
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 09:07:31
+DEBUG: After adding existing entries - TimeEntries count: 2 08/11/2025 09:07:31
+DEBUG: Existing project codes:  08/11/2025 09:07:31
+DEBUG: TaskLookup has 13 keys 08/11/2025 09:07:31
+DEBUG: Added placeholder for 111 222333444555 - test proj 08/11/2025 09:07:31
+DEBUG: Added placeholder for 111 222333444555 - test proj 08/11/2025 09:07:31
+DEBUG: Final TimeEntries count: 4 08/11/2025 09:07:31
+DEBUG: TimeFlatList count after build: 4 08/11/2025 09:07:31
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:31
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:31
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:31
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:31
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:33
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:33
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:33
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:33
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:34
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:34
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:34
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:34
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:34
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:34
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:34
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:34
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:35
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:35
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:35
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:35
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:35
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:35
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:35
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:35
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:35
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:36
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:36
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:36
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:36
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 09:07:36
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 4 08/11/2025 09:07:36
+DEBUG: RenderTimeList completed successfully 08/11/2025 09:07:36
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 09:07:36
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:23:18
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:23:18
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:23:18
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:34:36
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:34:36
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:34:36
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:36:19
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:36:19
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:36:19
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:41:26
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:41:26
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:41:26
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:47:36
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:47:36
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:47:36
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:49:06
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:49:07
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:49:07
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:51:49
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:51:49
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:51:49
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 11:59:07
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 11:59:07
+DEBUG: TimeFlatList count after build: 2 08/11/2025 11:59:07
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:01:17
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:01:17
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:01:17
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:02:47
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:02:47
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:02:47
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:08:03
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:08:03
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:08:03
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:09:16
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:09:16
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:09:16
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:09:28
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:09:28
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:09:28
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:09:31
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:09:31
+ERROR in RenderTimeEntryMode: You cannot call a method on a null-valued expression. 08/11/2025 12:09:32
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:09:32
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:13:11
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:13:11
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:13:11
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:13:17
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:13:17
+ERROR in RenderTimeEntryMode: You cannot call a method on a null-valued expression. 08/11/2025 12:13:17
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:13:17
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:15:42
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:15:42
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:15:42
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:17:11
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:17:11
+ERROR in RenderTimeEntryMode: You cannot call a method on a null-valued expression. 08/11/2025 12:17:11
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:17:11
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:18:39
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:18:39
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:18:39
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:18:47
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:18:47
+DEBUG: About to render header... 08/11/2025 12:18:47
+DEBUG: Getting week ending date... 08/11/2025 12:18:47
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:18:47
+DEBUG: Header rendered successfully 08/11/2025 12:18:47
+DEBUG: About to render table headers... 08/11/2025 12:18:47
+DEBUG: Table headers rendered successfully 08/11/2025 12:18:47
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:18:47
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:18:47
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:18:48
+ERROR in RenderTimeEntryMode: You cannot call a method on a null-valued expression. 08/11/2025 12:18:48
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:18:48
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:21:34
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:21:34
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:21:34
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:21:37
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:21:37
+DEBUG: About to render header... 08/11/2025 12:21:37
+DEBUG: Getting week ending date... 08/11/2025 12:21:37
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:21:37
+DEBUG: Header rendered successfully 08/11/2025 12:21:37
+DEBUG: About to render table headers... 08/11/2025 12:21:37
+DEBUG: Table headers rendered successfully 08/11/2025 12:21:37
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:21:37
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:21:37
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:21:37
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:21:37
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:21:37
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:21:37
+ERROR in RenderTimeEntryMode: You cannot call a method on a null-valued expression. 08/11/2025 12:21:37
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:21:37
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:24:41
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:24:41
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:24:41
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:24:44
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:24:44
+DEBUG: About to render header... 08/11/2025 12:24:44
+DEBUG: Getting week ending date... 08/11/2025 12:24:44
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:24:44
+DEBUG: Header rendered successfully 08/11/2025 12:24:44
+DEBUG: About to render table headers... 08/11/2025 12:24:44
+DEBUG: Table headers rendered successfully 08/11/2025 12:24:44
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:24:44
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:24:44
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:24:44
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:24:44
+DEBUG: About to get Description property 08/11/2025 12:24:44
+DEBUG: Description = '2221' 08/11/2025 12:24:44
+DEBUG: Task name rendered 08/11/2025 12:24:44
+DEBUG: ID1 rendered 08/11/2025 12:24:44
+DEBUG: ID2 rendered 08/11/2025 12:24:44
+DEBUG: About to render day columns 08/11/2025 12:24:44
+DEBUG: Monday rendered 08/11/2025 12:24:44
+DEBUG: Tuesday rendered 08/11/2025 12:24:44
+DEBUG: Wednesday rendered 08/11/2025 12:24:44
+DEBUG: Thursday rendered 08/11/2025 12:24:44
+DEBUG: Friday rendered 08/11/2025 12:24:44
+DEBUG: Total rendered 08/11/2025 12:24:44
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:24:44
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:24:44
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:24:44
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:24:44
+DEBUG: About to get Description property 08/11/2025 12:24:44
+DEBUG: Description = '' 08/11/2025 12:24:44
+DEBUG: Task name rendered 08/11/2025 12:24:44
+DEBUG: ID1 rendered 08/11/2025 12:24:44
+DEBUG: ID2 rendered 08/11/2025 12:24:44
+DEBUG: About to render day columns 08/11/2025 12:24:44
+DEBUG: Monday rendered 08/11/2025 12:24:44
+DEBUG: Tuesday rendered 08/11/2025 12:24:44
+DEBUG: Wednesday rendered 08/11/2025 12:24:44
+DEBUG: Thursday rendered 08/11/2025 12:24:44
+DEBUG: Friday rendered 08/11/2025 12:24:44
+DEBUG: Total rendered 08/11/2025 12:24:44
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:24:44
+DEBUG: Time entries loop completed 08/11/2025 12:24:44
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:24:44
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:24:44
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:24:44
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:24:44
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:29:57
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:29:57
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:29:57
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:03
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:03
+DEBUG: About to render header... 08/11/2025 12:30:03
+DEBUG: Getting week ending date... 08/11/2025 12:30:03
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:03
+DEBUG: Header rendered successfully 08/11/2025 12:30:03
+DEBUG: About to render table headers... 08/11/2025 12:30:03
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:03
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:03
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:03
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:03
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:03
+DEBUG: About to get Description property 08/11/2025 12:30:03
+DEBUG: Description = '2221' 08/11/2025 12:30:03
+DEBUG: Task name rendered 08/11/2025 12:30:03
+DEBUG: ID1 rendered 08/11/2025 12:30:03
+DEBUG: ID2 rendered 08/11/2025 12:30:03
+DEBUG: About to render day columns 08/11/2025 12:30:03
+DEBUG: Monday rendered 08/11/2025 12:30:03
+DEBUG: Tuesday rendered 08/11/2025 12:30:03
+DEBUG: Wednesday rendered 08/11/2025 12:30:03
+DEBUG: Thursday rendered 08/11/2025 12:30:03
+DEBUG: Friday rendered 08/11/2025 12:30:03
+DEBUG: Total rendered 08/11/2025 12:30:03
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:03
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:03
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:03
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:03
+DEBUG: About to get Description property 08/11/2025 12:30:03
+DEBUG: Description = '' 08/11/2025 12:30:03
+DEBUG: Task name rendered 08/11/2025 12:30:03
+DEBUG: ID1 rendered 08/11/2025 12:30:03
+DEBUG: ID2 rendered 08/11/2025 12:30:03
+DEBUG: About to render day columns 08/11/2025 12:30:03
+DEBUG: Monday rendered 08/11/2025 12:30:03
+DEBUG: Tuesday rendered 08/11/2025 12:30:03
+DEBUG: Wednesday rendered 08/11/2025 12:30:03
+DEBUG: Thursday rendered 08/11/2025 12:30:03
+DEBUG: Friday rendered 08/11/2025 12:30:03
+DEBUG: Total rendered 08/11/2025 12:30:03
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:03
+DEBUG: Time entries loop completed 08/11/2025 12:30:03
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:03
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:03
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:03
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:03
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:06
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:06
+DEBUG: About to render header... 08/11/2025 12:30:06
+DEBUG: Getting week ending date... 08/11/2025 12:30:06
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:06
+DEBUG: Header rendered successfully 08/11/2025 12:30:06
+DEBUG: About to render table headers... 08/11/2025 12:30:06
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:06
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:06
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:06
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:06
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:06
+DEBUG: About to get Description property 08/11/2025 12:30:06
+DEBUG: Description = '2221' 08/11/2025 12:30:06
+DEBUG: Task name rendered 08/11/2025 12:30:06
+DEBUG: ID1 rendered 08/11/2025 12:30:06
+DEBUG: ID2 rendered 08/11/2025 12:30:06
+DEBUG: About to render day columns 08/11/2025 12:30:06
+DEBUG: Monday rendered 08/11/2025 12:30:06
+DEBUG: Tuesday rendered 08/11/2025 12:30:06
+DEBUG: Wednesday rendered 08/11/2025 12:30:06
+DEBUG: Thursday rendered 08/11/2025 12:30:06
+DEBUG: Friday rendered 08/11/2025 12:30:06
+DEBUG: Total rendered 08/11/2025 12:30:06
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:06
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:06
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:06
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:06
+DEBUG: About to get Description property 08/11/2025 12:30:06
+DEBUG: Description = '' 08/11/2025 12:30:06
+DEBUG: Task name rendered 08/11/2025 12:30:06
+DEBUG: ID1 rendered 08/11/2025 12:30:06
+DEBUG: ID2 rendered 08/11/2025 12:30:06
+DEBUG: About to render day columns 08/11/2025 12:30:06
+DEBUG: Monday rendered 08/11/2025 12:30:06
+DEBUG: Tuesday rendered 08/11/2025 12:30:06
+DEBUG: Wednesday rendered 08/11/2025 12:30:06
+DEBUG: Thursday rendered 08/11/2025 12:30:06
+DEBUG: Friday rendered 08/11/2025 12:30:06
+DEBUG: Total rendered 08/11/2025 12:30:06
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:06
+DEBUG: Time entries loop completed 08/11/2025 12:30:06
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:06
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:06
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:06
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:06
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:07
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:07
+DEBUG: About to render header... 08/11/2025 12:30:07
+DEBUG: Getting week ending date... 08/11/2025 12:30:07
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:07
+DEBUG: Header rendered successfully 08/11/2025 12:30:07
+DEBUG: About to render table headers... 08/11/2025 12:30:07
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:07
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:07
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:07
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:07
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:07
+DEBUG: About to get Description property 08/11/2025 12:30:07
+DEBUG: Description = '2221' 08/11/2025 12:30:07
+DEBUG: Task name rendered 08/11/2025 12:30:07
+DEBUG: ID1 rendered 08/11/2025 12:30:07
+DEBUG: ID2 rendered 08/11/2025 12:30:07
+DEBUG: About to render day columns 08/11/2025 12:30:07
+DEBUG: Monday rendered 08/11/2025 12:30:07
+DEBUG: Tuesday rendered 08/11/2025 12:30:07
+DEBUG: Wednesday rendered 08/11/2025 12:30:07
+DEBUG: Thursday rendered 08/11/2025 12:30:07
+DEBUG: Friday rendered 08/11/2025 12:30:07
+DEBUG: Total rendered 08/11/2025 12:30:07
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:07
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:07
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:07
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:07
+DEBUG: About to get Description property 08/11/2025 12:30:07
+DEBUG: Description = '' 08/11/2025 12:30:07
+DEBUG: Task name rendered 08/11/2025 12:30:07
+DEBUG: ID1 rendered 08/11/2025 12:30:07
+DEBUG: ID2 rendered 08/11/2025 12:30:07
+DEBUG: About to render day columns 08/11/2025 12:30:07
+DEBUG: Monday rendered 08/11/2025 12:30:07
+DEBUG: Tuesday rendered 08/11/2025 12:30:07
+DEBUG: Wednesday rendered 08/11/2025 12:30:07
+DEBUG: Thursday rendered 08/11/2025 12:30:07
+DEBUG: Friday rendered 08/11/2025 12:30:07
+DEBUG: Total rendered 08/11/2025 12:30:07
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:07
+DEBUG: Time entries loop completed 08/11/2025 12:30:07
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:07
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:07
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:07
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:07
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:07
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:07
+DEBUG: About to render header... 08/11/2025 12:30:07
+DEBUG: Getting week ending date... 08/11/2025 12:30:07
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:07
+DEBUG: Header rendered successfully 08/11/2025 12:30:07
+DEBUG: About to render table headers... 08/11/2025 12:30:07
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:07
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:07
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:07
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:07
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:07
+DEBUG: About to get Description property 08/11/2025 12:30:07
+DEBUG: Description = '2221' 08/11/2025 12:30:07
+DEBUG: Task name rendered 08/11/2025 12:30:07
+DEBUG: ID1 rendered 08/11/2025 12:30:07
+DEBUG: ID2 rendered 08/11/2025 12:30:07
+DEBUG: About to render day columns 08/11/2025 12:30:07
+DEBUG: Monday rendered 08/11/2025 12:30:07
+DEBUG: Tuesday rendered 08/11/2025 12:30:07
+DEBUG: Wednesday rendered 08/11/2025 12:30:07
+DEBUG: Thursday rendered 08/11/2025 12:30:07
+DEBUG: Friday rendered 08/11/2025 12:30:07
+DEBUG: Total rendered 08/11/2025 12:30:07
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:07
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:07
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:07
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:07
+DEBUG: About to get Description property 08/11/2025 12:30:07
+DEBUG: Description = '' 08/11/2025 12:30:07
+DEBUG: Task name rendered 08/11/2025 12:30:07
+DEBUG: ID1 rendered 08/11/2025 12:30:07
+DEBUG: ID2 rendered 08/11/2025 12:30:07
+DEBUG: About to render day columns 08/11/2025 12:30:07
+DEBUG: Monday rendered 08/11/2025 12:30:07
+DEBUG: Tuesday rendered 08/11/2025 12:30:07
+DEBUG: Wednesday rendered 08/11/2025 12:30:07
+DEBUG: Thursday rendered 08/11/2025 12:30:07
+DEBUG: Friday rendered 08/11/2025 12:30:07
+DEBUG: Total rendered 08/11/2025 12:30:07
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:07
+DEBUG: Time entries loop completed 08/11/2025 12:30:07
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:07
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:07
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:07
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:07
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:08
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:08
+DEBUG: About to render header... 08/11/2025 12:30:08
+DEBUG: Getting week ending date... 08/11/2025 12:30:08
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:08
+DEBUG: Header rendered successfully 08/11/2025 12:30:08
+DEBUG: About to render table headers... 08/11/2025 12:30:08
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:08
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:08
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:08
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:08
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:08
+DEBUG: About to get Description property 08/11/2025 12:30:08
+DEBUG: Description = '2221' 08/11/2025 12:30:08
+DEBUG: Task name rendered 08/11/2025 12:30:08
+DEBUG: ID1 rendered 08/11/2025 12:30:08
+DEBUG: ID2 rendered 08/11/2025 12:30:08
+DEBUG: About to render day columns 08/11/2025 12:30:08
+DEBUG: Monday rendered 08/11/2025 12:30:08
+DEBUG: Tuesday rendered 08/11/2025 12:30:08
+DEBUG: Wednesday rendered 08/11/2025 12:30:08
+DEBUG: Thursday rendered 08/11/2025 12:30:08
+DEBUG: Friday rendered 08/11/2025 12:30:08
+DEBUG: Total rendered 08/11/2025 12:30:08
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:08
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:08
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:08
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:08
+DEBUG: About to get Description property 08/11/2025 12:30:08
+DEBUG: Description = '' 08/11/2025 12:30:08
+DEBUG: Task name rendered 08/11/2025 12:30:08
+DEBUG: ID1 rendered 08/11/2025 12:30:08
+DEBUG: ID2 rendered 08/11/2025 12:30:08
+DEBUG: About to render day columns 08/11/2025 12:30:08
+DEBUG: Monday rendered 08/11/2025 12:30:08
+DEBUG: Tuesday rendered 08/11/2025 12:30:08
+DEBUG: Wednesday rendered 08/11/2025 12:30:08
+DEBUG: Thursday rendered 08/11/2025 12:30:08
+DEBUG: Friday rendered 08/11/2025 12:30:08
+DEBUG: Total rendered 08/11/2025 12:30:08
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:08
+DEBUG: Time entries loop completed 08/11/2025 12:30:08
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:08
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:08
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:08
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:08
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:09
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:09
+DEBUG: About to render header... 08/11/2025 12:30:09
+DEBUG: Getting week ending date... 08/11/2025 12:30:09
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:09
+DEBUG: Header rendered successfully 08/11/2025 12:30:09
+DEBUG: About to render table headers... 08/11/2025 12:30:09
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:09
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:09
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:09
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:09
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:09
+DEBUG: About to get Description property 08/11/2025 12:30:09
+DEBUG: Description = '2221' 08/11/2025 12:30:09
+DEBUG: Task name rendered 08/11/2025 12:30:09
+DEBUG: ID1 rendered 08/11/2025 12:30:09
+DEBUG: ID2 rendered 08/11/2025 12:30:09
+DEBUG: About to render day columns 08/11/2025 12:30:09
+DEBUG: Monday rendered 08/11/2025 12:30:09
+DEBUG: Tuesday rendered 08/11/2025 12:30:09
+DEBUG: Wednesday rendered 08/11/2025 12:30:09
+DEBUG: Thursday rendered 08/11/2025 12:30:09
+DEBUG: Friday rendered 08/11/2025 12:30:09
+DEBUG: Total rendered 08/11/2025 12:30:09
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:09
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:09
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:09
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:09
+DEBUG: About to get Description property 08/11/2025 12:30:09
+DEBUG: Description = '' 08/11/2025 12:30:09
+DEBUG: Task name rendered 08/11/2025 12:30:09
+DEBUG: ID1 rendered 08/11/2025 12:30:09
+DEBUG: ID2 rendered 08/11/2025 12:30:09
+DEBUG: About to render day columns 08/11/2025 12:30:09
+DEBUG: Monday rendered 08/11/2025 12:30:09
+DEBUG: Tuesday rendered 08/11/2025 12:30:09
+DEBUG: Wednesday rendered 08/11/2025 12:30:09
+DEBUG: Thursday rendered 08/11/2025 12:30:09
+DEBUG: Friday rendered 08/11/2025 12:30:09
+DEBUG: Total rendered 08/11/2025 12:30:09
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:09
+DEBUG: Time entries loop completed 08/11/2025 12:30:09
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:09
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:09
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:09
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:09
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:09
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:09
+DEBUG: About to render header... 08/11/2025 12:30:09
+DEBUG: Getting week ending date... 08/11/2025 12:30:09
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:09
+DEBUG: Header rendered successfully 08/11/2025 12:30:09
+DEBUG: About to render table headers... 08/11/2025 12:30:09
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:09
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:09
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:09
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:09
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:09
+DEBUG: About to get Description property 08/11/2025 12:30:09
+DEBUG: Description = '2221' 08/11/2025 12:30:09
+DEBUG: Task name rendered 08/11/2025 12:30:09
+DEBUG: ID1 rendered 08/11/2025 12:30:09
+DEBUG: ID2 rendered 08/11/2025 12:30:09
+DEBUG: About to render day columns 08/11/2025 12:30:09
+DEBUG: Monday rendered 08/11/2025 12:30:09
+DEBUG: Tuesday rendered 08/11/2025 12:30:09
+DEBUG: Wednesday rendered 08/11/2025 12:30:09
+DEBUG: Thursday rendered 08/11/2025 12:30:09
+DEBUG: Friday rendered 08/11/2025 12:30:09
+DEBUG: Total rendered 08/11/2025 12:30:09
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:09
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:09
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:09
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:09
+DEBUG: About to get Description property 08/11/2025 12:30:09
+DEBUG: Description = '' 08/11/2025 12:30:09
+DEBUG: Task name rendered 08/11/2025 12:30:09
+DEBUG: ID1 rendered 08/11/2025 12:30:09
+DEBUG: ID2 rendered 08/11/2025 12:30:09
+DEBUG: About to render day columns 08/11/2025 12:30:09
+DEBUG: Monday rendered 08/11/2025 12:30:09
+DEBUG: Tuesday rendered 08/11/2025 12:30:09
+DEBUG: Wednesday rendered 08/11/2025 12:30:09
+DEBUG: Thursday rendered 08/11/2025 12:30:09
+DEBUG: Friday rendered 08/11/2025 12:30:09
+DEBUG: Total rendered 08/11/2025 12:30:09
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:09
+DEBUG: Time entries loop completed 08/11/2025 12:30:09
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:09
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:09
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:09
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:09
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:10
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:10
+DEBUG: About to render header... 08/11/2025 12:30:10
+DEBUG: Getting week ending date... 08/11/2025 12:30:10
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:10
+DEBUG: Header rendered successfully 08/11/2025 12:30:10
+DEBUG: About to render table headers... 08/11/2025 12:30:10
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:10
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:10
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:10
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:10
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:10
+DEBUG: About to get Description property 08/11/2025 12:30:10
+DEBUG: Description = '2221' 08/11/2025 12:30:10
+DEBUG: Task name rendered 08/11/2025 12:30:10
+DEBUG: ID1 rendered 08/11/2025 12:30:10
+DEBUG: ID2 rendered 08/11/2025 12:30:10
+DEBUG: About to render day columns 08/11/2025 12:30:10
+DEBUG: Monday rendered 08/11/2025 12:30:10
+DEBUG: Tuesday rendered 08/11/2025 12:30:10
+DEBUG: Wednesday rendered 08/11/2025 12:30:10
+DEBUG: Thursday rendered 08/11/2025 12:30:10
+DEBUG: Friday rendered 08/11/2025 12:30:10
+DEBUG: Total rendered 08/11/2025 12:30:10
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:10
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:10
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:10
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:10
+DEBUG: About to get Description property 08/11/2025 12:30:10
+DEBUG: Description = '' 08/11/2025 12:30:10
+DEBUG: Task name rendered 08/11/2025 12:30:10
+DEBUG: ID1 rendered 08/11/2025 12:30:10
+DEBUG: ID2 rendered 08/11/2025 12:30:10
+DEBUG: About to render day columns 08/11/2025 12:30:10
+DEBUG: Monday rendered 08/11/2025 12:30:10
+DEBUG: Tuesday rendered 08/11/2025 12:30:10
+DEBUG: Wednesday rendered 08/11/2025 12:30:10
+DEBUG: Thursday rendered 08/11/2025 12:30:10
+DEBUG: Friday rendered 08/11/2025 12:30:10
+DEBUG: Total rendered 08/11/2025 12:30:10
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:10
+DEBUG: Time entries loop completed 08/11/2025 12:30:10
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:10
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:10
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:10
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:10
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:11
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:11
+DEBUG: About to render header... 08/11/2025 12:30:11
+DEBUG: Getting week ending date... 08/11/2025 12:30:11
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:11
+DEBUG: Header rendered successfully 08/11/2025 12:30:11
+DEBUG: About to render table headers... 08/11/2025 12:30:11
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:11
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:11
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:11
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:11
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:11
+DEBUG: About to get Description property 08/11/2025 12:30:11
+DEBUG: Description = '2221' 08/11/2025 12:30:11
+DEBUG: Task name rendered 08/11/2025 12:30:11
+DEBUG: ID1 rendered 08/11/2025 12:30:11
+DEBUG: ID2 rendered 08/11/2025 12:30:11
+DEBUG: About to render day columns 08/11/2025 12:30:11
+DEBUG: Monday rendered 08/11/2025 12:30:11
+DEBUG: Tuesday rendered 08/11/2025 12:30:11
+DEBUG: Wednesday rendered 08/11/2025 12:30:11
+DEBUG: Thursday rendered 08/11/2025 12:30:11
+DEBUG: Friday rendered 08/11/2025 12:30:11
+DEBUG: Total rendered 08/11/2025 12:30:11
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:11
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:11
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:11
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:11
+DEBUG: About to get Description property 08/11/2025 12:30:11
+DEBUG: Description = '' 08/11/2025 12:30:11
+DEBUG: Task name rendered 08/11/2025 12:30:11
+DEBUG: ID1 rendered 08/11/2025 12:30:11
+DEBUG: ID2 rendered 08/11/2025 12:30:11
+DEBUG: About to render day columns 08/11/2025 12:30:11
+DEBUG: Monday rendered 08/11/2025 12:30:11
+DEBUG: Tuesday rendered 08/11/2025 12:30:11
+DEBUG: Wednesday rendered 08/11/2025 12:30:11
+DEBUG: Thursday rendered 08/11/2025 12:30:11
+DEBUG: Friday rendered 08/11/2025 12:30:11
+DEBUG: Total rendered 08/11/2025 12:30:11
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:11
+DEBUG: Time entries loop completed 08/11/2025 12:30:11
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:11
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:11
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:11
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:11
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:13
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:13
+DEBUG: About to render header... 08/11/2025 12:30:13
+DEBUG: Getting week ending date... 08/11/2025 12:30:13
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:13
+DEBUG: Header rendered successfully 08/11/2025 12:30:13
+DEBUG: About to render table headers... 08/11/2025 12:30:13
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:13
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:13
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:13
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:13
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:13
+DEBUG: About to get Description property 08/11/2025 12:30:13
+DEBUG: Description = '2221' 08/11/2025 12:30:13
+DEBUG: Task name rendered 08/11/2025 12:30:13
+DEBUG: ID1 rendered 08/11/2025 12:30:13
+DEBUG: ID2 rendered 08/11/2025 12:30:13
+DEBUG: About to render day columns 08/11/2025 12:30:13
+DEBUG: Monday rendered 08/11/2025 12:30:13
+DEBUG: Tuesday rendered 08/11/2025 12:30:13
+DEBUG: Wednesday rendered 08/11/2025 12:30:13
+DEBUG: Thursday rendered 08/11/2025 12:30:13
+DEBUG: Friday rendered 08/11/2025 12:30:13
+DEBUG: Total rendered 08/11/2025 12:30:13
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:13
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:13
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:13
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:13
+DEBUG: About to get Description property 08/11/2025 12:30:13
+DEBUG: Description = '' 08/11/2025 12:30:13
+DEBUG: Task name rendered 08/11/2025 12:30:13
+DEBUG: ID1 rendered 08/11/2025 12:30:13
+DEBUG: ID2 rendered 08/11/2025 12:30:13
+DEBUG: About to render day columns 08/11/2025 12:30:13
+DEBUG: Monday rendered 08/11/2025 12:30:13
+DEBUG: Tuesday rendered 08/11/2025 12:30:13
+DEBUG: Wednesday rendered 08/11/2025 12:30:13
+DEBUG: Thursday rendered 08/11/2025 12:30:13
+DEBUG: Friday rendered 08/11/2025 12:30:13
+DEBUG: Total rendered 08/11/2025 12:30:13
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:13
+DEBUG: Time entries loop completed 08/11/2025 12:30:13
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:13
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:13
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:13
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:13
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:15
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:15
+DEBUG: About to render header... 08/11/2025 12:30:15
+DEBUG: Getting week ending date... 08/11/2025 12:30:15
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:15
+DEBUG: Header rendered successfully 08/11/2025 12:30:15
+DEBUG: About to render table headers... 08/11/2025 12:30:15
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:15
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:15
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:15
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:15
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:15
+DEBUG: About to get Description property 08/11/2025 12:30:15
+DEBUG: Description = '2221' 08/11/2025 12:30:15
+DEBUG: Task name rendered 08/11/2025 12:30:15
+DEBUG: ID1 rendered 08/11/2025 12:30:15
+DEBUG: ID2 rendered 08/11/2025 12:30:15
+DEBUG: About to render day columns 08/11/2025 12:30:15
+DEBUG: Monday rendered 08/11/2025 12:30:15
+DEBUG: Tuesday rendered 08/11/2025 12:30:15
+DEBUG: Wednesday rendered 08/11/2025 12:30:15
+DEBUG: Thursday rendered 08/11/2025 12:30:15
+DEBUG: Friday rendered 08/11/2025 12:30:15
+DEBUG: Total rendered 08/11/2025 12:30:15
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:15
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:15
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:15
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:15
+DEBUG: About to get Description property 08/11/2025 12:30:15
+DEBUG: Description = '' 08/11/2025 12:30:15
+DEBUG: Task name rendered 08/11/2025 12:30:15
+DEBUG: ID1 rendered 08/11/2025 12:30:15
+DEBUG: ID2 rendered 08/11/2025 12:30:15
+DEBUG: About to render day columns 08/11/2025 12:30:15
+DEBUG: Monday rendered 08/11/2025 12:30:15
+DEBUG: Tuesday rendered 08/11/2025 12:30:15
+DEBUG: Wednesday rendered 08/11/2025 12:30:15
+DEBUG: Thursday rendered 08/11/2025 12:30:15
+DEBUG: Friday rendered 08/11/2025 12:30:15
+DEBUG: Total rendered 08/11/2025 12:30:15
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:15
+DEBUG: Time entries loop completed 08/11/2025 12:30:15
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:15
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:15
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:15
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:15
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:30:18
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:30:18
+DEBUG: About to render header... 08/11/2025 12:30:18
+DEBUG: Getting week ending date... 08/11/2025 12:30:18
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:30:18
+DEBUG: Header rendered successfully 08/11/2025 12:30:18
+DEBUG: About to render table headers... 08/11/2025 12:30:18
+DEBUG: Table headers rendered successfully 08/11/2025 12:30:18
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:30:18
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:30:18
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:30:18
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:18
+DEBUG: About to get Description property 08/11/2025 12:30:18
+DEBUG: Description = '2221' 08/11/2025 12:30:18
+DEBUG: Task name rendered 08/11/2025 12:30:18
+DEBUG: ID1 rendered 08/11/2025 12:30:18
+DEBUG: ID2 rendered 08/11/2025 12:30:18
+DEBUG: About to render day columns 08/11/2025 12:30:18
+DEBUG: Monday rendered 08/11/2025 12:30:18
+DEBUG: Tuesday rendered 08/11/2025 12:30:18
+DEBUG: Wednesday rendered 08/11/2025 12:30:18
+DEBUG: Thursday rendered 08/11/2025 12:30:18
+DEBUG: Friday rendered 08/11/2025 12:30:18
+DEBUG: Total rendered 08/11/2025 12:30:18
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:30:18
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:30:18
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:30:18
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:30:18
+DEBUG: About to get Description property 08/11/2025 12:30:18
+DEBUG: Description = '' 08/11/2025 12:30:18
+DEBUG: Task name rendered 08/11/2025 12:30:18
+DEBUG: ID1 rendered 08/11/2025 12:30:18
+DEBUG: ID2 rendered 08/11/2025 12:30:18
+DEBUG: About to render day columns 08/11/2025 12:30:18
+DEBUG: Monday rendered 08/11/2025 12:30:18
+DEBUG: Tuesday rendered 08/11/2025 12:30:18
+DEBUG: Wednesday rendered 08/11/2025 12:30:18
+DEBUG: Thursday rendered 08/11/2025 12:30:18
+DEBUG: Friday rendered 08/11/2025 12:30:18
+DEBUG: Total rendered 08/11/2025 12:30:18
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:30:18
+DEBUG: Time entries loop completed 08/11/2025 12:30:18
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:30:18
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:30:18
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:30:18
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:30:18
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:49:19
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:49:19
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:49:19
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:51:59
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:51:59
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:51:59
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:52:50
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:52:50
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:52:50
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:54:24
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 12:54:24
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:54:24
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:54:30
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:54:30
+DEBUG: About to render header... 08/11/2025 12:54:30
+DEBUG: Getting week ending date... 08/11/2025 12:54:30
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:54:30
+DEBUG: Header rendered successfully 08/11/2025 12:54:30
+DEBUG: About to render table headers... 08/11/2025 12:54:30
+DEBUG: Table headers rendered successfully 08/11/2025 12:54:30
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:54:30
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:54:30
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:54:30
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:30
+DEBUG: About to get Description property 08/11/2025 12:54:30
+DEBUG: Description = '2221' 08/11/2025 12:54:30
+DEBUG: Task name rendered 08/11/2025 12:54:30
+DEBUG: ID1 rendered 08/11/2025 12:54:30
+DEBUG: ID2 rendered 08/11/2025 12:54:30
+DEBUG: About to render day columns 08/11/2025 12:54:30
+DEBUG: Monday rendered 08/11/2025 12:54:30
+DEBUG: Tuesday rendered 08/11/2025 12:54:30
+DEBUG: Wednesday rendered 08/11/2025 12:54:30
+DEBUG: Thursday rendered 08/11/2025 12:54:30
+DEBUG: Friday rendered 08/11/2025 12:54:30
+DEBUG: Total rendered 08/11/2025 12:54:30
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:54:30
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:54:30
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:54:30
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:30
+DEBUG: About to get Description property 08/11/2025 12:54:30
+DEBUG: Description = '' 08/11/2025 12:54:30
+DEBUG: Task name rendered 08/11/2025 12:54:30
+DEBUG: ID1 rendered 08/11/2025 12:54:30
+DEBUG: ID2 rendered 08/11/2025 12:54:30
+DEBUG: About to render day columns 08/11/2025 12:54:30
+DEBUG: Monday rendered 08/11/2025 12:54:30
+DEBUG: Tuesday rendered 08/11/2025 12:54:30
+DEBUG: Wednesday rendered 08/11/2025 12:54:30
+DEBUG: Thursday rendered 08/11/2025 12:54:30
+DEBUG: Friday rendered 08/11/2025 12:54:30
+DEBUG: Total rendered 08/11/2025 12:54:30
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:54:30
+DEBUG: Time entries loop completed 08/11/2025 12:54:30
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:54:30
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:54:30
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:54:30
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:54:30
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 12:54:36
+DEBUG: After adding existing entries - TimeEntries count: 2 08/11/2025 12:54:36
+DEBUG: Existing project codes:  08/11/2025 12:54:36
+DEBUG: TaskLookup has 0 keys 08/11/2025 12:54:36
+DEBUG: Final TimeEntries count: 2 08/11/2025 12:54:36
+DEBUG: TimeFlatList count after build: 2 08/11/2025 12:54:36
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:54:36
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:54:36
+DEBUG: About to render header... 08/11/2025 12:54:36
+DEBUG: Getting week ending date... 08/11/2025 12:54:36
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:54:36
+DEBUG: Header rendered successfully 08/11/2025 12:54:36
+DEBUG: About to render table headers... 08/11/2025 12:54:36
+DEBUG: Table headers rendered successfully 08/11/2025 12:54:36
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:54:36
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:54:36
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:54:36
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:36
+DEBUG: About to get Description property 08/11/2025 12:54:36
+DEBUG: Description = '2221' 08/11/2025 12:54:36
+DEBUG: Task name rendered 08/11/2025 12:54:36
+DEBUG: ID1 rendered 08/11/2025 12:54:36
+DEBUG: ID2 rendered 08/11/2025 12:54:36
+DEBUG: About to render day columns 08/11/2025 12:54:36
+DEBUG: Monday rendered 08/11/2025 12:54:36
+DEBUG: Tuesday rendered 08/11/2025 12:54:36
+DEBUG: Wednesday rendered 08/11/2025 12:54:36
+DEBUG: Thursday rendered 08/11/2025 12:54:36
+DEBUG: Friday rendered 08/11/2025 12:54:36
+DEBUG: Total rendered 08/11/2025 12:54:36
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:54:36
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:54:36
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:54:36
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:36
+DEBUG: About to get Description property 08/11/2025 12:54:36
+DEBUG: Description = '' 08/11/2025 12:54:36
+DEBUG: Task name rendered 08/11/2025 12:54:36
+DEBUG: ID1 rendered 08/11/2025 12:54:36
+DEBUG: ID2 rendered 08/11/2025 12:54:36
+DEBUG: About to render day columns 08/11/2025 12:54:36
+DEBUG: Monday rendered 08/11/2025 12:54:36
+DEBUG: Tuesday rendered 08/11/2025 12:54:36
+DEBUG: Wednesday rendered 08/11/2025 12:54:36
+DEBUG: Thursday rendered 08/11/2025 12:54:36
+DEBUG: Friday rendered 08/11/2025 12:54:36
+DEBUG: Total rendered 08/11/2025 12:54:36
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:54:36
+DEBUG: Time entries loop completed 08/11/2025 12:54:36
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:54:36
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:54:36
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:54:36
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:54:36
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:54:40
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:54:40
+DEBUG: About to render header... 08/11/2025 12:54:40
+DEBUG: Getting week ending date... 08/11/2025 12:54:40
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:54:40
+DEBUG: Header rendered successfully 08/11/2025 12:54:40
+DEBUG: About to render table headers... 08/11/2025 12:54:40
+DEBUG: Table headers rendered successfully 08/11/2025 12:54:40
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:54:40
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:54:40
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:54:40
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:40
+DEBUG: About to get Description property 08/11/2025 12:54:40
+DEBUG: Description = '2221' 08/11/2025 12:54:40
+DEBUG: Task name rendered 08/11/2025 12:54:40
+DEBUG: ID1 rendered 08/11/2025 12:54:40
+DEBUG: ID2 rendered 08/11/2025 12:54:40
+DEBUG: About to render day columns 08/11/2025 12:54:40
+DEBUG: Monday rendered 08/11/2025 12:54:40
+DEBUG: Tuesday rendered 08/11/2025 12:54:40
+DEBUG: Wednesday rendered 08/11/2025 12:54:40
+DEBUG: Thursday rendered 08/11/2025 12:54:40
+DEBUG: Friday rendered 08/11/2025 12:54:40
+DEBUG: Total rendered 08/11/2025 12:54:40
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:54:40
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:54:40
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:54:40
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:40
+DEBUG: About to get Description property 08/11/2025 12:54:40
+DEBUG: Description = '' 08/11/2025 12:54:40
+DEBUG: Task name rendered 08/11/2025 12:54:40
+DEBUG: ID1 rendered 08/11/2025 12:54:40
+DEBUG: ID2 rendered 08/11/2025 12:54:40
+DEBUG: About to render day columns 08/11/2025 12:54:40
+DEBUG: Monday rendered 08/11/2025 12:54:40
+DEBUG: Tuesday rendered 08/11/2025 12:54:40
+DEBUG: Wednesday rendered 08/11/2025 12:54:40
+DEBUG: Thursday rendered 08/11/2025 12:54:40
+DEBUG: Friday rendered 08/11/2025 12:54:40
+DEBUG: Total rendered 08/11/2025 12:54:40
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:54:40
+DEBUG: Time entries loop completed 08/11/2025 12:54:40
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:54:40
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:54:40
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:54:40
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:54:40
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:54:44
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:54:44
+DEBUG: About to render header... 08/11/2025 12:54:44
+DEBUG: Getting week ending date... 08/11/2025 12:54:44
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:54:44
+DEBUG: Header rendered successfully 08/11/2025 12:54:44
+DEBUG: About to render table headers... 08/11/2025 12:54:44
+DEBUG: Table headers rendered successfully 08/11/2025 12:54:44
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:54:44
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:54:44
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:54:44
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:44
+DEBUG: About to get Description property 08/11/2025 12:54:44
+DEBUG: Description = '2221' 08/11/2025 12:54:44
+DEBUG: Task name rendered 08/11/2025 12:54:44
+DEBUG: ID1 rendered 08/11/2025 12:54:44
+DEBUG: ID2 rendered 08/11/2025 12:54:44
+DEBUG: About to render day columns 08/11/2025 12:54:44
+DEBUG: Monday rendered 08/11/2025 12:54:44
+DEBUG: Tuesday rendered 08/11/2025 12:54:44
+DEBUG: Wednesday rendered 08/11/2025 12:54:44
+DEBUG: Thursday rendered 08/11/2025 12:54:44
+DEBUG: Friday rendered 08/11/2025 12:54:44
+DEBUG: Total rendered 08/11/2025 12:54:44
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:54:44
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:54:44
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:54:44
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:44
+DEBUG: About to get Description property 08/11/2025 12:54:44
+DEBUG: Description = '' 08/11/2025 12:54:44
+DEBUG: Task name rendered 08/11/2025 12:54:44
+DEBUG: ID1 rendered 08/11/2025 12:54:44
+DEBUG: ID2 rendered 08/11/2025 12:54:44
+DEBUG: About to render day columns 08/11/2025 12:54:44
+DEBUG: Monday rendered 08/11/2025 12:54:44
+DEBUG: Tuesday rendered 08/11/2025 12:54:44
+DEBUG: Wednesday rendered 08/11/2025 12:54:44
+DEBUG: Thursday rendered 08/11/2025 12:54:44
+DEBUG: Friday rendered 08/11/2025 12:54:44
+DEBUG: Total rendered 08/11/2025 12:54:44
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:54:44
+DEBUG: Time entries loop completed 08/11/2025 12:54:44
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:54:44
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:54:44
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:54:44
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:54:44
+DEBUG: Starting TimeEntry Render... 08/11/2025 12:54:47
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 12:54:47
+DEBUG: About to render header... 08/11/2025 12:54:47
+DEBUG: Getting week ending date... 08/11/2025 12:54:47
+DEBUG: Week ending: 2025-08-15 08/11/2025 12:54:47
+DEBUG: Header rendered successfully 08/11/2025 12:54:47
+DEBUG: About to render table headers... 08/11/2025 12:54:47
+DEBUG: Table headers rendered successfully 08/11/2025 12:54:47
+DEBUG: About to render time entries... TimeFlatList.Count = 2 08/11/2025 12:54:47
+DEBUG: Rendering entry 0 of 2 08/11/2025 12:54:47
+DEBUG: About to call RenderTimeContent for entry 0 08/11/2025 12:54:47
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:47
+DEBUG: About to get Description property 08/11/2025 12:54:47
+DEBUG: Description = '2221' 08/11/2025 12:54:47
+DEBUG: Task name rendered 08/11/2025 12:54:47
+DEBUG: ID1 rendered 08/11/2025 12:54:47
+DEBUG: ID2 rendered 08/11/2025 12:54:47
+DEBUG: About to render day columns 08/11/2025 12:54:47
+DEBUG: Monday rendered 08/11/2025 12:54:47
+DEBUG: Tuesday rendered 08/11/2025 12:54:47
+DEBUG: Wednesday rendered 08/11/2025 12:54:47
+DEBUG: Thursday rendered 08/11/2025 12:54:47
+DEBUG: Friday rendered 08/11/2025 12:54:47
+DEBUG: Total rendered 08/11/2025 12:54:47
+DEBUG: RenderTimeContent completed for entry 0 08/11/2025 12:54:47
+DEBUG: Rendering entry 1 of 2 08/11/2025 12:54:47
+DEBUG: About to call RenderTimeContent for entry 1 08/11/2025 12:54:47
+DEBUG: RenderTimeContent - entry is null: False 08/11/2025 12:54:47
+DEBUG: About to get Description property 08/11/2025 12:54:47
+DEBUG: Description = '' 08/11/2025 12:54:47
+DEBUG: Task name rendered 08/11/2025 12:54:47
+DEBUG: ID1 rendered 08/11/2025 12:54:47
+DEBUG: ID2 rendered 08/11/2025 12:54:47
+DEBUG: About to render day columns 08/11/2025 12:54:47
+DEBUG: Monday rendered 08/11/2025 12:54:47
+DEBUG: Tuesday rendered 08/11/2025 12:54:47
+DEBUG: Wednesday rendered 08/11/2025 12:54:47
+DEBUG: Thursday rendered 08/11/2025 12:54:47
+DEBUG: Friday rendered 08/11/2025 12:54:47
+DEBUG: Total rendered 08/11/2025 12:54:47
+DEBUG: RenderTimeContent completed for entry 1 08/11/2025 12:54:47
+DEBUG: Time entries loop completed 08/11/2025 12:54:47
+DEBUG: About to call PositionTimeEntryCursor 08/11/2025 12:54:47
+DEBUG: PositionTimeEntryCursor completed 08/11/2025 12:54:47
+DEBUG: About to return from RenderTimeEntryMode 08/11/2025 12:54:47
+DEBUG: TimeEntry Render completed successfully 08/11/2025 12:54:47
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 13:09:52
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 13:09:52
+DEBUG: TimeFlatList count after build: 2 08/11/2025 13:09:52

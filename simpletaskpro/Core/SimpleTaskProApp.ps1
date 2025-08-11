@@ -1,27 +1,43 @@
-# SimpleTaskProApp.ps1 - Main application class
+# SimpleTaskProApp.ps1 - Main application class with EventBus and Screen Stack
 
 class SimpleTaskProApp {
     [TaskListScreen]$TaskScreen
+    [TimeEntryScreen]$TimeScreen
     [CommandLibraryScreen]$CommandScreen
     [ExcelMappingScreen]$ExcelScreen
-    [object]$Screen  # Current active screen
-    [string]$CurrentMode = "Tasks"  # "Tasks", "Commands", or "Excel"
+    
+    # NEW: Screen Stack Management
+    [System.Collections.Generic.Stack[object]]$ScreenStack
+    [object]$CurrentScreen  # Current active screen (top of stack)
+    
+    [string]$CurrentMode = "Tasks"  # "Tasks", "Commands", or "Excel" - for compatibility
     [bool]$Running = $true
     hidden [datetime]$_lastActivityTime = [datetime]::Now
     hidden [bool]$_hasFocus = $true
     
     SimpleTaskProApp() {
+        # Initialize screen stack
+        $this.ScreenStack = [System.Collections.Generic.Stack[object]]::new()
+        
         "DEBUG: Creating TaskScreen... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.TaskScreen = [TaskListScreen]::new()
+        "DEBUG: Creating TimeScreen... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        $this.TimeScreen = [TimeEntryScreen]::new()
         "DEBUG: Creating CommandScreen... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.CommandScreen = [CommandLibraryScreen]::new()
         "DEBUG: Creating ExcelScreen... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.ExcelScreen = [ExcelMappingScreen]::new()
-        "DEBUG: Setting initial screen... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-        $this.Screen = $this.TaskScreen  # Start with task screen
         
-        # Give screens access to app reference for mode switching
+        "DEBUG: Setting up EventBus subscriptions... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        $this.SetupEventBusSubscriptions()
+        
+        "DEBUG: Pushing initial TaskScreen to stack... $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        $this.ScreenStack.Push($this.TaskScreen)
+        $this.CurrentScreen = $this.TaskScreen
+        
+        # Give screens access to app reference for mode switching (legacy compatibility)
         $this.TaskScreen.SetAppReference($this)
+        $this.TimeScreen.SetAppReference($this)
         $this.CommandScreen.SetAppReference($this)
         # ExcelMappingScreen doesn't need app reference (inherits from BaseListScreen)
         
@@ -34,78 +50,143 @@ class SimpleTaskProApp {
         } | Out-Null
     }
     
-    # MODE SWITCHING
-    [void] SwitchToTimeEntry() {
+    # NEW: Setup EventBus subscriptions for navigation
+    [void] SetupEventBusSubscriptions() {
+        # Navigation events - using object method references (PowerShell-safe)
+        [EventBus]::Subscribe("NavigateTo", $this, "NavigateToScreen")
+        [EventBus]::Subscribe("NavigateBack", $this, "NavigateBack") 
+        [EventBus]::Subscribe("ApplicationExit", $this, "HandleApplicationExit")
+        
+        if ($global:Debug) {
+            Write-Host "EventBus subscriptions setup complete" -ForegroundColor Green
+        }
+    }
+    
+    # NEW: Navigate to a screen by name
+    [void] NavigateToScreen([string]$screenName) {
         try {
-            # Only TaskScreen has time entry mode
-            if ($this.CurrentMode -eq "Tasks") {
-                $this.TaskScreen.SwitchToTimeEntryMode()
+            $targetScreen = $null
+            
+            switch ($screenName.ToLower()) {
+                "tasks" { 
+                    $targetScreen = $this.TaskScreen
+                    $this.CurrentMode = "Tasks"
+                }
+                "timeentry" { 
+                    $targetScreen = $this.TimeScreen
+                    $this.CurrentMode = "TimeEntry"
+                }
+                "commands" { 
+                    $targetScreen = $this.CommandScreen
+                    $this.CurrentMode = "Commands"
+                }
+                "excel" { 
+                    $targetScreen = $this.ExcelScreen
+                    $this.CurrentMode = "Excel"
+                }
+                default {
+                    Write-Host "Unknown screen: $screenName" -ForegroundColor Red
+                    return
+                }
+            }
+            
+            if ($targetScreen) {
+                $this.ScreenStack.Push($targetScreen)
+                $this.CurrentScreen = $targetScreen
+                
+                # Initialize the screen
+                $width = [Console]::WindowWidth
+                $height = [Console]::WindowHeight
+                $targetScreen.Initialize($width, $height)
+                
+                if ($global:Debug) {
+                    Write-Host "Navigated to: $screenName (Stack depth: $($this.ScreenStack.Count))" -ForegroundColor Cyan
+                }
             }
         } catch {
-            Write-Host "`nError switching to time entry mode: $_" -ForegroundColor Red
+            Write-Host "Error navigating to $screenName : $_" -ForegroundColor Red
             if ($global:Debug) {
                 Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
             }
         }
     }
     
-    [void] SwitchToTasks() {
-        if ($this.CurrentMode -eq "Tasks") {
-            $this.TaskScreen.SwitchToTaskMode()
-        } else {
-            # Switch from other screens back to Tasks
-            $this.CurrentMode = "Tasks"
-            $this.Screen = $this.TaskScreen
+    # NEW: Navigate back to previous screen
+    [void] NavigateBack() {
+        try {
+            if ($this.ScreenStack.Count -gt 1) {
+                # Pop current screen
+                $this.ScreenStack.Pop()
+                
+                # Set previous screen as current
+                $this.CurrentScreen = $this.ScreenStack.Peek()
+                
+                # Update mode based on screen type
+                if ($this.CurrentScreen -is [TaskListScreen]) {
+                    $this.CurrentMode = "Tasks"
+                } elseif ($this.CurrentScreen -is [TimeEntryScreen]) {
+                    $this.CurrentMode = "TimeEntry"
+                } elseif ($this.CurrentScreen -is [CommandLibraryScreen]) {
+                    $this.CurrentMode = "Commands" 
+                } elseif ($this.CurrentScreen -is [ExcelMappingScreen]) {
+                    $this.CurrentMode = "Excel"
+                }
+                
+                if ($global:Debug) {
+                    Write-Host "Navigated back (Stack depth: $($this.ScreenStack.Count))" -ForegroundColor Cyan
+                }
+            } else {
+                # Can't navigate back from base screen - exit application
+                [EventBus]::Publish("ApplicationExit")
+            }
+        } catch {
+            Write-Host "Error navigating back: $_" -ForegroundColor Red
+            if ($global:Debug) {
+                Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
+            }
         }
     }
     
+    # EventBus callback methods
+    [void] HandleApplicationExit() {
+        $this.Running = $false
+    }
+    
+    # MODE SWITCHING
+    [void] SwitchToTimeEntry() {
+        [EventBus]::Publish("NavigateTo", "timeentry")
+    }
+    
+    [void] SwitchToTasks() {
+        [EventBus]::Publish("NavigateTo", "tasks")
+    }
+    
     [void] SwitchToCommands() {
-        $this.CurrentMode = "Commands"
-        $this.Screen = $this.CommandScreen
+        [EventBus]::Publish("NavigateTo", "commands")
     }
     
     [void] SwitchToExcel() {
         try {
-            "DEBUG: SwitchToExcel START $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            "DEBUG: Current mode before: $($this.CurrentMode)" | Out-File -FilePath "./startup-debug.log" -Append
-            "DEBUG: ExcelScreen object exists: $($this.ExcelScreen -ne $null)" | Out-File -FilePath "./startup-debug.log" -Append
-            
-            $this.CurrentMode = "Excel"
-            "DEBUG: CurrentMode set to Excel $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            
-            "DEBUG: About to set Screen property $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            $this.Screen = $this.ExcelScreen
-            "DEBUG: Screen property set to ExcelScreen $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            
-            "DEBUG: About to call Initialize $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            $width = [Console]::WindowWidth
-            $height = [Console]::WindowHeight
-            "DEBUG: Console dimensions: ${width}x${height}" | Out-File -FilePath "./startup-debug.log" -Append
-            
-            $this.Screen.Initialize($width, $height)
-            "DEBUG: Initialize completed $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            
+            "DEBUG: SwitchToExcel using EventBus $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            [EventBus]::Publish("NavigateTo", "excel")
             "DEBUG: SwitchToExcel COMPLETED $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         } catch {
             "DEBUG: SwitchToExcel EXCEPTION: $_ $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
-            "DEBUG: Exception type: $($_.Exception.GetType().FullName)" | Out-File -FilePath "./startup-debug.log" -Append
-            "DEBUG: Stack trace: $($_.ScriptStackTrace)" | Out-File -FilePath "./startup-debug.log" -Append
-            # Fall back to tasks
-            $this.CurrentMode = "Tasks"
-            $this.Screen = $this.TaskScreen
+            # Fall back to tasks using EventBus
+            [EventBus]::Publish("NavigateTo", "tasks")
             throw
         }
     }
     
     [void] Run() {
         try {
-            # Initialize screen
+            # Initialize current screen (already set in constructor)
             $width = [Console]::WindowWidth
             $height = [Console]::WindowHeight
-            $this.Screen.Initialize($width, $height)
+            $this.CurrentScreen.Initialize($width, $height)
             
             # Initial render
-            Write-Host -NoNewline $this.Screen.Render()
+            Write-Host -NoNewline $this.CurrentScreen.Render()
             
             # Main loop
             while ($this.Running) {
@@ -144,12 +225,17 @@ class SimpleTaskProApp {
                         
                         # If not handled globally, let screen handle it
                         if (-not $handled) {
-                            if (-not $this.Screen.HandleInput($key)) {
-                                $this.Running = $false
+                            if (-not $this.CurrentScreen.HandleInput($key)) {
+                                # Check if this was an exit request or navigation back
+                                if ($this.ScreenStack.Count -gt 1) {
+                                    $this.NavigateBack()
+                                } else {
+                                    $this.Running = $false
+                                }
                             }
                         }
                         
-                        Write-Host -NoNewline $this.Screen.Render()
+                        Write-Host -NoNewline $this.CurrentScreen.Render()
                     } else {
                         Start-Sleep -Milliseconds 50
                     }
@@ -158,8 +244,8 @@ class SimpleTaskProApp {
                     if ([Console]::WindowWidth -ne $width -or [Console]::WindowHeight -ne $height) {
                         $width = [Console]::WindowWidth
                         $height = [Console]::WindowHeight
-                        $this.Screen.Initialize($width, $height)
-                        Write-Host -NoNewline $this.Screen.Render()
+                        $this.CurrentScreen.Initialize($width, $height)
+                        Write-Host -NoNewline $this.CurrentScreen.Render()
                     }
                     
                     # Detect focus loss (no activity for 30 seconds)

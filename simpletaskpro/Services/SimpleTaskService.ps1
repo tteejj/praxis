@@ -258,6 +258,56 @@ class SimpleTaskService {
         return $this.Tasks
     }
     
+    # Enhanced GetParentTasks with filtering support (Phase 2.4: Business logic in services)
+    [SimpleTask[]] GetParentTasks([string]$priorityFilter, [string]$tagFilter) {
+        $allTasks = $this.Tasks
+        
+        # If no filters, return all tasks
+        if ($priorityFilter -eq "All" -and $tagFilter -eq "") {
+            return $allTasks
+        }
+        
+        # Apply filters (moved from TaskListScreen.FilterTasks)
+        $filteredTasks = @()
+        $today = [datetime]::Today
+        
+        foreach ($task in $allTasks) {
+            $includeTask = $false
+            
+            # Priority/Date filtering
+            switch ($priorityFilter) {
+                "All" { $includeTask = $true }
+                "Today" {
+                    # Include if priority is "Today" OR due date is today
+                    $includeTask = ($task.Priority -eq "Today") -or 
+                                  ($task.DueDate -ne [datetime]::MinValue -and $task.DueDate.Date -eq $today)
+                }
+                "High" { $includeTask = ($task.Priority -eq "High") }
+                "Medium" { $includeTask = ($task.Priority -eq "Medium") }
+                "Low" { $includeTask = ($task.Priority -eq "Low") }
+                default { $includeTask = $true }
+            }
+            
+            # Tag filtering (additional filter)
+            if ($includeTask -and $tagFilter -ne "") {
+                $includeTask = $false
+                # Check if task has the filtered tag (case insensitive)
+                foreach ($tag in $task.Tags) {
+                    if ($tag.ToLower() -eq $tagFilter.ToLower()) {
+                        $includeTask = $true
+                        break
+                    }
+                }
+            }
+            
+            if ($includeTask) {
+                $filteredTasks += $task
+            }
+        }
+        
+        return $filteredTasks
+    }
+    
     [SimpleTask] GetTask([string]$id) {
         # Check parent tasks
         foreach ($task in $this.Tasks) {

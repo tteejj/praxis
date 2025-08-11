@@ -31,6 +31,217 @@ class FastLineBuilder {
         # Instance constructor - nothing needed
     }
     
+    # NEW: Generate View Model - decoupled from screen object
+    # Returns [content_line, tag_line] as string array for UnifiedRenderer
+    [string[]] GenerateTaskViewModel([SimpleTask]$task, [object]$screen, [int]$level, [bool]$isLast) {
+        $contentLine = $this.BuildContentLineDecoupled($task, $screen, $level, $isLast)
+        $tagLine = $this.BuildTagLineDecoupled($task, $screen, $level, $isLast)
+        return @($contentLine, $tagLine)
+    }
+    
+    # Build content line without tight coupling to screen properties
+    [string] BuildContentLineDecoupled([SimpleTask]$task, [object]$screen, [int]$level, [bool]$isLast) {
+        $sb = [System.Text.StringBuilder]::new()
+        $isEditingThis = ($screen.EditingTask -and $screen.EditingTask.Id -eq $task.Id)
+        
+        if ($level -eq 0) {
+            # === PARENT TASK ===
+            
+            # COLUMN 1: ID1 (5 chars)
+            if ($isEditingThis -and $screen.EditingField -eq "id1") {
+                $fieldValue = $screen.EditingValue.PadRight(3)
+                [void]$sb.Append($screen.EditHighlight + $fieldValue + " " + [VT]::Reset())
+            } else {
+                $id1Text = if ($task.ID1 -and $task.ID1 -ne "") { $task.ID1.PadRight(3) } else { "   " }
+                [void]$sb.Append([AppThemeManager]::GetColor("Field") + $id1Text + "  " + [VT]::Reset())
+            }
+            
+            # COLUMN 2: ID2 (14 chars)
+            if ($isEditingThis -and $screen.EditingField -eq "id2") {
+                $fieldValue = $screen.EditingValue.PadRight(12)
+                [void]$sb.Append($screen.EditHighlight + $fieldValue + " " + [VT]::Reset())
+            } else {
+                $id2Text = if ($task.ID2 -and $task.ID2 -ne "") { $task.ID2.PadRight(12) } else { " ".PadRight(12) }
+                [void]$sb.Append([AppThemeManager]::GetColor("Value") + $id2Text + "  " + [VT]::Reset())
+            }
+            
+            # COLUMN 3: CREATED DATE (12 chars)
+            if ($isEditingThis -and $screen.EditingField -eq "created") {
+                $displayValue = if ($screen.EditingValue -ne "") { $screen.EditingValue.PadRight(10) } else { " ".PadRight(10) }
+                [void]$sb.Append($screen.EditHighlight + $displayValue + "  " + [VT]::Reset())
+            } else {
+                $createdText = if ($task.CreatedDate -eq [datetime]::MinValue) { " ".PadRight(10) } else { $task.CreatedDate.ToString("yyyy-MM-dd") }
+                [void]$sb.Append([AppThemeManager]::GetColor("Browser") + $createdText + "  " + [VT]::Reset())
+            }
+            
+            # COLUMN 4: DUE DATE (12 chars)
+            if ($isEditingThis -and $screen.EditingField -eq "date") {
+                $displayValue = if ($screen.EditingValue -ne "") { $screen.EditingValue.PadRight(10) } else { " ".PadRight(10) }
+                [void]$sb.Append($screen.EditHighlight + $displayValue + "  " + [VT]::Reset())
+            } else {
+                [void]$sb.Append($this.GetDateColorAndText($task))
+                [void]$sb.Append("  ")
+            }
+            
+            # COLUMN 5: ARROW (3 chars)
+            if ($task.Subtasks.Count -gt 0) {
+                if ($screen.GlobalCollapseSubtasks -or $task.SubtasksCollapsed) {
+                    [void]$sb.Append("▶  ")
+                } else {
+                    [void]$sb.Append("▼  ")
+                }
+            } else {
+                [void]$sb.Append("   ")
+            }
+            
+            # COLUMN 6: TITLE
+            if ($isEditingThis -and $screen.EditingField -eq "title") {
+                $minWidth = 20
+                $fieldWidth = [Math]::Max($minWidth, [Math]::Max($screen.EditingValue.Length + 2, $task.Title.Length + 2))
+                $displayValue = if ($screen.EditingValue -ne "") { $screen.EditingValue.PadRight($fieldWidth) } else { " ".PadRight($fieldWidth) }
+                [void]$sb.Append($screen.EditHighlight + $displayValue + [VT]::Reset())
+            } else {
+                [void]$sb.Append([AppThemeManager]::GetColor("Text") + $task.Title + [VT]::Reset())
+            }
+            
+        } else {
+            # === SUBTASK ===
+            
+            # COLUMN 1: STATUS (5 chars)
+            if ($task.Completed) {
+                [void]$sb.Append("■    ")
+            } else {
+                [void]$sb.Append("☐    ")
+            }
+            
+            # COLUMN 2: PRIORITY (14 chars)
+            if ($isEditingThis -and $screen.EditingField -eq "priority") {
+                $fieldValue = $screen.EditingValue.PadRight(2)
+                [void]$sb.Append($screen.EditHighlight + $fieldValue + " ".PadRight(11) + [VT]::Reset())
+            } else {
+                $priorityChar = switch ($task.Priority) {
+                    "High" { "H" }
+                    "Medium" { "M" }
+                    "Low" { "L" }
+                    "Today" { "T" }
+                    default { " " }
+                }
+                $priorityColor = switch ($task.Priority) {
+                    "High" { [AppThemeManager]::GetColor("High") }
+                    "Medium" { [AppThemeManager]::GetColor("Medium") }
+                    "Low" { [AppThemeManager]::GetColor("Low") }
+                    "Today" { [AppThemeManager]::GetColor("Today") }
+                    default { [AppThemeManager]::GetColor("Text") }
+                }
+                [void]$sb.Append($priorityColor + $priorityChar + [VT]::Reset() + " ".PadRight(13))
+            }
+            
+            # COLUMN 3: CREATED DATE (12 chars)
+            $createdText = if ($task.CreatedDate -eq [datetime]::MinValue) { " ".PadRight(10) } else { $task.CreatedDate.ToString("yyyy-MM-dd") }
+            [void]$sb.Append([AppThemeManager]::GetColor("Muted") + $createdText + "  " + [VT]::Reset())
+            
+            # COLUMN 4: DUE DATE (12 chars)
+            if ($task.DueDate -ne [datetime]::MinValue) {
+                $dueDateText = $task.DueDate.ToString("yyyy-MM-dd")
+                $dateColor = $this.GetDateColor($task.DueDate)
+                [void]$sb.Append($dateColor + $dueDateText.PadRight(10) + "  " + [VT]::Reset())
+            } else {
+                [void]$sb.Append(" ".PadRight(12))
+            }
+            
+            # COLUMN 5: TREE (3 chars)
+            if ($isLast) {
+                [void]$sb.Append("└─ ")
+            } else {
+                [void]$sb.Append("├─ ")
+            }
+            
+            # COLUMN 6: TITLE
+            if ($isEditingThis -and $screen.EditingField -eq "title") {
+                $minWidth = 15
+                $fieldWidth = [Math]::Max($minWidth, $screen.EditingValue.Length + 2)
+                $displayValue = if ($screen.EditingValue -ne "") { $screen.EditingValue.PadRight($fieldWidth) } else { " ".PadRight($fieldWidth) }
+                [void]$sb.Append($screen.EditHighlight + $displayValue + [VT]::Reset())
+            } else {
+                [void]$sb.Append([AppThemeManager]::GetColor("Muted") + $task.Title + [VT]::Reset())
+            }
+        }
+        
+        return $sb.ToString()
+    }
+    
+    # Build tag line without tight coupling  
+    [string] BuildTagLineDecoupled([SimpleTask]$task, [object]$screen, [int]$level, [bool]$isLast) {
+        $sb = [System.Text.StringBuilder]::new()
+        $isEditingThis = ($screen.EditingTask -and $screen.EditingTask.Id -eq $task.Id)
+        
+        if ($level -eq 0) {
+            # Parent task tag line
+            if ($isEditingThis -and $screen.EditingField -eq "tags") {
+                [void]$sb.Append("   ")  # Indent to match content
+                $tagsText = "⟨" + $screen.EditingValue + "⟩"
+                [void]$sb.Append($screen.EditHighlight + $tagsText + [VT]::Reset())
+            } elseif ($task.Tags.Count -gt 0) {
+                [void]$sb.Append("   ")  # Indent to match content
+                [void]$sb.Append([AppThemeManager]::GetColor("Muted") + "⟨" + ($task.Tags -join ", ") + "⟩" + [VT]::Reset())
+            } else {
+                [void]$sb.Append("   ")  # Empty line for spacing
+            }
+        } else {
+            # Subtask tag line
+            if ($task.Tags.Count -gt 0) {
+                [void]$sb.Append("                                        ")  # Align with subtask content
+                if ($isLast) {
+                    [void]$sb.Append("   ")  # Align under subtask title
+                } else {
+                    [void]$sb.Append("   ")  # Align under subtask title
+                }
+                [void]$sb.Append([AppThemeManager]::GetColor("Muted") + "⟨" + ($task.Tags -join ", ") + "⟩" + [VT]::Reset())
+            } else {
+                [void]$sb.Append("   ")  # Empty line
+            }
+        }
+        
+        return $sb.ToString()
+    }
+    
+    # Helper methods that don't depend on screen object
+    [string] GetDateColorAndText([SimpleTask]$task) {
+        if ($task.DueDate -eq [datetime]::MinValue) {
+            return [AppThemeManager]::GetColor("Muted") + "-".PadRight(10) + [VT]::Reset()
+        }
+        
+        $today = [datetime]::Today
+        $daysDiff = ($task.DueDate.Date - $today).Days
+        
+        $color = if ($daysDiff -lt 0) { [AppThemeManager]::GetColor("High") }
+                elseif ($daysDiff -eq 0) { [AppThemeManager]::GetColor("Today") }
+                elseif ($daysDiff -le 7) { [AppThemeManager]::GetColor("Medium") }
+                else { [AppThemeManager]::GetColor("Low") }
+        
+        $dateText = $task.DueDate.ToString("yyyy-MM-dd")
+        return $color + $dateText.PadRight(10) + [VT]::Reset()
+    }
+    
+    [string] GetDateColor([datetime]$date) {
+        if ($date -eq [datetime]::MinValue) {
+            return [AppThemeManager]::GetColor("Muted")
+        }
+        
+        $today = [datetime]::Today
+        $daysDiff = ($date.Date - $today).Days
+        
+        if ($daysDiff -lt 0) {
+            return [AppThemeManager]::GetColor("High")
+        } elseif ($daysDiff -eq 0) {
+            return [AppThemeManager]::GetColor("Today")
+        } elseif ($daysDiff -le 7) {
+            return [AppThemeManager]::GetColor("Medium")
+        } else {
+            return [AppThemeManager]::GetColor("Low")
+        }
+    }
+    
     # Build complete content line with ALL features: colors, editing, collapse, proper formatting
     [string] BuildContentLine([SimpleTask]$task, [int]$level, [bool]$isLast, [bool]$isSelected = $false, [object]$screen = $null) {
         $sb = [System.Text.StringBuilder]::new()

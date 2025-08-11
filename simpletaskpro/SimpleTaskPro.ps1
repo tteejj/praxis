@@ -45,14 +45,15 @@ try {
     "Loading AppThemeManager (centralized theme system)..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Core/AppThemeManager.ps1"
     
+    "Loading EventBus (decoupled communication)..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Core/EventBus.ps1"
+    
     "Loading FastLineBuilder (enhanced rendering)..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Core/FastLineBuilder.ps1"
     
     "Loading UnifiedRenderer (pure StringBuilder rendering)..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Core/UnifiedRenderer.ps1"
     
-    "Loading ColorThemeService..." | Tee-Object $logFile -Append
-    . "$PSScriptRoot/Services/ColorThemeService.ps1"
     
     "Loading SimpleTaskService..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Services/SimpleTaskService.ps1"
@@ -60,8 +61,14 @@ try {
     "Loading TimeTrackingService..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Services/TimeTrackingService.ps1"
     
+    "Loading KeyMappingService..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Services/KeyMappingService.ps1"
+    
     "Loading ProjectSettingsDialog..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Dialogs/ProjectSettingsDialog.ps1"
+    
+    "Loading ThemeEditorDialog..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Dialogs/ThemeEditorDialog.ps1"
     
     "Loading ProjectManagerScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/ProjectManagerScreen.ps1"
@@ -78,6 +85,9 @@ try {
     
     "Loading TaskListScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/TaskListScreen.ps1"
+    
+    "Loading TimeEntryScreen..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Screens/TimeEntryScreen.ps1"
     
     "Loading Excel models and services..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Models/ExcelFieldMapping.ps1"

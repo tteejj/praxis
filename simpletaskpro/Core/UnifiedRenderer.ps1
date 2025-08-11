@@ -29,11 +29,18 @@ class UnifiedRenderer {
         $this.Height = [Console]::WindowHeight
     }
     
-    # Main rendering method - integrate pillbox into existing content lines
-    # This is the CORRECT approach - modify the content, don't wrap it
-    [string] RenderWithPillbox([List[string]]$lines, [int]$selectedIndex, [int]$startY = 3) {
-        if (-not $lines -or $lines.Count -eq 0) { 
+    # Main rendering method - works with view models from FastLineBuilder
+    # Each view model is [content_line, tag_line] string array  
+    [string] RenderWithPillbox([string[][]]$viewModels, [int]$selectedIndex, [int]$startY = 3) {
+        if (-not $viewModels -or $viewModels.Count -eq 0) { 
             return ""
+        }
+        
+        # Convert view models to flat line list for existing pillbox logic
+        $lines = [System.Collections.Generic.List[string]]::new()
+        foreach ($viewModel in $viewModels) {
+            $lines.Add($viewModel[0])  # content line
+            $lines.Add($viewModel[1])  # tag line
         }
         
         # The lines already contain positioned content - we just add pillbox around selected item
@@ -54,7 +61,7 @@ class UnifiedRenderer {
                 
                 # Top border
                 [void]$output.Append([AppThemeManager]::GetPillboxColor())
-                [void]$output.Append("╭" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╮")
+                [void]$output.Append("╭" + [StringCache]::GetHorizontalLine($this.Width - 2) + "╮")
                 [void]$output.Append([VT]::Reset())
                 [void]$output.Append("`n")
                 
@@ -85,7 +92,7 @@ class UnifiedRenderer {
                 
                 # Bottom border
                 [void]$output.Append([AppThemeManager]::GetPillboxColor())
-                [void]$output.Append("╰" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╯")
+                [void]$output.Append("╰" + [StringCache]::GetHorizontalLine($this.Width - 2) + "╯")
                 [void]$output.Append([VT]::Reset())
                 
             } else {
@@ -100,9 +107,9 @@ class UnifiedRenderer {
     
     # Animated pillbox slide - pure StringBuilder approach
     # Replaces SmoothRenderer.AnimatePillboxSlide() problematic direct output
-    [string] RenderWithAnimation([List[string]]$lines, [int]$fromIndex, [int]$toIndex, [int]$startY = 3) {
-        if ($fromIndex -eq $toIndex -or -not $lines -or $lines.Count -eq 0) {
-            return $this.RenderWithPillbox($lines, $toIndex, $startY)
+    [string] RenderWithAnimation([string[][]]$viewModels, [int]$fromIndex, [int]$toIndex, [int]$startY = 3) {
+        if ($fromIndex -eq $toIndex -or -not $viewModels -or $viewModels.Count -eq 0) {
+            return $this.RenderWithPillbox($viewModels, $toIndex, $startY)
         }
         
         # Smooth animation using StringBuilder regeneration - no direct VT commands
@@ -115,7 +122,7 @@ class UnifiedRenderer {
             $currentIndex = [Math]::Round($fromIndex + ($toIndex - $fromIndex) * $easedProgress)
             
             # Generate frame content using StringBuilder
-            $frameContent = [VT]::Clear() + [VT]::MoveTo(0, 0) + $this.RenderWithPillbox($lines, $currentIndex, $startY)
+            $frameContent = [VT]::Clear() + [VT]::MoveTo(0, 0) + $this.RenderWithPillbox($viewModels, $currentIndex, $startY)
             
             # Output complete frame - single write operation
             [Console]::Write($frameContent)
@@ -127,7 +134,7 @@ class UnifiedRenderer {
         }
         
         # Return final frame state
-        return $this.RenderWithPillbox($lines, $toIndex, $startY)
+        return $this.RenderWithPillbox($viewModels, $toIndex, $startY)
     }
     
     # Generic screen rendering - extensible for all screen types

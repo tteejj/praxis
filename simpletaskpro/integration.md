@@ -1,338 +1,144 @@
-You are absolutely correct. My previous plan was a strategist's overview, not an implementer's guide. To truly be useful, it needs to be a document that can be followed precisely, step-by-step, with no ambiguity.
-
-I have refined the entire plan to meet this higher standard. Each step now includes the specific files to edit, the code to add or change, explicit "before" and "after" examples, and a "Verification" section so you can confirm your progress at each stage.
-
-This is the refined, detailed roadmap.
+Of course. Here is the complete, standalone refactoring plan. It is designed to be a formal document that can be handed to an implementer, providing the necessary context, rationale, and explicit step-by-step instructions to execute the project successfully from start to finish.
 
 ---
 
-### **Phase 1: Unify and Stabilize the Core Engine**
+## **SimpleTaskPro: Architectural Refactoring and Enhancement Plan**
 
-**Objective:** Eliminate all conflicting implementations to create a single, stable rendering and theming foundation. This will fix the "integration mess."
+*   **Version:** 1.0
+*   **Date:** August 11, 2025
+*   **Status:** Final
+*   **Author:** Gemini
 
----
+### **1.0 Introduction**
 
-#### **Step 1.1: Purge Obsolete Code**
+#### **1.1 Purpose**
 
-*   **Objective:** Remove redundant and conflicting files from the project.
-*   **Files Affected:**
-    *   `Core/SmoothRenderer.ps1` (Delete)
-    *   `Screens/TaskListScreen_NEW.ps1` (Delete)
-    *   `SimpleTaskPro.ps1` (Modify)
-*   **Action:**
-    1.  **Delete** the file `Core/SmoothRenderer.ps1`.
-    2.  **Delete** the file `Screens/TaskListScreen_NEW.ps1`.
-    3.  **Edit** `SimpleTaskPro.ps1`: This file loads all components at startup. We must remove the line that attempts to load the now-deleted `TaskListScreen_NEW.ps1`. (There is no line for `SmoothRenderer` as it was not part of the startup script).
-        *   *Note: This step may seem trivial, but ensures the project no longer references deleted components.*
+This document provides a comprehensive, three-phase plan for the architectural refactoring of the SimpleTaskPro PowerShell application. The goal is to address significant architectural debt, resolve critical bugs, improve performance, and establish a stable, maintainable, and extensible foundation for future development. This plan is designed to be followed sequentially by an implementer.
 
-*   **Verification:** The application will fail to run after this step because `TaskListScreen` still has references to the deleted code. This is expected. We will fix this in the following steps.
+#### **1.2 Current State Analysis**
 
----
+The application has grown beyond its initial design, resulting in several critical issues that impede development and stability:
 
-#### **Step 1.2: Centralize Theming with `AppThemeManager`**
+*   **Conflicting Architectures:** The codebase contains multiple, competing implementations for core systems like rendering (`SmoothRenderer` vs. `UnifiedRenderer`) and theming (`ColorThemeService` vs. `AppThemeManager`), leading to visual artifacts (flicker) and inconsistent behavior.
+*   **Monolithic Components:** `TaskListScreen.ps1` has become a "God Object," managing the logic for two distinct user interfaces (Tasks and Time Entry), complex state, and business logic, making it exceedingly difficult to modify or debug.
+*   **Brittle State and Input Management:** Input handling is managed through a fragile series of nested conditional blocks, and there is no formal system for communication between UI components, representing a significant architectural gap.
+*   **Poor Separation of Concerns:** UI components (Screens) are responsible for business logic like data filtering, while rendering components (`UnifiedRenderer`) have an inappropriate awareness of business objects (`SimpleTask`), creating a tightly coupled and inflexible system.
 
-*   **Objective:** Make `AppThemeManager` the single source of truth for all colors and styles.
-*   **Files Affected:**
-    *   `Services/ColorThemeService.ps1` (Delete)
-    *   `SimpleTaskPro.ps1` (Modify)
-    *   `Screens/TaskListScreen.ps1` (Modify)
-    *   `Dialogs/ProjectSettingsDialog.ps1` (Modify)
-    *   `Screens/ProjectManagerScreen.ps1` (Modify)
-*   **Action:**
-    1.  **Delete** the file `Services/ColorThemeService.ps1`.
-    2.  **Edit** `SimpleTaskPro.ps1`: Remove the line that loads the service: `."$PSScriptRoot/Services/ColorThemeService.ps1"`.
-    3.  **Edit** `Screens/TaskListScreen.ps1`, `Dialogs/ProjectSettingsDialog.ps1`, and `Screens/ProjectManagerScreen.ps1`:
-        *   Find and delete all local color property definitions (e.g., `[string]$HeaderColor`, `[string]$SelectedBg`, `[ConsoleColor]$HeaderColor`, etc.).
-        *   Perform a find-and-replace for all usages of these local color variables.
+#### **1.3 Guiding Principles**
 
-        *   **Example Before (from `TaskListScreen.ps1`):**
-            ```powershell
-            [string]$HeaderColor = "`e[38;2;100;150;255m" 
-            # ... later in code ...
-            [void]$sb.Append($this.HeaderColor)
-            ```
-        *   **Example After:**
-            ```powershell
-            // The local variable definition is deleted
-            # ... later in code ...
-            [void]$sb.Append([AppThemeManager]::GetColor("Header"))
-            ```
-        *   Apply this pattern to *all* color variables in all three files. The color names in `AppThemeManager` (`Header`, `Field`, `Value`, `Button`, `Selected`, etc.) are comprehensive and should cover all existing use cases.
+This refactoring will be guided by the following principles:
 
-*   **Verification:** After this step, the application should run again. The UI will now draw its colors exclusively from `AppThemeManager`. Changing a color value in `AppThemeManager.ps1` should affect the entire application consistently.
+1.  **Stability:** Eliminate all sources of conflict to create a predictable and bug-free user experience.
+2.  **Maintainability:** Deconstruct monolithic components into smaller, single-responsibility modules that are easier to understand and modify.
+3.  **Performance:** Optimize critical paths, particularly rendering and data persistence, to ensure a fluid and responsive UI.
+4.  **Developer Experience:** Implement patterns and features that streamline the development workflow.
 
 ---
 
-#### **Step 1.3: Integrate the Advanced Color Picker**
+### **2.0 Phase 1: Unify and Stabilize the Core Engine**
 
-*   **Objective:** Re-implement the live-preview RGB color picker as a modular dialog that correctly integrates with the new centralized theme manager.
-*   **Files Affected:**
-    *   `Dialogs/ThemeEditorDialog.ps1` (Create)
-    *   `Screens/TaskListScreen.ps1` (Modify)
-    *   `SimpleTaskPro.ps1` (Modify)
-*   **Action:**
-    1.  **Create** the new file `Dialogs/ThemeEditorDialog.ps1` with the following class structure:
-        ```powershell
-        class ThemeEditorDialog {
-            # Method to show the dialog and handle its logic
-            [string] Show() {
-                # This method will contain the while($true) loop for input,
-                # the logic for rendering the R, G, B values, the color preview box,
-                # and handling key presses to change values.
-            }
-        }
-        ```
-    2.  **Edit** `Dialogs/ThemeEditorDialog.ps1`: Implement the `Show` method. The logic for the `Enter` keypress is critical:
-        *   It will create a unique theme name, e.g., `"custom_123_45_210"`.
-        *   It will create a new theme entry `hashtable`.
-        *   It will add this new entry to the static `[AppThemeManager]::ThemePresets` hashtable.
-        *   It will call `[AppThemeManager]::ApplyTheme("custom_123_45_210")` to make the change instant.
-        *   It will return the name of the new custom theme.
-    3.  **Edit** `SimpleTaskPro.ps1`: Add a line to load the new dialog: `."$PSScriptRoot/Dialogs/ThemeEditorDialog.ps1"`.
-    4.  **Edit** `Screens/TaskListScreen.ps1`:
-        *   **Delete** the entire `OpenCustomColorEditor` method.
-        *   Modify the `OpenThemeEditor` method. Its new, simplified logic will be:
-            ```powershell
-            [void] OpenThemeEditor() {
-                $dialog = [ThemeEditorDialog]::new()
-                $newThemeName = $dialog.Show() # Show the dialog and get the result
-                if ($newThemeName) {
-                    # This task is now using the new custom theme
-                    $item = $this.FlatList[$this.SelectedIndex]
-                    $item.Task.ColorTheme = $newThemeName
-                    $item.Task.SubtaskColorTheme = $newThemeName
-                    $this.TaskService.UpdateTask($item.Task)
-                    $this.LoadTasks()
-                }
-            }
-            ```
+**Objective:** To completely eliminate architectural conflicts by establishing a single, non-negotiable source of truth for rendering and theming. This phase fixes the core integration mess.
 
-*   **Verification:** Pressing F5 in the `TaskListScreen` should now open the new, full-screen RGB editor. Adjusting values should update the live preview. Pressing `Enter` should save the new custom color, apply it to the selected task, and return to the task list, which should immediately reflect the new color.
+#### **Step 2.1: Purge Conflicting and Obsolete Implementations**
 
----
+*   **Rationale:** The presence of competing implementation paths is the primary source of instability. We must commit to a single architectural pattern.
+*   **Affected Files:** `Core/SmoothRenderer.ps1`, `Screens/TaskListScreen_NEW.ps1`
+*   **Instructions:**
+    1.  Delete the file **`Core/SmoothRenderer.ps1`**.
+    2.  Delete the file **`Screens/TaskListScreen_NEW.ps1`**.
+*   **Verification:** The project will be in a non-functional state, as other components still reference this deleted code. This is expected.
 
-#### **Step 1.4: Finalize the Rendering Pipeline**
+#### **Step 2.2: Establish `AppThemeManager` as the Sole Theming Authority**
 
-*   **Objective:** Fully consolidate all rendering and animation logic into `UnifiedRenderer`, making `TaskListScreen` a pure controller.
-*   **Files Affected:**
-    *   `Core/UnifiedRenderer.ps1` (Modify)
-    *   `Screens/TaskListScreen.ps1` (Modify)
-*   **Action:**
-    1.  **Edit** `Core/UnifiedRenderer.ps1`:
-        *   The existing `RenderWithAnimation` method is flawed because it tries to write directly to the console. We will change its signature and purpose.
-        *   **New Method Signature:** `[void] AnimatePillboxSlide([List[string]]$lines, [int]$fromIndex, [int]$toIndex, [int]$startY)`
-        *   **New Logic:** This method will contain the animation loop. Inside the loop, it will calculate the interpolated position and call its *own* `RenderWithPillbox` method to generate the *entire screen content as a single string*. It will then write that single string to the console with `[Console]::Write()`, followed by a `Start-Sleep`. This is a crucial change to eliminate flicker.
-    2.  **Edit** `Screens/TaskListScreen.ps1`:
-        *   **Delete** the methods: `RenderTaskMode`, `RenderTaskList`, `RenderPillboxTop`, `RenderPillboxBottom`, `RenderPillboxSide`, `RenderTaskContent`, `RenderTagContent`, and `RenderTreeSpacingLine`.
-        *   **Rename** the method `RenderTaskModeEnhanced` to just `Render()`.
-        *   **Replace the entire body** of the new `Render()` method. It will become very simple:
-            ```powershell
-            [string] Render() {
-                # 1. Build the list of line strings using the line builder
-                $lines = $this.LineBuilder.BuildAllLinesFromTemplates($this.FlatList, -1, $this)
-                # 2. Let the renderer handle everything else
-                return $this.Renderer.RenderWithPillbox($lines, $this.SelectedIndex)
-            }
-            ```
-        *   Modify the main input-handling `switch` statement for `UpArrow` and `DownArrow`:
-            *   **Before:** It would just change the index.
-            *   **After:** It will now call the renderer's animation method. E.g., `$this.Renderer.AnimatePillboxSlide($lines, $this.PreviousSelectedIndex, $this.SelectedIndex)`. The main loop will no longer call `$this.Screen.Render()` after an up/down keypress, as the animation method handles all rendering.
+*   **Rationale:** A fractured theming model makes consistent styling impossible. Centralizing all color management in `AppThemeManager` guarantees visual consistency.
+*   **Affected Files:** `Services/ColorThemeService.ps1`, `SimpleTaskPro.ps1`, `Screens/TaskListScreen.ps1`, `Dialogs/ProjectSettingsDialog.ps1`, `Screens/ProjectManagerScreen.ps1`
+*   **Instructions:**
+    1.  Delete the file **`Services/ColorThemeService.ps1`**.
+    2.  Edit **`SimpleTaskPro.ps1`** and remove the line that loads the deleted service.
+    3.  In **`TaskListScreen.ps1`**, **`ProjectSettingsDialog.ps1`**, and **`ProjectManagerScreen.ps1`**, delete all local color property definitions (e.g., `[string]$HeaderColor`, `[hashtable]$TaskColors`).
+    4.  Search these three files and replace every use of a local color variable with a static call to the theme manager.
+        *   **Before:** `[void]$sb.Append($this.SelectedBg)`
+        *   **After:** `[void]$sb.Append([AppThemeManager]::GetBackgroundColor("Selected"))`
+*   **Verification:** The application runs. All UI elements now draw their colors from `AppThemeManager`. Changing a color value in `AppThemeManager.ps1` globally affects the entire application.
 
-*   **Verification:** The application should look and function as before, but the code will be vastly simpler. Moving the selection up and down should now trigger a smooth slide animation handled entirely by the `UnifiedRenderer`, and there should be zero flicker.
+#### **Step 2.3: Re-Implement and Integrate the Advanced Color Picker**
 
-**At the end of Phase 1, the application's core engine will be stable, unified, and ready for further refactoring.**
+*   **Rationale:** The color picker logic must be decoupled from the screen and integrated with the centralized theme manager.
+*   **Affected Files:** `Dialogs/ThemeEditorDialog.ps1` (Create), `SimpleTaskPro.ps1`, `Screens/TaskListScreen.ps1`
+*   **Instructions:**
+    1.  Create the file **`Dialogs/ThemeEditorDialog.ps1`**. Implement the `ThemeEditorDialog` class with a public `[string] Show()` method.
+    2.  The `Show()` method's save logic (on `Enter` keypress) must:
+        *   Generate a unique theme name (e.g., `"custom_R_G_B"`).
+        *   Create a new theme preset `hashtable`.
+        *   Add this preset to the static `[AppThemeManager]::ThemePresets` hashtable.
+        *   Return the unique theme name.
+    3.  Edit **`SimpleTaskPro.ps1`** to load the new dialog file.
+    4.  Edit **`Screens/TaskListScreen.ps1`**:
+        *   Delete the `OpenCustomColorEditor` method.
+        *   Replace the body of the `OpenThemeEditor` method to instantiate and show the new `ThemeEditorDialog`, receive the new theme name, and apply it to the selected task.
+*   **Verification:** Pressing F5 in the `TaskListScreen` opens the full-screen RGB editor. Saving a color applies it to the selected task and persists the new theme preset for future use.
 
-Of course. Let's proceed with the same level of explicit detail for the remaining phases.
+#### **Step 2.4: Refactor `FastLineBuilder` into a "View Model" Generator**
+
+*   **Rationale:** The renderer should be "dumb" and know nothing about application-specific objects like `[SimpleTask]`. `FastLineBuilder`'s true role is to translate business objects into simple, ready-to-render data structures (View Models). This decoupling is a critical architectural improvement.
+*   **Affected Files:** `Core/FastLineBuilder.ps1`, `Core/UnifiedRenderer.ps1`, `Screens/TaskListScreen.ps1`
+*   **Instructions:**
+    1.  **Edit `Core/FastLineBuilder.ps1`**: Create a new method `[string[]] GenerateTaskViewModel([SimpleTask]$task, [object]$screen, ...)` which returns a two-element string array (`[content line, tag line]`).
+    2.  **Edit `Core/UnifiedRenderer.ps1`**: Change the signature of `RenderWithPillbox` to accept an array of these view models: `([string[][]]$viewModels, $selectedIndex, ...)`. Remove any parameters or logic that reference `[SimpleTask]`.
+    3.  **Edit `Screens/TaskListScreen.ps1`**: The `Render()` method will now loop through its tasks, call `GenerateTaskViewModel()` for each, and pass the resulting array of string arrays to the `UnifiedRenderer`.
+*   **Verification:** The application's appearance is unchanged. The key architectural difference is that the `UnifiedRenderer` is now completely decoupled from the application's data models.
 
 ---
 
-### **Phase 2: Deconstruct and Organize Code**
+### **3.0 Phase 2: Deconstruct, Organize, and Decouple**
 
-**Objective:** Break apart the oversized `TaskListScreen.ps1` file into logical, manageable components. This will make future development faster and less error-prone by ensuring each file has a single, clear responsibility.
+**Objective:** To dismantle the monolithic `TaskListScreen.ps1` and establish clean architectural boundaries and formal communication channels between components.
 
----
+#### **Step 3.1: Implement a Screen Manager and Event Bus**
 
-#### **Step 2.1: Extract the Time Entry Screen**
+*   **Rationale:** A formal navigation system is required for a multi-screen application. An Event Bus provides a decoupled mechanism for components to communicate without direct dependencies, preventing brittle state management.
+*   **Affected Files:** `Core/EventBus.ps1` (Create), `Core/SimpleTaskProApp.ps1`, `Screens/TaskListScreen.ps1`, `Screens/TimeEntryScreen.ps1` (Create)
+*   **Instructions:**
+    1.  **Create `Core/EventBus.ps1`**: A static class with `Publish($eventName, $data)` and `Subscribe($eventName, $scriptBlock)` methods.
+    2.  **Refactor `Core/SimpleTaskProApp.ps1`**: It will now manage a stack of screens (`[object[]]$screenStack`). It will subscribe to `"NavigateTo"` and `"NavigateBack"` events to push screens onto or pop screens off the stack. The main `Run()` loop will always interact with the screen at the top of the stack.
+    3.  **Extract `Screens/TimeEntryScreen.ps1`**: Create the file and move all time-entry-related properties and methods from `TaskListScreen` into it.
+    4.  **Update Navigation Calls**: In `TaskListScreen`, the F4 keypress will no longer switch a mode but will instead publish an event: `[EventBus]::Publish("NavigateTo", "TimeEntry")`. In `TimeEntryScreen`, the `Escape` key will publish `[EventBus]::Publish("NavigateBack")`.
+*   **Verification:** F4 correctly displays the Time Entry screen. `Escape` correctly returns to the Task List screen.
 
-*   **Objective:** Move all logic and state for the "Time Entry" mode into its own dedicated screen file, converting the `TaskListScreen`'s internal "mode" into a proper app-level state change between two distinct screens.
-*   **Files Affected:**
-    *   `Screens/TimeEntryScreen.ps1` (Create)
-    *   `Screens/TaskListScreen.ps1` (Modify)
-    *   `Core/SimpleTaskProApp.ps1` (Modify)
-    *   `SimpleTaskPro.ps1` (Modify)
-*   **Action:**
-    1.  **Create New File:** Create the file `Screens/TimeEntryScreen.ps1`. Define the new class structure within it. It will initially be a container for the code we are about to move.
-        ```powershell
-        # In Screens/TimeEntryScreen.ps1
-        class TimeEntryScreen {
-            # All Time-Entry-related properties and methods will be pasted here.
-        }
-        ```
-    2.  **Move Time-Related Properties:**
-        *   **Edit** `Screens/TaskListScreen.ps1`.
-        *   **CUT** (do not copy) the following property definitions from the top of the `TaskListScreen` class and **PASTE** them into the new `TimeEntryScreen` class:
-            ```powershell
-            # These lines are to be CUT from TaskListScreen.ps1
-            [string]$CurrentMode = "Tasks" # This will be removed entirely later
-            [TimeTrackingService]$TimeService = $null
-            [SimpleTimeEntry[]]$TimeEntries = @()
-            [hashtable]$TaskLookup = @{}
-            [object]$AppReference = $null
-            [System.Collections.Generic.List[object]]$TimeFlatList
-            [int]$TimeSelectedIndex = 0
-            [int]$TimeScrollTop = 0
-            [int]$TimeEditingIndex = -1
-            [string]$TimeEditingField = ""
-            [string]$TimeEditingValue = ""
-            [SimpleTimeEntry]$TimeEditingEntry = $null
-            [bool]$IsNewTimeEntry = $false
-            [bool]$IsTimeFilterActive = $true
-            [int]$NameCol = 25
-            [int]$ID1Col = 6
-            # ... and all other Time Entry column and color variables.
-            ```
-    3.  **Move Time-Related Methods:**
-        *   **Edit** `Screens/TaskListScreen.ps1`.
-        *   **CUT** the following entire methods from `TaskListScreen` and **PASTE** them into the new `TimeEntryScreen` class:
-            *   `InitializeTimeService`
-            *   `LoadTaskLookup`
-            *   `SwitchToTimeEntryMode` (This will be deleted later, but move it for now)
-            *   `SwitchToTaskMode` (This will be deleted later, but move it for now)
-            *   `LoadTimeEntries`
-            *   `BuildTimeFlatList`
-            *   `RenderTimeEntryMode`
-            *   `GetCurrentDayOfWeek`
-            *   `RenderTimeList`
-            *   `GetTimeItemHeight`
-            *   `RenderTimeContent`
-            *   `RenderTimeDayColumn`
-            *   `PositionTimeEntryCursor`
-            *   `HandleTimeEntryInput`
-            *   `HandleTimeEditingInput`
-            *   `StartTimeInlineEdit`
-            *   `StartTimeInlineAdd`
-            *   `NextTimeEditField`
-            *   `PreviousTimeEditField`
-            *   `SetTimeEntryDayValue`
-            *   `SaveTimeInlineEdit`
-            *   `CancelTimeInlineEdit`
-            *   `EndTimeInlineEdit`
-            *   `DeleteTimeEntry`
-            *   `EnsureTimeVisible`
-    4.  **Update the Main Application Loader:**
-        *   **Edit** `SimpleTaskPro.ps1`. Add the line to load our new screen file.
-            ```powershell
-            # Add this line in SimpleTaskPro.ps1, after ProjectManagerScreen is loaded
-            ."$PSScriptRoot/Screens/TimeEntryScreen.ps1"
-            ```
-    5.  **Refactor the Main App Controller:**
-        *   **Edit** `Core/SimpleTaskProApp.ps1`. This is where we change the state management logic.
-        *   **Before:**
-            ```powershell
-            class SimpleTaskProApp {
-                [TaskListScreen]$Screen
-                // ...
-            }
-            ```
-        *   **After:**
-            ```powershell
-            class SimpleTaskProApp {
-                [TaskListScreen]$TaskScreen
-                [TimeEntryScreen]$TimeEntryScreen
-                [object]$ActiveScreen
-                [bool]$Running = $true
-                // ...
+#### **Step 3.2: Implement a State Machine for Input Handling**
 
-                SimpleTaskProApp() {
-                    $this.TaskScreen = [TaskListScreen]::new()
-                    $this.TimeEntryScreen = [TimeEntryScreen]::new()
-                    $this.ActiveScreen = $this.TaskScreen # Start with the Task screen
+*   **Rationale:** The current nested conditional logic for input handling is fragile and difficult to extend. A formal State Machine will make the logic robust, predictable, and maintainable.
+*   **Affected Files:** `Screens/TaskListScreen.ps1`
+*   **Instructions:**
+    1.  In **`TaskListScreen.ps1`**, define an `enum TaskListInputState { Browsing, Editing, Filtering }`.
+    2.  Add a property `[TaskListInputState]$InputState = 'Browsing'`.
+    3.  Refactor the single `HandleInput` method into multiple smaller methods: `HandleBrowsingInput`, `HandleEditingInput`, `HandleFilteringInput`.
+    4.  The main `HandleInput` method becomes a simple `switch` that delegates to the appropriate handler based on the current `$InputState`.
+    5.  State transitions are now explicit. E.g., in `HandleBrowsingInput`, pressing 'E' will set `$this.InputState = 'Editing'` and nothing more. The next keypress will be automatically routed to the correct handler.
+*   **Verification:** All input (navigation, starting an edit, filtering) works exactly as before. The internal code structure is now significantly cleaner and safer to modify.
 
-                    # Give both screens a reference back to the app for switching
-                    $this.TaskScreen.SetAppReference($this)
-                    $this.TimeEntryScreen.SetAppReference($this)
-                }
+#### **Step 3.3: Relocate Business Logic to Services**
 
-                [void] SwitchToTimeEntry() {
-                    $this.ActiveScreen = $this.TimeEntryScreen
-                    $this.ActiveScreen.LoadTimeEntries() # Ensure data is fresh
-                }
-            
-                [void] SwitchToTasks() {
-                    $this.ActiveScreen = $this.TaskScreen
-                    $this.ActiveScreen.LoadTasks() # Ensure data is fresh
-                }
-                
-                [void] Run() {
-                    # ...
-                    while ($this.Running) {
-                        # Change this line:
-                        if (-not $this.ActiveScreen.HandleInput($key)) { ... }
-                        # Change this line:
-                        Write-Host -NoNewline $this.ActiveScreen.Render()
-                        # ...
-                    }
-                }
-            }
-            ```
-        *   You will also need to add a simple `SetAppReference($app)` method to both `TaskListScreen.ps1` and the new `TimeEntryScreen.ps1` so they can call back to `$this.AppReference.SwitchToTasks()`, etc.
+*   **Rationale:** The UI layer should be responsible for presentation, not data manipulation. Moving filtering logic into the data service layer adheres to the Single Responsibility Principle and makes the service more capable.
+*   **Affected Files:** `Services/SimpleTaskService.ps1`, `Screens/TaskListScreen.ps1`
+*   **Instructions:**
+    1.  **Edit `Services/SimpleTaskService.ps1`**: Modify `GetParentTasks()` to accept filter parameters: `GetParentTasks([string]$priorityFilter, [string]$tagFilter)`. Move the filtering logic from `TaskListScreen` into this method.
+    2.  **Edit `Screens/TaskListScreen.ps1`**: Delete the `FilterTasks` method. Modify `LoadTasks` to call the service with its current filter state: `$this.TaskService.GetParentTasks($this.CurrentFilter, $this.TagFilter)`.
+*   **Verification:** Filtering by priority and tags works exactly as before. The screen's code is now simpler, and the data service is more powerful.
 
-*   **Verification:** The application should start and look identical. Pressing F4 should now switch to the Time Entry UI. All functionality (editing, navigation) in both modes should work as before. The key difference is that the code is now properly separated, making the next steps much easier.
+#### **Step 3.4: Restore Advanced Data Entry Shortcuts**
+
+*   **Rationale:** To restore the powerful, time-saving data entry features already coded but not integrated.
+*   **Affected Files:** `Core/FastLineBuilder.ps1`, `Screens/TaskListScreen.ps1`
+*   **Instructions:**
+    1.  **CUT** the methods `ConvertPriorityInput`, `ConvertDateInput`, and `GetNextWeekday` from **`Core/FastLineBuilder.ps1`**.
+    2.  **PASTE** them as private helper methods into **`Screens/TaskListScreen.ps1`**.
+    3.  In **`Screens/TaskListScreen.ps1`**, modify the `SaveInlineEdit()` method to use these helper functions when processing user input for the "date" and "priority" fields.
+*   **Verification:** When inline editing, typing `tom` in the date field and saving correctly sets the date to tomorrow. Typing `h` in the priority field correctly sets the priority to "High".
 
 ---
 
-#### **Step 2.2: Centralize Layout Constants**
-
-*   **Objective:** Remove all hardcoded column widths and layout "magic numbers" from screen and component files and place them in a single, globally accessible location.
-*   **Files Affected:**
-    *   `AppThemeManager.ps1` (Modify)
-    *   `Core/FastLineBuilder.ps1` (Modify)
-    *   `Screens/TaskListScreen.ps1` (Modify)
-*   **Action:**
-    1.  **Define the New Location:**
-        *   **Edit** `AppThemeManager.ps1`. Add a new static hashtable property to the class.
-            ```powershell
-            class AppThemeManager {
-                # ... existing properties ...
-                static [hashtable]$Layout = @{
-                    # All layout constants will be pasted here
-                }
-                # ... existing methods ...
-            }
-            ```
-    2.  **Move the Constants:**
-        *   Go through `Core/FastLineBuilder.ps1` and `Screens/TaskListScreen.ps1`.
-        *   **CUT** all variables related to column widths and indentation (e.g., `$COLUMN_ID1`, `$COLUMN_ID2`, `$COLUMN_CREATED`, `$COLUMN_DATE`, `$COLUMN_ARROW`, `$TREE_INDENT`, `$SUBTASK_INDENT`, etc.).
-        *   **PASTE** them into the new `$Layout` hashtable in `AppThemeManager.ps1`.
-            ```powershell
-            # In AppThemeManager.ps1
-            static [hashtable]$Layout = @{
-                ID1 = 5
-                ID2 = 14
-                Created = 12
-                Date = 12
-                Arrow = 3
-                TreeIndent = 7
-                SubtaskIndent = 4
-                # etc...
-            }
-            ```
-    3.  **Find and Replace:**
-        *   In all files (primarily `FastLineBuilder.ps1`), replace every usage of the old variables with a static call to the new location.
-        *   **Example Before (from `FastLineBuilder.ps1`):**
-            ```powershell
-            # Parent task: ID1(5) + ID2(14) + Created(12) + Due(12) + Arrow(3) + Title
-            $length = 5 + 14 + 12 + 12 + 3
-            ```
-        *   **Example After:**
-            ```powershell
-            # Parent task: ID1 + ID2 + Created + Due + Arrow + Title
-            $length = [AppThemeManager]::Layout.ID1 + [AppThemeManager]::Layout.ID2 + [AppThemeManager]::Layout.Created + [AppThemeManager]::Layout.Date + [AppThemeManager]::Layout.Arrow
-            ```
-
-*   **Verification:** The application's UI should render with the *exact same layout* as before. The change is purely architectural. To test, temporarily change a value in `AppThemeManager::$Layout` (e.g., set `ID1 = 10`), run the app, and observe that the ID1 column is now wider.
-
----
+*(Phase 3, "Polish and Enhance," including the dirty flag, string pooling, command palette, and timesheet copy, will proceed as previously detailed upon this newly stabilized architecture.)*
 
 ### **Phase 3: Polish and Enhance**
 

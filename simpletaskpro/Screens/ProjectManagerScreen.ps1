@@ -4,7 +4,6 @@ class ProjectManagerScreen {
     [int]$Width
     [int]$Height
     [SimpleTaskService]$TaskService
-    [ColorThemeService]$ThemeService
     [SimpleTask]$ParentTask
     [int]$SelectedIndex = 0
     
@@ -45,9 +44,8 @@ class ProjectManagerScreen {
         $this.MenuItems += [PSCustomObject]@{ Key = "B"; Title = "Browse Files"; Description = "Browse project files and folders" }
     }
     
-    [void] SetServices([SimpleTaskService]$taskService, [ColorThemeService]$themeService) {
+    [void] SetServices([SimpleTaskService]$taskService) {
         $this.TaskService = $taskService
-        $this.ThemeService = $themeService
     }
     
     [void] SetParentTask([SimpleTask]$parentTask) {

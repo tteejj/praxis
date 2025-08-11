@@ -1,8 +1,20 @@
 # TaskListScreen.ps1 - Simple task list with subtasks
 # Enhanced with FastLineBuilder and SmoothRenderer for better performance
 
+# Input state enumeration for state machine
+enum TaskListInputState {
+    Browsing
+    Editing
+    Filtering
+    TimeEntry
+}
+
 class TaskListScreen {
     [SimpleTaskService]$TaskService
+    [KeyMappingService]$KeyService
+    
+    # State Machine property
+    [TaskListInputState]$InputState = [TaskListInputState]::Browsing
     [SimpleTask[]]$Tasks
     [System.Collections.Generic.List[object]]$FlatList  # Flattened list for navigation
     [int]$SelectedIndex = 0
@@ -14,8 +26,7 @@ class TaskListScreen {
     [string]$CurrentFilter = "All"  # Filter mode: "All", "Today", "High", etc.
     [string]$TagFilter = ""  # Tag-based filter like "work", "personal", etc.
     
-    # TIME ENTRY MODE - NEW FUNCTIONALITY
-    [string]$CurrentMode = "Tasks"  # "Tasks" or "TimeEntry"
+    # TIME ENTRY MODE - LEGACY (Now handled by separate TimeEntryScreen)
     [TimeTrackingService]$TimeService = $null
     [SimpleTimeEntry[]]$TimeEntries = @()
     [hashtable]$TaskLookup = @{}  # ID2 → SimpleTask mapping
@@ -47,12 +58,7 @@ class TaskListScreen {
     [int]$FriCol = 8         # Friday hours
     [int]$TotalCol = 8       # Total hours
     
-    # Time entry colors (reuse existing colors for consistency)
-    [string]$ProjectColor = "`e[38;2;160;160;160m"    # Medium gray for projects
-    [string]$TimeCodeColor = "`e[38;2;120;120;120m"   # Medium gray for time codes
-    [string]$TagColor = "`e[38;2;180;180;180m"        # Light gray for labels
-    [string]$HeaderColor = "`e[38;2;100;150;255m"     # Blue for headers
-    [string]$CurrentDayColor = "`e[38;2;255;255;100m"  # Yellow for current day
+    # Time entry colors now use centralized theme
     
     # Inline editing state
     [int]$EditingIndex = -1
@@ -67,22 +73,9 @@ class TaskListScreen {
     [string]$FilterInputValue = ""
     [int]$FilterInputCursor = 0
     
-    # Modern RGB Colors
-    [string]$HighColor = "`e[38;2;255;100;100m"       # Coral red
-    [string]$MediumColor = "`e[38;2;255;165;0m"       # Orange
-    [string]$LowColor = "`e[38;2;80;200;120m"         # Green
-    [string]$TodayColor = "`e[38;2;255;215;0m"        # Bright gold/yellow for TODAY
-    [string]$SubtaskColor = "`e[38;2;160;160;160m"    # Medium gray
-    [string]$SelectedBg = "`e[48;2;45;45;55m"         # Dark background highlight
-    [string]$EvenRowBg = "`e[48;2;25;25;30m"          # Subtle dark background
-    [string]$CompletedColor = "`e[38;2;120;120;120m"  # Medium gray
-    [string]$NormalColor = "`e[0m"                     # Reset
+    # All colors now use centralized AppThemeManager
     
-    # Date colors
-    [string]$OverdueColor = "`e[38;2;255;100;100m"    # Red
-    [string]$WeekColor = "`e[38;2;255;165;0m"          # Orange
-    [string]$TodayDateColor = "`e[38;2;255;255;100m"       # Yellow
-    [string]$FutureColor = "`e[38;2;80;200;120m"       # Green
+    # Date and edit colors now use centralized theme
     [string]$EditHighlight = "`e[47;30m"  # White background, black text (simpler ANSI)
     
     # Column widths - project management layout
@@ -104,37 +97,9 @@ class TaskListScreen {
     [int]$IndentWidth = 4
     
     # Built-in color themes - no external dependencies
-    [hashtable]$TaskColors = @{
-        "default"  = "`e[38;2;250;248;240m"      # Warm white
-        "red"      = "`e[38;2;255;100;100m"      # Bright red  
-        "blue"     = "`e[38;2;100;150;255m"      # Modern blue
-        "green"    = "`e[38;2;80;200;120m"       # Modern green
-        "purple"   = "`e[38;2;200;120;255m"      # Modern purple
-        "orange"   = "`e[38;2;255;165;0m"        # Orange
-        "cyan"     = "`e[38;2;100;200;200m"      # Cyan
-        "pink"     = "`e[38;2;255;80;120m"       # Hot pink
-        # Legacy theme name mappings for existing data
-        "work"     = "`e[38;2;100;150;255m"      # Blue
-        "urgent"   = "`e[38;2;255;100;100m"      # Red
-        "personal" = "`e[38;2;80;200;120m"       # Green
-        "project"  = "`e[38;2;200;120;255m"      # Purple
-    }
+    # Task colors now use centralized AppThemeManager
     
-    [hashtable]$SubtaskColors = @{
-        "default"  = "`e[38;2;160;160;160m"      # Medium gray
-        "red"      = "`e[38;2;200;80;80m"        # Darker red
-        "blue"     = "`e[38;2;80;120;200m"       # Darker blue
-        "green"    = "`e[38;2;60;160;100m"       # Darker green
-        "purple"   = "`e[38;2;160;100;200m"      # Darker purple
-        "orange"   = "`e[38;2;200;130;0m"        # Darker orange
-        "cyan"     = "`e[38;2;80;160;160m"       # Darker cyan
-        "pink"     = "`e[38;2;200;60;100m"       # Darker pink
-        # Legacy theme name mappings for existing data
-        "work"     = "`e[38;2;80;120;200m"       # Darker blue
-        "urgent"   = "`e[38;2;200;80;80m"        # Darker red
-        "personal" = "`e[38;2;60;160;100m"       # Darker green
-        "project"  = "`e[38;2;160;100;200m"      # Darker purple
-    }
+    # Subtask colors now use centralized AppThemeManager
     
     # Pillbox characters
     [string]$PillboxTopLeft = "╭"
@@ -152,6 +117,7 @@ class TaskListScreen {
     
     TaskListScreen() {
         $this.TaskService = [SimpleTaskService]::new()
+        $this.KeyService = [KeyMappingService]::new()
         $this.FlatList = [System.Collections.Generic.List[object]]::new()
         $this.TimeFlatList = [System.Collections.Generic.List[object]]::new()
         
@@ -169,9 +135,6 @@ class TaskListScreen {
         
         # Initialize time service
         $this.TimeService = [TimeTrackingService]::new()
-        if ($this.CurrentMode -eq "TimeEntry") {
-            $this.LoadTimeEntries()
-        }
         
         # Migrate existing notes to files (run once, safe to call multiple times)
         $this.MigrateNotesToFiles()
@@ -198,7 +161,7 @@ class TaskListScreen {
             return 
         }
         
-        $allTasks = $this.TaskService.GetParentTasks()
+        $allTasks = $this.TaskService.GetParentTasks()  # Get all tasks for lookup (no filtering)
         "DEBUG: LoadTaskLookup - Got $($allTasks.Count) parent tasks $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         $this.TaskLookup.Clear()
         
@@ -229,19 +192,17 @@ class TaskListScreen {
             if (-not $this.TimeService) { 
                 return 
             }
-            $this.CurrentMode = "TimeEntry"
-            $this.LoadTimeEntries()
+            # Time entry mode now handled by separate TimeEntryScreen
             $this.TimeSelectedIndex = 0
             $this.TimeScrollTop = 0
         } catch {
             # Fall back to tasks mode on error
-            # Error logging removed
-            $this.CurrentMode = "Tasks"
+            # Error logging removed - time entry handled by separate screen
         }
     }
     
     [void] SwitchToTaskMode() {
-        $this.CurrentMode = "Tasks"
+        # Legacy method - now handled by EventBus navigation
         $this.LoadTasks()
     }
     
@@ -308,17 +269,15 @@ class TaskListScreen {
     
     # Self-contained color theme methods - replace ColorThemeService
     [string] GetTaskColor([string]$theme) {
-        if ($this.TaskColors.ContainsKey($theme)) {
-            return $this.TaskColors[$theme]
-        }
-        return $this.TaskColors["default"]
+        # For now, use the main text color - theme-specific task colors
+        # will be handled by AppThemeManager in the future
+        return [AppThemeManager]::GetColor("Text")
     }
     
     [string] GetSubtaskColor([string]$theme) {
-        if ($this.SubtaskColors.ContainsKey($theme)) {
-            return $this.SubtaskColors[$theme]
-        }
-        return $this.SubtaskColors["default"]
+        # For now, use muted color for all subtasks
+        # Theme-specific subtask colors will be handled by AppThemeManager in the future
+        return [AppThemeManager]::GetColor("Muted")
     }
     
     [string] GetNextTheme([string]$currentTheme) {
@@ -335,8 +294,8 @@ class TaskListScreen {
     }
     
     [void] LoadTasks() {
-        $allTasks = $this.TaskService.GetParentTasks()
-        $this.Tasks = $this.FilterTasks($allTasks)
+        # Phase 2.4: Use enhanced service method with filtering parameters
+        $this.Tasks = $this.TaskService.GetParentTasks($this.CurrentFilter, $this.TagFilter)
         $this.BuildFlatList()
         
         if ($this.SelectedIndex -ge $this.FlatList.Count) {
@@ -344,48 +303,83 @@ class TaskListScreen {
         }
     }
     
-    [SimpleTask[]] FilterTasks([SimpleTask[]]$tasks) {
-        if ($this.CurrentFilter -eq "All" -and $this.TagFilter -eq "") {
-            return $tasks
+    # Phase 2.4: FilterTasks method removed - filtering logic moved to SimpleTaskService.GetParentTasks()
+    
+    # Step 3.4: Advanced Data Entry Shortcuts (moved from FastLineBuilder)
+    [string] ConvertPriorityInput([string]$input) {
+        # Convert h/m/l/t input to High/Medium/Low/Today (only accept single letters)
+        $cleanInput = $input.ToLower().Trim()
+        switch ($cleanInput) {
+            "h" { return "High" }
+            "m" { return "Medium" }
+            "l" { return "Low" }
+            "t" { return "Today" }
+            default { 
+                return ""  # Return empty if invalid input
+            }
+        }
+    }
+    
+    [datetime] ConvertDateInput([string]$input) {
+        # Enhanced date input with quick entry shortcuts
+        $input = $input.Trim().ToLower()
+        if ($input -eq "" -or $input -eq "clear") {
+            return [datetime]::MinValue
         }
         
-        $filteredTasks = @()
         $today = [datetime]::Today
         
-        foreach ($task in $tasks) {
-            $includeTask = $false
-            
-            # Priority/Date filtering
-            switch ($this.CurrentFilter) {
-                "All" { $includeTask = $true }
-                "Today" {
-                    # Include if priority is "Today" OR due date is today
-                    $includeTask = ($task.Priority -eq "Today") -or 
-                                  ($task.DueDate -ne [datetime]::MinValue -and $task.DueDate.Date -eq $today)
-                }
-                "High" { $includeTask = ($task.Priority -eq "High") }
-                "Medium" { $includeTask = ($task.Priority -eq "Medium") }
-                "Low" { $includeTask = ($task.Priority -eq "Low") }
-            }
-            
-            # Tag filtering (additional filter)
-            if ($includeTask -and $this.TagFilter -ne "") {
-                $includeTask = $false
-                # Check if task has the filtered tag (case insensitive)
-                foreach ($tag in $task.Tags) {
-                    if ($tag.ToLower() -eq $this.TagFilter.ToLower()) {
-                        $includeTask = $true
-                        break
-                    }
-                }
-            }
-            
-            if ($includeTask) {
-                $filteredTasks += $task
-            }
+        # Quick date shortcuts
+        switch ($input) {
+            "tod" { return $today }
+            "today" { return $today }
+            "tom" { return $today.AddDays(1) }
+            "tomorrow" { return $today.AddDays(1) }
+            "yes" { return $today.AddDays(-1) }
+            "yesterday" { return $today.AddDays(-1) }
+            "mon" { return $this.GetNextWeekday([DayOfWeek]::Monday) }
+            "tue" { return $this.GetNextWeekday([DayOfWeek]::Tuesday) }
+            "wed" { return $this.GetNextWeekday([DayOfWeek]::Wednesday) }
+            "thu" { return $this.GetNextWeekday([DayOfWeek]::Thursday) }
+            "fri" { return $this.GetNextWeekday([DayOfWeek]::Friday) }
+            "sat" { return $this.GetNextWeekday([DayOfWeek]::Saturday) }
+            "sun" { return $this.GetNextWeekday([DayOfWeek]::Sunday) }
+            default { }  # Continue to next parsing logic
         }
         
-        return $filteredTasks
+        # Relative date shortcuts (+3, +1w, etc.)
+        if ($input -match '^\+(\d+)$') {
+            $days = [int]$matches[1]
+            return $today.AddDays($days)
+        }
+        if ($input -match '^\+(\d+)w$') {
+            $weeks = [int]$matches[1]
+            return $today.AddDays($weeks * 7)
+        }
+        
+        # Try standard date parsing
+        try {
+            $result = [datetime]::ParseExact($input, @("yyyy-MM-dd", "MM/dd/yyyy", "dd/MM/yyyy", "M/d/yyyy", "yyyy-M-d"), $null, [System.Globalization.DateTimeStyles]::None)
+            return $result
+        } catch {
+            try {
+                # Fallback to general parsing
+                $result = [datetime]::Parse($input)
+                return $result
+            } catch {
+                # If all parsing fails, return MinValue
+                return [datetime]::MinValue
+            }
+        }
+    }
+    
+    [datetime] GetNextWeekday([DayOfWeek]$targetDay) {
+        $today = [datetime]::Today
+        $daysUntilTarget = ([int]$targetDay - [int]$today.DayOfWeek + 7) % 7
+        if ($daysUntilTarget -eq 0) {
+            $daysUntilTarget = 7  # Next week if today is the target day
+        }
+        return $today.AddDays($daysUntilTarget)
     }
     
     [int] GetItemHeight([int]$itemIndex) {
@@ -425,27 +419,27 @@ class TaskListScreen {
     
     [void] RenderPillboxTop([System.Text.StringBuilder]$sb, [int]$width, [int]$y) {
         [void]$sb.Append([VT]::MoveTo(0, $y))
-        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         [void]$sb.Append($this.PillboxTopLeft)
         [void]$sb.Append($this.PillboxHorizontal * ($width - 2))
         [void]$sb.Append($this.PillboxTopRight)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
     }
     
     [void] RenderPillboxBottom([System.Text.StringBuilder]$sb, [int]$width, [int]$y) {
         [void]$sb.Append([VT]::MoveTo(0, $y))
-        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         [void]$sb.Append($this.PillboxBottomLeft)
         [void]$sb.Append($this.PillboxHorizontal * ($width - 2))
         [void]$sb.Append($this.PillboxBottomRight)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
     }
     
     [void] RenderPillboxSide([System.Text.StringBuilder]$sb, [int]$x, [int]$y) {
         [void]$sb.Append([VT]::MoveTo($x, $y))
-        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         [void]$sb.Append($this.PillboxVertical)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
     }
 
     [string] ConvertPriorityInput([string]$input) {
@@ -578,18 +572,24 @@ class TaskListScreen {
         $this.FilterInputActive = $false
         $this.FilterInputValue = ""
         $this.FilterInputCursor = 0
+        # State Machine: Return to browsing state
+        $this.InputState = [TaskListInputState]::Browsing
     }
     
     [bool] HandleFilterInput([System.ConsoleKeyInfo]$key) {
+        # Use KeyMappingService for filter commands
+        if ($this.KeyService.MatchesAction($key, "CommitEdit")) {
+            $this.EndFilterInput($true)
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "CancelEdit")) {
+            $this.EndFilterInput($false)
+            return $true
+        }
+        
+        # Handle text input keys
         switch ($key.Key) {
-            ([System.ConsoleKey]::Enter) {
-                $this.EndFilterInput($true)
-                return $true
-            }
-            ([System.ConsoleKey]::Escape) {
-                $this.EndFilterInput($false)
-                return $true
-            }
             ([System.ConsoleKey]::Backspace) {
                 if ($this.FilterInputCursor -gt 0) {
                     $this.FilterInputValue = $this.FilterInputValue.Remove($this.FilterInputCursor - 1, 1)
@@ -638,7 +638,7 @@ class TaskListScreen {
         if ($isEditingThis -and $this.EditingField -eq "priority") {
             # Show active field with bright highlight (2 chars for subtask priority)
             $fieldValue = $this.EditingValue.PadRight(2)
-            [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + [VT]::Reset())
         } elseif ($isEditingThis -and ($task.Priority -eq "High" -or $task.Priority -eq "Medium" -or $task.Priority -eq "Low" -or $task.Priority -eq "Today")) {
             # Show inactive field with dim highlight when editing other fields
             $priorityText = switch ($task.Priority) {
@@ -647,7 +647,7 @@ class TaskListScreen {
                 "Low" { "L " }
                 "Today" { "T " }
             }
-            [void]$sb.Append("`e[48;2;30;30;40m" + $priorityText + $this.NormalColor)
+            [void]$sb.Append("`e[48;2;30;30;40m" + $priorityText + [VT]::Reset())
         } elseif ($task.Priority -eq "High" -or $task.Priority -eq "Medium" -or $task.Priority -eq "Low" -or $task.Priority -eq "Today") {
             $priorityText = switch ($task.Priority) {
                 "High" { "H" }
@@ -656,23 +656,23 @@ class TaskListScreen {
                 "Today" { "T" }
             }
             $priorityColor = switch ($task.Priority) {
-                "High" { $this.HighColor }
-                "Medium" { $this.MediumColor }
-                "Low" { $this.LowColor }
-                "Today" { $this.TodayColor }
+                "High" { [AppThemeManager]::GetColor("High") }
+                "Medium" { [AppThemeManager]::GetColor("Medium") }
+                "Low" { [AppThemeManager]::GetColor("Low") }
+                "Today" { [AppThemeManager]::GetColor("Today") }
             }
-            [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor + " ")
+            [void]$sb.Append($priorityColor + $priorityText + [VT]::Reset() + " ")
         }
         
         # Render date if set or being edited
         if ($isEditingThis -and $this.EditingField -eq "date") {
             # Show active field with bright highlight (6 chars for MM-dd format)
             $fieldValue = $this.EditingValue.PadRight(6)
-            [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + [VT]::Reset())
         } elseif ($isEditingThis -and $task.DueDate -ne [datetime]::MinValue) {
             # Show inactive field with dim highlight when editing other fields
             $compactDate = $task.DueDate.ToString("MM-dd").PadRight(6)
-            [void]$sb.Append("`e[48;2;30;30;40m" + $compactDate + $this.NormalColor)
+            [void]$sb.Append("`e[48;2;30;30;40m" + $compactDate + [VT]::Reset())
         } elseif ($task.DueDate -ne [datetime]::MinValue) {
             $compactDate = $task.DueDate.ToString("MM-dd")
             $today = [datetime]::Today
@@ -681,21 +681,21 @@ class TaskListScreen {
             
             # Use same colors as parent tasks
             $dateColor = if ($days -lt 0) {
-                $this.OverdueColor
+                [AppThemeManager]::GetColor("High")
             } elseif ($days -eq 0) {
-                $this.TodayDateColor
+                [AppThemeManager]::GetColor("Today")
             } elseif ($days -le 7) {
-                $this.WeekColor
+                [AppThemeManager]::GetColor("Medium")
             } else {
-                $this.FutureColor
+                [AppThemeManager]::GetColor("Low")
             }
-            [void]$sb.Append($dateColor + $compactDate + $this.NormalColor + " ")
+            [void]$sb.Append($dateColor + $compactDate + [VT]::Reset() + " ")
         }
     }
 
     [string] GetDateColorAndText([SimpleTask]$task) {
         if ($task.DueDate -eq [datetime]::MinValue) {
-            return $this.TagColor + "-".PadRight(8) + $this.NormalColor
+            return [AppThemeManager]::GetColor("Muted") + "-".PadRight(8) + [VT]::Reset()
         }
         
         $today = [datetime]::Today
@@ -703,17 +703,17 @@ class TaskListScreen {
         $daysDiff = ($due - $today).Days
         
         $dateText = $due.ToString("yyyy-MM-dd")
-        $color = if ($daysDiff -lt 0) { $this.OverdueColor }
-                elseif ($daysDiff -eq 0) { $this.TodayDateColor }
-                elseif ($daysDiff -le 7) { $this.WeekColor }
-                else { $this.FutureColor }
+        $color = if ($daysDiff -lt 0) { [AppThemeManager]::GetColor("High") }
+                elseif ($daysDiff -eq 0) { [AppThemeManager]::GetColor("Today") }
+                elseif ($daysDiff -le 7) { [AppThemeManager]::GetColor("Medium") }
+                else { [AppThemeManager]::GetColor("Low") }
         
-        return $color + $dateText + $this.NormalColor
+        return $color + $dateText + [VT]::Reset()
     }
 
     [string] GetDateColorAndTextFormatted([SimpleTask]$task) {
         if ($task.DueDate -eq [datetime]::MinValue) {
-            return $this.TagColor + "-".PadRight(10) + $this.NormalColor
+            return [AppThemeManager]::GetColor("Muted") + "-".PadRight(10) + [VT]::Reset()
         }
         
         $today = [datetime]::Today
@@ -721,17 +721,17 @@ class TaskListScreen {
         $daysDiff = ($due - $today).Days
         
         $dateText = $due.ToString("yyyy-MM-dd")
-        $color = if ($daysDiff -lt 0) { $this.OverdueColor }
-                elseif ($daysDiff -eq 0) { $this.TodayDateColor }
-                elseif ($daysDiff -le 7) { $this.WeekColor }
-                else { $this.FutureColor }
+        $color = if ($daysDiff -lt 0) { [AppThemeManager]::GetColor("High") }
+                elseif ($daysDiff -eq 0) { [AppThemeManager]::GetColor("Today") }
+                elseif ($daysDiff -le 7) { [AppThemeManager]::GetColor("Medium") }
+                else { [AppThemeManager]::GetColor("Low") }
         
-        return $color + $dateText + $this.NormalColor
+        return $color + $dateText + [VT]::Reset()
     }
 
     [string] GetDateColor([datetime]$date) {
         if ($date -eq [datetime]::MinValue) {
-            return $this.TagColor
+            return [AppThemeManager]::GetColor("Muted")
         }
         
         $today = [datetime]::Today
@@ -739,13 +739,13 @@ class TaskListScreen {
         $daysDiff = ($due - $today).Days
         
         if ($daysDiff -lt 0) { 
-            return $this.OverdueColor 
+            return [AppThemeManager]::GetColor("High") 
         } elseif ($daysDiff -eq 0) { 
-            return $this.TodayDateColor 
+            return [AppThemeManager]::GetColor("Today") 
         } elseif ($daysDiff -le 7) { 
-            return $this.WeekColor 
+            return [AppThemeManager]::GetColor("Medium") 
         } else { 
-            return $this.FutureColor 
+            return [AppThemeManager]::GetColor("Low") 
         }
     }
 
@@ -778,20 +778,8 @@ class TaskListScreen {
     }
     
     [string] Render() {
-        $baseContent = ""
-        
-        if ($this.CurrentMode -eq "TimeEntry") {
-            try {
-                $baseContent = $this.RenderTimeEntryMode()
-            } catch {
-                # Fall back to task mode on error
-                # Error logging removed
-                $this.CurrentMode = "Tasks"
-                $baseContent = $this.RenderTaskModeEnhanced()
-            }
-        } else {
-            $baseContent = $this.RenderTaskModeEnhanced()
-        }
+        # TaskListScreen now only renders task mode - TimeEntry handled by separate screen
+        $baseContent = $this.RenderTaskModeEnhanced()
         
         # Add modal system overlays
         return $this.RenderWithOverlays($baseContent)
@@ -861,7 +849,7 @@ class TaskListScreen {
         
         # Header with filter info
         [void]$sb.Append([VT]::MoveTo(0, 0))
-        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         $headerText = "TASKPRO - Task Manager"
         if ($this.CurrentFilter -ne "All") {
             $headerText += " [Filter: $($this.CurrentFilter)]"
@@ -870,17 +858,17 @@ class TaskListScreen {
             $headerText += " [Tag: #$($this.TagFilter)]"
         }
         [void]$sb.Append($headerText)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # Column headers
         [void]$sb.Append([VT]::MoveTo(0, 1))
-        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
         [void]$sb.Append(" ID1  ")     # SHIFTED RIGHT: ID1 column (5 chars)
         [void]$sb.Append("ID2           ") # ID2 column (14 chars)
         [void]$sb.Append("Created     ")   # Created date column (12 chars)
         [void]$sb.Append("Due         ")   # Due date column (12 chars)
         [void]$sb.Append("  Title")        # Arrow + title
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         [void]$sb.Append([VT]::MoveTo(0, 2))
         [void]$sb.Append(" " + ("─" * ($this.Width - 1)))  # SHIFTED RIGHT
@@ -893,21 +881,21 @@ class TaskListScreen {
         [void]$sb.Append(" " + ("─" * ($this.Width - 1)))  # SHIFTED RIGHT
         
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
-        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
         if ($this.FilterInputActive) {
             # Show filter input as a proper textbox
             $filterPrompt = " Filter: "  # SHIFTED RIGHT
             [void]$sb.Append($filterPrompt)
             $fieldWidth = 20
             $fieldValue = $this.FilterInputValue.PadRight($fieldWidth)
-            [void]$sb.Append($this.EditHighlight + $fieldValue + $this.NormalColor)
+            [void]$sb.Append($this.EditHighlight + $fieldValue + [VT]::Reset())
             [void]$sb.Append("   Enter:Apply  Escape:Cancel  (#tag, high/med/low/today, clear)")  # SHIFTED RIGHT
         } elseif ($this.EditingIndex -ge 0) {
             [void]$sb.Append(" EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")  # SHIFTED RIGHT
         } else {
             [void]$sb.Append(" ↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:TimeEntry  F5:Color  F6:Excel  F7:Settings  F8:Folder  F9:T2020  F10:Export  F11:Log  F12:Cycle  Q:Quit")  # SHIFTED RIGHT
         }
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # Show/hide cursor based on editing state and position it correctly with enhanced positioning
         if ($this.EditingIndex -ge 0) {
@@ -954,23 +942,23 @@ class TaskListScreen {
             $headerText += " [Tag: #$($this.TagFilter)]"
         }
         [void]$sb.Append($headerText.PadRight($this.Width))
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # Column headers
         [void]$sb.Append([VT]::MoveTo(0, 1))
-        [void]$sb.Append($this.TagColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
         [void]$sb.Append(" ID1  ")     # SHIFTED RIGHT: ID1 column (5 chars)
         [void]$sb.Append("ID2           ") # ID2 column (14 chars)
         [void]$sb.Append("Created     ")   # Created date column (12 chars)
         [void]$sb.Append("Due         ")   # Due date column (12 chars)
         [void]$sb.Append("  Title")        # Arrow + title
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # Separator line
         [void]$sb.Append([VT]::MoveTo(0, 2))
-        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         [void]$sb.Append(" " + ("─" * ($this.Width - 1)))  # SHIFTED RIGHT
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # Status bar with theme integration and theme picker hotkey
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
@@ -978,7 +966,7 @@ class TaskListScreen {
         $currentTheme = [AppThemeManager]::GetCurrentThemeName()
         $status = "  [N]ew [E]dit [D]elete [F]ilter [T]ags [M]ode [F4]Time [F5]Commands [Ctrl+Shift+T]heme:$currentTheme ESC:Quit "
         [void]$sb.Append($status.PadRight($this.Width))
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([VT]::Reset())
         
         # COMPLETE TASK RENDERING WITH PILLBOX INTEGRATION
         if ($this.FlatList.Count -gt 0) {
@@ -1412,7 +1400,7 @@ class TaskListScreen {
         
         # TOTAL column
         $totalText = if ($entry.Total -gt 0) { $entry.Total.ToString("F1") } else { "" }
-        [void]$sb.Append($this.HighColor + $totalText.PadRight($this.TotalCol) + $this.NormalColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("High") + $totalText.PadRight($this.TotalCol) + [VT]::Reset())
         
         # Clear to end handled by caller
     }
@@ -1520,17 +1508,17 @@ class TaskListScreen {
                 
                 # Content line 1 with pillbox sides
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $this.RenderTaskContent($sb, $task, $level, $isLast, $false, $isSelected)
                 
                 # Move cursor to EXACT right border position
                 [void]$sb.Append([VT]::MoveTo($rightBorderColumn, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $currentY++
                 
                 # Content line 2 (tags) with pillbox sides
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 
                 # Render tag content
                 $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
@@ -1565,7 +1553,7 @@ class TaskListScreen {
                         $indentSize += 7  # "    └─ "
                     }
                     [void]$sb.Append(" " * $indentSize)
-                    [void]$sb.Append($this.TagColor + "⟨" + ($task.Tags -join ", ") + "⟩" + $this.NormalColor)
+                    [void]$sb.Append([AppThemeManager]::GetColor("Muted") + "⟨" + ($task.Tags -join ", ") + "⟩" + [VT]::Reset())
                 } elseif ($isEditingThis -and $this.EditingField -eq "tags") {
                     # Show active empty tags field when editing tags
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
@@ -1576,7 +1564,7 @@ class TaskListScreen {
                     $minWidth = 15
                     $fieldWidth = [Math]::Max($minWidth, $this.EditingValue.Length + 5)
                     $fieldValue = $this.EditingValue.PadRight($fieldWidth)
-                    [void]$sb.Append("⟨" + $this.EditHighlight + $fieldValue + $this.NormalColor + "⟩")
+                    [void]$sb.Append("⟨" + $this.EditHighlight + $fieldValue + [VT]::Reset() + "⟩")
                 } elseif ($isEditingThis) {
                     # Show empty tags field with dim highlight when editing other fields
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
@@ -1591,7 +1579,7 @@ class TaskListScreen {
                 
                 # Move cursor to EXACT same right border position
                 [void]$sb.Append([VT]::MoveTo($rightBorderColumn, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $currentY++
                 
                 # Pillbox bottom
@@ -1665,22 +1653,22 @@ class TaskListScreen {
                 
                 # Content line 1 with pillbox sides - FastLineBuilder handles pillbox indentation
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $contentLine = $this.LineBuilder.BuildContentLine($task, $level, $isLast, $isSelected, $this)
                 [void]$sb.Append($contentLine)
                 # Right border positioned to leave space for content + left border
                 [void]$sb.Append([VT]::MoveTo($this.Width - 1, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $currentY++
                 
                 # Content line 2 (tags) with pillbox sides - FastLineBuilder handles pillbox indentation
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $tagLine = $this.LineBuilder.BuildTagLine($task, $level, $isLast, $isSelected, $this)
                 [void]$sb.Append($tagLine)
                 # Right border positioned to leave space for content + left border
                 [void]$sb.Append([VT]::MoveTo($this.Width - 1, $currentY))
-                [void]$sb.Append($this.HeaderColor + $this.PillboxVertical + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 $currentY++
                 
                 # Pillbox bottom
@@ -1784,10 +1772,10 @@ class TaskListScreen {
             # Parent task - show ID1
             if ($isEditingThis -and $this.EditingField -eq "id1") {
                 $fieldValue = $this.EditingValue.PadRight(3)
-                [void]$sb.Append($this.EditHighlight + $fieldValue + " " + $this.NormalColor)
+                [void]$sb.Append($this.EditHighlight + $fieldValue + " " + [VT]::Reset())
             } else {
                 $id1Text = if ($task.ID1 -and $task.ID1 -ne "") { $task.ID1.PadRight(3) } else { "   " }
-                [void]$sb.Append($this.FieldColor + $id1Text + "  " + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Field") + $id1Text + "  " + [VT]::Reset())
             }
         } else {
             # Subtasks show completion status
@@ -1803,10 +1791,10 @@ class TaskListScreen {
             # Parent task - show ID2
             if ($isEditingThis -and $this.EditingField -eq "id2") {
                 $fieldValue = $this.EditingValue.PadRight(12)
-                [void]$sb.Append($this.EditHighlight + $fieldValue + " " + $this.NormalColor)
+                [void]$sb.Append($this.EditHighlight + $fieldValue + " " + [VT]::Reset())
             } else {
                 $id2Text = if ($task.ID2 -and $task.ID2 -ne "") { $task.ID2.PadRight(12) } else { " ".PadRight(12) }
-                [void]$sb.Append($this.ValueColor + $id2Text + "  " + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Value") + $id2Text + "  " + [VT]::Reset())
             }
         } else {
             # Subtasks show priority after tree chars
@@ -1818,13 +1806,13 @@ class TaskListScreen {
                 default { " " }
             }
             $priorityColor = switch ($task.Priority) {
-                "High" { $this.HighColor }
-                "Medium" { $this.MediumColor }
-                "Low" { $this.LowColor }
-                "Today" { $this.TodayColor }
-                default { $this.TagColor }
+                "High" { [AppThemeManager]::GetColor("High") }
+                "Medium" { [AppThemeManager]::GetColor("Medium") }
+                "Low" { [AppThemeManager]::GetColor("Low") }
+                "Today" { [AppThemeManager]::GetColor("Today") }
+                default { [AppThemeManager]::GetColor("Muted") }
             }
-            [void]$sb.Append($priorityColor + $priorityText + $this.NormalColor + " ".PadRight(13))
+            [void]$sb.Append($priorityColor + $priorityText + [VT]::Reset() + " ".PadRight(13))
         }
         
         # COLUMN 3: CREATED DATE (12 chars)
@@ -1832,15 +1820,15 @@ class TaskListScreen {
             # Parent task - show created date
             if ($isEditingThis -and $this.EditingField -eq "created") {
                 $displayValue = if ($this.EditingValue -ne "") { $this.EditingValue.PadRight(10) } else { " ".PadRight(10) }
-                [void]$sb.Append($this.EditHighlight + $displayValue + "  " + $this.NormalColor)
+                [void]$sb.Append($this.EditHighlight + $displayValue + "  " + [VT]::Reset())
             } else {
                 $createdText = if ($task.CreatedDate -eq [datetime]::MinValue) { " ".PadRight(10) } else { $task.CreatedDate.ToString("yyyy-MM-dd") }
-                [void]$sb.Append($this.BrowserColor + $createdText + "  " + $this.NormalColor)
+                [void]$sb.Append([AppThemeManager]::GetColor("Browser") + $createdText + "  " + [VT]::Reset())
             }
         } else {
             # Subtasks show created date too but smaller
             $createdText = if ($task.CreatedDate -eq [datetime]::MinValue) { " ".PadRight(10) } else { $task.CreatedDate.ToString("yyyy-MM-dd") }
-            [void]$sb.Append($this.SubtaskColor + $createdText + "  " + $this.NormalColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("Muted") + $createdText + "  " + [VT]::Reset())
         }
         
         # COLUMN 4: DUE DATE (12 chars)
@@ -1848,7 +1836,7 @@ class TaskListScreen {
             # Parent task - show due date with color coding
             if ($isEditingThis -and $this.EditingField -eq "date") {
                 $displayValue = if ($this.EditingValue -ne "") { $this.EditingValue.PadRight(10) } else { " ".PadRight(10) }
-                [void]$sb.Append($this.EditHighlight + $displayValue + "  " + $this.NormalColor)
+                [void]$sb.Append($this.EditHighlight + $displayValue + "  " + [VT]::Reset())
             } else {
                 [void]$sb.Append($this.GetDateColorAndTextFormatted($task))
                 [void]$sb.Append("  ")
@@ -1858,7 +1846,7 @@ class TaskListScreen {
             if ($task.DueDate -ne [datetime]::MinValue) {
                 $dueDateText = $task.DueDate.ToString("yyyy-MM-dd")
                 $dateColor = $this.GetDateColor($task.DueDate)
-                [void]$sb.Append($dateColor + $dueDateText.PadRight(10) + "  " + $this.NormalColor)
+                [void]$sb.Append($dateColor + $dueDateText.PadRight(10) + "  " + [VT]::Reset())
             } else {
                 [void]$sb.Append(" ".PadRight(12))
             }
@@ -1907,19 +1895,19 @@ class TaskListScreen {
             [void]$sb.Append("`e[48;2;30;30;40m" + $titleValue + "`e[0m")  # Dim highlight
         } else {
             if ($task.Completed) {
-                $taskColor = $this.CompletedColor
+                $taskColor = [AppThemeManager]::GetColor("Muted")
             } elseif ($level -eq 1) {
                 $parentTask = $this.TaskService.GetParentTask($task.Id)
                 if ($parentTask) {
                     $taskColor = $this.GetSubtaskColor($parentTask.SubtaskColorTheme)
                 } else {
-                    $taskColor = $this.SubtaskColor
+                    $taskColor = [AppThemeManager]::GetColor("Muted")
                 }
             } else {
                 $taskColor = $this.GetTaskColor($task.ColorTheme)
             }
             
-            [void]$sb.Append($taskColor + $task.Title + $this.NormalColor)
+            [void]$sb.Append($taskColor + $task.Title + [VT]::Reset())
         }
         
         # Clear to end of line if requested
@@ -1968,9 +1956,9 @@ class TaskListScreen {
         
         # Show tags if they exist, otherwise add spaces to preserve line content
         if ($task.Tags.Count -gt 0) {
-            [void]$sb.Append($this.TagColor)
+            [void]$sb.Append([AppThemeManager]::GetColor("Muted"))
             [void]$sb.Append("⟨" + ($task.Tags -join ", ") + "⟩")
-            [void]$sb.Append($this.NormalColor)
+            [void]$sb.Append([VT]::Reset())
             # Add spaces to ensure content survives VT clearing
             [void]$sb.Append("     ")
         } else {
@@ -1997,155 +1985,193 @@ class TaskListScreen {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        
-        # Handle time entry mode
-        if ($this.CurrentMode -eq "TimeEntry") {
-            return $this.HandleTimeEntryInput($key)
+        # State Machine: Route input to appropriate handler based on current state
+        switch ($this.InputState) {
+            ([TaskListInputState]::Browsing) {
+                return $this.HandleBrowsingInput($key)
+            }
+            ([TaskListInputState]::Editing) {
+                return $this.HandleEditingInput($key)
+            }
+            ([TaskListInputState]::Filtering) {
+                return $this.HandleFilterInput($key)
+            }
+            ([TaskListInputState]::TimeEntry) {
+                return $this.HandleTimeEntryInput($key)
+            }
+            default {
+                # Fallback to browsing if state is corrupted
+                $this.InputState = [TaskListInputState]::Browsing
+                return $this.HandleBrowsingInput($key)
+            }
         }
         
-        # Handle filter input mode first
-        if ($this.FilterInputActive) {
-            return $this.HandleFilterInput($key)
-        }
-        
-        # Handle editing mode input second
-        if ($this.EditingIndex -ge 0) {
-            return $this.HandleEditingInput($key)
-        }
-        
-        # Handle F4 toggle for switching to time entry
-        if ($key.Key -eq [System.ConsoleKey]::F4 -and $this.TimeService) {
-            $this.AppReference.SwitchToTimeEntry()
+        # This should never be reached, but PowerShell requires it
+        return $false
+    }
+    
+    # State Machine Handler: Browsing mode (main navigation)
+    [bool] HandleBrowsingInput([System.ConsoleKeyInfo]$key) {
+        # Handle navigation keys using KeyMappingService (support both Chromebook Ctrl+F4 and regular F4)
+        "DEBUG: Browsing state - Checking navigation for key $($key.Key) with modifiers $($key.Modifiers) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($this.KeyService.MatchesAction($key, "NavigateToTimeEntry") -or $this.KeyService.MatchesAction($key, "NavigateToTimeEntryAlt")) {
+            "DEBUG: TimeEntry navigation key pressed - publishing NavigateTo timeentry $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            [EventBus]::Publish("NavigateTo", "timeentry")
             return $true
         }
         
-        # Handle F5 toggle for switching to command library
-        if ($key.Key -eq [System.ConsoleKey]::F5 -and $this.AppReference) {
-            $this.AppReference.SwitchToCommands()
+        if ($this.KeyService.MatchesAction($key, "NavigateToCommands") -or $this.KeyService.MatchesAction($key, "NavigateToCommandsAlt")) {
+            "DEBUG: Commands navigation key pressed - publishing NavigateTo commands $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            [EventBus]::Publish("NavigateTo", "commands")
             return $true
         }
         
-        # Handle global theme picker hotkey - Ctrl+Shift+T
-        if ($key.Key -eq [System.ConsoleKey]::T -and 
-            ($key.Modifiers -band [System.ConsoleModifiers]::Control) -and 
-            ($key.Modifiers -band [System.ConsoleModifiers]::Shift)) {
+        # Handle theme cycling using KeyMappingService
+        if ($this.KeyService.MatchesAction($key, "CycleTheme")) {
             $this.CycleTheme()
             return $true
         }
         
-        # Handle input keys - original functionality
-        switch ($key.Key) {
-            ([System.ConsoleKey]::UpArrow) {
-                # Check for Ctrl+Up (move task up)
-                if ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
-                    if ($this.FlatList.Count -gt 0) {
-                        $item = $this.FlatList[$this.SelectedIndex]
-                        $taskId = $item.Task.Id
-                        if ($global:Debug) { Write-Host "Moving task up: $taskId" -ForegroundColor Cyan }
-                        
-                        $this.TaskService.MoveTaskUp($taskId)
-                        $this.LoadTasks()
-                        
-                        # Find the moved task and select it
-                        $newIndex = -1
-                        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
-                            if ($this.FlatList[$i].Task.Id -eq $taskId) {
-                                $newIndex = $i
-                                break
-                            }
-                        }
-                        if ($newIndex -ge 0) { $this.SelectedIndex = $newIndex }
-                        $this.EnsureVisible()
-                    }
-                } else {
-                    # Normal up navigation
-                    if ($this.SelectedIndex -gt 0) {
-                        $this.SetSelectedIndex($this.SelectedIndex - 1)
-                        $this.EnsureVisible()
+        # Handle all browsing input using KeyMappingService
+        
+        # Navigation actions
+        if ($this.KeyService.MatchesAction($key, "MoveTaskUp")) {
+            if ($this.FlatList.Count -gt 0) {
+                $item = $this.FlatList[$this.SelectedIndex]
+                $taskId = $item.Task.Id
+                if ($global:Debug) { Write-Host "Moving task up: $taskId" -ForegroundColor Cyan }
+                
+                $this.TaskService.MoveTaskUp($taskId)
+                $this.LoadTasks()
+                
+                # Find the moved task and select it
+                $newIndex = -1
+                for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                    if ($this.FlatList[$i].Task.Id -eq $taskId) {
+                        $newIndex = $i
+                        break
                     }
                 }
-                return $true
+                if ($newIndex -ge 0) { $this.SelectedIndex = $newIndex }
+                $this.EnsureVisible()
             }
-            ([System.ConsoleKey]::DownArrow) {
-                # Check for Ctrl+Down (move task down)
-                if ($key.Modifiers -band [System.ConsoleModifiers]::Control) {
-                    if ($this.FlatList.Count -gt 0) {
-                        $item = $this.FlatList[$this.SelectedIndex]
-                        $taskId = $item.Task.Id
-                        if ($global:Debug) { Write-Host "Moving task down: $taskId" -ForegroundColor Cyan }
-                        
-                        $this.TaskService.MoveTaskDown($taskId)
-                        $this.LoadTasks()
-                        
-                        # Find the moved task and select it
-                        $newIndex = -1
-                        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
-                            if ($this.FlatList[$i].Task.Id -eq $taskId) {
-                                $newIndex = $i
-                                break
-                            }
-                        }
-                        if ($newIndex -ge 0) { $this.SelectedIndex = $newIndex }
-                        $this.EnsureVisible()
-                    }
-                } else {
-                    # Normal down navigation
-                    if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
-                        $this.SetSelectedIndex($this.SelectedIndex + 1)
-                        $this.EnsureVisible()
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "MoveTaskDown")) {
+            if ($this.FlatList.Count -gt 0) {
+                $item = $this.FlatList[$this.SelectedIndex]
+                $taskId = $item.Task.Id
+                if ($global:Debug) { Write-Host "Moving task down: $taskId" -ForegroundColor Cyan }
+                
+                $this.TaskService.MoveTaskDown($taskId)
+                $this.LoadTasks()
+                
+                # Find the moved task and select it
+                $newIndex = -1
+                for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                    if ($this.FlatList[$i].Task.Id -eq $taskId) {
+                        $newIndex = $i
+                        break
                     }
                 }
-                return $true
+                if ($newIndex -ge 0) { $this.SelectedIndex = $newIndex }
+                $this.EnsureVisible()
             }
-            ([System.ConsoleKey]::Spacebar) {
-                # Toggle collapse
-                if ($this.FlatList.Count -gt 0) {
-                    $item = $this.FlatList[$this.SelectedIndex]
-                    if ($item.Level -eq 0 -and $item.Task.Subtasks.Count -gt 0) {
-                        $item.Task.SubtasksCollapsed = -not $item.Task.SubtasksCollapsed
-                        $this.TaskService.UpdateTask($item.Task)
-                        $this.LoadTasks()
-                    }
-                }
-                return $true
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "MoveUp")) {
+            if ($this.SelectedIndex -gt 0) {
+                $this.SetSelectedIndex($this.SelectedIndex - 1)
+                $this.EnsureVisible()
             }
-            ([System.ConsoleKey]::X) {
-                # Toggle completion
-                if ($this.FlatList.Count -gt 0) {
-                    $item = $this.FlatList[$this.SelectedIndex]
-                    $item.Task.IsCompleted = -not $item.Task.IsCompleted
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "MoveDown")) {
+            if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
+                $this.SetSelectedIndex($this.SelectedIndex + 1)
+                $this.EnsureVisible()
+            }
+            return $true
+        }
+        
+        # Task management actions
+        if ($this.KeyService.MatchesAction($key, "ToggleCollapse")) {
+            if ($this.FlatList.Count -gt 0) {
+                $item = $this.FlatList[$this.SelectedIndex]
+                if ($item.Level -eq 0 -and $item.Task.Subtasks.Count -gt 0) {
+                    $item.Task.SubtasksCollapsed = -not $item.Task.SubtasksCollapsed
                     $this.TaskService.UpdateTask($item.Task)
                     $this.LoadTasks()
                 }
-                return $true
             }
-            ([System.ConsoleKey]::N) {
-                # New task
-                $this.StartNewTask()
-                return $true
-            }
-            ([System.ConsoleKey]::E) {
-                # Edit task
-                if ($this.FlatList.Count -gt 0) {
-                    $this.StartInlineEdit("title")
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::D) {
-                # Delete task
-                if ($this.FlatList.Count -gt 0) {
-                    $this.DeleteCurrentTask()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Escape) {
-                return $false  # Exit application
-            }
-            default {
-                return $false
-            }
+            return $true
         }
         
+        if ($this.KeyService.MatchesAction($key, "ToggleComplete")) {
+            if ($this.FlatList.Count -gt 0) {
+                $item = $this.FlatList[$this.SelectedIndex]
+                $item.Task.IsCompleted = -not $item.Task.IsCompleted
+                $this.TaskService.UpdateTask($item.Task)
+                $this.LoadTasks()
+            }
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "NewTask")) {
+            $this.StartInlineAdd()
+            $this.InputState = [TaskListInputState]::Editing
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "EditTask")) {
+            if ($this.FlatList.Count -gt 0) {
+                $this.StartInlineEdit("title")
+                $this.InputState = [TaskListInputState]::Editing
+            }
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "DeleteTask")) {
+            if ($this.FlatList.Count -gt 0) {
+                $this.DeleteTask()
+            }
+            return $true
+        }
+        
+        # Filter actions
+        if ($this.KeyService.MatchesAction($key, "ToggleFilter")) {
+            $this.StartFilterInput()
+            $this.InputState = [TaskListInputState]::Filtering
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "FilterAll")) {
+            $this.CurrentFilter = "All"
+            $this.LoadTasks()
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "FilterToday")) {
+            $this.CurrentFilter = "Today" 
+            $this.LoadTasks()
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "FilterHigh")) {
+            $this.CurrentFilter = "High"
+            $this.LoadTasks()
+            return $true
+        }
+        
+        # Exit action
+        if ($this.KeyService.MatchesAction($key, "NavigateBack")) {
+            return $false  # Exit application
+        }
+        
+        # If no action matched, return false
         return $false
         
         # Handle global theme picker hotkey - Ctrl+Shift+T
@@ -2454,6 +2480,8 @@ class TaskListScreen {
         $this.ShowCommandPalette = $false
         if ($this.FilterInputActive) {
             $this.FilterInputActive = $false
+            # State Machine: Return to browsing state when canceling filter
+            $this.InputState = [TaskListInputState]::Browsing
         }
     }
     
@@ -2539,7 +2567,7 @@ class TaskListScreen {
     
     # Migrate existing notes from JSON to separate files (run once)
     [void] MigrateNotesToFiles() {
-        $allTasks = $this.TaskService.GetParentTasks()
+        $allTasks = $this.TaskService.GetParentTasks()  # Get all tasks for migration (no filtering)
         foreach ($parentTask in $allTasks) {
             if (-not [string]::IsNullOrWhiteSpace($parentTask.Notes)) {
                 # Save existing notes to file
@@ -2573,7 +2601,7 @@ class TaskListScreen {
         # Show editor header immediately
         [Console]::Clear()
         [Console]::SetCursorPosition(0, 0)
-        Write-Host -NoNewline "$($this.HeaderColor)EDITING NOTES: $($task.Title)$($this.NormalColor)"
+        Write-Host -NoNewline "$([AppThemeManager]::GetColor("Header"))EDITING NOTES: $($task.Title)$([VT]::Reset())"
         [Console]::SetCursorPosition(0, 1)
         Write-Host -NoNewline ("─" * $this.Width)
         [Console]::SetCursorPosition(0, $this.Height - 1)
@@ -2814,6 +2842,41 @@ class TaskListScreen {
         $this.IsNewTask = $false
     }
     
+    # Overloaded version to start editing a specific field (fixes E key crash)
+    [void] StartInlineEdit([string]$field) {
+        $item = $this.FlatList[$this.SelectedIndex]
+        $this.EditingIndex = $this.SelectedIndex
+        $this.EditingTask = $item.Task
+        $this.EditingField = $field
+        $this.IsNewTask = $false
+        
+        # Set initial editing value based on the field
+        switch ($field) {
+            "title" { 
+                $this.EditingValue = if ($this.EditingTask.Title) { $this.EditingTask.Title } else { "" }
+            }
+            "id1" { 
+                $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
+            }
+            "id2" { 
+                $this.EditingValue = if ($this.EditingTask.ID2) { $this.EditingTask.ID2 } else { "" }
+            }
+            "priority" { 
+                $this.EditingValue = if ($this.EditingTask.Priority) { $this.EditingTask.Priority } else { "" }
+            }
+            "date" { 
+                $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
+            }
+            "tags" { 
+                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { $this.EditingTask.Tags -join ", " } else { "" }
+            }
+            default { 
+                $this.EditingValue = ""
+            }
+        }
+        $this.EditingCursor = $this.EditingValue.Length
+    }
+    
     [void] StartInlineAdd() {
         # Create a new task and add it temporarily to the end
         $newTask = [SimpleTask]::new("")
@@ -2869,26 +2932,29 @@ class TaskListScreen {
     }
     
     [bool] HandleEditingInput([System.ConsoleKeyInfo]$key) {
+        # Use KeyMappingService for editing commands
+        if ($this.KeyService.MatchesAction($key, "CommitEdit")) {
+            $this.SaveInlineEdit()
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "CancelEdit")) {
+            $this.CancelInlineEdit()
+            return $true
+        }
+        
+        if ($this.KeyService.MatchesAction($key, "NextField")) {
+            # Switch between fields for all tasks (new and existing)
+            if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
+                $this.PreviousEditField()
+            } else {
+                $this.NextEditField()
+            }
+            return $true
+        }
+        
+        # Handle text editing keys (these don't need KeyMappingService)
         switch ($key.Key) {
-            ([System.ConsoleKey]::Enter) {
-                # Save immediately when Enter is pressed, regardless of field
-                $this.SaveInlineEdit()
-                return $true
-            }
-            ([System.ConsoleKey]::Escape) {
-                # Cancel editing
-                $this.CancelInlineEdit()
-                return $true
-            }
-            ([System.ConsoleKey]::Tab) {
-                # Switch between fields for all tasks (new and existing)
-                if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
-                    $this.PreviousEditField()
-                } else {
-                    $this.NextEditField()
-                }
-                return $true
-            }
             ([System.ConsoleKey]::Backspace) {
                 if ($this.EditingCursor -gt 0) {
                     $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor - 1, 1)
@@ -2923,7 +2989,7 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::UpArrow) {
-                # Save and move up (like subtasks)
+                # Save and move up using KeyMappingService action
                 $this.SaveInlineEdit()
                 if ($this.SelectedIndex -gt 0) {
                     $this.SelectedIndex--
@@ -2932,7 +2998,7 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::DownArrow) {
-                # Save and move down (like subtasks)
+                # Save and move down using KeyMappingService action
                 $this.SaveInlineEdit()
                 if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
                     $this.SelectedIndex++
@@ -3444,7 +3510,7 @@ class TaskListScreen {
     }
     
     [void] OpenThemeEditor() {
-        # Simple color picker menu for task themes
+        # Open the new ThemeEditorDialog
         if ($this.FlatList.Count -eq 0 -or $this.SelectedIndex -lt 0) {
             return
         }
@@ -3453,222 +3519,27 @@ class TaskListScreen {
         $selectedTask = $item.Task
         $isSubtask = ($item.Level -eq 1)
         
-        # Determine what we're editing
-        if ($isSubtask) {
-            # Editing subtask colors - get parent task
-            $parentTask = $this.TaskService.GetParentTask($selectedTask.Id)
-            if (-not $parentTask) { return }
-            $currentTheme = $parentTask.SubtaskColorTheme
-            $editingTarget = "subtask"
-        } else {
-            # Editing parent task color
-            $currentTheme = $selectedTask.ColorTheme
-            $editingTarget = "task"
-            $parentTask = $selectedTask
-        }
+        # Create and show the theme editor dialog
+        $themeDialog = [ThemeEditorDialog]::new()
+        $customThemeName = $themeDialog.Show()
         
-        # Build menu string safely
-        $themes = @("default", "red", "blue", "green", "purple", "orange", "cyan", "pink")
-        $targetText = if ($isSubtask) { "Subtask Color" } else { "Task Color" }
-        $menuText = "Choose ${targetText}: "
-        
-        for ($i = 0; $i -lt $themes.Count; $i++) {
-            $theme = $themes[$i]
-            # Show appropriate color preview - task color for parents, subtask color for subtasks
-            $colorCode = if ($isSubtask) { $this.GetSubtaskColor($theme) } else { $this.GetTaskColor($theme) }
-            $number = $i + 1
-            $bracket = if ($theme -eq $currentTheme) { "[$number]" } else { " $number " }
-            $menuText += "$colorCode$bracket$($this.NormalColor) "
-        }
-        
-        $menuText += " 9:Custom  (ESC:Cancel)"
-        
-        # Show menu safely
-        $menuY = $this.Height - 3
-        try {
-            [Console]::SetCursorPosition(0, $menuY)
-            [Console]::Write($menuText)
-            [Console]::CursorVisible = $false
+        # If user created a custom theme, apply it
+        if ($customThemeName -and $customThemeName -ne "") {
+            if ($isSubtask) {
+                # Apply to parent task's subtask theme
+                $parentTask = $this.TaskService.GetParentTask($selectedTask.Id)
+                if ($parentTask) {
+                    $parentTask.SubtaskColorTheme = $customThemeName
+                    $this.TaskService.Save()
+                }
+            } else {
+                # Apply to selected task
+                $selectedTask.ColorTheme = $customThemeName
+                $this.TaskService.Save()
+            }
             
-            # Wait for user input
-            while ($true) {
-                if ([Console]::KeyAvailable) {
-                    $key = [Console]::ReadKey($true)
-                    
-                    if ($key.Key -eq [System.ConsoleKey]::Escape) {
-                        break  # Cancel
-                    } elseif ($key.KeyChar -ge '1' -and $key.KeyChar -le '8') {
-                        # Apply preset color
-                        $themeIndex = [int]$key.KeyChar - 49  # Convert '1'-'8' to 0-7
-                        $newTheme = $themes[$themeIndex]
-                        
-                        if ($isSubtask) {
-                            # Update subtask colors for parent
-                            $parentTask.SubtaskColorTheme = $newTheme
-                            $this.TaskService.UpdateTask($parentTask)
-                        } else {
-                            # Update parent task color
-                            $selectedTask.ColorTheme = $newTheme
-                            $selectedTask.SubtaskColorTheme = $newTheme
-                            $this.TaskService.UpdateTask($selectedTask)
-                        }
-                        $this.LoadTasks()
-                        break
-                    } elseif ($key.KeyChar -eq '9') {
-                        # Custom RGB editor (Step 3)
-                        $this.OpenCustomColorEditor($selectedTask, $isSubtask, $parentTask)
-                        break
-                    }
-                }
-                Start-Sleep -Milliseconds 50
-            }
-        } catch {
-            # Graceful fallback on any console error - just cycle to next theme
-            $selectedTask.ColorTheme = $this.GetNextTheme($selectedTask.ColorTheme)
-            $selectedTask.SubtaskColorTheme = $selectedTask.ColorTheme
-            $this.TaskService.UpdateTask($selectedTask)
-            $this.LoadTasks()
-        } finally {
-            # Clear the menu line safely
-            try {
-                [Console]::SetCursorPosition(0, $menuY)
-                [Console]::Write(" " * $this.Width)
-            } catch {
-                # Ignore cleanup errors
-            }
-        }
-    }
-    
-    [void] OpenCustomColorEditor([SimpleTask]$task, [bool]$isSubtask = $false, [SimpleTask]$parentTask = $null) {
-        # Simple RGB color editor
-        $startY = $this.Height - 5
-        
-        # Start with current color or default
-        $r = 128
-        $g = 128  
-        $b = 255
-        
-        # Try to extract RGB from current theme if it's a custom color
-        $currentColorTheme = if ($isSubtask -and $parentTask) { $parentTask.SubtaskColorTheme } else { $task.ColorTheme }
-        if ($currentColorTheme -and $currentColorTheme.StartsWith("custom_")) {
-            $parts = $currentColorTheme.Split('_')
-            if ($parts.Count -eq 4) {
-                try {
-                    $r = [int]$parts[1]
-                    $g = [int]$parts[2]
-                    $b = [int]$parts[3]
-                } catch {
-                    # Use defaults if parsing fails
-                }
-            }
-        }
-        
-        $currentField = 0  # 0=R, 1=G, 2=B
-        
-        try {
-            [Console]::CursorVisible = $false
-            
-            while ($true) {
-                # Clear editor area
-                for ($i = 0; $i -lt 5; $i++) {
-                    [Console]::SetCursorPosition(0, $startY + $i)
-                    [Console]::Write(" " * $this.Width)
-                }
-                
-                # Show RGB editor
-                [Console]::SetCursorPosition(0, $startY)
-                $editorTitle = if ($isSubtask) { "Custom RGB Subtask Color Editor" } else { "Custom RGB Color Editor" }
-                [Console]::Write($editorTitle)
-                
-                # Show RGB fields
-                $fields = @("Red  ", "Green", "Blue ")
-                $values = @($r, $g, $b)
-                
-                for ($i = 0; $i -lt 3; $i++) {
-                    [Console]::SetCursorPosition(0, $startY + 1 + $i)
-                    $highlight = if ($i -eq $currentField) { "`e[7m" } else { "" }
-                    $reset = if ($i -eq $currentField) { "`e[0m" } else { "" }
-                    [Console]::Write("$($fields[$i]): $highlight$($values[$i].ToString().PadLeft(3))$reset")
-                }
-                
-                # Show color preview
-                [Console]::SetCursorPosition(15, $startY + 1)
-                $colorCode = "`e[38;2;$r;$g;${b}m"
-                [Console]::Write("$colorCode████ Preview$($this.NormalColor)")
-                
-                # Show help
-                [Console]::SetCursorPosition(0, $startY + 4)
-                [Console]::Write(" ↑↓:Adjust ±10  ←→:Switch Field  Enter:Apply  Escape:Cancel")  # SHIFTED RIGHT
-                
-                # Handle input
-                if ([Console]::KeyAvailable) {
-                    $key = [Console]::ReadKey($true)
-                    
-                    switch ($key.Key) {
-                        ([System.ConsoleKey]::Escape) {
-                            return  # Cancel
-                        }
-                        ([System.ConsoleKey]::Enter) {
-                            # Apply custom color
-                            $customTheme = "custom_${r}_${g}_$b"
-                            
-                            # Add to color dictionaries
-                            $this.TaskColors[$customTheme] = "`e[38;2;$r;$g;${b}m"
-                            $this.SubtaskColors[$customTheme] = "`e[38;2;$([Math]::Max(0,$r-40));$([Math]::Max(0,$g-40));$([Math]::Max(0,$b-40))m"
-                            
-                            # Apply to appropriate target
-                            if ($isSubtask -and $parentTask) {
-                                # Update subtask colors for parent
-                                $parentTask.SubtaskColorTheme = $customTheme
-                                $this.TaskService.UpdateTask($parentTask)
-                            } else {
-                                # Update parent task color
-                                $task.ColorTheme = $customTheme
-                                $task.SubtaskColorTheme = $customTheme
-                                $this.TaskService.UpdateTask($task)
-                            }
-                            $this.LoadTasks()
-                            return
-                        }
-                        ([System.ConsoleKey]::LeftArrow) {
-                            $currentField = ($currentField + 2) % 3  # Previous field
-                        }
-                        ([System.ConsoleKey]::RightArrow) {
-                            $currentField = ($currentField + 1) % 3  # Next field
-                        }
-                        ([System.ConsoleKey]::UpArrow) {
-                            # Increase current field
-                            switch ($currentField) {
-                                0 { $r = [Math]::Min(255, $r + 10) }
-                                1 { $g = [Math]::Min(255, $g + 10) }
-                                2 { $b = [Math]::Min(255, $b + 10) }
-                            }
-                        }
-                        ([System.ConsoleKey]::DownArrow) {
-                            # Decrease current field
-                            switch ($currentField) {
-                                0 { $r = [Math]::Max(0, $r - 10) }
-                                1 { $g = [Math]::Max(0, $g - 10) }
-                                2 { $b = [Math]::Max(0, $b - 10) }
-                            }
-                        }
-                    }
-                }
-                
-                Start-Sleep -Milliseconds 50
-            }
-        } catch {
-            # Graceful fallback on any error
-        } finally {
-            # Clear editor area
-            try {
-                for ($i = 0; $i -lt 5; $i++) {
-                    [Console]::SetCursorPosition(0, $startY + $i)
-                    [Console]::Write(" " * $this.Width)
-                }
-            } catch {
-                # Ignore cleanup errors
-            }
+            # Rebuild and refresh display
+            $this.BuildFlatList()
         }
     }
     
@@ -3688,7 +3559,7 @@ class TaskListScreen {
         
         # Create and show the dedicated Project Management Screen
         $projectScreen = [ProjectManagerScreen]::new()
-        $projectScreen.SetServices($this.TaskService, $this.ThemeService)
+        $projectScreen.SetServices($this.TaskService)
         $projectScreen.SetParentTask($parentTask)
         $projectScreen.SetBounds(0, 0, $this.Width, $this.Height)
         
@@ -3834,8 +3705,8 @@ class TaskListScreen {
         # Show editor
         [Console]::Clear()
         [Console]::SetCursorPosition(0, 0)
-        $titleColor = if ($readOnly) { $this.HighColor } else { $this.HeaderColor }
-        Write-Host -NoNewline "$titleColor$title$($this.NormalColor)"
+        $titleColor = if ($readOnly) { [AppThemeManager]::GetColor("High") } else { [AppThemeManager]::GetColor("Header") }
+        Write-Host -NoNewline "$titleColor$title$([VT]::Reset())"
         
         if ($readOnly) {
             Write-Host -NoNewline " (READ-ONLY - Press 'E' to edit in external editor)"
@@ -3899,7 +3770,7 @@ class TaskListScreen {
         
         # Handle F4 toggle back to tasks
         if ($key.Key -eq [System.ConsoleKey]::F4) {
-            $this.AppReference.SwitchToTasks()
+            [EventBus]::Publish("NavigateBack")
             return $true
         }
         
