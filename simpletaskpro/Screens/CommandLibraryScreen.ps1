@@ -18,12 +18,18 @@ class CommandLibraryScreen {
     [string]$StatusMessage = ""
     [datetime]$StatusMessageTime = [DateTime]::MinValue
     
-    # Editing state
+    # Editing state (exactly like TaskListScreen)
     [int]$EditingIndex = -1
-    [string]$EditingField = ""  # "title", "description", "commandtext", "tags"
+    [string]$EditingField = ""  # "title", "commandtext", "description", "tags" - cycle order
     [string]$EditingValue = ""
+    [int]$EditingCursor = 0    # Cursor position within EditingValue
     [Command]$EditingCommand = $null
     [bool]$IsNewCommand = $false
+    
+    # Column widths (like TaskListScreen)
+    [int]$COLUMN_TITLE = 30      # Command title
+    [int]$COLUMN_COMMAND = 35    # Command text  
+    [int]$COLUMN_DESC = 25       # Description
     
     # Filter/search state
     [bool]$FilterInputActive = $false
@@ -38,25 +44,29 @@ class CommandLibraryScreen {
     [string]$FieldColor = ""
     [string]$ValueColor = ""
     [string]$BrowserColor = ""
+    [string]$EditHighlight = ""
+    [string]$MutedColor = ""
+    [string]$PillboxColor = ""
     
     CommandLibraryScreen() {
+        $this.Width = 120
+        $this.Height = 30
         $this.CommandService = [CommandService]::new()
         $this.FlatList = [System.Collections.Generic.List[object]]::new()
         $this.InitializeColors()
-        $this.LoadGroups()
-        
-        # Using original hotkey system only
-        
         $this.LoadGroups()
     }
     
     [void] InitializeColors() {
         # Use AppThemeManager for consistent TaskListScreen-quality theming
         $this.HeaderColor = [AppThemeManager]::GetColor("Header")
-        $this.TagColor = [AppThemeManager]::GetColor("Text")
+        $this.TagColor = [AppThemeManager]::GetColor("Text") 
         $this.FieldColor = [AppThemeManager]::GetColor("Field")
         $this.ValueColor = [AppThemeManager]::GetColor("Value")
         $this.BrowserColor = [AppThemeManager]::GetColor("Browser")
+        $this.EditHighlight = [AppThemeManager]::GetColor("EditHighlight")
+        $this.MutedColor = [AppThemeManager]::GetColor("Muted")
+        $this.PillboxColor = [AppThemeManager]::GetPillboxColor()
         $this.NormalColor = [VT]::Reset()
         $this.SelectedBg = [AppThemeManager]::GetBackgroundColor("Selected")
     }
@@ -66,8 +76,8 @@ class CommandLibraryScreen {
     }
     
     [void] Initialize([int]$width, [int]$height) {
-        $this.Width = $width
-        $this.Height = $height
+        $this.Width = [Math]::Max(80, $width)
+        $this.Height = [Math]::Max(24, $height)
         $this.LoadGroups()
     }
     
@@ -162,6 +172,21 @@ class CommandLibraryScreen {
                 $this.RenderFilterInput($sb)
             }
             
+            # Cursor management (exactly like TaskListScreen)
+            if ($this.EditingIndex -ge 0) {
+                [void]$sb.Append([VT]::ShowCursor())
+                [void]$sb.Append("`e]12;#FF0000`e\")  # Red cursor for visibility
+                $this.PositionEditingCursor($sb)
+            } elseif ($this.FilterInputActive) {
+                [void]$sb.Append([VT]::ShowCursor())
+                [void]$sb.Append("`e]12;#FF0000`e\")
+                $filterCursorX = 2 + $this.FilterInput.Length
+                [void]$sb.Append([VT]::MoveTo($filterCursorX, $this.Height - 1))
+            } else {
+                [void]$sb.Append([VT]::HideCursor())
+                [void]$sb.Append("`e]12;#FFFFFF`e\")
+            }
+            
             return $sb.ToString()
             
         } catch {
@@ -170,33 +195,35 @@ class CommandLibraryScreen {
     }
     
     [void] RenderHeader([System.Text.StringBuilder]$sb) {
-        # Title line with colors
+        # Title line with AppThemeManager colors
         [void]$sb.Append([VT]::MoveTo(0, 0))
-        [void]$sb.Append($this.HeaderColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
         $title = " COMMANDLIB - Command Library ($($this.FlatList.Count) items)"
-        $headerLine = $title.PadRight($this.Width)
-        [void]$sb.Append($headerLine)
-        [void]$sb.Append($this.NormalColor)
-        
-        # Column headers
-        [void]$sb.Append([VT]::MoveTo(0, 1))
-        [void]$sb.Append([VT]::RGB(180, 180, 180))  # Gray headers
-        $columnHeader = " Title                                       Description / Command"
-        [void]$sb.Append($columnHeader.PadRight($this.Width))
+        if ($this.CurrentFilter -ne "All" -or $this.TagFilter -ne "") {
+            $title += " [Filtered]"
+        }
+        [void]$sb.Append($title.PadRight($this.Width))
         [void]$sb.Append([VT]::Reset())
         
-        # Separator
+        # Column headers (using TaskListScreen styling)
+        [void]$sb.Append([VT]::MoveTo(0, 1))
+        [void]$sb.Append([AppThemeManager]::GetColor("Text"))
+        [void]$sb.Append(" Title".PadRight($this.COLUMN_TITLE))
+        [void]$sb.Append("Command Text".PadRight($this.COLUMN_COMMAND))
+        [void]$sb.Append("Description")
+        [void]$sb.Append([VT]::Reset())
+        
+        # Separator using StringCache for performance
         [void]$sb.Append([VT]::MoveTo(0, 2))
-        [void]$sb.Append([VT]::RGB(100, 150, 255))  # Blue separator
-        $separator = "─" * $this.Width
-        [void]$sb.Append($separator)
+        [void]$sb.Append([AppThemeManager]::GetColor("Header"))
+        [void]$sb.Append(" " + [StringCache]::GetRepeatedChar('─', $this.Width - 1))
         [void]$sb.Append([VT]::Reset())
     }
     
     [void] RenderCommandList([System.Text.StringBuilder]$sb) {
         $startY = 3
         $currentY = $startY
-        $visibleHeight = $this.Height - 6  # Account for header and status
+        $visibleHeight = [Math]::Max(5, $this.Height - 6)  # Account for header and status, minimum 5 lines
         
         # Calculate scroll position
         $this.EnsureVisible()
@@ -205,10 +232,11 @@ class CommandLibraryScreen {
             $flatIndex = $this.ScrollTop + $i
             $item = $this.FlatList[$flatIndex]
             $isSelected = ($flatIndex -eq $this.SelectedIndex)
+            $isEditing = ($this.EditingIndex -eq $flatIndex)
             
             if ($isSelected) {
-                # Render selected item with pillbox (takes 3 lines)
-                $currentY = $this.RenderSelectedCommandItem($sb, $item, $isSelected, $currentY)
+                # Render selected item with pillbox (takes 3 lines) - handles both new and existing
+                $currentY = $this.RenderSelectedCommandItem($sb, $item, $isEditing, $currentY)
             } else {
                 # Render normal item (takes 1 line)
                 [void]$sb.Append([VT]::MoveTo(0, $currentY))
@@ -224,6 +252,210 @@ class CommandLibraryScreen {
             $currentY++
         }
     }
+    
+    [int] RenderSelectedCommandItem([System.Text.StringBuilder]$sb, [object]$item, [bool]$isEditing, [int]$currentY) {
+        # Use pre-initialized pillbox color from InitializeColors
+        
+        # Top border
+        [void]$sb.Append([VT]::MoveTo(0, $currentY))
+        [void]$sb.Append($this.PillboxColor)
+        [void]$sb.Append("╭" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╮")
+        [void]$sb.Append($this.NormalColor)
+        $currentY++
+        
+        # Content line
+        [void]$sb.Append([VT]::MoveTo(0, $currentY))
+        [void]$sb.Append($this.PillboxColor)
+        [void]$sb.Append("│ ")
+        
+        # Build content based on item type
+        $command = $item.Command
+        $level = $item.Level
+        $content = ""
+        
+        # Indentation
+        $indent = " " * ($level * 2)
+        $content += $indent
+        
+        # Render command fields in columns (exactly like TaskListScreen)
+        if (-not $item.IsGroup) {
+            # Column 1: Title
+            if ($isEditing -and $this.EditingField -eq "title") {
+                $titleValue = $this.EditingValue
+                if ($titleValue.Length -gt $this.COLUMN_TITLE) { $titleValue = $titleValue.Substring(0, $this.COLUMN_TITLE) }
+                $content += [AppThemeManager]::GetColor("EditHighlight") + $titleValue.PadRight($this.COLUMN_TITLE) + [VT]::Reset()
+            } else {
+                $titleText = if ($command.Title) { $command.Title } else { "" }
+                if ($titleText.Length -gt $this.COLUMN_TITLE) { $titleText = $titleText.Substring(0, $this.COLUMN_TITLE) }
+                $content += [AppThemeManager]::GetColor("Value") + $titleText.PadRight($this.COLUMN_TITLE) + [VT]::Reset()
+            }
+            
+            # Column 2: Command Text
+            if ($isEditing -and $this.EditingField -eq "commandtext") {
+                $cmdValue = $this.EditingValue
+                if ($cmdValue.Length -gt $this.COLUMN_COMMAND) { $cmdValue = $cmdValue.Substring(0, $this.COLUMN_COMMAND) }
+                $content += [AppThemeManager]::GetColor("EditHighlight") + $cmdValue.PadRight($this.COLUMN_COMMAND) + [VT]::Reset()
+            } else {
+                $cmdText = if ($command.CommandText) { $command.CommandText } else { "" }
+                if ($cmdText.Length -gt $this.COLUMN_COMMAND) { $cmdText = $cmdText.Substring(0, $this.COLUMN_COMMAND) }
+                $content += [AppThemeManager]::GetColor("Field") + $cmdText.PadRight($this.COLUMN_COMMAND) + [VT]::Reset()
+            }
+            
+            # Column 3: Description
+            if ($isEditing -and $this.EditingField -eq "description") {
+                $descValue = $this.EditingValue
+                if ($descValue.Length -gt $this.COLUMN_DESC) { $descValue = $descValue.Substring(0, $this.COLUMN_DESC) }
+                $content += [AppThemeManager]::GetColor("EditHighlight") + $descValue.PadRight($this.COLUMN_DESC) + [VT]::Reset()
+            } else {
+                $descText = if ($command.Description) { $command.Description } else { "" }
+                if ($descText.Length -gt $this.COLUMN_DESC) { $descText = $descText.Substring(0, $this.COLUMN_DESC) }
+                $content += [AppThemeManager]::GetColor("Browser") + $descText.PadRight($this.COLUMN_DESC) + [VT]::Reset()
+            }
+        } elseif ($item.IsGroup) {
+            # Group with collapse/expand indicator
+            $indicator = if ($command.CommandsCollapsed) { "▶ " } else { "▼ " }
+            $content += $indicator
+            
+            # Group title (with editing support)
+            if ($isEditing -and $this.EditingField -eq "title") {
+                $editValue = $this.EditingValue
+                if ($this.EditingValue.Length -gt 38) {
+                    $editValue = $this.EditingValue.Substring(0, 35) + "..."
+                }
+                $content += "[$editValue]"
+                if ($command.Commands.Count -gt 0) {
+                    $content += " ($($command.Commands.Count))"
+                }
+                $content = $content.PadRight(38)
+            } else {
+                $groupTitle = $command.Title
+                if ($command.Commands.Count -gt 0) {
+                    $groupTitle += " ($($command.Commands.Count))"
+                }
+                $content += $groupTitle.PadRight(38)
+            }
+            
+            # Group description (with editing support)
+            if ($isEditing -and $this.EditingField -eq "description") {
+                $remaining = $this.Width - $content.Length - 6
+                if ($remaining -gt 0) {
+                    $editValue = $this.EditingValue
+                    if ($editValue.Length -gt $remaining) {
+                        $editValue = $editValue.Substring(0, $remaining - 6) + "..."
+                    }
+                    $content += " - [$editValue]"
+                }
+            } elseif (-not [string]::IsNullOrWhiteSpace($command.Description)) {
+                $remaining = $this.Width - $content.Length - 6  # Account for borders and padding
+                if ($remaining -gt 0) {
+                    $desc = $command.Description
+                    if ($desc.Length -gt $remaining) {
+                        $desc = $desc.Substring(0, $remaining - 3) + "..."
+                    }
+                    $content += " - " + $desc
+                }
+            }
+        } else {
+            # Command
+            $content += "  "  # Extra indent for commands
+            
+            # Command title (with editing support)
+            if ($isEditing -and $this.EditingField -eq "title") {
+                $editValue = $this.EditingValue
+                if ($editValue.Length -gt 36) {
+                    $editValue = $editValue.Substring(0, 33) + "..."
+                }
+                $content += "[$editValue]".PadRight(36)
+            } else {
+                $titleWidth = 36
+                $title = $command.Title
+                if ($title.Length -gt $titleWidth) {
+                    $title = $title.Substring(0, $titleWidth - 3) + "..."
+                }
+                $content += $title.PadRight($titleWidth)
+            }
+            
+            # Command text or description (with editing support)
+            $remaining = $this.Width - $content.Length - 6  # Account for borders and padding
+            if ($remaining -gt 0) {
+                if ($isEditing -and $this.EditingField -eq "commandtext") {
+                    $editValue = $this.EditingValue
+                    if ($editValue.Length -gt $remaining) {
+                        $editValue = $editValue.Substring(0, $remaining - 6) + "..."
+                    }
+                    $content += " [$editValue]"
+                } elseif ($isEditing -and $this.EditingField -eq "description") {
+                    $editValue = $this.EditingValue
+                    if ($editValue.Length -gt $remaining) {
+                        $editValue = $editValue.Substring(0, $remaining - 6) + "..."
+                    }
+                    $content += " [$editValue]"
+                } else {
+                    $detail = ""
+                    if (-not [string]::IsNullOrWhiteSpace($command.CommandText)) {
+                        $detail = $command.CommandText
+                    } elseif (-not [string]::IsNullOrWhiteSpace($command.Description)) {
+                        $detail = $command.Description
+                    }
+                    
+                    if ($detail.Length -gt $remaining) {
+                        $detail = $detail.Substring(0, $remaining - 3) + "..."
+                    }
+                    $content += " " + $detail
+                }
+            }
+        }
+        
+        # Truncate content if too long and append
+        $maxContentLength = $this.Width - 4  # Account for borders
+        if ($content.Length -gt $maxContentLength) {
+            $content = $content.Substring(0, $maxContentLength - 3) + "..."
+        }
+        
+        [void]$sb.Append($content.PadRight($maxContentLength))
+        [void]$sb.Append(" │")
+        [void]$sb.Append([VT]::Reset())
+        $currentY++
+        
+        # Tags line (exactly like TaskListScreen)
+        [void]$sb.Append([VT]::MoveTo(0, $currentY))
+        [void]$sb.Append($this.PillboxColor)
+        [void]$sb.Append("│ ")
+        
+        # Render tags with editing support
+        if ($isEditing -and $this.EditingField -eq "tags") {
+            # Show editing tags with highlight
+            $tagsText = "Tags: " + $this.EditingValue
+            [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight") + $tagsText + [VT]::Reset())
+        } else {
+            # Show existing tags
+            $tagsText = "Tags: "
+            if ($command.Tags -and $command.Tags.Count -gt 0) {
+                $tagsList = $command.Tags -join ", "
+                $tagsText += $tagsList
+            } else {
+                $tagsText += "(none)"
+            }
+            [void]$sb.Append([AppThemeManager]::GetColor("Text") + $tagsText + [VT]::Reset())
+        }
+        
+        # Pad and close tags line
+        $tagsLineContent = ($maxContentLength - 6)  # Account for "│ " and " │"
+        [void]$sb.Append((" " * [Math]::Max(0, $tagsLineContent - $tagsText.Length)))
+        [void]$sb.Append(" │")
+        [void]$sb.Append([VT]::Reset())
+        $currentY++
+        
+        # Bottom border
+        [void]$sb.Append([VT]::MoveTo(0, $currentY))
+        [void]$sb.Append($this.PillboxColor)
+        [void]$sb.Append("╰" + [StringCache]::GetRepeatedChar('─', $this.Width - 2) + "╯")
+        [void]$sb.Append([VT]::Reset())
+        $currentY++
+        
+        return $currentY
+    }
+    
     
     [void] RenderCommandItem([System.Text.StringBuilder]$sb, [object]$item, [int]$y, [bool]$isSelected) {
         $command = $item.Command
@@ -307,28 +539,34 @@ class CommandLibraryScreen {
     [void] RenderStatusBar([System.Text.StringBuilder]$sb) {
         $statusY = $this.Height - 2
         
-        # Separator line
+        # Separator line using StringCache and AppThemeManager
         [void]$sb.Append([VT]::MoveTo(0, $statusY))
-        [void]$sb.Append($this.BrowserColor)  # Use theme color
-        $separator = "─" * $this.Width
-        [void]$sb.Append($separator)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append([AppThemeManager]::GetColor("StatusBar"))
+        [void]$sb.Append(" " + [StringCache]::GetRepeatedChar('─', $this.Width - 1))
+        [void]$sb.Append([VT]::Reset())
         
         # Status line
         [void]$sb.Append([VT]::MoveTo(0, $statusY + 1))
-        [void]$sb.Append($this.BrowserColor)  # Use theme color
+        [void]$sb.Append([AppThemeManager]::GetColor("StatusBar"))
         
         $statusLine = ""
         
-        if (-not [string]::IsNullOrWhiteSpace($this.StatusMessage)) {
+        if ($this.EditingIndex -ge 0) {
+            # Show editing status with helpful instructions
+            $fieldName = $this.EditingField.ToUpper()
+            if ($this.IsNewCommand) {
+                $statusLine = "  NEW COMMAND [$fieldName]: Type text, Tab=Next field, Enter=Save, Esc=Cancel, Home/End/Arrows to navigate"
+            } else {
+                $statusLine = "  EDITING [$fieldName]: Type text, Tab=Next field, Enter=Save, Esc=Cancel, Home/End/Arrows to navigate"
+            }
+        } elseif (-not [string]::IsNullOrWhiteSpace($this.StatusMessage)) {
             $statusLine = "  " + $this.StatusMessage
         } else {
             $statusLine = "  [N]ew [E]dit [D]elete [Enter]Copy [F3]Search [F5]Tasks ESC:Quit"
         }
         
-        $statusLine = $statusLine.PadRight($this.Width)
-        [void]$sb.Append($statusLine)
-        [void]$sb.Append($this.NormalColor)
+        [void]$sb.Append($statusLine.PadRight($this.Width))
+        [void]$sb.Append([VT]::Reset())
     }
     
     [void] RenderFilterInput([System.Text.StringBuilder]$sb) {
@@ -336,18 +574,17 @@ class CommandLibraryScreen {
         
         # Filter input box
         [void]$sb.Append([VT]::MoveTo(0, $y))
-        [void]$sb.Append([VT]::RGB(255, 255, 100))  # Yellow prompt
+        [void]$sb.Append($this.FieldColor)  # Use theme color for prompt
         $promptLine = $this.FilterPrompt.PadRight($this.Width)
         [void]$sb.Append($promptLine)
-        [void]$sb.Append([VT]::Reset())
+        [void]$sb.Append($this.NormalColor)
         
         [void]$sb.Append([VT]::MoveTo(0, $y + 1))
-        [void]$sb.Append([VT]::RGB(255, 255, 255))  # White input
-        [void]$sb.Append([VT]::RGBBG(100, 100, 100))  # Gray background
+        [void]$sb.Append([AppThemeManager]::GetBackgroundColor("Selected"))  # Use theme background
         $inputLine = "> " + $this.FilterInput
         $inputLine = $inputLine.PadRight($this.Width)
         [void]$sb.Append($inputLine)
-        [void]$sb.Append([VT]::Reset())
+        [void]$sb.Append($this.NormalColor)
     }
     
     # Input handling (same pattern as TaskListScreen)
@@ -364,8 +601,14 @@ class CommandLibraryScreen {
         }
         
         # Handle F5 toggle for switching back to tasks
-        if ($key.Key -eq [System.ConsoleKey]::F5 -and $this.AppReference) {
-            $this.AppReference.SwitchToTasks()
+        if ($key.Key -eq [System.ConsoleKey]::F5) {
+            if ($this.AppReference) {
+                try {
+                    $this.AppReference.SwitchToTasks()
+                } catch {
+                    # Ignore F5 switch errors
+                }
+            }
             return $true
         }
         
@@ -440,12 +683,28 @@ class CommandLibraryScreen {
                 return $true
             }
             ([System.ConsoleKey]::Enter) {
-                # Copy command to clipboard
+                # Copy command to clipboard or start editing
                 if ($this.FlatList.Count -gt 0) {
                     $item = $this.FlatList[$this.SelectedIndex]
-                    if (-not $item.IsGroup) {
-                        $this.CommandService.CopyToClipboard($item.Command.Id)
-                        $this.StatusMessage = "Command copied to clipboard!"
+                    if (-not $item.IsGroup -and $this.EditingIndex -eq -1) {
+                        # Copy command text to clipboard
+                        try {
+                            $command = $item.Command
+                            if (-not [string]::IsNullOrWhiteSpace($command.CommandText)) {
+                                # Use built-in clipboard if available
+                                if (Get-Command Set-Clipboard -ErrorAction SilentlyContinue) {
+                                    $command.CommandText | Set-Clipboard
+                                    $this.StatusMessage = "Command copied to clipboard: $($command.Title)"
+                                } else {
+                                    # Fallback for systems without Set-Clipboard
+                                    $this.StatusMessage = "Clipboard not available: $($command.CommandText)"
+                                }
+                            } else {
+                                $this.StatusMessage = "No command text to copy for: $($command.Title)"
+                            }
+                        } catch {
+                            $this.StatusMessage = "Failed to copy command: $_"
+                        }
                         $this.StatusMessageTime = [DateTime]::Now
                     }
                 }
@@ -541,24 +800,32 @@ class CommandLibraryScreen {
         return $true
     }
     
-    # CRUD operations (similar to TaskListScreen)
+    # CRUD operations (exactly like TaskListScreen)
     [void] StartNewCommand() {
-        "DEBUG: StartNewCommand - FlatList count: $($this.FlatList.Count)" | Out-File -FilePath "./startup-debug.log" -Append
         if ($this.FlatList.Count -eq 0) {
             # No groups exist, create first group
-            "DEBUG: No groups exist, creating first group" | Out-File -FilePath "./startup-debug.log" -Append
             $this.StartNewGroup()
         } else {
+            # Create new command inline - just set editing state directly
+            $this.EditingIndex = $this.SelectedIndex
+            $this.EditingField = "title"
+            $this.EditingValue = ""
+            $this.EditingCursor = 0
+            $this.IsNewCommand = $true
+            
+            # Create temporary command object for editing
+            $this.EditingCommand = [Command]::new("")
+            $this.EditingCommand.Title = ""
+            $this.EditingCommand.CommandText = ""
+            $this.EditingCommand.Description = ""
+            $this.EditingCommand.Tags = @()
+            
+            # Set group ID based on current selection
             $item = $this.FlatList[$this.SelectedIndex]
-            "DEBUG: Item type - IsGroup: $($item.IsGroup)" | Out-File -FilePath "./startup-debug.log" -Append
             if ($item.IsGroup) {
-                # Create new command in this group
-                "DEBUG: Creating new command in group: $($item.Command.Id)" | Out-File -FilePath "./startup-debug.log" -Append
-                $this.StartNewCommandInGroup($item.Command.Id)
+                $this.EditingCommand.GroupId = $item.Command.Id
             } else {
-                # Create new command in same group as selected command
-                "DEBUG: Creating new command in group: $($item.Command.GroupId)" | Out-File -FilePath "./startup-debug.log" -Append
-                $this.StartNewCommandInGroup($item.Command.GroupId)
+                $this.EditingCommand.GroupId = $item.Command.GroupId
             }
         }
     }
@@ -574,25 +841,58 @@ class CommandLibraryScreen {
         $this.StartInlineEdit("title")
     }
     
-    [void] StartNewCommandInGroup([string]$groupId) {
-        "DEBUG: StartNewCommandInGroup - groupId: $groupId" | Out-File -FilePath "./startup-debug.log" -Append
-        $newCommand = [Command]::new("New Command")
+    [void] StartNewCommandEdit([string]$groupId) {
+        "DEBUG: StartNewCommandEdit - groupId: $groupId" | Out-File -FilePath "./startup-debug.log" -Append
+        
+        # Create temporary command (DON'T ADD TO SERVICE YET)
+        $newCommand = [Command]::new("")
         $newCommand.CommandText = ""
-        $newCommand.Description = "New command description"
-        "DEBUG: Created new command with ID: $($newCommand.Id)" | Out-File -FilePath "./startup-debug.log" -Append
+        $newCommand.Description = ""
+        $newCommand.GroupId = $groupId
+        "DEBUG: Created temporary command for editing" | Out-File -FilePath "./startup-debug.log" -Append
         
-        $this.CommandService.AddCommand($newCommand, $groupId)
-        "DEBUG: Added command to service" | Out-File -FilePath "./startup-debug.log" -Append
+        # Create temporary FlatList item for display purposes
+        $tempItem = [PSCustomObject]@{
+            Command = $newCommand
+            IsGroup = $false
+            IndentLevel = 1
+        }
         
-        $this.LoadGroups()
-        "DEBUG: Loaded groups - new FlatList count: $($this.FlatList.Count)" | Out-File -FilePath "./startup-debug.log" -Append
+        # Find the insertion position (after the group header) with bounds checking
+        $insertIndex = $this.FlatList.Count  # Default to end of list
         
-        # Find and select the new command
-        $this.FindAndSelectCommand($newCommand.Id)
-        "DEBUG: Selected command at index: $($this.SelectedIndex)" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($this.SelectedIndex -ge 0 -and $this.SelectedIndex -lt $this.FlatList.Count) {
+            if ($this.FlatList[$this.SelectedIndex].IsGroup) {
+                # If we're on a group, insert right after it
+                $insertIndex = $this.SelectedIndex + 1
+            } else {
+                # If we're on a command, find its parent group and insert after
+                for ($i = $this.SelectedIndex; $i -ge 0; $i--) {
+                    if ($this.FlatList[$i].IsGroup) {
+                        $insertIndex = $i + 1
+                        break
+                    }
+                }
+            }
+        }
         
-        $this.StartInlineEdit("title")
-        "DEBUG: Started inline edit" | Out-File -FilePath "./startup-debug.log" -Append
+        # Ensure insertIndex is within bounds
+        if ($insertIndex -gt $this.FlatList.Count) {
+            $insertIndex = $this.FlatList.Count
+        }
+        
+        # Insert temporary item into FlatList for rendering
+        $this.FlatList.Insert($insertIndex, $tempItem)
+        
+        # Set up editing state
+        $this.SelectedIndex = $insertIndex
+        $this.EditingIndex = $insertIndex
+        $this.EditingField = "title"
+        $this.EditingCommand = $newCommand
+        $this.IsNewCommand = $true
+        $this.EditingValue = ""
+        
+        "DEBUG: Started new command editing mode at index $insertIndex" | Out-File -FilePath "./startup-debug.log" -Append
     }
     
     [void] DeleteCurrentCommand() {
@@ -630,11 +930,26 @@ class CommandLibraryScreen {
         $this.IsNewCommand = $false
         
         switch ($field) {
-            "title" { $this.EditingValue = $this.EditingCommand.Title }
-            "description" { $this.EditingValue = $this.EditingCommand.Description }
-            "commandtext" { $this.EditingValue = $this.EditingCommand.CommandText }
-            "tags" { $this.EditingValue = $this.EditingCommand.Tags -join ", " }
-            default { $this.EditingValue = "" }
+            "title" { 
+                $this.EditingValue = $this.EditingCommand.Title
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "description" { 
+                $this.EditingValue = $this.EditingCommand.Description
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "commandtext" { 
+                $this.EditingValue = $this.EditingCommand.CommandText
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "tags" { 
+                $this.EditingValue = $this.EditingCommand.Tags -join ", "
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            default { 
+                $this.EditingValue = ""
+                $this.EditingCursor = 0
+            }
         }
     }
     
@@ -649,19 +964,46 @@ class CommandLibraryScreen {
                 return $true
             }
             ([System.ConsoleKey]::Tab) {
-                # Cycle through editable fields
-                $this.CycleEditField()
+                $this.NextEditField()
                 return $true
             }
             ([System.ConsoleKey]::Backspace) {
-                if ($this.EditingValue.Length -gt 0) {
-                    $this.EditingValue = $this.EditingValue.Substring(0, $this.EditingValue.Length - 1)
+                if ($this.EditingCursor -gt 0) {
+                    $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor - 1, 1)
+                    $this.EditingCursor--
                 }
                 return $true
             }
+            ([System.ConsoleKey]::Delete) {
+                if ($this.EditingCursor -lt $this.EditingValue.Length) {
+                    $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor, 1)
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::LeftArrow) {
+                if ($this.EditingCursor -gt 0) {
+                    $this.EditingCursor--
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::RightArrow) {
+                if ($this.EditingCursor -lt $this.EditingValue.Length) {
+                    $this.EditingCursor++
+                }
+                return $true
+            }
+            ([System.ConsoleKey]::Home) {
+                $this.EditingCursor = 0
+                return $true
+            }
+            ([System.ConsoleKey]::End) {
+                $this.EditingCursor = $this.EditingValue.Length
+                return $true
+            }
             default {
-                if ([char]::IsControl($key.KeyChar) -eq $false -and $key.KeyChar -ne [char]0) {
-                    $this.EditingValue += $key.KeyChar
+                if ($key.KeyChar -and [char]::IsControl($key.KeyChar) -eq $false) {
+                    $this.EditingValue = $this.EditingValue.Insert($this.EditingCursor, $key.KeyChar)
+                    $this.EditingCursor++
                 }
                 return $true
             }
@@ -669,35 +1011,60 @@ class CommandLibraryScreen {
         return $true
     }
     
-    [void] CycleEditField() {
-        if ($this.EditingCommand.IsGroup()) {
-            switch ($this.EditingField) {
-                "title" { $this.EditingField = "description" }
-                "description" { $this.EditingField = "tags" }
-                "tags" { $this.EditingField = "title" }
-                default { $this.EditingField = "title" }
-            }
-        } else {
-            switch ($this.EditingField) {
-                "title" { $this.EditingField = "commandtext" }
-                "commandtext" { $this.EditingField = "description" }
-                "description" { $this.EditingField = "tags" }
-                "tags" { $this.EditingField = "title" }
-                default { $this.EditingField = "title" }
-            }
-        }
-        
-        # Update editing value for new field
+    # Field cycling exactly like TaskListScreen
+    [void] NextEditField() {
+        # Save current field value only if something was entered, then move to next field
+        # Field cycle: title → commandtext → description → tags → title (cycle)
         switch ($this.EditingField) {
-            "title" { $this.EditingValue = $this.EditingCommand.Title }
-            "description" { $this.EditingValue = $this.EditingCommand.Description }
-            "commandtext" { $this.EditingValue = $this.EditingCommand.CommandText }
-            "tags" { $this.EditingValue = $this.EditingCommand.Tags -join ", " }
+            "title" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingCommand.Title = $this.EditingValue.Trim()
+                }
+                $this.EditingField = "commandtext"
+                # Preserve existing command text when switching fields
+                $this.EditingValue = if ($this.EditingCommand.CommandText) { $this.EditingCommand.CommandText } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "commandtext" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingCommand.CommandText = $this.EditingValue.Trim()
+                }
+                $this.EditingField = "description"
+                # Preserve existing description when switching fields
+                $this.EditingValue = if ($this.EditingCommand.Description) { $this.EditingCommand.Description } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "description" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $this.EditingCommand.Description = $this.EditingValue.Trim()
+                }
+                $this.EditingField = "tags"
+                # Preserve existing tags when switching fields
+                $this.EditingValue = if ($this.EditingCommand.Tags.Count -gt 0) { ($this.EditingCommand.Tags -join ", ") } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
+            "tags" {
+                # Only update if user entered something
+                if ($this.EditingValue.Trim() -ne "") {
+                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+                    $this.EditingCommand.Tags = $tagParts
+                }
+                
+                # Always cycle back to title - complete cycle
+                $this.EditingField = "title"
+                # Preserve existing title when switching fields
+                $this.EditingValue = if ($this.EditingCommand.Title) { $this.EditingCommand.Title } else { "" }
+                $this.EditingCursor = $this.EditingValue.Length
+            }
         }
     }
     
     [void] SaveEdit() {
         if ($this.EditingCommand) {
+            # Update the field being edited
             switch ($this.EditingField) {
                 "title" { $this.EditingCommand.Title = $this.EditingValue }
                 "description" { $this.EditingCommand.Description = $this.EditingValue }
@@ -710,23 +1077,126 @@ class CommandLibraryScreen {
                 }
             }
             
-            if ($this.EditingCommand.IsGroup()) {
-                $this.CommandService.UpdateGroup($this.EditingCommand)
+            if ($this.IsNewCommand) {
+                # Remove temporary item from FlatList first
+                if ($this.EditingIndex -ge 0 -and $this.EditingIndex -lt $this.FlatList.Count) {
+                    try {
+                        $this.FlatList.RemoveAt($this.EditingIndex)
+                    } catch {
+                        "DEBUG: Error removing temporary item: $_" | Out-File -FilePath "./startup-debug.log" -Append
+                    }
+                }
+                
+                # NEW COMMAND: Only save if they actually typed something
+                if (-not [string]::IsNullOrWhiteSpace($this.EditingCommand.Title)) {
+                    "DEBUG: Saving new command: $($this.EditingCommand.Title)" | Out-File -FilePath "./startup-debug.log" -Append
+                    $this.CommandService.AddCommand($this.EditingCommand, $this.EditingCommand.GroupId)
+                    $this.LoadGroups()
+                    # Find and select the new command
+                    $this.FindAndSelectCommand($this.EditingCommand.Id)
+                } else {
+                    "DEBUG: New command cancelled - no title entered" | Out-File -FilePath "./startup-debug.log" -Append
+                    # Reload groups to refresh display without temporary item
+                    $this.LoadGroups()
+                }
             } else {
-                $this.CommandService.UpdateCommand($this.EditingCommand)
+                # EXISTING COMMAND: Update it
+                if ($this.EditingCommand.IsGroup()) {
+                    $this.CommandService.UpdateGroup($this.EditingCommand)
+                } else {
+                    $this.CommandService.UpdateCommand($this.EditingCommand)
+                }
+                $this.LoadGroups()
             }
-            
-            $this.LoadGroups()
         }
         
         $this.CancelEdit()
     }
     
     [void] CancelEdit() {
+        if ($this.IsNewCommand) {
+            # Remove temporary item from FlatList
+            if ($this.EditingIndex -ge 0 -and $this.EditingIndex -lt $this.FlatList.Count) {
+                try {
+                    $this.FlatList.RemoveAt($this.EditingIndex)
+                    if ($this.SelectedIndex -ge $this.FlatList.Count) {
+                        $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
+                    }
+                } catch {
+                    # Ignore removal errors
+                }
+            }
+        }
+        
         $this.EditingIndex = -1
         $this.EditingField = ""
         $this.EditingValue = ""
+        $this.EditingCursor = 0
         $this.EditingCommand = $null
         $this.IsNewCommand = $false
+    }
+    
+    # Cursor positioning (exactly like TaskListScreen)
+    [void] PositionEditingCursor([System.Text.StringBuilder]$sb) {
+        if ($this.EditingIndex -lt 0 -or $this.EditingIndex -ge $this.FlatList.Count) { return }
+        
+        # Calculate Y position of selected item on screen
+        $startY = 3  # Header takes 3 lines
+        $currentY = $startY
+        
+        # Find the selected item's position by counting visible items
+        $visibleIndex = $this.EditingIndex - $this.ScrollTop
+        
+        # Each item takes 1 line normally, but selected takes 4 (pillbox: top + content + tags + bottom)
+        for ($i = 0; $i -lt $visibleIndex; $i++) {
+            $itemIndex = $this.ScrollTop + $i
+            if ($itemIndex -eq $this.SelectedIndex) {
+                $currentY += 4  # This was the selected pillbox (4 lines)
+            } else {
+                $currentY += 1  # Normal item (1 line)
+            }
+        }
+        
+        # Now $currentY is at the top of our editing item
+        # Position cursor in the pillbox (4 lines: top + content + tags + bottom)
+        if ($this.EditingIndex -eq $this.SelectedIndex) {
+            if ($this.EditingField -eq "tags") {
+                $tagY = $currentY + 2  # Tags are on line 3 of pillbox (0=top, 1=content, 2=tags, 3=bottom)
+                $cursorX = 1 + 6 + $this.EditingCursor  # "│ Tags: " = 7 chars
+                [void]$sb.Append([VT]::MoveTo($cursorX, $tagY))
+            } else {
+                $contentY = $currentY + 1  # Other fields are on line 2 of pillbox
+                $cursorX = $this.CalculateFieldCursorX($this.EditingField, $this.EditingCursor)
+                [void]$sb.Append([VT]::MoveTo($cursorX, $contentY))
+            }
+        }
+    }
+    
+    # Calculate X position based on field and cursor position (like TaskListScreen)
+    [int] CalculateFieldCursorX([string]$field, [int]$cursorPos) {
+        $baseX = 1  # Account for pillbox left border
+        $indent = 4  # 4 spaces for indentation (level * 2)
+        
+        switch ($field) {
+            "title" {
+                # Title is in first column
+                return $baseX + $indent + $cursorPos
+            }
+            "commandtext" {
+                # Command is in second column (after title + 1 space)
+                return $baseX + $indent + $this.COLUMN_TITLE + 1 + $cursorPos
+            }
+            "description" {
+                # Description is in third column (after title + command + 2 spaces)
+                return $baseX + $indent + $this.COLUMN_TITLE + 1 + $this.COLUMN_COMMAND + 1 + $cursorPos
+            }
+            "tags" {
+                # Tags are on second line of pillbox, with "Tags: " prefix
+                return $baseX + 7 + $cursorPos  # 7 for "Tags: "
+            }
+        }
+        
+        # Default fallback
+        return $baseX + $indent + $cursorPos
     }
 }

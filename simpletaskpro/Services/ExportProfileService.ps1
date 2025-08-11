@@ -186,7 +186,7 @@ class ExportProfileService {
             
             # Contact Details Profile
             $contactFields = $availableFields | Where-Object { 
-                $_ -in @("TPName", "TPEmailAddress", "TPPhoneNumber", "CorporateContact", "CorporateContactEmail", "AttentionContact") 
+                $_ -in @("TPName", "TPNum", "Address", "City", "Province", "Contact1Name") 
             }
             if ($contactFields.Count -gt 0) {
                 $this.SaveProfile("Contact Details", $contactFields, "CSV", "All contact information")

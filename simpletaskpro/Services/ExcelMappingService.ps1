@@ -111,64 +111,64 @@ class ExcelMappingService {
     [void] CreateSampleMappings() {
         $this.Mappings.Clear()
         
-        # COMPLETE ExcelDataFlow mappings - all 40+ fields from the original system
-        # Project Information category
-        $this.AddMapping("Request Date", "W23", "A1", "RequestDate", "Project Info", 1, $true)
-        $this.AddMapping("Audit Type", "W78", "A2", "AuditType", "Project Info", 2, $true)
-        $this.AddMapping("Auditor Name", "W10", "A3", "AuditorName", "Project Info", 3, $true)
+        # USER'S ACTUAL FIELD MAPPINGS FROM ExcelImportService
+        # Project Information
+        $this.AddMapping("RequestDate", "W23", "A1", "RequestDate", "Project Info", 1, $true)
+        $this.AddMapping("AuditType", "W78", "A2", "AuditType", "Project Info", 2, $true)
+        $this.AddMapping("AuditorName", "W10", "A3", "AuditorName", "Project Info", 3, $true)
+        $this.AddMapping("AuditorPhone", "W12", "A4", "AuditorPhone", "Project Info", 4, $false)
+        $this.AddMapping("AuditorTL", "W15", "A5", "AuditorTL", "Project Info", 5, $false)
+        $this.AddMapping("AuditorTLPhone", "W16", "A6", "AuditorTLPhone", "Project Info", 6, $false)
+        $this.AddMapping("AuditCase", "W18", "A7", "AuditCase", "Project Info", 7, $true)
+        $this.AddMapping("CASCase", "W17", "A8", "CASCase", "Project Info", 8, $true)
+        $this.AddMapping("AuditStartDate", "W24", "A9", "AuditStartDate", "Project Info", 9, $true)
         
-        # Contact Details - TP (Technical Person)
-        $this.AddMapping("TP Name", "W3", "A4", "TPName", "Contact Details", 4, $true)
-        $this.AddMapping("TP Email Address", "X3", "A5", "TPEmailAddress", "Contact Details", 5, $true)
-        $this.AddMapping("TP Phone Number", "Y3", "A6", "TPPhoneNumber", "Contact Details", 6, $false)
+        # Contact Details
+        $this.AddMapping("TPName", "W3", "A10", "TPName", "Contact Details", 10, $true)
+        $this.AddMapping("TPNum", "W4", "A11", "TPNum", "Contact Details", 11, $true)
+        $this.AddMapping("Address", "W5", "A12", "Address", "Contact Details", 12, $true)
+        $this.AddMapping("City", "W6", "A13", "City", "Contact Details", 13, $true)
+        $this.AddMapping("Province", "W7", "A14", "Province", "Contact Details", 14, $true)
+        $this.AddMapping("PostalCode", "W8", "A15", "PostalCode", "Contact Details", 15, $false)
+        $this.AddMapping("Country", "W9", "A16", "Country", "Contact Details", 16, $false)
         
-        # Contact Details - Corporate
-        $this.AddMapping("Corporate Contact", "W5", "A7", "CorporateContact", "Contact Details", 7, $true)
-        $this.AddMapping("Corporate Contact Email", "X5", "A8", "CorporateContactEmail", "Contact Details", 8, $true)
-        $this.AddMapping("Corporate Contact Phone", "Y5", "A9", "CorporateContactPhone", "Contact Details", 9, $false)
+        # Audit Periods
+        $this.AddMapping("AuditPeriodFrom", "W27", "A17", "AuditPeriodFrom", "Audit Periods", 17, $true)
+        $this.AddMapping("AuditPeriodTo", "W28", "A18", "AuditPeriodTo", "Audit Periods", 18, $true)
+        $this.AddMapping("AuditPeriod1Start", "W29", "A19", "AuditPeriod1Start", "Audit Periods", 19, $false)
+        $this.AddMapping("AuditPeriod1End", "W30", "A20", "AuditPeriod1End", "Audit Periods", 20, $false)
+        $this.AddMapping("AuditPeriod2Start", "W31", "A21", "AuditPeriod2Start", "Audit Periods", 21, $false)
+        $this.AddMapping("AuditPeriod2End", "W32", "A22", "AuditPeriod2End", "Audit Periods", 22, $false)
+        $this.AddMapping("AuditPeriod3Start", "W33", "A23", "AuditPeriod3Start", "Audit Periods", 23, $false)
+        $this.AddMapping("AuditPeriod3End", "W34", "A24", "AuditPeriod3End", "Audit Periods", 24, $false)
+        $this.AddMapping("AuditPeriod4Start", "W35", "A25", "AuditPeriod4Start", "Audit Periods", 25, $false)
+        $this.AddMapping("AuditPeriod4End", "W36", "A26", "AuditPeriod4End", "Audit Periods", 26, $false)
+        $this.AddMapping("AuditPeriod5Start", "W37", "A27", "AuditPeriod5Start", "Audit Periods", 27, $false)
+        $this.AddMapping("AuditPeriod5End", "W38", "A28", "AuditPeriod5End", "Audit Periods", 28, $false)
         
-        # Site Information
-        $this.AddMapping("Site Name", "W7", "A10", "SiteName", "Site Info", 10, $true)
-        $this.AddMapping("Site Address", "W8", "A11", "SiteAddress", "Site Info", 11, $true)
-        $this.AddMapping("Site City", "W9", "A12", "SiteCity", "Site Info", 12, $true)
-        $this.AddMapping("Site State", "X9", "A13", "SiteState", "Site Info", 13, $true)
-        $this.AddMapping("Site Zip", "Y9", "A14", "SiteZip", "Site Info", 14, $false)
-        $this.AddMapping("Site Country", "Z9", "A15", "SiteCountry", "Site Info", 15, $false)
+        # Contact Information
+        $this.AddMapping("Contact1Name", "W54", "A29", "Contact1Name", "Contacts", 29, $true)
+        $this.AddMapping("Contact1Phone", "W55", "A30", "Contact1Phone", "Contacts", 30, $false)
+        $this.AddMapping("Contact1Ext", "W56", "A31", "Contact1Ext", "Contacts", 31, $false)
+        $this.AddMapping("Contact1Address", "W57", "A32", "Contact1Address", "Contacts", 32, $false)
+        $this.AddMapping("Contact1Title", "W58", "A33", "Contact1Title", "Contacts", 33, $false)
+        $this.AddMapping("Contact2Name", "W59", "A34", "Contact2Name", "Contacts", 34, $false)
+        $this.AddMapping("Contact2Phone", "W60", "A35", "Contact2Phone", "Contacts", 35, $false)
+        $this.AddMapping("Contact2Ext", "W61", "A36", "Contact2Ext", "Contacts", 36, $false)
+        $this.AddMapping("Contact2Address", "W62", "A37", "Contact2Address", "Contacts", 37, $false)
+        $this.AddMapping("Contact2Title", "W63", "A38", "Contact2Title", "Contacts", 38, $false)
         
-        # Contact Details - Attention Contact
-        $this.AddMapping("Attention Contact", "W11", "A16", "AttentionContact", "Contact Details", 16, $false)
-        $this.AddMapping("Attention Contact Email", "X11", "A17", "AttentionContactEmail", "Contact Details", 17, $false)
-        $this.AddMapping("Attention Contact Phone", "Y11", "A18", "AttentionContactPhone", "Contact Details", 18, $false)
-        
-        # Business Information
-        $this.AddMapping("Tax ID", "W13", "A19", "TaxID", "Business Info", 19, $false)
-        $this.AddMapping("DUNS Number", "X13", "A20", "DUNS", "Business Info", 20, $false)
-        
-        # Asset Details - Primary Tank Data
-        $this.AddMapping("CAS Number", "G17", "A21", "CASNumber", "Asset Details", 21, $true)
-        $this.AddMapping("Asset Name", "H17", "A22", "AssetName", "Asset Details", 22, $true)
-        $this.AddMapping("Serial Number", "I17", "A23", "SerialNumber", "Asset Details", 23, $true)
-        $this.AddMapping("Model Number", "J17", "A24", "ModelNumber", "Asset Details", 24, $false)
-        $this.AddMapping("Manufacturer Name", "K17", "A25", "ManufacturerName", "Asset Details", 25, $false)
-        $this.AddMapping("Install Date", "L17", "A26", "InstallDate", "Asset Details", 26, $false)
-        
-        # Technical Specifications
-        $this.AddMapping("Capacity", "M17", "A27", "Capacity", "Technical Data", 27, $true)
-        $this.AddMapping("Capacity Unit", "N17", "A28", "CapacityUnit", "Technical Data", 28, $true)
-        $this.AddMapping("Tank Type", "O17", "A29", "TankType", "Technical Data", 29, $true)
-        $this.AddMapping("Product", "P17", "A30", "Product", "Technical Data", 30, $true)
-        $this.AddMapping("Leak Detection", "Q17", "A31", "LeakDetection", "Technical Data", 31, $true)
-        $this.AddMapping("Piping", "R17", "A32", "Piping", "Technical Data", 32, $false)
-        $this.AddMapping("Monitoring", "S17", "A33", "Monitoring", "Technical Data", 33, $false)
-        $this.AddMapping("Status", "T17", "A34", "Status", "Technical Data", 34, $false)
-        $this.AddMapping("Comments", "U17", "A35", "Comments", "Technical Data", 35, $false)
-        
-        # Compliance Information
-        $this.AddMapping("Compliance Date", "W25", "A36", "ComplianceDate", "Compliance", 36, $true)
-        $this.AddMapping("Next Inspection Date", "W27", "A37", "NextInspectionDate", "Compliance", 37, $true)
-        $this.AddMapping("Certification Number", "W29", "A38", "CertificationNumber", "Compliance", 38, $true)
-        $this.AddMapping("Inspector Name", "W31", "A39", "InspectorName", "Compliance", 39, $true)
-        $this.AddMapping("Inspector License", "W33", "A40", "InspectorLicense", "Compliance", 40, $false)
+        # System Information
+        $this.AddMapping("AuditProgram", "W72", "A39", "AuditProgram", "System Info", 39, $true)
+        $this.AddMapping("AccountingSoftware1", "W98", "A40", "AccountingSoftware1", "System Info", 40, $false)
+        $this.AddMapping("AccountingSoftware1Other", "W100", "A41", "AccountingSoftware1Other", "System Info", 41, $false)
+        $this.AddMapping("AccountingSoftware1Type", "W101", "A42", "AccountingSoftware1Type", "System Info", 42, $false)
+        $this.AddMapping("AccountingSoftware2", "W102", "A43", "AccountingSoftware2", "System Info", 43, $false)
+        $this.AddMapping("AccountingSoftware2Other", "W104", "A44", "AccountingSoftware2Other", "System Info", 44, $false)
+        $this.AddMapping("AccountingSoftware2Type", "W105", "A45", "AccountingSoftware2Type", "System Info", 45, $false)
+        $this.AddMapping("Comments", "W108", "A46", "Comments", "System Info", 46, $false)
+        $this.AddMapping("FXInfo", "W129", "A47", "FXInfo", "System Info", 47, $false)
+        $this.AddMapping("ShipToAddress", "W130", "A48", "ShipToAddress", "System Info", 48, $false)
         
         $this.Save()
     }

@@ -220,11 +220,11 @@ function New-DefaultConfiguration {
             "AuditType" = @{ Source = "W78"; Dest = "A2" }
             "AuditorName" = @{ Source = "W10"; Dest = "A3" }
             "TPName" = @{ Source = "W3"; Dest = "A4" }
-            "TPEmailAddress" = @{ Source = "X3"; Dest = "A5" }
-            "TPPhoneNumber" = @{ Source = "Y3"; Dest = "A6" }
-            "CorporateContact" = @{ Source = "W5"; Dest = "A7" }
-            "CorporateContactEmail" = @{ Source = "X5"; Dest = "A8" }
-            "CorporateContactPhone" = @{ Source = "Y5"; Dest = "A9" }
+            "TPNum" = @{ Source = "W4"; Dest = "A5" }
+            "Address" = @{ Source = "W5"; Dest = "A6" }
+            "City" = @{ Source = "W6"; Dest = "A7" }
+            "Province" = @{ Source = "W7"; Dest = "A8" }
+            "PostalCode" = @{ Source = "W8"; Dest = "A9" }
             "SiteName" = @{ Source = "W7"; Dest = "A10" }
             "SiteAddress" = @{ Source = "W8"; Dest = "A11" }
             "SiteCity" = @{ Source = "W9"; Dest = "A12" }

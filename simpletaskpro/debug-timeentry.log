@@ -321,3 +321,45 @@ DEBUG: Starting RenderTimeEntryMode... 08/10/2025 07:57:01
 DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/10/2025 07:57:01
 DEBUG: RenderTimeList completed successfully 08/10/2025 07:57:01
 DEBUG: RenderTimeEntryMode completed successfully 08/10/2025 07:57:01
+DEBUG: LoadTimeEntries - allEntries count: 2 08/10/2025 20:54:14
+DEBUG: Filtered mode - TimeEntries count: 2 08/10/2025 20:54:14
+DEBUG: TimeFlatList count after build: 2 08/10/2025 20:54:14
+DEBUG: Starting RenderTimeEntryMode... 08/10/2025 20:54:14
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/10/2025 20:54:14
+DEBUG: RenderTimeList completed successfully 08/10/2025 20:54:14
+DEBUG: RenderTimeEntryMode completed successfully 08/10/2025 20:54:14
+DEBUG: LoadTimeEntries - allEntries count: 2 08/10/2025 23:35:50
+DEBUG: Filtered mode - TimeEntries count: 2 08/10/2025 23:35:50
+DEBUG: TimeFlatList count after build: 2 08/10/2025 23:35:50
+DEBUG: Starting RenderTimeEntryMode... 08/10/2025 23:35:50
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/10/2025 23:35:50
+DEBUG: RenderTimeList completed successfully 08/10/2025 23:35:50
+DEBUG: RenderTimeEntryMode completed successfully 08/10/2025 23:35:50
+DEBUG: LoadTimeEntries - allEntries count: 2 08/10/2025 23:39:30
+DEBUG: Filtered mode - TimeEntries count: 2 08/10/2025 23:39:30
+DEBUG: TimeFlatList count after build: 2 08/10/2025 23:39:30
+DEBUG: Starting RenderTimeEntryMode... 08/10/2025 23:39:30
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/10/2025 23:39:30
+DEBUG: RenderTimeList completed successfully 08/10/2025 23:39:30
+DEBUG: RenderTimeEntryMode completed successfully 08/10/2025 23:39:30
+DEBUG: LoadTimeEntries - allEntries count: 2 08/10/2025 23:41:08
+DEBUG: Filtered mode - TimeEntries count: 2 08/10/2025 23:41:08
+DEBUG: TimeFlatList count after build: 2 08/10/2025 23:41:08
+DEBUG: Starting RenderTimeEntryMode... 08/10/2025 23:41:08
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/10/2025 23:41:08
+DEBUG: RenderTimeList completed successfully 08/10/2025 23:41:09
+DEBUG: RenderTimeEntryMode completed successfully 08/10/2025 23:41:09
+DEBUG: LoadTimeEntries - allEntries count: 2 08/10/2025 23:42:57
+DEBUG: Filtered mode - TimeEntries count: 2 08/10/2025 23:42:57
+DEBUG: TimeFlatList count after build: 2 08/10/2025 23:42:57
+DEBUG: Starting RenderTimeEntryMode... 08/10/2025 23:42:57
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/10/2025 23:42:57
+DEBUG: RenderTimeList completed successfully 08/10/2025 23:42:58
+DEBUG: RenderTimeEntryMode completed successfully 08/10/2025 23:42:58
+DEBUG: LoadTimeEntries - allEntries count: 2 08/11/2025 00:04:16
+DEBUG: Filtered mode - TimeEntries count: 2 08/11/2025 00:04:16
+DEBUG: TimeFlatList count after build: 2 08/11/2025 00:04:16
+DEBUG: Starting RenderTimeEntryMode... 08/11/2025 00:04:16
+DEBUG: Starting RenderTimeList, TimeFlatList.Count = 2 08/11/2025 00:04:16
+DEBUG: RenderTimeList completed successfully 08/11/2025 00:04:16
+DEBUG: RenderTimeEntryMode completed successfully 08/11/2025 00:04:16

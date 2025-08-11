@@ -1,4 +1,4 @@
-=== SimpleTaskPro Startup Debug 08/10/2025 14:24:42 ===
+=== SimpleTaskPro Startup Debug 08/11/2025 00:16:19 ===
 Loading StringCache...
 Loading VT100...
 Loading UniversalBackupManager...
@@ -27,15 +27,11 @@ Loading SimpleTaskProApp...
 All components loaded successfully!
 Initializing console...
 Creating SimpleTaskProApp...
-DEBUG: Creating TaskScreen... 08/10/2025 14:24:44
-DEBUG: Creating CommandScreen... 08/10/2025 14:24:45
-DEBUG: Creating ExcelScreen... 08/10/2025 14:24:46
-DEBUG: ExcelMappingScreen constructor START 08/10/2025 14:24:46
-DEBUG: ExcelMappingScreen constructor COMPLETE 08/10/2025 14:24:46
-DEBUG: Setting initial screen... 08/10/2025 14:24:46
+DEBUG: Creating TaskScreen... 08/11/2025 00:16:21
+DEBUG: Creating CommandScreen... 08/11/2025 00:16:23
+DEBUG: Creating ExcelScreen... 08/11/2025 00:16:23
+DEBUG: ExcelMappingScreen constructor START 08/11/2025 00:16:23
+DEBUG: ExcelMappingScreen constructor COMPLETE 08/11/2025 00:16:24
+DEBUG: Setting initial screen... 08/11/2025 00:16:24
 Starting application...
-DEBUG: N key pressed - calling StartNewCommand
-DEBUG: StartNewCommand - FlatList count: 7
-DEBUG: Item type - IsGroup: True
-DEBUG: Creating new command in group: b81861a1-f25a-4a7a-aa97-adb40d7a7004
-DEBUG: StartNewCommand completed
+Application started successfully!
