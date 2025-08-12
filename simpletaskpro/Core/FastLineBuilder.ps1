@@ -616,7 +616,7 @@ class FastLineBuilder {
         $cursorY = $startY
         
         if ($level -eq 0) {
-            # Parent task cursor positions (no priority column for level 0)
+            # Parent task cursor positions
             switch ($editingField) {
                 "id1" { 
                     $cursorX = $editingCursor
@@ -629,6 +629,10 @@ class FastLineBuilder {
                 }
                 "date" { 
                     $cursorX = 5 + 14 + 12 + $editingCursor  # After ID1 (5) + ID2 (14) + Created (12) 
+                }
+                "priority" { 
+                    # Priority for parent tasks - position after date column
+                    $cursorX = 5 + 14 + 12 + 12 + $editingCursor  # After ID1 + ID2 + Created + Date
                 }
                 "title" { 
                     $cursorX = 5 + 14 + 12 + 12 + 3 + $editingCursor  # After ID1 + ID2 + Created + Date + Arrow
@@ -1421,91 +1425,5 @@ class FastLineBuilder {
         return $true  # Fallback return
     }
     
-    # MISSING FUNCTIONALITY: Advanced priority input conversion (COMPLETE ORIGINAL)
-    [string] ConvertPriorityInput([string]$input) {
-        # Convert h/m/l/t input to High/Medium/Low/Today (only accept single letters)
-        $cleanInput = $input.ToLower().Trim()
-        switch ($cleanInput) {
-            "h" { return "High" }
-            "m" { return "Medium" }
-            "l" { return "Low" }
-            "t" { return "Today" }
-            default { 
-                return ""  # Return empty if invalid input
-            }
-        }
-        return ""  # Fallback return (should never be reached)
-    }
-    
-    # MISSING FUNCTIONALITY: Advanced date input conversion with shortcuts (COMPLETE ORIGINAL)
-    [datetime] ConvertDateInput([string]$input) {
-        # Enhanced date input with quick entry shortcuts
-        $input = $input.Trim().ToLower()
-        if ($input -eq "" -or $input -eq "clear") {
-            return [datetime]::MinValue
-        }
-        
-        $today = [datetime]::Today
-        
-        # Quick date shortcuts
-        switch ($input) {
-            "t" { return $today }
-            "today" { return $today }
-            "tom" { return $today.AddDays(1) }
-            "tomorrow" { return $today.AddDays(1) }
-            "mon" { return $this.GetNextWeekday([DayOfWeek]::Monday) }
-            "tue" { return $this.GetNextWeekday([DayOfWeek]::Tuesday) }
-            "wed" { return $this.GetNextWeekday([DayOfWeek]::Wednesday) }
-            "thu" { return $this.GetNextWeekday([DayOfWeek]::Thursday) }
-            "fri" { return $this.GetNextWeekday([DayOfWeek]::Friday) }
-            "sat" { return $this.GetNextWeekday([DayOfWeek]::Saturday) }
-            "sun" { return $this.GetNextWeekday([DayOfWeek]::Sunday) }
-            default { }  # Continue to next parsing logic
-        }
-        
-        # Relative date shortcuts (+3, +1w, etc.)
-        if ($input -match '^\+(\d+)$') {
-            $days = [int]$matches[1]
-            return $today.AddDays($days)
-        }
-        if ($input -match '^\+(\d+)w$') {
-            $weeks = [int]$matches[1]
-            return $today.AddDays($weeks * 7)
-        }
-        if ($input -match '^\+(\d+)m$') {
-            $months = [int]$matches[1]
-            return $today.AddMonths($months)
-        }
-        
-        try {
-            if ($input.Length -eq 8) {
-                # yyyymmdd format
-                $year = [int]$input.Substring(0, 4)
-                $month = [int]$input.Substring(4, 2)
-                $day = [int]$input.Substring(6, 2)
-                return [datetime]::new($year, $month, $day)
-            } elseif ($input.Length -eq 4) {
-                # mmdd format - use current year
-                $year = [datetime]::Now.Year
-                $month = [int]$input.Substring(0, 2)
-                $day = [int]$input.Substring(2, 2)
-                return [datetime]::new($year, $month, $day)
-            } else {
-                # Try to parse as regular date
-                return [datetime]::Parse($input)
-            }
-        } catch {
-            return [datetime]::MinValue
-        }
-    }
-    
-    # MISSING FUNCTIONALITY: Calculate next weekday helper (COMPLETE ORIGINAL)
-    [datetime] GetNextWeekday([DayOfWeek]$targetDay) {
-        $today = [datetime]::Today
-        $daysUntilTarget = ([int]$targetDay - [int]$today.DayOfWeek + 7) % 7
-        if ($daysUntilTarget -eq 0) {
-            $daysUntilTarget = 7  # Next week if today is the target day
-        }
-        return $today.AddDays($daysUntilTarget)
-    }
+    # Step 3.4: Advanced data entry shortcuts moved to TaskListScreen.ps1
 }

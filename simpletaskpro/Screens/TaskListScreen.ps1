@@ -4,12 +4,11 @@
 # Input state enumeration for state machine
 enum TaskListInputState {
     Browsing
-    Editing
     Filtering
     TimeEntry
 }
 
-class TaskListScreen {
+class TaskListScreen : BaseListScreen {
     [SimpleTaskService]$TaskService
     [KeyMappingService]$KeyService
     
@@ -40,11 +39,7 @@ class TaskListScreen {
     [System.Collections.Generic.List[object]]$TimeFlatList
     [int]$TimeSelectedIndex = 0
     [int]$TimeScrollTop = 0
-    [int]$TimeEditingIndex = -1
-    [string]$TimeEditingField = ""
-    [string]$TimeEditingValue = ""
-    [SimpleTimeEntry]$TimeEditingEntry = $null
-    [bool]$IsNewTimeEntry = $false
+    # All time editing state now handled by BaseListScreen
     [bool]$IsTimeFilterActive = $true  # Start filtered (show only entries with time)
     
     # Time entry column widths (matching TimeTracker exactly)
@@ -60,13 +55,7 @@ class TaskListScreen {
     
     # Time entry colors now use centralized theme
     
-    # Inline editing state
-    [int]$EditingIndex = -1
-    [string]$EditingField = ""  # "title", "priority", "date", "tags"
-    [string]$EditingValue = ""
-    [int]$EditingCursor = 0    # Cursor position within EditingValue
-    [SimpleTask]$EditingTask = $null
-    [bool]$IsNewTask = $false
+    # All editing state now handled by BaseListScreen (EditingItem, EditingField, EditingValue, EditingCursor)
     
     # Filter input state
     [bool]$FilterInputActive = $false
@@ -318,6 +307,7 @@ class TaskListScreen {
                 return ""  # Return empty if invalid input
             }
         }
+        return ""  # PowerShell requires explicit return after switch
     }
     
     [datetime] ConvertDateInput([string]$input) {
@@ -442,89 +432,6 @@ class TaskListScreen {
         [void]$sb.Append([VT]::Reset())
     }
 
-    [string] ConvertPriorityInput([string]$input) {
-        # Convert h/m/l/t input to High/Medium/Low/Today (only accept single letters)
-        $cleanInput = $input.ToLower().Trim()
-        switch ($cleanInput) {
-            "h" { return "High" }
-            "m" { return "Medium" }
-            "l" { return "Low" }
-            "t" { return "Today" }
-            default { 
-                return ""  # Return empty if invalid input
-            }
-        }
-        return ""  # Explicit fallback return
-    }
-
-    [datetime] ConvertDateInput([string]$input) {
-        # Enhanced date input with quick entry shortcuts
-        $input = $input.Trim().ToLower()
-        if ($input -eq "") {
-            return [datetime]::MinValue
-        }
-        
-        $today = [datetime]::Today
-        
-        # Quick date shortcuts
-        switch ($input) {
-            "t" { return $today }
-            "today" { return $today }
-            "tom" { return $today.AddDays(1) }
-            "tomorrow" { return $today.AddDays(1) }
-            "mon" { return $this.GetNextWeekday([DayOfWeek]::Monday) }
-            "tue" { return $this.GetNextWeekday([DayOfWeek]::Tuesday) }
-            "wed" { return $this.GetNextWeekday([DayOfWeek]::Wednesday) }
-            "thu" { return $this.GetNextWeekday([DayOfWeek]::Thursday) }
-            "fri" { return $this.GetNextWeekday([DayOfWeek]::Friday) }
-            "sat" { return $this.GetNextWeekday([DayOfWeek]::Saturday) }
-            "sun" { return $this.GetNextWeekday([DayOfWeek]::Sunday) }
-        }
-        
-        # Relative date shortcuts (+3, +1w, etc.)
-        if ($input -match '^\+(\d+)$') {
-            $days = [int]$matches[1]
-            return $today.AddDays($days)
-        }
-        if ($input -match '^\+(\d+)w$') {
-            $weeks = [int]$matches[1]
-            return $today.AddDays($weeks * 7)
-        }
-        if ($input -match '^\+(\d+)m$') {
-            $months = [int]$matches[1]
-            return $today.AddMonths($months)
-        }
-        
-        try {
-            if ($input.Length -eq 8) {
-                # yyyymmdd format
-                $year = [int]$input.Substring(0, 4)
-                $month = [int]$input.Substring(4, 2)
-                $day = [int]$input.Substring(6, 2)
-                return [datetime]::new($year, $month, $day)
-            } elseif ($input.Length -eq 4) {
-                # mmdd format - use current year
-                $year = [datetime]::Now.Year
-                $month = [int]$input.Substring(0, 2)
-                $day = [int]$input.Substring(2, 2)
-                return [datetime]::new($year, $month, $day)
-            } else {
-                # Try to parse as regular date
-                return [datetime]::Parse($input)
-            }
-        } catch {
-            return [datetime]::MinValue
-        }
-    }
-    
-    [datetime] GetNextWeekday([DayOfWeek]$targetDay) {
-        $today = [datetime]::Today
-        $daysUntilTarget = ([int]$targetDay - [int]$today.DayOfWeek + 7) % 7
-        if ($daysUntilTarget -eq 0) {
-            $daysUntilTarget = 7  # Next week if today is the target day
-        }
-        return $today.AddDays($daysUntilTarget)
-    }
     
     [void] StartFilterInput() {
         # Start complex filter input mode
@@ -777,6 +684,292 @@ class TaskListScreen {
         }
     }
     
+    # === BaseListScreen Required Methods ===
+    
+    [void] LoadData() {
+        $this.LoadTasks()
+    }
+    
+    [string] RenderItem([object]$item, [int]$index, [bool]$isSelected) {
+        # Delegate to existing TaskListScreen rendering logic
+        return $this.RenderTaskLine($item.Task, $item.Level, $isSelected)
+    }
+    
+    [string[]] GetEditableFields([object]$item) {
+        # Return editable fields for SimpleTask objects
+        "DEBUG: GetEditableFields called with item type: $($item.GetType().Name) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        try {
+            $fields = @("Title", "Priority", "DueDate", "Tags", "ID1", "ID2", "CreatedDate")  # All editable fields
+            "DEBUG: GetEditableFields returning fields: $($fields -join ', ') $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            return $fields
+        } catch {
+            "DEBUG: ERROR in GetEditableFields: $($_.Exception.Message) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            throw
+        }
+    }
+    
+    [void] SaveItem([object]$item) {
+        # Save changes to TaskService
+        $this.TaskService.Save()
+    }
+    
+    [object] CreateNewItem() {
+        # Create new SimpleTask
+        $newTask = [SimpleTask]::new("New Task")
+        $this.TaskService.AddTask($newTask)
+        return $newTask
+    }
+    
+    # Override StartNewItem to handle FlatList hashtable structure
+    [void] StartNewItem() {
+        $newTask = $this.CreateNewItem()
+        $this.LoadData() # Refresh FlatList with proper hashtable structure
+        
+        # Find the new task in FlatList and select it
+        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+            if ($this.FlatList[$i].Task.Id -eq $newTask.Id) {
+                $this.SelectedIndex = $i
+                $this.EnsureVisible()
+                
+                # Start editing the new task
+                $fields = $this.GetEditableFields($this.FlatList[$i])
+                if ($fields.Count -gt 0) {
+                    $this.StartEdit($fields[0])
+                }
+                break
+            }
+        }
+    }
+    
+    # Override field access methods to work with FlatList hashtable structure
+    [string] GetFieldValue([object]$item, [string]$field) {
+        # $item is a hashtable like @{Task=..., Level=..., IsLast=...}
+        # Access the actual Task object
+        "DEBUG: GetFieldValue called with field '$field' on item type $($item.GetType().Name) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        try {
+            $task = $item.Task
+            "DEBUG: GetFieldValue accessing task type $($task.GetType().Name) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            
+            # Map FastLineBuilder field names to SimpleTask property names
+            $propertyName = switch ($field) {
+                "title" { "Title" }
+                "priority" { "Priority" }
+                "date" { "DueDate" }
+                "tags" { "Tags" }
+                default { $field }  # Use as-is for other fields
+            }
+            
+            $property = $task.GetType().GetProperty($propertyName)
+            if ($property) {
+                "DEBUG: GetFieldValue found property $field $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                $value = $property.GetValue($task)
+                $result = if ($value -ne $null) { $value.ToString() } else { "" }
+                "DEBUG: GetFieldValue returning '$result' for field $field $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                return $result
+            } else {
+                "DEBUG: GetFieldValue property $field not found, trying fallback $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                if ($task.$field -ne $null) {
+                    $result = $task.$field.ToString()
+                    "DEBUG: GetFieldValue fallback returning '$result' for field $field $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                    return $result
+                }
+            }
+        } catch {
+            "DEBUG: ERROR in GetFieldValue: $($_.Exception.Message) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            throw
+        }
+        "DEBUG: GetFieldValue returning empty string for field $field $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        return ""
+    }
+    
+    [void] SetFieldValue([object]$item, [string]$field, [string]$value) {
+        # $item is a hashtable like @{Task=..., Level=..., IsLast=...}
+        # Access the actual Task object
+        "DEBUG: SetFieldValue called with field '$field' value '$value' $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        $task = $item.Task
+        try {
+            # Map FastLineBuilder field names to SimpleTask property names
+            $propertyName = switch ($field) {
+                "title" { "Title" }
+                "priority" { "Priority" }
+                "date" { "DueDate" }
+                "tags" { "Tags" }
+                default { $field }  # Use as-is for other fields
+            }
+            
+            $property = $task.GetType().GetProperty($propertyName)
+            if ($property -and $property.CanWrite) {
+                # Convert value to appropriate type
+                $targetType = $property.PropertyType
+                $convertedValue = $this.ConvertValue($value, $targetType)
+                $property.SetValue($task, $convertedValue)
+                "DEBUG: SetFieldValue completed successfully $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                return
+            }
+        } catch {
+            "DEBUG: ERROR in SetFieldValue: $($_.Exception.Message), trying fallback $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            # Fallback for direct property access
+            $task.$field = $value
+        }
+    }
+    
+    # Override DeleteCurrentItem to properly delete tasks from TaskService
+    [void] DeleteCurrentItem() {
+        "DEBUG: DeleteCurrentItem called $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        try {
+            if ($this.FlatList.Count -eq 0) { 
+                "DEBUG: DeleteCurrentItem - no items in FlatList $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                return 
+            }
+            
+            "DEBUG: DeleteCurrentItem - getting item at index $($this.SelectedIndex) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            $item = $this.FlatList[$this.SelectedIndex]
+            $task = $item.Task
+            "DEBUG: DeleteCurrentItem - got task with ID $($task.Id) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            
+            # Delete from TaskService
+            "DEBUG: DeleteCurrentItem - calling TaskService.DeleteTask $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            $this.TaskService.DeleteTask($task.Id)
+            "DEBUG: DeleteCurrentItem - TaskService.DeleteTask completed $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            
+            # Remove from FlatList
+            "DEBUG: DeleteCurrentItem - removing from FlatList $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            $this.FlatList.RemoveAt($this.SelectedIndex)
+            "DEBUG: DeleteCurrentItem - removed from FlatList $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            
+            # Adjust selection
+            if ($this.SelectedIndex -ge $this.FlatList.Count) {
+                $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
+            }
+            "DEBUG: DeleteCurrentItem - adjusted selection to $($this.SelectedIndex) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            
+            $this.SetStatusMessage("Task deleted", 2000)
+            "DEBUG: DeleteCurrentItem completed successfully $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        } catch {
+            "DEBUG: ERROR in DeleteCurrentItem: $($_.Exception.Message) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            throw
+        }
+    }
+    
+    # Override GetFieldScreenPosition to provide correct cursor positioning
+    [hashtable] GetFieldScreenPosition([string]$field, [int]$cursor, [object]$item) {
+        # Calculate the actual screen position where each field appears
+        # Based on TaskListScreen's pillbox layout
+        
+        # Find the editing item's screen position
+        $editingIndex = -1
+        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+            if ($this.FlatList[$i].Task.Id -eq $item.Task.Id) {
+                $editingIndex = $i
+                break
+            }
+        }
+        
+        if ($editingIndex -eq -1) {
+            return @{ X = 2; Y = 3 }  # Fallback position
+        }
+        
+        # Calculate Y position based on item position and scrolling
+        $startY = 3
+        $currentY = $startY
+        for ($i = $this.ScrollTop; $i -lt $editingIndex; $i++) {
+            if ($i -eq $this.SelectedIndex) {
+                $currentY += 4  # Selected item with pillbox
+            } else {
+                $currentY += 2  # Normal item
+            }
+        }
+        
+        # If editing item is selected, it's inside pillbox
+        if ($editingIndex -eq $this.SelectedIndex) {
+            $contentLineY = $currentY + 1  # Content line is after top border
+            
+            switch ($field) {
+                "Title" {
+                    return @{ X = 2 + $cursor; Y = $contentLineY }
+                }
+                "Priority" {
+                    return @{ X = 60 + $cursor; Y = $contentLineY }
+                }
+                "DueDate" {
+                    return @{ X = 85 + $cursor; Y = $contentLineY }
+                }
+                "Tags" {
+                    return @{ X = 10 + $cursor; Y = $contentLineY + 1 }
+                }
+                "ID1" {
+                    return @{ X = 10 + $cursor; Y = $contentLineY }
+                }
+                "ID2" {
+                    return @{ X = 25 + $cursor; Y = $contentLineY }
+                }
+                "CreatedDate" {
+                    return @{ X = 45 + $cursor; Y = $contentLineY }
+                }
+                default {
+                    return @{ X = 2 + $cursor; Y = $contentLineY }
+                }
+            }
+        } else {
+            # Not selected item - simpler positioning
+            return @{ X = 2 + $cursor; Y = $currentY }
+        }
+        
+        # This should never be reached, but PowerShell requires explicit return
+        return @{ X = 2; Y = 3 }
+    }
+    
+    [object] ConvertValue([string]$value, [Type]$targetType) {
+        "DEBUG: ConvertValue called: '$value' to type $($targetType.Name) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        try {
+            if ($targetType -eq [string]) { return $value }
+            if ($targetType -eq [int]) { return if ($value) { [int]$value } else { 0 } }
+            if ($targetType -eq [bool]) { return [bool]$value }
+            if ($targetType -eq [datetime]) { 
+                return if ($value) { [datetime]::Parse($value) } else { [datetime]::MinValue }
+            }
+            if ($targetType -eq [string[]]) {
+                return if ($value) { $value -split ',' | ForEach-Object { $_.Trim() } } else { @() }
+            }
+            "DEBUG: ConvertValue using default conversion $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            return $value  # Default fallback
+        } catch {
+            "DEBUG: ERROR in ConvertValue: $($_.Exception.Message) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            return $value
+        }
+    }
+    
+    # Override field cycling to add wraparound behavior
+    [void] NextEditField() {
+        if ($this.EditingItem -eq $null) { return }
+        
+        $fields = $this.GetEditableFields($this.EditingItem)
+        $currentIndex = $fields.IndexOf($this.EditingField)
+        
+        if ($currentIndex -ge 0) {
+            # Wraparound: if at last field, go to first field
+            $nextIndex = ($currentIndex + 1) % $fields.Count
+            $this.EditingField = $fields[$nextIndex]
+            $this.EditingValue = $this.GetFieldValue($this.EditingItem, $this.EditingField)
+            $this.EditingCursor = $this.EditingValue.Length
+        }
+    }
+    
+    [void] PreviousEditField() {
+        if ($this.EditingItem -eq $null) { return }
+        
+        $fields = $this.GetEditableFields($this.EditingItem)
+        $currentIndex = $fields.IndexOf($this.EditingField)
+        
+        if ($currentIndex -ge 0) {
+            # Wraparound: if at first field, go to last field
+            $prevIndex = if ($currentIndex -eq 0) { $fields.Count - 1 } else { $currentIndex - 1 }
+            $this.EditingField = $fields[$prevIndex]
+            $this.EditingValue = $this.GetFieldValue($this.EditingItem, $this.EditingField)
+            $this.EditingCursor = $this.EditingValue.Length
+        }
+    }
+    
     [string] Render() {
         # TaskListScreen now only renders task mode - TimeEntry handled by separate screen
         $baseContent = $this.RenderTaskModeEnhanced()
@@ -890,7 +1083,7 @@ class TaskListScreen {
             $fieldValue = $this.FilterInputValue.PadRight($fieldWidth)
             [void]$sb.Append($this.EditHighlight + $fieldValue + [VT]::Reset())
             [void]$sb.Append("   Enter:Apply  Escape:Cancel  (#tag, high/med/low/today, clear)")  # SHIFTED RIGHT
-        } elseif ($this.EditingIndex -ge 0) {
+        } elseif ($this.EditingItem -ne $null) {
             [void]$sb.Append(" EDITING [$($this.EditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel")  # SHIFTED RIGHT
         } else {
             [void]$sb.Append(" ↑↓:Navigate  E:Edit  N:New  S:Subtask  X:Toggle  T:Theme  /:Filter  F1:All  F2:Today  F3:High  F4:TimeEntry  F5:Color  F6:Excel  F7:Settings  F8:Folder  F9:T2020  F10:Export  F11:Log  F12:Cycle  Q:Quit")  # SHIFTED RIGHT
@@ -898,7 +1091,7 @@ class TaskListScreen {
         [void]$sb.Append([VT]::Reset())
         
         # Show/hide cursor based on editing state and position it correctly with enhanced positioning
-        if ($this.EditingIndex -ge 0) {
+        if ($this.EditingItem -ne $null) {
             [void]$sb.Append([VT]::ShowCursor())
             # Set cursor to bright red so it's visible against white background
             [void]$sb.Append("`e]12;#FF0000`e\")  # OSC sequence to set cursor color to red
@@ -1082,7 +1275,7 @@ class TaskListScreen {
         }
         
         # Cursor management integrated with StringBuilder
-        if ($this.EditingIndex -ge 0) {
+        if ($this.EditingItem -ne $null) {
             [void]$sb.Append([VT]::ShowCursor())
             [void]$sb.Append("`e]12;#FF0000`e\")  # Red cursor for visibility
             # Position cursor using enhanced positioning
@@ -1172,20 +1365,10 @@ class TaskListScreen {
         
         [void]$sb.Append([VT]::MoveTo(0, $this.Height - 1))
         [void]$sb.Append([AppThemeManager]::GetColor("StatusBar"))
-        if ($this.TimeEditingIndex -ge 0) {
-            [void]$sb.Append("  EDITING [$($this.TimeEditingField.ToUpper())]: Tab:Next Field  Enter:Save  Escape:Cancel  F4:Tasks".PadRight($this.Width))
-        } else {
-            [void]$sb.Append("  ↑↓:Navigate  E:Edit  A:Add  D:Delete  C:Current Week  ←→:Week Nav  F4:Tasks".PadRight($this.Width))
-        }
+        [void]$sb.Append("  ↑↓:Navigate  E:Edit  A:Add  D:Delete  C:Current Week  ←→:Week Nav  F4:Tasks".PadRight($this.Width))
         [void]$sb.Append([VT]::Reset())
         
-        # Show/hide cursor based on editing state
-        if ($this.TimeEditingIndex -ge 0) {
-            [void]$sb.Append([VT]::ShowCursor())
-            $this.PositionTimeEntryCursor($sb)
-        } else {
-            [void]$sb.Append([VT]::HideCursor())
-        }
+        [void]$sb.Append([VT]::HideCursor())
         
             "DEBUG: RenderTimeEntryMode completed successfully $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
             return $sb.ToString()
@@ -1344,16 +1527,15 @@ class TaskListScreen {
     }
     
     [void] RenderTimeContent([System.Text.StringBuilder]$sb, [SimpleTimeEntry]$entry, [bool]$isSelected) {
-        $isEditingThis = ($this.TimeEditingEntry -and $this.TimeEditingEntry.Id -eq $entry.Id)
+        $isEditingThis = $false  # Time editing now handled by separate TimeEntryScreen
         
         # NAME column (task name or description)
         $task = if ($entry.ProjectCode) { $this.TaskLookup[$entry.ProjectCode] } else { $null }
         $nameDisplay = if ($task) { $task.Title } else { $entry.Description }
         if (-not $nameDisplay) { $nameDisplay = "" }
         
-        if ($isEditingThis -and $this.TimeEditingField -eq "name") {
-            [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight") + $this.TimeEditingValue.PadRight($this.NameCol) + [VT]::Reset())
-        } else {
+        # Time editing now handled by separate TimeEntryScreen
+        {
             $truncatedName = if ($nameDisplay.Length -gt ($this.NameCol - 1)) { 
                 $nameDisplay.Substring(0, $this.NameCol - 1) 
             } else { 
@@ -1521,7 +1703,7 @@ class TaskListScreen {
                 [void]$sb.Append([AppThemeManager]::GetColor("Header") + $this.PillboxVertical + [VT]::Reset())
                 
                 # Render tag content
-                $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
+                $isEditingThis = ($this.EditingItem -and $this.EditingItem.Task.Id -eq $task.Id)
                 if ($isEditingThis -and $this.EditingField -eq "tags") {
                     # Show active tags field with reverse video highlighting
                     $indentSize = $this.StatusCol + $this.PriorityCol + $this.DateCol + $this.ArrowCol
@@ -1700,9 +1882,20 @@ class TaskListScreen {
     
     # Enhanced cursor positioning for editing using FastLineBuilder - updated for unified rendering
     [void] PositionEnhancedEditingCursor([System.Text.StringBuilder]$sb) {
-        if ($this.EditingIndex -lt 0 -or $this.EditingIndex -ge $this.FlatList.Count) { return }
+        "DEBUG: PositionEnhancedEditingCursor called - EditingItem: $($this.EditingItem -ne $null), EditingField: '$($this.EditingField)' $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($this.EditingItem -eq $null) { return }
         
-        $item = $this.FlatList[$this.EditingIndex]
+        # Find the editing item in the FlatList
+        $editingIndex = -1
+        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+            if ($this.FlatList[$i].Task.Id -eq $this.EditingItem.Task.Id) {
+                $editingIndex = $i
+                break
+            }
+        }
+        if ($editingIndex -lt 0) { return }
+        
+        $item = $this.FlatList[$editingIndex]
         $task = $item.Task
         $level = $item.Level
         
@@ -1711,7 +1904,7 @@ class TaskListScreen {
         $currentY = $startY
         
         # Count items before the editing item to find Y position
-        for ($i = $this.ScrollTop; $i -lt $this.EditingIndex -and $i -lt $this.FlatList.Count; $i++) {
+        for ($i = $this.ScrollTop; $i -lt $editingIndex -and $i -lt $this.FlatList.Count; $i++) {
             if ($i -eq $this.SelectedIndex) {
                 # Selected item with pillbox: 4 lines (top + content + tags + bottom)
                 $currentY += 4
@@ -1722,17 +1915,18 @@ class TaskListScreen {
         }
         
         # If we're editing the selected item, cursor is inside the pillbox
-        if ($this.EditingIndex -eq $this.SelectedIndex) {
+        if ($editingIndex -eq $this.SelectedIndex) {
             # FastLineBuilder expects startY to be the content line position
             # Content line is at $currentY + 1 (after top border)
             $contentLineY = $currentY + 1
             
-            # Use FastLineBuilder to calculate exact cursor position
-            # It will automatically adjust Y for tags field (+1 from content line)
-            $cursorPos = $this.LineBuilder.GetEditingCursorPosition($task, $level, $this.EditingField, $this.EditingCursor, $contentLineY)
-            # Adjust X position for pillbox left border (add 1 for │)
-            $cursorX = $cursorPos.X + 1
-            [void]$sb.Append([VT]::MoveTo($cursorX, $cursorPos.Y))
+            # Use the new GetFieldScreenPosition method
+            $position = $this.GetFieldScreenPosition($this.EditingField, $this.EditingCursor, $this.EditingItem)
+            $cursorX = $position.X
+            $cursorY = $position.Y
+            
+            "DEBUG: GetFieldScreenPosition returned - field='$($this.EditingField)', cursorX=$cursorX, cursorY=$cursorY $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            [void]$sb.Append([VT]::MoveTo($cursorX, $cursorY))
         } else {
             # Editing non-selected item (shouldn't happen but handle gracefully)
             $cursorPos = $this.LineBuilder.GetEditingCursorPosition($task, $level, $this.EditingField, $this.EditingCursor, $currentY)
@@ -1765,7 +1959,7 @@ class TaskListScreen {
     }
     
     [void] RenderTaskContent([System.Text.StringBuilder]$sb, [SimpleTask]$task, [int]$level, [bool]$isLast, [bool]$clearToEnd, [bool]$isSelected = $false) {
-        $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
+        $isEditingThis = ($this.EditingItem -and $this.EditingItem.Task.Id -eq $task.Id)
         
         # COLUMN 1: ID1 (4 chars) - Project code
         if ($level -eq 0) {
@@ -1974,7 +2168,7 @@ class TaskListScreen {
         }
         
         # Use editing value if this task is being edited
-        $isEditingThis = ($this.EditingTask -and $this.EditingTask.Id -eq $task.Id)
+        $isEditingThis = ($this.EditingItem -and $this.EditingItem.Task.Id -eq $task.Id)
         if ($isEditingThis -and $this.EditingField -eq "title") {
             $length += [Math]::Max($task.Title.Length, $this.EditingValue.Length)
         } else {
@@ -1985,19 +2179,22 @@ class TaskListScreen {
     }
     
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # State Machine: Route input to appropriate handler based on current state
+        # If BaseListScreen is handling editing, let it handle ALL input
+        if ($this.EditingItem -ne $null) {
+            return ([BaseListScreen]$this).HandleInput($key)
+        }
+        
+        # Otherwise, use our state machine for non-editing modes  
         switch ($this.InputState) {
             ([TaskListInputState]::Browsing) {
                 return $this.HandleBrowsingInput($key)
-            }
-            ([TaskListInputState]::Editing) {
-                return $this.HandleEditingInput($key)
             }
             ([TaskListInputState]::Filtering) {
                 return $this.HandleFilterInput($key)
             }
             ([TaskListInputState]::TimeEntry) {
-                return $this.HandleTimeEntryInput($key)
+                # Time entry mode now handled by separate TimeEntryScreen
+                return $this.HandleBrowsingInput($key)
             }
             default {
                 # Fallback to browsing if state is corrupted
@@ -2121,22 +2318,28 @@ class TaskListScreen {
         }
         
         if ($this.KeyService.MatchesAction($key, "NewTask")) {
-            $this.StartInlineAdd()
-            $this.InputState = [TaskListInputState]::Editing
+            "DEBUG: NewTask KeyMappingService action triggered $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+            $this.StartNewItem()
             return $true
         }
         
         if ($this.KeyService.MatchesAction($key, "EditTask")) {
+            "DEBUG: EditTask KeyMappingService action triggered $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
             if ($this.FlatList.Count -gt 0) {
-                $this.StartInlineEdit("title")
-                $this.InputState = [TaskListInputState]::Editing
+                $item = $this.FlatList[$this.SelectedIndex]
+                $fields = $this.GetEditableFields($item)
+                if ($fields.Count -gt 0) {
+                    "DEBUG: KeyMappingService calling StartEdit with field: $($fields[0]) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                    $this.StartEdit($fields[0])
+                }
             }
             return $true
         }
         
         if ($this.KeyService.MatchesAction($key, "DeleteTask")) {
+            "DEBUG: DeleteTask KeyMappingService action triggered $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
             if ($this.FlatList.Count -gt 0) {
-                $this.DeleteTask()
+                $this.DeleteCurrentItem()
             }
             return $true
         }
@@ -2278,23 +2481,45 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::Enter) {
-                # Open notes editor
+                # Start editing first field of selected item
                 if ($this.FlatList.Count -gt 0) {
                     $item = $this.FlatList[$this.SelectedIndex]
-                    # Edit notes for the selected task (parent or subtask)
-                    return $this.EditNotes($item.Task)
+                    $fields = $this.GetEditableFields($item)
+                    if ($fields.Count -gt 0) {
+                        $this.StartEdit($fields[0])
+                    }
                 }
                 return $true
             }
             ([System.ConsoleKey]::N) {
-                # Start inline add new task (same as A key)
-                $this.StartInlineAdd()
+                # Start creating new item using BaseListScreen
+                $this.StartNewItem()
                 return $true
             }
             ([System.ConsoleKey]::S) {
-                # Start inline subtask creation
+                # Start subtask creation using BaseListScreen
                 if ($this.FlatList.Count -gt 0) {
-                    $this.StartInlineSubtask()
+                    # Create subtask for the selected parent task
+                    $item = $this.FlatList[$this.SelectedIndex]
+                    if ($item.Level -eq 0) { # Only create subtasks for parent tasks
+                        $parentTask = $item.Task
+                        $newSubtask = [SimpleTask]::new("New Subtask")
+                        $newSubtask.ParentId = $parentTask.Id
+                        $this.TaskService.AddTask($newSubtask)
+                        $this.LoadData() # Refresh
+                        
+                        # Find and select the new subtask for immediate editing
+                        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                            if ($this.FlatList[$i].Task.Id -eq $newSubtask.Id) {
+                                $this.SelectedIndex = $i
+                                $fields = $this.GetEditableFields($this.FlatList[$i])
+                                if ($fields.Count -gt 0) {
+                                    $this.StartEdit($fields[0])
+                                }
+                                break
+                            }
+                        }
+                    }
                 }
                 return $true
             }
@@ -2342,9 +2567,31 @@ class TaskListScreen {
                 return $true
             }
             ([System.ConsoleKey]::E) {
-                # Start inline editing of current task
+                # Start editing using BaseListScreen
+                "DEBUG: E key pressed - starting edit sequence $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
                 if ($this.FlatList.Count -gt 0) {
-                    $this.StartInlineEdit()
+                    "DEBUG: FlatList has $($this.FlatList.Count) items, SelectedIndex=$($this.SelectedIndex) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                    $item = $this.FlatList[$this.SelectedIndex]
+                    "DEBUG: Got item: $($item | ConvertTo-Json -Depth 1) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                    
+                    try {
+                        "DEBUG: Calling GetEditableFields $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                        $fields = $this.GetEditableFields($item)
+                        "DEBUG: GetEditableFields returned: $($fields -join ', ') $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                        
+                        if ($fields.Count -gt 0) {
+                            "DEBUG: Calling StartEdit with field: $($fields[0]) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                            $this.StartEdit($fields[0])
+                            "DEBUG: StartEdit completed successfully $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                        } else {
+                            "DEBUG: No editable fields found $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                        }
+                    } catch {
+                        "DEBUG: ERROR in E key handler: $($_.Exception.Message) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                        "DEBUG: Stack trace: $($_.ScriptStackTrace) $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+                    }
+                } else {
+                    "DEBUG: FlatList is empty $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
                 }
                 return $true
             }
@@ -2433,7 +2680,7 @@ class TaskListScreen {
                 }
                 
                 # Handle filter commands starting with '/'
-                if ($key.KeyChar -eq '/' -and $this.EditingIndex -lt 0) {
+                if ($key.KeyChar -eq '/' -and $this.EditingItem -eq $null) {
                     if ($this.FilterInputActive) {
                         # If filter is already active, clear it
                         $this.FilterInputValue = ""
@@ -2814,700 +3061,7 @@ class TaskListScreen {
         }
     }
     
-    [void] DeleteTask() {
-        if ($this.FlatList.Count -eq 0) { return }
-        
-        $item = $this.FlatList[$this.SelectedIndex]
-        
-        [Console]::SetCursorPosition(0, $this.Height)
-        Write-Host -NoNewline "Delete '$($item.Task.Title)'? (y/N): "
-        $confirm = [Console]::ReadKey($true)
-        
-        if ($confirm.KeyChar -eq 'y' -or $confirm.KeyChar -eq 'Y') {
-            $this.TaskService.DeleteTask($item.Task.Id)
-            $this.LoadTasks()
-        }
-    }
-    
-    # === INLINE EDITING METHODS ===
-    
-    [void] StartInlineEdit() {
-        $item = $this.FlatList[$this.SelectedIndex]
-        $this.EditingIndex = $this.SelectedIndex
-        $this.EditingTask = $item.Task
-        $this.EditingField = "id1"  # Start with ID1 (leftmost field)
-        # Preserve existing ID1 when starting edit
-        $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
-        $this.EditingCursor = $this.EditingValue.Length
-        $this.IsNewTask = $false
-    }
-    
-    # Overloaded version to start editing a specific field (fixes E key crash)
-    [void] StartInlineEdit([string]$field) {
-        $item = $this.FlatList[$this.SelectedIndex]
-        $this.EditingIndex = $this.SelectedIndex
-        $this.EditingTask = $item.Task
-        $this.EditingField = $field
-        $this.IsNewTask = $false
-        
-        # Set initial editing value based on the field
-        switch ($field) {
-            "title" { 
-                $this.EditingValue = if ($this.EditingTask.Title) { $this.EditingTask.Title } else { "" }
-            }
-            "id1" { 
-                $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
-            }
-            "id2" { 
-                $this.EditingValue = if ($this.EditingTask.ID2) { $this.EditingTask.ID2 } else { "" }
-            }
-            "priority" { 
-                $this.EditingValue = if ($this.EditingTask.Priority) { $this.EditingTask.Priority } else { "" }
-            }
-            "date" { 
-                $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
-            }
-            "tags" { 
-                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { $this.EditingTask.Tags -join ", " } else { "" }
-            }
-            default { 
-                $this.EditingValue = ""
-            }
-        }
-        $this.EditingCursor = $this.EditingValue.Length
-    }
-    
-    [void] StartInlineAdd() {
-        # Create a new task and add it temporarily to the end
-        $newTask = [SimpleTask]::new("")
-        $this.FlatList.Add(@{
-            Task = $newTask
-            Level = 0
-            IsLast = $false
-        })
-        $this.EditingIndex = $this.FlatList.Count - 1
-        $this.EditingTask = $newTask
-        $this.EditingField = "title"  # Start with title for immediate input
-        $this.EditingValue = ""
-        $this.EditingCursor = 0
-        $this.SelectedIndex = $this.EditingIndex
-        $this.IsNewTask = $true
-        $this.EnsureVisible()
-    }
-    
-    [void] StartInlineSubtask() {
-        $item = $this.FlatList[$this.SelectedIndex]
-        $parentTask = if ($item.Task.IsParent()) { $item.Task } else { $this.TaskService.GetTask($item.Task.ParentId) }
-        
-        if (-not $parentTask) { return }
-        
-        # Create a new subtask and add it after the parent's subtasks
-        $newSubtask = [SimpleTask]::new("")
-        
-        # Find the position to insert (after last subtask of this parent)
-        $insertIndex = $this.SelectedIndex + 1
-        for ($i = $this.SelectedIndex + 1; $i -lt $this.FlatList.Count; $i++) {
-            $nextItem = $this.FlatList[$i]
-            if ($nextItem.Level -eq 1 -and $this.TaskService.GetParentTask($nextItem.Task.Id).Id -eq $parentTask.Id) {
-                $insertIndex = $i + 1
-            } else {
-                break
-            }
-        }
-        
-        $this.FlatList.Insert($insertIndex, @{
-            Task = $newSubtask
-            Level = 1
-            IsLast = $false
-        })
-        
-        $this.EditingIndex = $insertIndex
-        $this.EditingTask = $newSubtask
-        $this.EditingField = "title"  # Start with title for immediate input
-        $this.EditingValue = ""
-        $this.EditingCursor = 0
-        $this.SelectedIndex = $this.EditingIndex
-        $this.IsNewTask = $true
-        $this.EnsureVisible()
-    }
-    
-    [bool] HandleEditingInput([System.ConsoleKeyInfo]$key) {
-        # Use KeyMappingService for editing commands
-        if ($this.KeyService.MatchesAction($key, "CommitEdit")) {
-            $this.SaveInlineEdit()
-            return $true
-        }
-        
-        if ($this.KeyService.MatchesAction($key, "CancelEdit")) {
-            $this.CancelInlineEdit()
-            return $true
-        }
-        
-        if ($this.KeyService.MatchesAction($key, "NextField")) {
-            # Switch between fields for all tasks (new and existing)
-            if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
-                $this.PreviousEditField()
-            } else {
-                $this.NextEditField()
-            }
-            return $true
-        }
-        
-        # Handle text editing keys (these don't need KeyMappingService)
-        switch ($key.Key) {
-            ([System.ConsoleKey]::Backspace) {
-                if ($this.EditingCursor -gt 0) {
-                    $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor - 1, 1)
-                    $this.EditingCursor--
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Delete) {
-                if ($this.EditingCursor -lt $this.EditingValue.Length) {
-                    $this.EditingValue = $this.EditingValue.Remove($this.EditingCursor, 1)
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::LeftArrow) {
-                if ($this.EditingCursor -gt 0) {
-                    $this.EditingCursor--
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::RightArrow) {
-                if ($this.EditingCursor -lt $this.EditingValue.Length) {
-                    $this.EditingCursor++
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Home) {
-                $this.EditingCursor = 0
-                return $true
-            }
-            ([System.ConsoleKey]::End) {
-                $this.EditingCursor = $this.EditingValue.Length
-                return $true
-            }
-            ([System.ConsoleKey]::UpArrow) {
-                # Save and move up using KeyMappingService action
-                $this.SaveInlineEdit()
-                if ($this.SelectedIndex -gt 0) {
-                    $this.SelectedIndex--
-                    $this.EnsureVisible()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::DownArrow) {
-                # Save and move down using KeyMappingService action
-                $this.SaveInlineEdit()
-                if ($this.SelectedIndex -lt ($this.FlatList.Count - 1)) {
-                    $this.SelectedIndex++
-                    $this.EnsureVisible()
-                }
-                return $true
-            }
-            default {
-                # Add character to editing value with field-specific validation
-                if ($key.KeyChar -and [char]::IsControl($key.KeyChar) -eq $false) {
-                    $newValue = $this.EditingValue.Insert($this.EditingCursor, $key.KeyChar)
-                    
-                    # Validate input based on field type
-                    $isValid = $false
-                    switch ($this.EditingField) {
-                        "status" {
-                            # Status: only accept ☐, ■, x, space, or single characters
-                            $isValid = $newValue.Length -le 1
-                        }
-                        "priority" {
-                            # Priority: only accept single letter shortcuts (h/m/l/t) - max 1 char
-                            $isValid = $newValue.Length -le 1 -and ($newValue -eq "" -or $newValue.ToLower() -match '^[hmlt]$')
-                        }
-                        "date" {
-                            # Date: max 10 chars, allow date formats and shortcuts
-                            $isValid = $newValue.Length -le 10 -and 
-                                      ($newValue -match '^[\d\-/tmowuehrsna\+]*$' -or $newValue -eq "")
-                        }
-                        "title" {
-                            # Title: reasonable length limit
-                            $isValid = $newValue.Length -le 80
-                        }
-                        "tags" {
-                            # Tags: reasonable length limit, allow tag characters
-                            $isValid = $newValue.Length -le 100 -and 
-                                      ($newValue -match '^[a-zA-Z0-9\-_,\s#]*$' -or $newValue -eq "")
-                        }
-                        default {
-                            $isValid = $true
-                        }
-                    }
-                    
-                    if ($isValid) {
-                        $this.EditingValue = $newValue
-                        $this.EditingCursor++
-                    }
-                }
-                return $true
-            }
-        }
-        return $true
-    }
-    
-    [void] NextEditField() {
-        # Save current field value only if something was entered, then move to next field
-        # Field cycle: id1 → id2 → created → priority → date → title → tags → id1 (cycle)
-        switch ($this.EditingField) {
-            "id1" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.ID1 = $this.EditingValue.Trim().Substring(0, [Math]::Min(3, $this.EditingValue.Trim().Length))
-                }
-                $this.EditingField = "id2"
-                # Preserve existing ID2 when switching fields
-                $this.EditingValue = if ($this.EditingTask.ID2) { $this.EditingTask.ID2 } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "id2" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.ID2 = $this.EditingValue.Trim().Substring(0, [Math]::Min(12, $this.EditingValue.Trim().Length))
-                }
-                $this.EditingField = "created"
-                # Preserve existing created date when switching fields
-                $this.EditingValue = if ($this.EditingTask.CreatedDate -ne [datetime]::MinValue) { $this.EditingTask.CreatedDate.ToString("yyyy-MM-dd") } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "created" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "" -and $this.EditingValue.Trim() -ne "clear") {
-                    $this.EditingTask.CreatedDate = $this.ConvertDateInput($this.EditingValue)
-                } elseif ($this.EditingValue.Trim() -eq "clear") {
-                    $this.EditingTask.CreatedDate = [datetime]::MinValue
-                }
-                
-                # Get editing item to check level
-                $item = $this.FlatList[$this.EditingIndex]
-                if ($item.Level -eq 0) {
-                    # Parent task: skip priority field and go directly to date
-                    $this.EditingField = "date"
-                    # Preserve existing date when switching fields
-                    $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
-                    $this.EditingCursor = $this.EditingValue.Length
-                } else {
-                    # Subtask: go to priority field (which exists for subtasks)
-                    $this.EditingField = "priority"
-                    # Preserve existing priority when switching fields
-                    $priorityChar = switch ($this.EditingTask.Priority) {
-                        "High" { "h" }
-                        "Medium" { "m" }
-                        "Low" { "l" }
-                        "Today" { "t" }
-                        default { "" }
-                    }
-                    $this.EditingValue = $priorityChar
-                    $this.EditingCursor = $this.EditingValue.Length
-                }
-            }
-            "priority" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
-                }
-                $this.EditingField = "date"
-                # Preserve existing date when switching fields
-                $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "date" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
-                }
-                $this.EditingField = "title"
-                # Preserve existing title when switching fields
-                $this.EditingValue = $this.EditingTask.Title
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "title" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.Title = $this.EditingValue
-                }
-                $this.EditingField = "tags"
-                # Preserve existing tags when switching fields
-                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "tags" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
-                    $this.EditingTask.Tags = $tagParts
-                }
-                
-                # Always cycle back to id1 - complete cycle
-                $this.EditingField = "id1"
-                # Preserve existing ID1 when switching fields
-                $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-        }
-    }
-    
-    [void] PreviousEditField() {
-        # Save current field value only if something was entered, then move to previous field
-        # Reverse field cycle: tags ← title ← date ← priority ← created ← id2 ← id1 ← tags (cycle)
-        switch ($this.EditingField) {
-            "id1" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.ID1 = $this.EditingValue.Trim().Substring(0, [Math]::Min(3, $this.EditingValue.Trim().Length))
-                }
-                $this.EditingField = "tags"
-                # Preserve existing tags when switching fields
-                $this.EditingValue = if ($this.EditingTask.Tags.Count -gt 0) { ($this.EditingTask.Tags -join ", ") } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "id2" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.ID2 = $this.EditingValue.Trim().Substring(0, [Math]::Min(12, $this.EditingValue.Trim().Length))
-                }
-                $this.EditingField = "id1"
-                # Preserve existing ID1 when switching fields
-                $this.EditingValue = if ($this.EditingTask.ID1) { $this.EditingTask.ID1 } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "created" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "" -and $this.EditingValue.Trim() -ne "clear") {
-                    $this.EditingTask.CreatedDate = $this.ConvertDateInput($this.EditingValue)
-                } elseif ($this.EditingValue.Trim() -eq "clear") {
-                    $this.EditingTask.CreatedDate = [datetime]::MinValue
-                }
-                $this.EditingField = "id2"
-                # Preserve existing ID2 when switching fields
-                $this.EditingValue = if ($this.EditingTask.ID2) { $this.EditingTask.ID2 } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "priority" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
-                }
-                $this.EditingField = "created"
-                # Preserve existing created date when switching fields
-                $this.EditingValue = if ($this.EditingTask.CreatedDate -ne [datetime]::MinValue) { $this.EditingTask.CreatedDate.ToString("yyyy-MM-dd") } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "date" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
-                }
-                $this.EditingField = "priority"
-                # Preserve existing priority when switching fields
-                $priorityChar = switch ($this.EditingTask.Priority) {
-                    "High" { "h" }
-                    "Medium" { "m" }
-                    "Low" { "l" }
-                    "Today" { "t" }
-                    default { "" }
-                }
-                $this.EditingValue = $priorityChar
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "title" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $this.EditingTask.Title = $this.EditingValue
-                }
-                $this.EditingField = "date"
-                # Preserve existing date when switching fields
-                $this.EditingValue = if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $this.EditingTask.DueDate.ToString("yyyy-MM-dd") } else { "" }
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-            "tags" {
-                # Only update if user entered something
-                if ($this.EditingValue.Trim() -ne "") {
-                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
-                    $this.EditingTask.Tags = $tagParts
-                }
-                $this.EditingField = "title"
-                # Preserve existing title when switching fields
-                $this.EditingValue = $this.EditingTask.Title
-                $this.EditingCursor = $this.EditingValue.Length
-            }
-        }
-    }
-    
-    [void] SaveInlineEdit() {
-        # Apply final field value to task
-        switch ($this.EditingField) {
-            "id1" { 
-                $this.EditingTask.ID1 = $this.EditingValue.Trim().Substring(0, [Math]::Min(3, $this.EditingValue.Trim().Length))
-            }
-            "id2" { 
-                $this.EditingTask.ID2 = $this.EditingValue.Trim().Substring(0, [Math]::Min(12, $this.EditingValue.Trim().Length))
-            }
-            "created" {
-                if ($this.EditingValue.Trim() -eq "" -or $this.EditingValue.Trim() -eq "clear") {
-                    $this.EditingTask.CreatedDate = [datetime]::MinValue
-                } else {
-                    $this.EditingTask.CreatedDate = $this.ConvertDateInput($this.EditingValue)
-                }
-            }
-            "title" { 
-                $this.EditingTask.Title = $this.EditingValue.Trim()
-            }
-            "priority" { 
-                $this.EditingTask.Priority = $this.ConvertPriorityInput($this.EditingValue)
-            }
-            "date" {
-                $this.EditingTask.DueDate = $this.ConvertDateInput($this.EditingValue)
-            }
-            "tags" {
-                if ($this.EditingValue.Trim()) {
-                    $tagParts = $this.EditingValue -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
-                    $this.EditingTask.Tags = $tagParts
-                } else {
-                    $this.EditingTask.Tags = @()
-                }
-            }
-        }
-        
-        # Auto-tag for Today priority
-        if ($this.EditingTask.Priority -eq "Today" -and -not ($this.EditingTask.Tags -contains "today")) {
-            $this.EditingTask.Tags += "today"
-        }
-        
-        # Save to service if we have a title
-        if ($this.EditingTask.Title.Trim()) {
-            if ($this.IsNewTask) {
-                # New task - check if it's a subtask
-                $item = $this.FlatList[$this.EditingIndex]
-                if ($item.Level -eq 1) {
-                    # Find parent task
-                    for ($i = $this.EditingIndex - 1; $i -ge 0; $i--) {
-                        $parentItem = $this.FlatList[$i]
-                        if ($parentItem.Level -eq 0) {
-                            $this.TaskService.AddSubtask($parentItem.Task.Id, $this.EditingTask)
-                            break
-                        }
-                    }
-                } else {
-                    # Regular parent task
-                    $this.TaskService.AddTask($this.EditingTask)
-                }
-            } else {
-                # Existing task
-                $this.TaskService.UpdateTask($this.EditingTask)
-            }
-        } else {
-            # Empty title, remove if it was a new task
-            if ($this.IsNewTask) {
-                $this.FlatList.RemoveAt($this.EditingIndex)
-            }
-        }
-        
-        $this.EndInlineEdit()
-    }
-    
-    [void] CancelInlineEdit() {
-        # Remove new task if it was being added
-        if ($this.IsNewTask) {
-            $this.FlatList.RemoveAt($this.EditingIndex)
-            if ($this.SelectedIndex -ge $this.FlatList.Count) {
-                $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
-            }
-        }
-        $this.EndInlineEdit()
-    }
-    
-    [void] EndInlineEdit() {
-        $this.EditingIndex = -1
-        $this.EditingField = ""
-        $this.EditingValue = ""
-        $this.EditingCursor = 0
-        $this.EditingTask = $null
-        $this.IsNewTask = $false
-        $this.LoadTasks()  # Refresh the list
-    }
-    
-    [void] PositionCursorForEditing([System.Text.StringBuilder]$sb) {
-        if ($this.EditingIndex -lt 0 -or -not $this.EditingTask) {
-            return
-        }
-        
-        # Calculate cursor position based on which field is being edited
-        $item = $this.FlatList[$this.EditingIndex]
-        $level = $item.Level
-        $isSelected = ($this.EditingIndex -eq $this.SelectedIndex)
-        
-        # Find the Y position of this item in the rendered list
-        $startY = 3
-        $currentY = $startY
-        $visibleIndex = -1
-        
-        for ($i = $this.ScrollTop; $i -lt $this.FlatList.Count; $i++) {
-            if ($i -eq $this.EditingIndex) {
-                $visibleIndex = $currentY
-                break
-            }
-            $currentY += $this.GetItemHeight($i)
-        }
-        
-        if ($visibleIndex -eq -1) {
-            return  # Item not visible
-        }
-        
-        # Calculate cursor X position based on field and level
-        $cursorX = 0
-        $cursorY = $visibleIndex
-        
-        if ($isSelected) {
-            # Selected item with pillbox - add 1 for pillbox border and position in content line
-            $cursorY += 2  # Skip spacer and top border to get to content line
-        }
-        
-        switch ($this.EditingField) {
-            "status" {
-                # Status field starts at column 0, cursor at beginning
-                $cursorX = 0
-            }
-            "priority" {
-                if ($level -eq 0) {
-                    # Priority field starts after status column, cursor at EditingCursor position
-                    $cursorX = $this.COLUMN_STATUS + $this.EditingCursor
-                } else {
-                    # Subtask priority appears after tree chars, cursor at EditingCursor position
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT + $this.EditingCursor
-                }
-            }
-            "date" {
-                if ($level -eq 0) {
-                    # Date field starts after status + priority, cursor at EditingCursor position
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.EditingCursor
-                } else {
-                    # Subtask date appears after priority, cursor at EditingCursor position
-                    $priorityWidth = if ($this.EditingTask.Priority) { 2 } else { 0 }
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT + $priorityWidth + $this.EditingCursor
-                }
-            }
-            "title" {
-                if ($level -eq 0) {
-                    # Title starts after all columns, cursor at EditingCursor position
-                    $cursorX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.EditingCursor
-                } else {
-                    # Calculate position after tree chars and priority/date for subtasks, cursor at EditingCursor position
-                    $baseX = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW + $this.TREE_INDENT
-                    # Add priority and date widths if they exist
-                    if ($this.EditingTask.Priority) { $baseX += 2 }  # 2 chars for subtask priority
-                    if ($this.EditingTask.DueDate -ne [datetime]::MinValue) { $baseX += 6 }  # 6 chars for MM-dd
-                    $cursorX = $baseX + $this.EditingCursor
-                }
-            }
-            "tags" {
-                # Tags appear in the second line of pillbox (if selected)
-                if ($isSelected) {
-                    $cursorY += 1  # Move to tags line in pillbox
-                    $indentSize = $this.COLUMN_STATUS + $this.COLUMN_PRIORITY + $this.COLUMN_DATE + $this.COLUMN_ARROW
-                    if ($level -eq 1) { $indentSize += $this.TREE_INDENT }
-                    # Position cursor inside the ⟨⟩ brackets at EditingCursor position: pillbox border + indent + "⟨" + text
-                    $cursorX = 1 + $indentSize + 1 + $this.EditingCursor
-                }
-            }
-        }
-        
-        # Adjust for pillbox border when selected
-        if ($isSelected -and $this.EditingField -ne "tags") {
-            $cursorX += 1  # Add 1 for left pillbox border
-        }
-        
-        [void]$sb.Append([VT]::MoveTo($cursorX, $cursorY))
-    }
-    
-    [void] OpenProjectTextExport() {
-        # ExcelDataFlow export directory
-        $excelDataFlowPath = Join-Path (Split-Path $PSScriptRoot -Parent) "ExcelDataFlow"
-        
-        if (-not (Test-Path $excelDataFlowPath)) {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "ExcelDataFlow directory not found at: $excelDataFlowPath " -ForegroundColor Red
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-            return
-        }
-        
-        # Look for the most recent text export file anywhere in ExcelDataFlow
-        $exportFiles = @()
-        $searchPatterns = @("*.txt", "*.csv", "*.json", "*.tsv", "*.xml")
-        
-        # Search root directory and Projects subdirectory recursively
-        $searchPaths = @($excelDataFlowPath)
-        $projectsDir = Join-Path $excelDataFlowPath "Projects"
-        if (Test-Path $projectsDir) {
-            $searchPaths += $projectsDir
-        }
-        
-        foreach ($searchPath in $searchPaths) {
-            foreach ($pattern in $searchPatterns) {
-                $files = Get-ChildItem -Path $searchPath -Filter $pattern -File -Recurse | Where-Object { 
-                    $_.Name -like "*Export*" -or $_.Name -like "*export*" 
-                }
-                $exportFiles += $files
-            }
-        }
-        
-        if ($exportFiles.Count -eq 0) {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "No ExcelDataFlow export files found " -ForegroundColor Yellow
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-            return
-        }
-        
-        # Get the most recent export file
-        $mostRecentFile = $exportFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        
-        [Console]::SetCursorPosition(0, $this.Height)
-        Write-Host -NoNewline "Opening most recent export: $($mostRecentFile.Name) " -ForegroundColor Green
-        Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-        [Console]::ReadKey($true) | Out-Null
-        
-        # Open the file with default system editor
-        try {
-            if ([System.Environment]::OSVersion.Platform -eq "Unix" -or $env:OS -ne "Windows_NT") {
-                # Unix-like systems
-                if (Get-Command "xdg-open" -ErrorAction SilentlyContinue) {
-                    Start-Process "xdg-open" -ArgumentList "`"$($mostRecentFile.FullName)`""
-                } elseif (Get-Command "open" -ErrorAction SilentlyContinue) {
-                    Start-Process "open" -ArgumentList "`"$($mostRecentFile.FullName)`""
-                } else {
-                    # Fallback to common text editors
-                    $editors = @("nano", "vim", "vi", "gedit")
-                    $foundEditor = $false
-                    foreach ($editor in $editors) {
-                        if (Get-Command $editor -ErrorAction SilentlyContinue) {
-                            Start-Process $editor -ArgumentList "`"$($mostRecentFile.FullName)`""
-                            $foundEditor = $true
-                            break
-                        }
-                    }
-                    if (-not $foundEditor) {
-                        throw "No suitable text editor found"
-                    }
-                }
-            } else {
-                # Windows
-                Start-Process -FilePath $mostRecentFile.FullName
-            }
-        } catch {
-            [Console]::SetCursorPosition(0, $this.Height)
-            Write-Host -NoNewline "Failed to open file: $_ " -ForegroundColor Red
-            Write-Host -NoNewline "Press any key to continue..." -ForegroundColor Gray
-            [Console]::ReadKey($true) | Out-Null
-        }
-    }
+    # === ALL LEGACY EDITING METHODS REMOVED ===
     
     [void] OpenThemeEditor() {
         # Open the new ThemeEditorDialog
@@ -3759,448 +3313,5 @@ class TaskListScreen {
         }
         
         return $true
-    }
-    
-    # TIME ENTRY INPUT HANDLING (EXACT COPY OF TIMETRACKER FUNCTIONALITY)
-    [bool] HandleTimeEntryInput([System.ConsoleKeyInfo]$key) {
-        # Handle time entry editing mode input first
-        if ($this.TimeEditingIndex -ge 0) {
-            return $this.HandleTimeEditingInput($key)
-        }
-        
-        # Handle F4 toggle back to tasks
-        if ($key.Key -eq [System.ConsoleKey]::F4) {
-            [EventBus]::Publish("NavigateBack")
-            return $true
-        }
-        
-        switch ($key.Key) {
-            ([System.ConsoleKey]::UpArrow) {
-                if ($this.TimeSelectedIndex -gt 0) {
-                    $this.TimeSelectedIndex--
-                    $this.EnsureTimeVisible()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::DownArrow) {
-                if ($this.TimeSelectedIndex -lt ($this.TimeFlatList.Count - 1)) {
-                    $this.TimeSelectedIndex++
-                    $this.EnsureTimeVisible()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::LeftArrow) {
-                $this.TimeService.NavigateToPreviousWeek()
-                $this.LoadTimeEntries()
-                return $true
-            }
-            ([System.ConsoleKey]::RightArrow) {
-                $this.TimeService.NavigateToNextWeek()
-                $this.LoadTimeEntries()
-                return $true
-            }
-            ([System.ConsoleKey]::E) {
-                # Start inline editing of current entry
-                if ($this.TimeFlatList.Count -gt 0) {
-                    $this.StartTimeInlineEdit()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::D) {
-                $this.DeleteTimeEntry()
-                return $true
-            }
-            ([System.ConsoleKey]::C) {
-                $this.TimeService.NavigateToCurrentWeek()
-                $this.LoadTimeEntries()
-                return $true
-            }
-            ([System.ConsoleKey]::P) {
-                # Toggle filter - show all projects vs only projects with time
-                $this.IsTimeFilterActive = -not $this.IsTimeFilterActive
-                $this.LoadTimeEntries()
-                return $true
-            }
-            ([System.ConsoleKey]::N) {
-                try {
-                    # First unfilter to show all projects as potential time entries
-                    $this.IsTimeFilterActive = $false
-                    $this.LoadTimeEntries()
-                    
-                    # Then add new time entry inline (like task N key)
-                    $this.StartTimeInlineAdd()
-                    return $true
-                } catch {
-                    return $false
-                }
-            }
-            ([System.ConsoleKey]::A) {
-                # Add project time entry - show project picker
-                $this.StartProjectTimeEntry()
-                return $true
-            }
-        }
-        
-        return $true
-    }
-    
-    [bool] HandleTimeEditingInput([System.ConsoleKeyInfo]$key) {
-        switch ($key.Key) {
-            ([System.ConsoleKey]::Enter) {
-                # For new entries, only save after completing all required fields
-                if ($this.IsNewTimeEntry) {
-                    if ($this.TimeEditingField -eq "friday") {
-                        $this.SaveTimeInlineEdit()
-                    } else {
-                        $this.NextTimeEditField()
-                    }
-                } else {
-                    # For existing entries, save immediately
-                    $this.SaveTimeInlineEdit()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Escape) {
-                # Cancel editing
-                $this.CancelTimeInlineEdit()
-                return $true
-            }
-            ([System.ConsoleKey]::Tab) {
-                # Check for Shift+Tab (reverse)
-                if ($key.Modifiers -band [System.ConsoleModifiers]::Shift) {
-                    $this.PreviousTimeEditField()
-                } else {
-                    $this.NextTimeEditField()
-                }
-                return $true
-            }
-            ([System.ConsoleKey]::Backspace) {
-                if ($this.TimeEditingValue.Length -gt 0) {
-                    $this.TimeEditingValue = $this.TimeEditingValue.Substring(0, $this.TimeEditingValue.Length - 1)
-                }
-                return $true
-            }
-            default {
-                # Add character to editing value
-                if ($key.KeyChar -and [char]::IsControl($key.KeyChar) -eq $false) {
-                    $this.TimeEditingValue += $key.KeyChar
-                }
-                return $true
-            }
-        }
-        return $true
-    }
-    
-    # TIME ENTRY EDITING METHODS
-    [void] StartTimeInlineEdit() {
-        $item = $this.TimeFlatList[$this.TimeSelectedIndex]
-        $this.TimeEditingIndex = $this.TimeSelectedIndex
-        $this.TimeEditingEntry = $item.Entry
-        $this.TimeEditingField = "name"  # Start with name
-        $this.TimeEditingValue = if ($item.Entry.Description) { $item.Entry.Description } else { "" }
-        $this.IsNewTimeEntry = $false
-    }
-    
-    [void] StartTimeInlineAdd() {
-        try {
-            # Create a new time entry and add it temporarily to the end (like task inline add)
-            $newEntry = [SimpleTimeEntry]::new()
-            
-            $newEntry.ProjectCode = ""  # Start empty for non-project entries
-            $newEntry.Description = ""  # Start empty
-            $newEntry.ID1Display = ""  # Start empty for user input
-            $newEntry.IsProjectEntry = $false  # Default to non-project (VAC, SICK, etc.)
-            
-            # Set the week ending friday using the service's current week
-            if ($this.TimeService -and $this.TimeService.CurrentWeekFriday) {
-                $newEntry.WeekEndingFriday = $this.TimeService.CurrentWeekFriday.ToString("yyyyMMdd")
-            } else {
-                $newEntry.WeekEndingFriday = $newEntry.GetCurrentWeekEndingFriday()
-            }
-            
-            $this.TimeFlatList.Add(@{
-                Entry = $newEntry
-                IsLast = $false
-            })
-            
-            $this.TimeEditingIndex = $this.TimeFlatList.Count - 1
-            $this.TimeEditingEntry = $newEntry
-            $this.TimeEditingField = "id1"  # Start with ID1 (time code) for immediate input
-            $this.TimeEditingValue = ""
-            $this.TimeSelectedIndex = $this.TimeEditingIndex
-            $this.IsNewTimeEntry = $true
-            
-            $this.EnsureTimeVisible()
-        }
-        catch {
-            
-            # Reset editing state to safe values
-            $this.TimeEditingIndex = -1
-            $this.TimeEditingField = ""
-            $this.TimeEditingValue = ""
-            $this.TimeEditingEntry = $null
-            $this.IsNewTimeEntry = $false
-        }
-    }
-    
-    [void] StartProjectTimeEntry() {
-        # First ensure task lookup is populated
-        $this.LoadTaskLookup()
-        
-        # Get all projects (tasks with ID2)
-        $projects = @()
-        foreach ($key in $this.TaskLookup.Keys) {
-            $task = $this.TaskLookup[$key]
-            if ($task.ID2) {  # Only include tasks with project codes (ID2)
-                $projects += @{
-                    Task = $task
-                    Display = "$($task.ID1) $($task.ID2) - $($task.Title)"
-                }
-            }
-        }
-        
-        if ($projects.Count -eq 0) {
-            return  # No projects available
-        }
-        
-        # Show project selection (simplified - just pick first one for now)
-        $selectedProject = $projects[0].Task
-        
-        # Create a new time entry for the selected project
-        $newEntry = [SimpleTimeEntry]::new()
-        $newEntry.ProjectCode = $selectedProject.ID2
-        $newEntry.Description = $selectedProject.Title
-        $newEntry.ID1Display = if ($selectedProject.ID1) { $selectedProject.ID1 } else { "" }
-        $newEntry.IsProjectEntry = $true
-        
-        # Set the week ending friday using the service's current week
-        if ($this.TimeService -and $this.TimeService.CurrentWeekFriday) {
-            $newEntry.WeekEndingFriday = $this.TimeService.CurrentWeekFriday.ToString("yyyyMMdd")
-        }
-        
-        # Add to the time flat list for inline editing
-        $this.TimeFlatList.Add(@{
-            Entry = $newEntry
-            IsLast = $false
-        })
-        
-        # Set selection and editing state to start with Monday hours
-        $this.TimeSelectedIndex = $this.TimeFlatList.Count - 1
-        $this.TimeEditingIndex = $this.TimeSelectedIndex
-        $this.TimeEditingEntry = $newEntry
-        $this.TimeEditingField = "monday"  # Start editing Monday hours
-        $this.TimeEditingValue = "0"
-        $this.IsNewTimeEntry = $true
-        
-        $this.EnsureTimeVisible()
-    }
-    
-    [void] NextTimeEditField() {
-        # Cycle through fields: name -> id1 -> id2 -> monday -> tuesday -> wednesday -> thursday -> friday
-        switch ($this.TimeEditingField) {
-            "name" {
-                $this.TimeEditingEntry.Description = $this.TimeEditingValue
-                # After name, go to monday for time codes (they don't need id1/id2 editing after creation)
-                $this.TimeEditingField = "monday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Monday -gt 0) { $this.TimeEditingEntry.Monday.ToString() } else { "" }
-            }
-            "id1" {
-                $this.TimeEditingEntry.ID1Display = $this.TimeEditingValue
-                # For non-project entries (time codes), skip id2 and go straight to name/description
-                if ($this.TimeEditingEntry.IsProjectEntry) {
-                    $this.TimeEditingField = "id2"
-                    $this.TimeEditingValue = if ($this.TimeEditingEntry.ProjectCode) { $this.TimeEditingEntry.ProjectCode } else { "" }
-                } else {
-                    $this.TimeEditingField = "name"
-                    $this.TimeEditingValue = if ($this.TimeEditingEntry.Description) { $this.TimeEditingEntry.Description } else { "" }
-                }
-            }
-            "id2" {
-                $this.TimeEditingEntry.ProjectCode = $this.TimeEditingValue
-                $this.TimeEditingField = "monday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Monday -gt 0) { $this.TimeEditingEntry.Monday.ToString() } else { "" }
-            }
-            "monday" {
-                $this.SetTimeEntryDayValue("Monday", $this.TimeEditingValue)
-                $this.TimeEditingField = "tuesday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Tuesday -gt 0) { $this.TimeEditingEntry.Tuesday.ToString() } else { "" }
-            }
-            "tuesday" {
-                $this.SetTimeEntryDayValue("Tuesday", $this.TimeEditingValue)
-                $this.TimeEditingField = "wednesday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Wednesday -gt 0) { $this.TimeEditingEntry.Wednesday.ToString() } else { "" }
-            }
-            "wednesday" {
-                $this.SetTimeEntryDayValue("Wednesday", $this.TimeEditingValue)
-                $this.TimeEditingField = "thursday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Thursday -gt 0) { $this.TimeEditingEntry.Thursday.ToString() } else { "" }
-            }
-            "thursday" {
-                $this.SetTimeEntryDayValue("Thursday", $this.TimeEditingValue)
-                $this.TimeEditingField = "friday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Friday -gt 0) { $this.TimeEditingEntry.Friday.ToString() } else { "" }
-            }
-            "friday" {
-                $this.SetTimeEntryDayValue("Friday", $this.TimeEditingValue)
-                if ($this.IsNewTimeEntry) {
-                    # For new entries, we're done - will save on next Enter
-                    return
-                } else {
-                    # For existing entries, cycle back to name
-                    $this.TimeEditingField = "name"
-                    $this.TimeEditingValue = if ($this.TimeEditingEntry.Description) { $this.TimeEditingEntry.Description } else { "" }
-                }
-            }
-        }
-    }
-    
-    [void] PreviousTimeEditField() {
-        # Cycle backwards through fields
-        switch ($this.TimeEditingField) {
-            "name" {
-                $this.TimeEditingEntry.Description = $this.TimeEditingValue
-                $this.TimeEditingField = "friday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Friday -gt 0) { $this.TimeEditingEntry.Friday.ToString() } else { "" }
-            }
-            "id1" {
-                $this.TimeEditingEntry.ID1Display = $this.TimeEditingValue
-                $this.TimeEditingField = "name"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Description) { $this.TimeEditingEntry.Description } else { "" }
-            }
-            "id2" {
-                $this.TimeEditingEntry.ProjectCode = $this.TimeEditingValue
-                $this.TimeEditingField = "id1"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.ID1Display) { $this.TimeEditingEntry.ID1Display } else { "" }
-            }
-            "monday" {
-                $this.SetTimeEntryDayValue("Monday", $this.TimeEditingValue)
-                $this.TimeEditingField = "id2"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.ProjectCode) { $this.TimeEditingEntry.ProjectCode } else { "" }
-            }
-            "tuesday" {
-                $this.SetTimeEntryDayValue("Tuesday", $this.TimeEditingValue)
-                $this.TimeEditingField = "monday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Monday -gt 0) { $this.TimeEditingEntry.Monday.ToString() } else { "" }
-            }
-            "wednesday" {
-                $this.SetTimeEntryDayValue("Wednesday", $this.TimeEditingValue)
-                $this.TimeEditingField = "tuesday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Tuesday -gt 0) { $this.TimeEditingEntry.Tuesday.ToString() } else { "" }
-            }
-            "thursday" {
-                $this.SetTimeEntryDayValue("Thursday", $this.TimeEditingValue)
-                $this.TimeEditingField = "wednesday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Wednesday -gt 0) { $this.TimeEditingEntry.Wednesday.ToString() } else { "" }
-            }
-            "friday" {
-                $this.SetTimeEntryDayValue("Friday", $this.TimeEditingValue)
-                $this.TimeEditingField = "thursday"
-                $this.TimeEditingValue = if ($this.TimeEditingEntry.Thursday -gt 0) { $this.TimeEditingEntry.Thursday.ToString() } else { "" }
-            }
-        }
-    }
-    
-    [void] SetTimeEntryDayValue([string]$dayName, [string]$value) {
-        $hours = 0
-        if ($value -and [decimal]::TryParse($value, [ref]$hours)) {
-            $this.TimeEditingEntry.SetDayHours($dayName, $hours)
-        } else {
-            $this.TimeEditingEntry.SetDayHours($dayName, 0)
-        }
-    }
-    
-    [void] SaveTimeInlineEdit() {
-        # Apply final field value
-        switch ($this.TimeEditingField) {
-            "name" { $this.TimeEditingEntry.Description = $this.TimeEditingValue }
-            "id1" { $this.TimeEditingEntry.ID1Display = $this.TimeEditingValue }
-            "id2" { $this.TimeEditingEntry.ProjectCode = $this.TimeEditingValue }
-            "monday" { $this.SetTimeEntryDayValue("Monday", $this.TimeEditingValue) }
-            "tuesday" { $this.SetTimeEntryDayValue("Tuesday", $this.TimeEditingValue) }
-            "wednesday" { $this.SetTimeEntryDayValue("Wednesday", $this.TimeEditingValue) }
-            "thursday" { $this.SetTimeEntryDayValue("Thursday", $this.TimeEditingValue) }
-            "friday" { $this.SetTimeEntryDayValue("Friday", $this.TimeEditingValue) }
-        }
-        
-        # Determine if it's a time code or project entry
-        $this.TimeEditingEntry.IsProjectEntry = -not $this.TimeEditingEntry.IsTimeCode()
-        
-        # Recalculate total
-        $this.TimeEditingEntry.CalculateTotal()
-        
-        # Save to service
-        if ($this.TimeEditingEntry.ID1Display -or $this.TimeEditingEntry.ProjectCode) {
-            if ($this.TimeEditingEntry.Id -eq [guid]::Empty -or $this.IsNewTimeEntry) {
-                # New entry
-                $this.TimeService.AddTimeEntry($this.TimeEditingEntry)
-            } else {
-                # Existing entry
-                $this.TimeService.UpdateTimeEntry($this.TimeEditingEntry)
-            }
-        } else {
-            # Empty entry, remove if it was a new entry
-            if ($this.IsNewTimeEntry) {
-                $this.TimeFlatList.RemoveAt($this.TimeEditingIndex)
-            }
-        }
-        
-        $this.EndTimeInlineEdit()
-    }
-    
-    [void] CancelTimeInlineEdit() {
-        # Remove new entry if it was being added
-        if ($this.IsNewTimeEntry) {
-            $this.TimeFlatList.RemoveAt($this.TimeEditingIndex)
-            if ($this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
-                $this.TimeSelectedIndex = [Math]::Max(0, $this.TimeFlatList.Count - 1)
-            }
-        }
-        $this.EndTimeInlineEdit()
-    }
-    
-    [void] EndTimeInlineEdit() {
-        $this.TimeEditingIndex = -1
-        $this.TimeEditingField = ""
-        $this.TimeEditingValue = ""
-        $this.TimeEditingEntry = $null
-        $this.IsNewTimeEntry = $false
-        $this.LoadTimeEntries()  # Refresh the list
-    }
-    
-    [void] DeleteTimeEntry() {
-        if ($this.TimeFlatList.Count -eq 0) { return }
-        
-        $item = $this.TimeFlatList[$this.TimeSelectedIndex]
-        $this.TimeService.DeleteTimeEntry($item.Entry.Id)
-        $this.LoadTimeEntries()
-    }
-    
-    [void] EnsureTimeVisible() {
-        # Ensure selected item is visible with dynamic heights
-        if ($this.TimeSelectedIndex -lt $this.TimeScrollTop) {
-            $this.TimeScrollTop = $this.TimeSelectedIndex
-        } else {
-            # Check if selected item fits in current view
-            $availableHeight = $this.Height - 6
-            $totalHeight = 0
-            $needsScroll = $true
-            
-            for ($i = $this.TimeScrollTop; $i -le $this.TimeSelectedIndex -and $i -lt $this.TimeFlatList.Count; $i++) {
-                $itemHeight = $this.GetTimeItemHeight($i)
-                $totalHeight += $itemHeight
-                
-                if ($i -eq $this.TimeSelectedIndex) {
-                    if ($totalHeight -le $availableHeight) {
-                        $needsScroll = $false
-                    }
-                    break
-                }
-            }
-            
-            if ($needsScroll) {
-                # Scroll to show selected item
-                $this.TimeScrollTop = [Math]::Max(0, $this.TimeSelectedIndex - 1)
-            }
-        }
     }
 }

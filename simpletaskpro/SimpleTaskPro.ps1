@@ -70,6 +70,9 @@ try {
     "Loading ThemeEditorDialog..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Dialogs/ThemeEditorDialog.ps1"
     
+    "Loading KeySettingsDialog..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Dialogs/KeySettingsDialog.ps1"
+    
     "Loading ProjectManagerScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/ProjectManagerScreen.ps1"
     
@@ -79,6 +82,9 @@ try {
     
     "Loading CommandService..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Services/CommandService.ps1"
+    
+    "Loading BaseListScreen (core architecture)..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Base/BaseListScreen.ps1"
     
     "Loading CommandLibraryScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/CommandLibraryScreen.ps1"
@@ -96,9 +102,6 @@ try {
     . "$PSScriptRoot/Services/ExcelService.ps1"
     . "$PSScriptRoot/Services/TextExportService.ps1"
     . "$PSScriptRoot/Services/ExcelServiceContainer.ps1"
-    
-    "Loading BaseListScreen (core architecture)..." | Tee-Object $logFile -Append
-    . "$PSScriptRoot/Base/BaseListScreen.ps1"
     
     "Loading ExcelMappingScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/ExcelMappingScreen.ps1"

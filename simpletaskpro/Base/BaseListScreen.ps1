@@ -88,6 +88,12 @@ class BaseListScreen {
         throw "CreateNewItem() must be implemented by derived class"
     }
     
+    # NEW: Field cursor positioning - override in derived classes
+    [hashtable] GetFieldScreenPosition([string]$field, [int]$cursor, [object]$item) {
+        # Default implementation - just position at start of line
+        return @{ X = 2 + $cursor; Y = 3 }
+    }
+    
     # === CORE LIST NAVIGATION ===
     
     [void] MoveUp() {

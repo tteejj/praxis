@@ -1,30 +1,31 @@
 # TimeEntryScreen.ps1 - Dedicated time entry screen with EventBus integration
 # Extracted from TaskListScreen.ps1 to provide clean separation of concerns
 
-class TimeEntryScreen {
+class TimeEntryScreen : BaseListScreen {
     [TimeTrackingService]$TimeService = $null
     [KeyMappingService]$KeyService = $null
     [SimpleTimeEntry[]]$TimeEntries = @()
     [hashtable]$TaskLookup = @{}  # ID2 → SimpleTask mapping
     [object]$AppReference = $null
     
-    # Screen dimensions
-    [int]$Width
-    [int]$Height
+    # Screen dimensions inherited from BaseListScreen
+    # Inherited: [int]$Width
+    # Inherited: [int]$Height
     
-    # Status messages
-    [string]$StatusMessage = ""
-    [datetime]$StatusMessageTime = [DateTime]::MinValue
+    # Status messages inherited from BaseListScreen
+    # Inherited: [string]$StatusMessage = ""
+    # Inherited: [datetime]$StatusMessageTime = [DateTime]::MinValue
     
-    # Time entry display state
-    [System.Collections.Generic.List[object]]$TimeFlatList
-    [int]$TimeSelectedIndex = 0
-    [int]$TimeScrollTop = 0
-    [int]$TimeEditingIndex = -1
-    [string]$TimeEditingField = ""
-    [string]$TimeEditingValue = ""
-    [SimpleTimeEntry]$TimeEditingEntry = $null
-    [bool]$IsNewTimeEntry = $false
+    # Time entry display state - using base class properties
+    # TimeFlatList renamed to FlatList (inherited)
+    # Inherited: [System.Collections.Generic.List[object]]$FlatList
+    # Inherited: [int]$SelectedIndex = 0 (was TimeSelectedIndex)
+    # Inherited: [int]$ScrollTop = 0 (was TimeScrollTop) 
+    # Inherited: [int]$EditingIndex = -1 (was TimeEditingIndex)
+    # Inherited: [string]$EditingField = "" (was TimeEditingField)
+    # Inherited: [string]$EditingValue = "" (was TimeEditingValue)
+    # Inherited: [object]$EditingItem = $null (was TimeEditingEntry)
+    # Inherited: [bool]$IsNewItem = $false (was IsNewTimeEntry)
     [bool]$IsTimeFilterActive = $true  # Start filtered (show only entries with time)
     
     # Time entry column widths (matching TimeTracker exactly)
@@ -38,8 +39,8 @@ class TimeEntryScreen {
     [int]$FriCol = 8         # Friday hours
     [int]$TotalCol = 8       # Total hours
     
-    TimeEntryScreen() {
-        $this.TimeFlatList = [System.Collections.Generic.List[object]]::new()
+    TimeEntryScreen() : base() {
+        # Inherited: $this.FlatList is initialized by base constructor (was TimeFlatList)
         $this.TimeEntries = @()
         $this.TaskLookup = @{}
         
@@ -80,6 +81,41 @@ class TimeEntryScreen {
         } catch {
             Write-Host "Warning: Could not build task lookup: $_" -ForegroundColor Yellow  
             $this.TaskLookup = @{}
+        }
+    }
+    
+    # Implement abstract methods from BaseListScreen
+    [void] LoadData() {
+        $this.LoadTimeEntries()
+    }
+    
+    [void] BuildFlatList() {
+        $this.BuildTimeFlatList()
+    }
+    
+    [string] RenderItem([object]$item, [int]$index, [bool]$isSelected) {
+        $entry = $item.Entry
+        return $this.FormatTimeEntryLine($entry, $isSelected)
+    }
+    
+    [string[]] GetEditableFields([object]$item) {
+        # For time entries, return the editable day fields
+        return @("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Description")
+    }
+    
+    [void] SaveItem([object]$item) {
+        $entry = if ($item -is [hashtable]) { $item.Entry } else { $item }
+        $this.TimeService.SaveTimeEntry($entry)
+        $this.TimeService.Save()
+    }
+    
+    [object] CreateNewItem() {
+        $newEntry = [SimpleTimeEntry]::new()
+        $newEntry.Description = "New Time Entry"
+        $newEntry.WeekEndingFriday = $this.TimeService.CurrentWeekFriday.ToString("yyyyMMdd")
+        return @{
+            Entry = $newEntry
+            IsLast = $false
         }
     }
     
@@ -133,19 +169,19 @@ class TimeEntryScreen {
         }
         
         $this.BuildTimeFlatList()
-        "DEBUG: TimeFlatList count after build: $($this.TimeFlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+        "DEBUG: FlatList count after build: $($this.FlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         
-        if ($this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
-            $this.TimeSelectedIndex = [Math]::Max(0, $this.TimeFlatList.Count - 1)
+        if ($this.SelectedIndex -ge $this.FlatList.Count) {
+            $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
         }
     }
     
     [void] BuildTimeFlatList() {
-        $this.TimeFlatList.Clear()
+        $this.FlatList.Clear()
         
         foreach ($entry in $this.TimeEntries) {
             if ($entry) {  # Add null check
-                $this.TimeFlatList.Add(@{
+                $this.FlatList.Add(@{
                     Entry = $entry
                     IsLast = $false
                 })
@@ -153,9 +189,76 @@ class TimeEntryScreen {
         }
     }
     
+    [string] FormatTimeEntryLine([SimpleTimeEntry]$entry, [bool]$isSelected) {
+        $sb = [System.Text.StringBuilder]::new()
+        
+        # Format the time entry line (simplified version for now)
+        [void]$sb.Append($entry.Description.PadRight(25))
+        [void]$sb.Append($entry.ProjectCode.PadRight(13))
+        [void]$sb.Append($entry.Monday.ToString("0.0").PadLeft(6))
+        [void]$sb.Append($entry.Tuesday.ToString("0.0").PadLeft(6))
+        [void]$sb.Append($entry.Wednesday.ToString("0.0").PadLeft(6))
+        [void]$sb.Append($entry.Thursday.ToString("0.0").PadLeft(6))
+        [void]$sb.Append($entry.Friday.ToString("0.0").PadLeft(6))
+        [void]$sb.Append($entry.Total.ToString("0.0").PadLeft(6))
+        
+        return $sb.ToString()
+    }
+    
     [void] Initialize([int]$width, [int]$height) {
         $this.Width = $width
         $this.Height = $height
+    }
+    
+    # Override field access methods for SimpleTimeEntry objects
+    [string] GetFieldValue([object]$item, [string]$field) {
+        $entry = if ($item -is [hashtable]) { $item.Entry } else { $item }
+        
+        switch ($field) {
+            "Description" { return if ($entry.Description) { $entry.Description } else { "" } }
+            "Monday" { return $entry.Monday.ToString("0.0") }
+            "Tuesday" { return $entry.Tuesday.ToString("0.0") }
+            "Wednesday" { return $entry.Wednesday.ToString("0.0") }
+            "Thursday" { return $entry.Thursday.ToString("0.0") }
+            "Friday" { return $entry.Friday.ToString("0.0") }
+            default { 
+                # Call base class method
+                $baseMethod = [BaseListScreen].GetMethod("GetFieldValue")
+                return $baseMethod.Invoke($this, @($item, $field))
+            }
+        }
+        return ""
+    }
+    
+    [void] SetFieldValue([object]$item, [string]$field, [string]$value) {
+        $entry = if ($item -is [hashtable]) { $item.Entry } else { $item }
+        
+        switch ($field) {
+            "Description" { $entry.Description = $value }
+            "Monday" { 
+                try { $entry.Monday = [double]$value } catch { $entry.Monday = 0.0 }
+            }
+            "Tuesday" { 
+                try { $entry.Tuesday = [double]$value } catch { $entry.Tuesday = 0.0 }
+            }
+            "Wednesday" { 
+                try { $entry.Wednesday = [double]$value } catch { $entry.Wednesday = 0.0 }
+            }
+            "Thursday" { 
+                try { $entry.Thursday = [double]$value } catch { $entry.Thursday = 0.0 }
+            }
+            "Friday" { 
+                try { $entry.Friday = [double]$value } catch { $entry.Friday = 0.0 }
+            }
+            default { 
+                # Call base class method
+                $baseMethod = [BaseListScreen].GetMethod("SetFieldValue")
+                $baseMethod.Invoke($this, @($item, $field, $value))
+            }
+        }
+        
+        # Recalculate total
+        $entry.Total = $entry.Monday + $entry.Tuesday + $entry.Wednesday + $entry.Thursday + $entry.Friday
     }
     
     [string] Render() {
@@ -260,15 +363,15 @@ class TimeEntryScreen {
             "DEBUG: Table headers rendered successfully $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
             
             # Time entries
-            "DEBUG: About to render time entries... TimeFlatList.Count = $($this.TimeFlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+            "DEBUG: About to render time entries... TimeFlatList.Count = $($this.FlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
             $startRow = 4
             $maxRows = $this.Height - 6
-            $endIndex = [Math]::Min($this.TimeScrollTop + $maxRows, $this.TimeFlatList.Count)
+            $endIndex = [Math]::Min($this.ScrollTop + $maxRows, $this.FlatList.Count)
             
-            for ($i = $this.TimeScrollTop; $i -lt $endIndex; $i++) {
-                "DEBUG: Rendering entry $i of $($this.TimeFlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
-                $row = $startRow + ($i - $this.TimeScrollTop)
-                $item = $this.TimeFlatList[$i]
+            for ($i = $this.ScrollTop; $i -lt $endIndex; $i++) {
+                "DEBUG: Rendering entry $i of $($this.FlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
+                $row = $startRow + ($i - $this.ScrollTop)
+                $item = $this.FlatList[$i]
                 if (-not $item) {
                     "DEBUG: Item $i is null! $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
                     continue
@@ -278,7 +381,7 @@ class TimeEntryScreen {
                     "DEBUG: Entry for item $i is null! $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
                     continue
                 }
-                $isSelected = ($i -eq $this.TimeSelectedIndex)
+                $isSelected = ($i -eq $this.SelectedIndex)
                 
                 [void]$sb.Append([VT]::MoveTo(0, $row - 1))
                 
@@ -359,15 +462,15 @@ class TimeEntryScreen {
         
         # Days and totals
         "DEBUG: About to render day columns $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
-        $this.RenderTimeDayColumn($sb, $entry, "Monday", $entry.Monday, $this.MonCol, $isSelected -and $this.TimeEditingField -eq "Monday")
+        $this.RenderTimeDayColumn($sb, $entry, "Monday", $entry.Monday, $this.MonCol, $isSelected -and $this.EditingField -eq "Monday")
         "DEBUG: Monday rendered $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
-        $this.RenderTimeDayColumn($sb, $entry, "Tuesday", $entry.Tuesday, $this.TueCol, $isSelected -and $this.TimeEditingField -eq "Tuesday")
+        $this.RenderTimeDayColumn($sb, $entry, "Tuesday", $entry.Tuesday, $this.TueCol, $isSelected -and $this.EditingField -eq "Tuesday")
         "DEBUG: Tuesday rendered $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
-        $this.RenderTimeDayColumn($sb, $entry, "Wednesday", $entry.Wednesday, $this.WedCol, $isSelected -and $this.TimeEditingField -eq "Wednesday")
+        $this.RenderTimeDayColumn($sb, $entry, "Wednesday", $entry.Wednesday, $this.WedCol, $isSelected -and $this.EditingField -eq "Wednesday")
         "DEBUG: Wednesday rendered $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
-        $this.RenderTimeDayColumn($sb, $entry, "Thursday", $entry.Thursday, $this.ThuCol, $isSelected -and $this.TimeEditingField -eq "Thursday")
+        $this.RenderTimeDayColumn($sb, $entry, "Thursday", $entry.Thursday, $this.ThuCol, $isSelected -and $this.EditingField -eq "Thursday")
         "DEBUG: Thursday rendered $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
-        $this.RenderTimeDayColumn($sb, $entry, "Friday", $entry.Friday, $this.FriCol, $isSelected -and $this.TimeEditingField -eq "Friday")
+        $this.RenderTimeDayColumn($sb, $entry, "Friday", $entry.Friday, $this.FriCol, $isSelected -and $this.EditingField -eq "Friday")
         "DEBUG: Friday rendered $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         
         # Total column
@@ -382,7 +485,7 @@ class TimeEntryScreen {
         
         if ($isEditingThis) {
             [void]$sb.Append([AppThemeManager]::GetColor("EditHighlight"))
-            [void]$sb.Append("[$($this.TimeEditingValue)]".PadRight($colWidth))
+            [void]$sb.Append("[$($this.EditingValue)]".PadRight($colWidth))
             [void]$sb.Append([AppThemeManager]::GetColor("Selection"))
         } else {
             [void]$sb.Append($display.PadRight($colWidth))
@@ -390,12 +493,12 @@ class TimeEntryScreen {
     }
     
     [void] PositionTimeEntryCursor([System.Text.StringBuilder]$sb) {
-        if ($this.TimeEditingIndex -ne -1 -and $this.TimeEditingField) {
-            $row = 4 + ($this.TimeEditingIndex - $this.TimeScrollTop)
+        if ($this.EditingIndex -ne -1 -and $this.EditingField) {
+            $row = 4 + ($this.EditingIndex - $this.ScrollTop)
             $col = $this.NameCol + $this.ID1Col + $this.ID2Col + 1
             
             # Calculate column position based on field
-            switch ($this.TimeEditingField.ToLower()) {
+            switch ($this.EditingField.ToLower()) {
                 "monday" { $col += 0 }
                 "tuesday" { $col += $this.MonCol }
                 "wednesday" { $col += $this.MonCol + $this.TueCol }
@@ -403,12 +506,18 @@ class TimeEntryScreen {
                 "friday" { $col += $this.MonCol + $this.TueCol + $this.WedCol + $this.ThuCol }
             }
             
-            [void]$sb.Append([VT]::MoveTo($col + $this.TimeEditingValue.Length, $row - 1))
+            [void]$sb.Append([VT]::MoveTo($col + $this.EditingValue.Length, $row - 1))
         }
     }
     
+    # Override HandleInput to integrate with BaseListScreen editing while preserving time entry logic
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
-        # Use KeyMappingService for navigation
+        # If BaseListScreen is handling editing, let it handle the input
+        if ($this.EditingItem -ne $null) {
+            return ([BaseListScreen]$this).HandleInput($key)
+        }
+        
+        # Handle navigation keys specific to TimeEntryScreen
         if ($this.KeyService.MatchesAction($key, "NavigateToTimeEntry") -or $this.KeyService.MatchesAction($key, "NavigateToTimeEntryAlt")) {
             "DEBUG: F4 back navigation pressed in TimeEntryScreen $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
             [EventBus]::Publish("NavigateBack")
@@ -434,27 +543,27 @@ class TimeEntryScreen {
     }
     
     [bool] HandleTimeEntryInput([System.ConsoleKeyInfo]$key) {
-        if ($this.TimeFlatList.Count -eq 0) {
+        if ($this.FlatList.Count -eq 0) {
             return $true  # Nothing to do
         }
         
         # Handle editing mode
-        if ($this.TimeEditingIndex -ne -1) {
+        if ($this.EditingIndex -ne -1) {
             return $this.HandleTimeEditingInput($key)
         }
         
         # Use KeyMappingService for time entry navigation and commands
         if ($this.KeyService.MatchesAction($key, "MoveUp")) {
-            if ($this.TimeSelectedIndex -gt 0) {
-                $this.TimeSelectedIndex--
+            if ($this.SelectedIndex -gt 0) {
+                $this.SelectedIndex--
                 $this.EnsureTimeEntryVisible()
             }
             return $true
         }
         
         if ($this.KeyService.MatchesAction($key, "MoveDown")) {
-            if ($this.TimeSelectedIndex -lt $this.TimeFlatList.Count - 1) {
-                $this.TimeSelectedIndex++
+            if ($this.SelectedIndex -lt $this.FlatList.Count - 1) {
+                $this.SelectedIndex++
                 $this.EnsureTimeEntryVisible()
             }
             return $true
@@ -504,8 +613,8 @@ class TimeEntryScreen {
                 return $true
             }
             ([System.ConsoleKey]::Backspace) {
-                if ($this.TimeEditingValue.Length -gt 0) {
-                    $this.TimeEditingValue = $this.TimeEditingValue.Substring(0, $this.TimeEditingValue.Length - 1)
+                if ($this.EditingValue.Length -gt 0) {
+                    $this.EditingValue = $this.EditingValue.Substring(0, $this.EditingValue.Length - 1)
                 }
                 return $true
             }
@@ -513,12 +622,12 @@ class TimeEntryScreen {
                 $this.CommitTimeEdit()
                 # Move to next day
                 $days = @("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
-                $currentIndex = $days.IndexOf($this.TimeEditingField)
+                $currentIndex = $days.IndexOf($this.EditingField)
                 if ($currentIndex -ne -1 -and $currentIndex -lt $days.Count - 1) {
                     $this.StartTimeEditForField($days[$currentIndex + 1])
                 } else {
-                    $this.IsNewTimeEntry = $false
-                    $this.TimeEditingIndex = -1
+                    $this.IsNewItem = $false
+                    $this.EditingIndex = -1
                 }
                 return $true
             }
@@ -529,9 +638,9 @@ class TimeEntryScreen {
                     if ($char -eq ',') { $char = '.' }  # Convert comma to decimal point
                     
                     # Validate time format (allow up to 99.9 hours)
-                    $newValue = $this.TimeEditingValue + $char
+                    $newValue = $this.EditingValue + $char
                     if ([decimal]::TryParse($newValue, [ref]$null) -and [decimal]$newValue -le 99.9) {
-                        $this.TimeEditingValue = $newValue
+                        $this.EditingValue = $newValue
                     }
                 }
                 return $true
@@ -541,41 +650,41 @@ class TimeEntryScreen {
     }
     
     [void] StartTimeEntryEdit() {
-        if ($this.TimeFlatList.Count -eq 0 -or $this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
+        if ($this.FlatList.Count -eq 0 -or $this.SelectedIndex -ge $this.FlatList.Count) {
             return
         }
         
-        $item = $this.TimeFlatList[$this.TimeSelectedIndex]
+        $item = $this.FlatList[$this.SelectedIndex]
         if (-not $item -or -not $item.Entry) {
             return
         }
         
-        $this.TimeEditingEntry = $item.Entry
-        $this.TimeEditingIndex = $this.TimeSelectedIndex
+        $this.EditingItem = $item.Entry
+        $this.EditingIndex = $this.SelectedIndex
         $this.StartTimeEditForField("Monday")
-        $this.IsNewTimeEntry = $false
+        $this.IsNewItem = $false
     }
     
     [void] StartTimeEditForField([string]$field) {
-        $this.TimeEditingField = $field
-        $this.TimeEditingValue = ""
+        $this.EditingField = $field
+        $this.EditingValue = ""
         
         # Pre-populate with existing value
         switch ($field.ToLower()) {
-            "monday" { if ($this.TimeEditingEntry.Monday -gt 0) { $this.TimeEditingValue = [string]$this.TimeEditingEntry.Monday } }
-            "tuesday" { if ($this.TimeEditingEntry.Tuesday -gt 0) { $this.TimeEditingValue = [string]$this.TimeEditingEntry.Tuesday } }
-            "wednesday" { if ($this.TimeEditingEntry.Wednesday -gt 0) { $this.TimeEditingValue = [string]$this.TimeEditingEntry.Wednesday } }
-            "thursday" { if ($this.TimeEditingEntry.Thursday -gt 0) { $this.TimeEditingValue = [string]$this.TimeEditingEntry.Thursday } }
-            "friday" { if ($this.TimeEditingEntry.Friday -gt 0) { $this.TimeEditingValue = [string]$this.TimeEditingEntry.Friday } }
+            "monday" { if ($this.EditingItem.Monday -gt 0) { $this.EditingValue = [string]$this.EditingItem.Monday } }
+            "tuesday" { if ($this.EditingItem.Tuesday -gt 0) { $this.EditingValue = [string]$this.EditingItem.Tuesday } }
+            "wednesday" { if ($this.EditingItem.Wednesday -gt 0) { $this.EditingValue = [string]$this.EditingItem.Wednesday } }
+            "thursday" { if ($this.EditingItem.Thursday -gt 0) { $this.EditingValue = [string]$this.EditingItem.Thursday } }
+            "friday" { if ($this.EditingItem.Friday -gt 0) { $this.EditingValue = [string]$this.EditingItem.Friday } }
         }
     }
     
     [void] StartProjectTimeEntry() {
-        if ($this.TimeFlatList.Count -eq 0 -or $this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
+        if ($this.FlatList.Count -eq 0 -or $this.SelectedIndex -ge $this.FlatList.Count) {
             return
         }
         
-        $item = $this.TimeFlatList[$this.TimeSelectedIndex]
+        $item = $this.FlatList[$this.SelectedIndex]
         if (-not $item -or -not $item.Entry) {
             return
         }
@@ -594,41 +703,41 @@ class TimeEntryScreen {
             $this.LoadTimeEntries()
             
             # Find the new entry and select it
-            for ($i = 0; $i -lt $this.TimeFlatList.Count; $i++) {
-                if ($this.TimeFlatList[$i].Entry.ProjectCode -eq $newEntry.ProjectCode) {
-                    $this.TimeSelectedIndex = $i
-                    $item = $this.TimeFlatList[$i]
+            for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                if ($this.FlatList[$i].Entry.ProjectCode -eq $newEntry.ProjectCode) {
+                    $this.SelectedIndex = $i
+                    $item = $this.FlatList[$i]
                     break
                 }
             }
         }
         
-        $this.TimeEditingEntry = $item.Entry
-        $this.TimeEditingIndex = $this.TimeSelectedIndex
+        $this.EditingItem = $item.Entry
+        $this.EditingIndex = $this.SelectedIndex
         $this.StartTimeEditForField("Monday")
-        $this.IsNewTimeEntry = $true
+        $this.IsNewItem = $true
     }
     
     [void] CommitTimeEdit() {
-        if ($this.TimeEditingEntry -and $this.TimeEditingField) {
-            $this.SetTimeEntryDayValue($this.TimeEditingField, $this.TimeEditingValue)
+        if ($this.EditingItem -and $this.EditingField) {
+            $this.SetTimeEntryDayValue($this.EditingField, $this.EditingValue)
             
             try {
-                if ($this.TimeEditingEntry.Id -eq [guid]::Empty -or $this.IsNewTimeEntry) {
+                if ($this.EditingItem.Id -eq [guid]::Empty -or $this.IsNewItem) {
                     # New entry
-                    $this.TimeService.AddTimeEntry($this.TimeEditingEntry)
+                    $this.TimeService.AddTimeEntry($this.EditingItem)
                 } else {
                     # Update existing
-                    $this.TimeService.UpdateTimeEntry($this.TimeEditingEntry)
+                    $this.TimeService.UpdateTimeEntry($this.EditingItem)
                 }
                 
                 # Refresh and maintain selection if possible
-                if ($this.IsNewTimeEntry) {
+                if ($this.IsNewItem) {
                     $this.LoadTimeEntries()
                     # Try to find and select the updated entry
-                    for ($i = 0; $i -lt $this.TimeFlatList.Count; $i++) {
-                        if ($this.TimeFlatList[$i].Entry.ProjectCode -eq $this.TimeEditingEntry.ProjectCode) {
-                            $this.TimeSelectedIndex = $i
+                    for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
+                        if ($this.FlatList[$i].Entry.ProjectCode -eq $this.EditingItem.ProjectCode) {
+                            $this.SelectedIndex = $i
                             break
                         }
                     }
@@ -639,7 +748,7 @@ class TimeEntryScreen {
             }
         }
         
-        if ($this.IsNewTimeEntry) {
+        if ($this.IsNewItem) {
             # For new entries, don't clear editing state yet - let tab/enter cycle through days
         } else {
             $this.CancelTimeEdit()
@@ -647,19 +756,19 @@ class TimeEntryScreen {
     }
     
     [void] CancelTimeEdit() {
-        $this.TimeEditingIndex = -1
-        $this.TimeEditingField = ""
-        $this.TimeEditingValue = ""
-        $this.TimeEditingEntry = $null
-        $this.IsNewTimeEntry = $false
+        $this.EditingIndex = -1
+        $this.EditingField = ""
+        $this.EditingValue = ""
+        $this.EditingItem = $null
+        $this.IsNewItem = $false
     }
     
     [void] DeleteTimeEntry() {
-        if ($this.TimeFlatList.Count -eq 0 -or $this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
+        if ($this.FlatList.Count -eq 0 -or $this.SelectedIndex -ge $this.FlatList.Count) {
             return
         }
         
-        $item = $this.TimeFlatList[$this.TimeSelectedIndex]
+        $item = $this.FlatList[$this.SelectedIndex]
         if ($item -and $item.Entry -and $item.Entry.Id -ne [guid]::Empty) {
             try {
                 $this.TimeService.DeleteTimeEntry($item.Entry.Id)
@@ -668,8 +777,8 @@ class TimeEntryScreen {
                 $this.StatusMessageTime = [DateTime]::Now
                 
                 # Adjust selection if needed
-                if ($this.TimeSelectedIndex -ge $this.TimeFlatList.Count) {
-                    $this.TimeSelectedIndex = [Math]::Max(0, $this.TimeFlatList.Count - 1)
+                if ($this.SelectedIndex -ge $this.FlatList.Count) {
+                    $this.SelectedIndex = [Math]::Max(0, $this.FlatList.Count - 1)
                 }
             } catch {
                 $this.StatusMessage = "Error deleting entry: $_"
@@ -679,26 +788,26 @@ class TimeEntryScreen {
     }
     
     [void] SetTimeEntryDayValue([string]$dayName, [string]$value) {
-        if (-not $this.TimeEditingEntry) {
+        if (-not $this.EditingItem) {
             return
         }
         
         $decimalValue = 0
         if ([decimal]::TryParse($value, [ref]$decimalValue)) {
             switch ($dayName.ToLower()) {
-                "monday" { $this.TimeEditingEntry.Monday = $decimalValue }
-                "tuesday" { $this.TimeEditingEntry.Tuesday = $decimalValue }
-                "wednesday" { $this.TimeEditingEntry.Wednesday = $decimalValue }
-                "thursday" { $this.TimeEditingEntry.Thursday = $decimalValue }
-                "friday" { $this.TimeEditingEntry.Friday = $decimalValue }
+                "monday" { $this.EditingItem.Monday = $decimalValue }
+                "tuesday" { $this.EditingItem.Tuesday = $decimalValue }
+                "wednesday" { $this.EditingItem.Wednesday = $decimalValue }
+                "thursday" { $this.EditingItem.Thursday = $decimalValue }
+                "friday" { $this.EditingItem.Friday = $decimalValue }
             }
             
             # Recalculate total
-            $this.TimeEditingEntry.Total = $this.TimeEditingEntry.Monday + 
-                                          $this.TimeEditingEntry.Tuesday + 
-                                          $this.TimeEditingEntry.Wednesday + 
-                                          $this.TimeEditingEntry.Thursday + 
-                                          $this.TimeEditingEntry.Friday
+            $this.EditingItem.Total = $this.EditingItem.Monday + 
+                                          $this.EditingItem.Tuesday + 
+                                          $this.EditingItem.Wednesday + 
+                                          $this.EditingItem.Thursday + 
+                                          $this.EditingItem.Friday
         }
     }
     
@@ -706,16 +815,33 @@ class TimeEntryScreen {
         $maxRows = $this.Height - 6
         
         # Adjust scroll if selection is above visible area
-        if ($this.TimeSelectedIndex -lt $this.TimeScrollTop) {
-            $this.TimeScrollTop = $this.TimeSelectedIndex
+        if ($this.SelectedIndex -lt $this.ScrollTop) {
+            $this.ScrollTop = $this.SelectedIndex
         }
         
         # Adjust scroll if selection is below visible area
-        if ($this.TimeSelectedIndex -ge $this.TimeScrollTop + $maxRows) {
-            $this.TimeScrollTop = $this.TimeSelectedIndex - $maxRows + 1
+        if ($this.SelectedIndex -ge $this.ScrollTop + $maxRows) {
+            $this.ScrollTop = $this.SelectedIndex - $maxRows + 1
         }
         
         # Ensure scroll doesn't go negative
-        $this.TimeScrollTop = [Math]::Max(0, $this.TimeScrollTop)
+        $this.ScrollTop = [Math]::Max(0, $this.ScrollTop)
+    }
+    
+    # Override GetFieldScreenPosition for time entry fields
+    [hashtable] GetFieldScreenPosition([string]$field, [int]$cursor, [object]$item) {
+        # Simple implementation for time entry screen
+        # Y position at row 10 (approximate), different X positions for different fields
+        switch ($field) {
+            "Description" { return @{ X = 5 + $cursor; Y = 10 } }
+            "Monday" { return @{ X = 30 + $cursor; Y = 10 } }
+            "Tuesday" { return @{ X = 40 + $cursor; Y = 10 } }
+            "Wednesday" { return @{ X = 50 + $cursor; Y = 10 } }
+            "Thursday" { return @{ X = 60 + $cursor; Y = 10 } }
+            "Friday" { return @{ X = 70 + $cursor; Y = 10 } }
+            default { return @{ X = 5 + $cursor; Y = 10 } }
+        }
+        # Explicit return to satisfy PowerShell
+        return @{ X = 5 + $cursor; Y = 10 }
     }
 }

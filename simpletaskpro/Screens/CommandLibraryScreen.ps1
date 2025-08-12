@@ -1,30 +1,30 @@
 # CommandLibraryScreen.ps1 - Command library with groups
 # Based on TaskListScreen structure for consistency
 
-class CommandLibraryScreen {
+class CommandLibraryScreen : BaseListScreen {
     [CommandService]$CommandService
     [Command[]]$Groups
-    [System.Collections.Generic.List[object]]$FlatList  # Flattened list for navigation
-    [int]$SelectedIndex = 0
+    # Inherited: [System.Collections.Generic.List[object]]$FlatList
+    # Inherited: [int]$SelectedIndex = 0
     [int]$PreviousSelectedIndex = 0  # For animation tracking
-    [int]$ScrollTop = 0
-    [int]$Width
-    [int]$Height
+    # Inherited: [int]$ScrollTop = 0
+    # Inherited: [int]$Width
+    # Inherited: [int]$Height
     [string]$CurrentFilter = "All"  # Filter mode: "All" or tag-based
     [string]$TagFilter = ""  # Tag-based filter like "git", "powershell", etc.
     [object]$AppReference = $null
     
-    # Status messages
-    [string]$StatusMessage = ""
-    [datetime]$StatusMessageTime = [DateTime]::MinValue
+    # Status messages inherited from BaseListScreen
+    # Inherited: [string]$StatusMessage = ""
+    # Inherited: [datetime]$StatusMessageTime = [DateTime]::MinValue
     
-    # Editing state (exactly like TaskListScreen)
-    [int]$EditingIndex = -1
-    [string]$EditingField = ""  # "title", "commandtext", "description", "tags" - cycle order
-    [string]$EditingValue = ""
-    [int]$EditingCursor = 0    # Cursor position within EditingValue
-    [Command]$EditingCommand = $null
-    [bool]$IsNewCommand = $false
+    # Editing state inherited from BaseListScreen
+    # Inherited: [int]$EditingIndex = -1
+    # Inherited: [string]$EditingField = ""
+    # Inherited: [string]$EditingValue = ""
+    # Inherited: [int]$EditingCursor = 0
+    # Inherited: [object]$EditingItem = $null (was EditingCommand)
+    # Inherited: [bool]$IsNewItem = $false (was IsNewCommand)
     
     # Column widths (like TaskListScreen)
     [int]$COLUMN_TITLE = 30      # Command title
@@ -48,11 +48,11 @@ class CommandLibraryScreen {
     [string]$MutedColor = ""
     [string]$PillboxColor = ""
     
-    CommandLibraryScreen() {
+    CommandLibraryScreen() : base() {
         $this.Width = 120
         $this.Height = 30
         $this.CommandService = [CommandService]::new()
-        $this.FlatList = [System.Collections.Generic.List[object]]::new()
+        # Inherited: $this.FlatList is initialized by base constructor
         $this.InitializeColors()
         $this.LoadGroups()
     }
@@ -117,6 +117,103 @@ class CommandLibraryScreen {
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    # Implement abstract methods from BaseListScreen
+    [void] LoadData() {
+        $this.LoadGroups()
+    }
+    
+    [string] RenderItem([object]$item, [int]$index, [bool]$isSelected) {
+        $command = $item.Command
+        $level = $item.Level
+        $isGroup = $item.IsGroup
+        
+        return $this.FormatCommandLine($command, $level, $isGroup, $isSelected)
+    }
+    
+    [string[]] GetEditableFields([object]$item) {
+        # For commands, return the editable fields
+        return @("Title", "CommandText", "Description", "Tags")
+    }
+    
+    [void] SaveItem([object]$item) {
+        $command = if ($item -is [hashtable]) { $item.Command } else { $item }
+        $this.CommandService.UpdateCommand($command)
+        $this.CommandService.Save()
+    }
+    
+    [object] CreateNewItem() {
+        $newCommand = [Command]::new()
+        $newCommand.Title = "New Command"
+        $newCommand.CommandText = ""
+        $newCommand.Description = ""
+        $newCommand.Tags = @()
+        
+        # Add to service and return wrapped in hashtable
+        $this.CommandService.AddCommand($newCommand)
+        return @{
+            Type = "Command"
+            Command = $newCommand
+            Level = 1
+            IsGroup = $false
+        }
+    }
+    
+    [string] FormatCommandLine([Command]$command, [int]$level, [bool]$isGroup, [bool]$isSelected) {
+        $sb = [System.Text.StringBuilder]::new()
+        
+        if ($isGroup) {
+            # Format group line
+            $prefix = if ($command.CommandsCollapsed) { "▼ " } else { "▲ " }
+            [void]$sb.Append("$prefix$($command.Title)")
+        } else {
+            # Format command line
+            $indent = "  "  # Indent for commands under groups
+            [void]$sb.Append("$indent$($command.Title.PadRight(28)) $($command.CommandText)")
+        }
+        
+        return $sb.ToString()
+    }
+    
+    # Override field access methods for Command objects
+    [string] GetFieldValue([object]$item, [string]$field) {
+        $command = if ($item -is [hashtable]) { $item.Command } else { $item }
+        
+        switch ($field) {
+            "Title" { return if ($command.Title) { $command.Title } else { "" } }
+            "CommandText" { return if ($command.CommandText) { $command.CommandText } else { "" } }
+            "Description" { return if ($command.Description) { $command.Description } else { "" } }
+            "Tags" { return if ($command.Tags) { $command.Tags -join ", " } else { "" } }
+            default { 
+                # Call base class method
+                $baseMethod = [BaseListScreen].GetMethod("GetFieldValue")
+                return $baseMethod.Invoke($this, @($item, $field))
+            }
+        }
+        return ""
+    }
+    
+    [void] SetFieldValue([object]$item, [string]$field, [string]$value) {
+        $command = if ($item -is [hashtable]) { $item.Command } else { $item }
+        
+        switch ($field) {
+            "Title" { $command.Title = $value }
+            "CommandText" { $command.CommandText = $value }
+            "Description" { $command.Description = $value }
+            "Tags" { 
+                $command.Tags.Clear()
+                if ($value) {
+                    $tags = $value.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+                    foreach ($tag in $tags) { $command.Tags.Add($tag) }
+                }
+            }
+            default { 
+                # Call base class method
+                $baseMethod = [BaseListScreen].GetMethod("SetFieldValue")
+                $baseMethod.Invoke($this, @($item, $field, $value))
             }
         }
     }
@@ -587,17 +684,16 @@ class CommandLibraryScreen {
         [void]$sb.Append($this.NormalColor)
     }
     
-    # Input handling (same pattern as TaskListScreen)
+    # Override HandleInput to integrate with BaseListScreen editing
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
+        # If BaseListScreen is handling editing, let it handle the input
+        if ($this.EditingItem -ne $null) {
+            return ([BaseListScreen]$this).HandleInput($key)
+        }
         
         # Handle filter input mode first
         if ($this.FilterInputActive) {
             return $this.HandleFilterInput($key)
-        }
-        
-        # Handle editing mode input second
-        if ($this.EditingIndex -ge 0) {
-            return $this.HandleEditingInput($key)
         }
         
         # Handle F5 toggle for switching back to tasks
@@ -1198,5 +1294,18 @@ class CommandLibraryScreen {
         
         # Default fallback
         return $baseX + $indent + $cursorPos
+    }
+    
+    # Override GetFieldScreenPosition for command fields
+    [hashtable] GetFieldScreenPosition([string]$field, [int]$cursor, [object]$item) {
+        # Simple implementation for command screen
+        switch ($field) {
+            "Name" { return @{ X = 5 + $cursor; Y = 10 } }
+            "Command" { return @{ X = 25 + $cursor; Y = 10 } }
+            "Category" { return @{ X = 60 + $cursor; Y = 10 } }
+            default { return @{ X = 5 + $cursor; Y = 10 } }
+        }
+        # Explicit return to satisfy PowerShell
+        return @{ X = 5 + $cursor; Y = 10 }
     }
 }

@@ -1,4 +1,4 @@
-=== SimpleTaskPro Startup Debug 08/11/2025 13:16:52 ===
+=== SimpleTaskPro Startup Debug 08/12/2025 07:50:46 ===
 Loading StringCache...
 Loading VT100...
 Loading UniversalBackupManager...
@@ -17,13 +17,81 @@ Loading TimeTrackingService...
 Loading KeyMappingService...
 Loading ProjectSettingsDialog...
 Loading ThemeEditorDialog...
+Loading KeySettingsDialog...
 Loading ProjectManagerScreen...
 Loading Command model...
 Loading CommandService...
+Loading BaseListScreen (core architecture)...
 Loading CommandLibraryScreen...
 Loading TaskListScreen...
-Error loading components: At /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1:309 char:14
-+     [string] ConvertPriorityInput([string]$input) {
-+              ~~~~~~~~~~~~~~~~~~~~
-Not all code path returns value within method.
-at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 87
+Loading TimeEntryScreen...
+Loading Excel models and services...
+Loading ExcelMappingScreen...
+Loading SimpleTaskProApp...
+All components loaded successfully!
+Initializing console...
+Creating SimpleTaskProApp...
+DEBUG: Creating TaskScreen... 08/12/2025 07:50:48
+DEBUG: Creating TimeScreen... 08/12/2025 07:50:50
+DEBUG: Creating CommandScreen... 08/12/2025 07:50:50
+DEBUG: Creating ExcelScreen... 08/12/2025 07:50:51
+DEBUG: ExcelMappingScreen constructor START 08/12/2025 07:50:51
+DEBUG: ExcelMappingScreen constructor COMPLETE 08/12/2025 07:50:51
+DEBUG: Setting up EventBus subscriptions... 08/12/2025 07:50:51
+DEBUG: Pushing initial TaskScreen to stack... 08/12/2025 07:50:51
+Starting application...
+DEBUG: Browsing state - Checking navigation for key E with modifiers None 08/12/2025 07:51:03
+DEBUG: EditTask KeyMappingService action triggered 08/12/2025 07:51:03
+DEBUG: GetEditableFields called with item type: Hashtable 08/12/2025 07:51:03
+DEBUG: GetEditableFields returning fields: Title, Priority, DueDate, Tags, ID1, ID2, CreatedDate 08/12/2025 07:51:03
+DEBUG: KeyMappingService calling StartEdit with field: Title 08/12/2025 07:51:03
+DEBUG: GetFieldValue called with field 'Title' on item type Hashtable 08/12/2025 07:51:03
+DEBUG: GetFieldValue accessing task type SimpleTask 08/12/2025 07:51:03
+DEBUG: GetFieldValue found property Title 08/12/2025 07:51:03
+DEBUG: GetFieldValue returning 'Team meeting preparation' for field Title 08/12/2025 07:51:03
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'Title' 08/12/2025 07:51:03
+DEBUG: GetFieldScreenPosition returned - field='Title', cursorX=26, cursorY=4 08/12/2025 07:51:03
+DEBUG: GetEditableFields called with item type: Hashtable 08/12/2025 07:51:05
+DEBUG: GetEditableFields returning fields: Title, Priority, DueDate, Tags, ID1, ID2, CreatedDate 08/12/2025 07:51:05
+DEBUG: GetFieldValue called with field 'Priority' on item type Hashtable 08/12/2025 07:51:05
+DEBUG: GetFieldValue accessing task type SimpleTask 08/12/2025 07:51:05
+DEBUG: GetFieldValue found property Priority 08/12/2025 07:51:05
+DEBUG: GetFieldValue returning 'High' for field Priority 08/12/2025 07:51:05
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'Priority' 08/12/2025 07:51:05
+DEBUG: GetFieldScreenPosition returned - field='Priority', cursorX=64, cursorY=4 08/12/2025 07:51:05
+DEBUG: GetEditableFields called with item type: Hashtable 08/12/2025 07:51:06
+DEBUG: GetEditableFields returning fields: Title, Priority, DueDate, Tags, ID1, ID2, CreatedDate 08/12/2025 07:51:06
+DEBUG: GetFieldValue called with field 'DueDate' on item type Hashtable 08/12/2025 07:51:06
+DEBUG: GetFieldValue accessing task type SimpleTask 08/12/2025 07:51:06
+DEBUG: GetFieldValue found property DueDate 08/12/2025 07:51:06
+DEBUG: GetFieldValue returning '1/1/0001 12:00:00 AM' for field DueDate 08/12/2025 07:51:06
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'DueDate' 08/12/2025 07:51:06
+DEBUG: GetFieldScreenPosition returned - field='DueDate', cursorX=105, cursorY=4 08/12/2025 07:51:06
+DEBUG: GetEditableFields called with item type: Hashtable 08/12/2025 07:51:07
+DEBUG: GetEditableFields returning fields: Title, Priority, DueDate, Tags, ID1, ID2, CreatedDate 08/12/2025 07:51:07
+DEBUG: GetFieldValue called with field 'Tags' on item type Hashtable 08/12/2025 07:51:07
+DEBUG: GetFieldValue accessing task type SimpleTask 08/12/2025 07:51:07
+DEBUG: GetFieldValue found property Tags 08/12/2025 07:51:07
+DEBUG: GetFieldValue returning '' for field Tags 08/12/2025 07:51:07
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'Tags' 08/12/2025 07:51:07
+DEBUG: GetFieldScreenPosition returned - field='Tags', cursorX=10, cursorY=5 08/12/2025 07:51:07
+DEBUG: GetEditableFields called with item type: Hashtable 08/12/2025 07:51:08
+DEBUG: GetEditableFields returning fields: Title, Priority, DueDate, Tags, ID1, ID2, CreatedDate 08/12/2025 07:51:08
+DEBUG: GetFieldValue called with field 'ID1' on item type Hashtable 08/12/2025 07:51:08
+DEBUG: GetFieldValue accessing task type SimpleTask 08/12/2025 07:51:08
+DEBUG: GetFieldValue found property ID1 08/12/2025 07:51:08
+DEBUG: GetFieldValue returning '' for field ID1 08/12/2025 07:51:08
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'ID1' 08/12/2025 07:51:08
+DEBUG: GetFieldScreenPosition returned - field='ID1', cursorX=10, cursorY=4 08/12/2025 07:51:08
+DEBUG: GetEditableFields called with item type: Hashtable 08/12/2025 07:51:08
+DEBUG: GetEditableFields returning fields: Title, Priority, DueDate, Tags, ID1, ID2, CreatedDate 08/12/2025 07:51:08
+DEBUG: GetFieldValue called with field 'ID2' on item type Hashtable 08/12/2025 07:51:08
+DEBUG: GetFieldValue accessing task type SimpleTask 08/12/2025 07:51:08
+DEBUG: GetFieldValue found property ID2 08/12/2025 07:51:08
+DEBUG: GetFieldValue returning '' for field ID2 08/12/2025 07:51:08
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'ID2' 08/12/2025 07:51:08
+DEBUG: GetFieldScreenPosition returned - field='ID2', cursorX=25, cursorY=4 08/12/2025 07:51:08
+DEBUG: PositionEnhancedEditingCursor called - EditingItem: True, EditingField: 'ID2' 08/12/2025 07:51:11
+DEBUG: GetFieldScreenPosition returned - field='ID2', cursorX=26, cursorY=4 08/12/2025 07:51:11
+DEBUG: Browsing state - Checking navigation for key Enter with modifiers None 08/12/2025 07:51:13
+Application started successfully!
