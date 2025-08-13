@@ -1,7 +1,7 @@
 # CommandLibraryScreen.ps1 - Command library with groups
 # Based on TaskListScreen structure for consistency
 
-class CommandLibraryScreen : BaseListScreen {
+class CommandLibraryScreen : ListScreen {
     [CommandService]$CommandService
     [Command[]]$Groups
     # Inherited: [System.Collections.Generic.List[object]]$FlatList
@@ -12,7 +12,6 @@ class CommandLibraryScreen : BaseListScreen {
     # Inherited: [int]$Height
     [string]$CurrentFilter = "All"  # Filter mode: "All" or tag-based
     [string]$TagFilter = ""  # Tag-based filter like "git", "powershell", etc.
-    [object]$AppReference = $null
     
     # Status messages inherited from BaseListScreen
     # Inherited: [string]$StatusMessage = ""
@@ -48,10 +47,9 @@ class CommandLibraryScreen : BaseListScreen {
     [string]$MutedColor = ""
     [string]$PillboxColor = ""
     
-    CommandLibraryScreen() : base() {
-        $this.Width = 120
-        $this.Height = 30
+    CommandLibraryScreen([ServiceContainer]$services) : base($services) {
         $this.CommandService = [CommandService]::new()
+        $this.Title = "Commands"
         # Inherited: $this.FlatList is initialized by base constructor
         $this.InitializeColors()
         $this.LoadGroups()
@@ -71,9 +69,6 @@ class CommandLibraryScreen : BaseListScreen {
         $this.SelectedBg = [AppThemeManager]::GetBackgroundColor("Selected")
     }
     
-    [void] SetAppReference([object]$appRef) {
-        $this.AppReference = $appRef
-    }
     
     [void] Initialize([int]$width, [int]$height) {
         $this.Width = [Math]::Max(80, $width)
@@ -83,7 +78,7 @@ class CommandLibraryScreen : BaseListScreen {
     
     [void] LoadGroups() {
         $this.Groups = $this.CommandService.GetAllGroups().ToArray()
-        $this.BuildFlatList()
+        $this.FlatList = $this.BuildFlatList()
         
         # Ensure selected index is valid
         if ($this.SelectedIndex -ge $this.FlatList.Count) {
@@ -91,13 +86,22 @@ class CommandLibraryScreen : BaseListScreen {
         }
     }
     
-    [void] BuildFlatList() {
-        $this.FlatList = [System.Collections.Generic.List[object]]::new()
+    [array] BuildFlatList() {
+        return $this.BuildFlatListInternal($null)
+    }
+    
+    [array] BuildFlatList([array]$inputGroups) {
+        return $this.BuildFlatListInternal($inputGroups)
+    }
+    
+    [array] BuildFlatListInternal([array]$inputGroups) {
+        $groupArray = if ($inputGroups) { $inputGroups } else { $this.Groups }
+        $newList = [System.Collections.Generic.List[object]]::new()
         
-        foreach ($group in $this.Groups) {
+        foreach ($group in $groupArray) {
             if ($this.ShouldShowGroup($group)) {
                 # Add group to flat list
-                $this.FlatList.Add(@{
+                $newList.Add(@{
                     Type = "Group"
                     Command = $group
                     Level = 0
@@ -108,7 +112,7 @@ class CommandLibraryScreen : BaseListScreen {
                 if (-not $group.CommandsCollapsed) {
                     foreach ($command in $group.Commands) {
                         if ($this.ShouldShowCommand($command)) {
-                            $this.FlatList.Add(@{
+                            $newList.Add(@{
                                 Type = "Command"
                                 Command = $command
                                 Level = 1
@@ -119,6 +123,8 @@ class CommandLibraryScreen : BaseListScreen {
                 }
             }
         }
+        
+        return $newList.ToArray()
     }
     
     # Implement abstract methods from BaseListScreen
@@ -189,7 +195,7 @@ class CommandLibraryScreen : BaseListScreen {
             "Tags" { return if ($command.Tags) { $command.Tags -join ", " } else { "" } }
             default { 
                 # Call base class method
-                $baseMethod = [BaseListScreen].GetMethod("GetFieldValue")
+                $baseMethod = [ListScreen].GetMethod("GetFieldValue")
                 return $baseMethod.Invoke($this, @($item, $field))
             }
         }
@@ -212,7 +218,7 @@ class CommandLibraryScreen : BaseListScreen {
             }
             default { 
                 # Call base class method
-                $baseMethod = [BaseListScreen].GetMethod("SetFieldValue")
+                $baseMethod = [ListScreen].GetMethod("SetFieldValue")
                 $baseMethod.Invoke($this, @($item, $field, $value))
             }
         }
@@ -688,7 +694,7 @@ class CommandLibraryScreen : BaseListScreen {
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         # If BaseListScreen is handling editing, let it handle the input
         if ($this.EditingItem -ne $null) {
-            return ([BaseListScreen]$this).HandleInput($key)
+            return $this.HandleInput($key)
         }
         
         # Handle filter input mode first
@@ -698,12 +704,10 @@ class CommandLibraryScreen : BaseListScreen {
         
         # Handle F5 toggle for switching back to tasks
         if ($key.Key -eq [System.ConsoleKey]::F5) {
-            if ($this.AppReference) {
-                try {
-                    $this.AppReference.SwitchToTasks()
-                } catch {
-                    # Ignore F5 switch errors
-                }
+            try {
+                $this.EventBus.Publish("NavigateTo", "tasks")
+            } catch {
+                # Ignore F5 switch errors
             }
             return $true
         }

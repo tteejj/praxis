@@ -1,12 +1,12 @@
 # TimeEntryScreen.ps1 - Dedicated time entry screen with EventBus integration
 # Extracted from TaskListScreen.ps1 to provide clean separation of concerns
 
-class TimeEntryScreen : BaseListScreen {
+class TimeEntryScreen : ListScreen {
     [TimeTrackingService]$TimeService = $null
     [KeyMappingService]$KeyService = $null
     [SimpleTimeEntry[]]$TimeEntries = @()
     [hashtable]$TaskLookup = @{}  # ID2 → SimpleTask mapping
-    [object]$AppReference = $null
+    [SimpleTaskService]$TaskService = $null
     
     # Screen dimensions inherited from BaseListScreen
     # Inherited: [int]$Width
@@ -39,31 +39,35 @@ class TimeEntryScreen : BaseListScreen {
     [int]$FriCol = 8         # Friday hours
     [int]$TotalCol = 8       # Total hours
     
-    TimeEntryScreen() : base() {
+    TimeEntryScreen([ServiceContainer]$services) : base($services) {
         # Inherited: $this.FlatList is initialized by base constructor (was TimeFlatList)
         $this.TimeEntries = @()
         $this.TaskLookup = @{}
         
-        # Initialize services
+        # Initialize services (simplified with new architecture)
         try {
             $this.TimeService = [TimeTrackingService]::new()
             $this.KeyService = [KeyMappingService]::new()
+            $this.Title = "Time Entries"
+            
             if ($this.TimeService) {
                 $this.BuildTaskLookup()
                 $this.LoadTimeEntries()
             }
         } catch {
-            Write-Host "Warning: Could not initialize TimeTrackingService: $_" -ForegroundColor Yellow
+            $this.Logger.Error("Could not initialize TimeTrackingService", $_)
             $this.TimeService = $null
         }
     }
     
-    [void] SetAppReference($appRef) {
-        $this.AppReference = $appRef
-    }
     
     [void] BuildTaskLookup() {
-        if (-not $this.AppReference -or -not $this.AppReference.TaskScreen -or -not $this.AppReference.TaskScreen.TaskService) {
+        if (-not $this.TaskService) {
+            # Initialize TaskService if not available yet
+            $this.TaskService = $this.Services.GetService("TaskService")
+        }
+        
+        if (-not $this.TaskService) {
             # Initialize empty lookup if services aren't available yet
             $this.TaskLookup = @{}
             return
@@ -71,7 +75,7 @@ class TimeEntryScreen : BaseListScreen {
         
         try {
             $this.TaskLookup.Clear()
-            $allTasks = $this.AppReference.TaskScreen.TaskService.GetAllTasks()
+            $allTasks = $this.TaskService.GetAllTasks()
             
             foreach ($task in $allTasks) {
                 if ($task.ID2) {
@@ -89,8 +93,28 @@ class TimeEntryScreen : BaseListScreen {
         $this.LoadTimeEntries()
     }
     
-    [void] BuildFlatList() {
-        $this.BuildTimeFlatList()
+    [array] BuildFlatList() {
+        return $this.BuildFlatListInternal($null)
+    }
+    
+    [array] BuildFlatList([array]$inputEntries) {
+        return $this.BuildFlatListInternal($inputEntries)
+    }
+    
+    [array] BuildFlatListInternal([array]$inputEntries) {
+        $entryArray = if ($inputEntries) { $inputEntries } else { $this.TimeEntries }
+        $newList = [System.Collections.Generic.List[object]]::new()
+        
+        foreach ($entry in $entryArray) {
+            if ($entry) {  # Add null check
+                $newList.Add(@{
+                    Entry = $entry
+                    IsLast = $false
+                })
+            }
+        }
+        
+        return $newList.ToArray()
     }
     
     [string] RenderItem([object]$item, [int]$index, [bool]$isSelected) {
@@ -122,7 +146,7 @@ class TimeEntryScreen : BaseListScreen {
     [void] LoadTimeEntries() {
         if (-not $this.TimeService) { 
             $this.TimeEntries = @()
-            $this.BuildTimeFlatList()
+            $this.FlatList = $this.BuildFlatList()
             return 
         }
         
@@ -168,7 +192,7 @@ class TimeEntryScreen : BaseListScreen {
             "DEBUG: Final TimeEntries count: $($this.TimeEntries.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         }
         
-        $this.BuildTimeFlatList()
+        $this.FlatList = $this.BuildFlatList()
         "DEBUG: FlatList count after build: $($this.FlatList.Count) $(Get-Date)" | Out-File -FilePath "./debug-timeentry.log" -Append
         
         if ($this.SelectedIndex -ge $this.FlatList.Count) {
@@ -176,18 +200,6 @@ class TimeEntryScreen : BaseListScreen {
         }
     }
     
-    [void] BuildTimeFlatList() {
-        $this.FlatList.Clear()
-        
-        foreach ($entry in $this.TimeEntries) {
-            if ($entry) {  # Add null check
-                $this.FlatList.Add(@{
-                    Entry = $entry
-                    IsLast = $false
-                })
-            }
-        }
-    }
     
     [string] FormatTimeEntryLine([SimpleTimeEntry]$entry, [bool]$isSelected) {
         $sb = [System.Text.StringBuilder]::new()
@@ -223,7 +235,7 @@ class TimeEntryScreen : BaseListScreen {
             "Friday" { return $entry.Friday.ToString("0.0") }
             default { 
                 # Call base class method
-                $baseMethod = [BaseListScreen].GetMethod("GetFieldValue")
+                $baseMethod = [ListScreen].GetMethod("GetFieldValue")
                 return $baseMethod.Invoke($this, @($item, $field))
             }
         }
@@ -252,7 +264,7 @@ class TimeEntryScreen : BaseListScreen {
             }
             default { 
                 # Call base class method
-                $baseMethod = [BaseListScreen].GetMethod("SetFieldValue")
+                $baseMethod = [ListScreen].GetMethod("SetFieldValue")
                 $baseMethod.Invoke($this, @($item, $field, $value))
             }
         }
@@ -514,7 +526,7 @@ class TimeEntryScreen : BaseListScreen {
     [bool] HandleInput([System.ConsoleKeyInfo]$key) {
         # If BaseListScreen is handling editing, let it handle the input
         if ($this.EditingItem -ne $null) {
-            return ([BaseListScreen]$this).HandleInput($key)
+            return $this.HandleInput($key)
         }
         
         # Handle navigation keys specific to TimeEntryScreen

@@ -1,69 +1,77 @@
 # EventBus.ps1 - Decoupled communication system for SimpleTaskPro
 # Provides publish/subscribe pattern to eliminate tight coupling between components
+#
+# Phase 4 Events:
+# - "state.changed" - Published by StateManager when application state changes
+# - "NavigateTo" - Navigate to a specific screen
+# - "NavigateBack" - Navigate back to previous screen  
+# - "ApplicationExit" - Request application shutdown
+# - "command.executed" - Published by InputProcessor when command is executed
+# - "notification:state.changed" - Alias for "state.changed" (Phase 4 compatibility)
 
 class EventBus {
-    # Static registry of all event subscriptions
-    static [hashtable]$Subscriptions = @{}
+    # Instance registry of all event subscriptions
+    [hashtable]$Subscriptions = @{}
+    
+    EventBus() {
+        # EventBus instance created (no logging dependency)
+    }
     
     # Subscribe to an event with a callback scriptblock  
-    static [void] Subscribe([string]$eventName, [scriptblock]$callback) {
-        if (-not [EventBus]::Subscriptions.ContainsKey($eventName)) {
-            [EventBus]::Subscriptions[$eventName] = [System.Collections.Generic.List[object]]::new()
+    [void] Subscribe([string]$eventName, [scriptblock]$callback) {
+        if (-not $this.Subscriptions.ContainsKey($eventName)) {
+            $this.Subscriptions[$eventName] = [System.Collections.Generic.List[object]]::new()
         }
         
-        [EventBus]::Subscriptions[$eventName].Add(@{
+        $this.Subscriptions[$eventName].Add(@{
             Type = "ScriptBlock"
             Callback = $callback
         })
         
-        if ($global:Debug) {
-            Write-Host "EventBus: Subscribed to '$eventName' with ScriptBlock (total subscribers: $([EventBus]::Subscriptions[$eventName].Count))" -ForegroundColor Green
-        }
+        # New subscription to event (no logging dependency)
     }
     
     # Subscribe to an event with object method reference (PowerShell-safe)
-    static [void] Subscribe([string]$eventName, [object]$targetObject, [string]$methodName) {
-        if (-not [EventBus]::Subscriptions.ContainsKey($eventName)) {
-            [EventBus]::Subscriptions[$eventName] = [System.Collections.Generic.List[object]]::new()
+    [void] Subscribe([string]$eventName, [object]$targetObject, [string]$methodName) {
+        if (-not $this.Subscriptions.ContainsKey($eventName)) {
+            $this.Subscriptions[$eventName] = [System.Collections.Generic.List[object]]::new()
         }
         
-        [EventBus]::Subscriptions[$eventName].Add(@{
+        $this.Subscriptions[$eventName].Add(@{
             Type = "MethodReference" 
             Object = $targetObject
             Method = $methodName
         })
         
-        if ($global:Debug) {
-            Write-Host "EventBus: Subscribed to '$eventName' with $($targetObject.GetType().Name)::$methodName (total subscribers: $([EventBus]::Subscriptions[$eventName].Count))" -ForegroundColor Green
-        }
+        # Subscribed to event with method reference (no logging dependency)
     }
     
     # Unsubscribe from an event  
-    static [void] Unsubscribe([string]$eventName, [scriptblock]$callback) {
-        if ([EventBus]::Subscriptions.ContainsKey($eventName)) {
-            [EventBus]::Subscriptions[$eventName].Remove($callback)
+    [void] Unsubscribe([string]$eventName, [scriptblock]$callback) {
+        if ($this.Subscriptions.ContainsKey($eventName)) {
+            $this.Subscriptions[$eventName].Remove($callback)
             
             # Clean up empty event lists
-            if ([EventBus]::Subscriptions[$eventName].Count -eq 0) {
-                [EventBus]::Subscriptions.Remove($eventName)
+            if ($this.Subscriptions[$eventName].Count -eq 0) {
+                $this.Subscriptions.Remove($eventName)
             }
             
-            if ($global:Debug) {
-                Write-Host "EventBus: Unsubscribed from '$eventName'" -ForegroundColor Yellow
-            }
+            # Unsubscribed from event (no logging dependency)
         }
     }
     
     # Publish an event to all subscribers
-    static [void] Publish([string]$eventName, [object]$data = $null) {
-        if ($global:Debug) {
-            Write-Host "EventBus: Publishing '$eventName' with data: $($data | ConvertTo-Json -Compress -Depth 1)" -ForegroundColor Cyan
-        }
+    [void] Publish([string]$eventName, [object]$data = $null) {
+        # Publishing event (no logging dependency)
         
-        if ([EventBus]::Subscriptions.ContainsKey($eventName)) {
-            $subscribers = [EventBus]::Subscriptions[$eventName]
+        if ($this.Subscriptions.ContainsKey($eventName)) {
+            $subscribers = $this.Subscriptions[$eventName]
+            # Publishing event to subscribers (no logging dependency)
             
-            foreach ($subscriber in $subscribers) {
+            # Create a copy of the subscribers list in case a callback modifies the original list
+            $subscribersCopy = $subscribers.ToArray()
+            
+            foreach ($subscriber in $subscribersCopy) {
                 try {
                     if ($subscriber.Type -eq "ScriptBlock") {
                         # Traditional scriptblock callback
@@ -81,36 +89,29 @@ class EventBus {
                         }
                     }
                 } catch {
-                    Write-Host "EventBus: Error executing subscriber for '$eventName': $_" -ForegroundColor Red
-                    if ($global:Debug) {
-                        Write-Host "EventBus: Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
-                    }
+                    # Error executing subscriber (no logging dependency)
                 }
             }
         } else {
-            if ($global:Debug) {
-                Write-Host "EventBus: No subscribers for '$eventName'" -ForegroundColor Gray
-            }
+            # Published event with no subscribers (no logging dependency)
         }
     }
     
     # Get list of all active events (for debugging)
-    static [string[]] GetActiveEvents() {
-        return [EventBus]::Subscriptions.Keys
+    [string[]] GetActiveEvents() {
+        return $this.Subscriptions.Keys
     }
     
     # Clear all subscriptions (useful for cleanup/testing)
-    static [void] Clear() {
-        [EventBus]::Subscriptions.Clear()
-        if ($global:Debug) {
-            Write-Host "EventBus: All subscriptions cleared" -ForegroundColor Yellow
-        }
+    [void] Clear() {
+        $this.Subscriptions.Clear()
+        # All EventBus subscriptions cleared (no logging dependency)
     }
     
     # Get subscription count for an event
-    static [int] GetSubscriberCount([string]$eventName) {
-        if ([EventBus]::Subscriptions.ContainsKey($eventName)) {
-            return [EventBus]::Subscriptions[$eventName].Count
+    [int] GetSubscriberCount([string]$eventName) {
+        if ($this.Subscriptions.ContainsKey($eventName)) {
+            return $this.Subscriptions[$eventName].Count
         }
         return 0
     }

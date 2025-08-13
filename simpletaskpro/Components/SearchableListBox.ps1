@@ -1,7 +1,12 @@
 # SearchableListBox.ps1 - ListBox with built-in search/filter functionality
 # High-performance search with real-time filtering
 
-class SearchableListBox : UIElement {
+class SearchableListBox {
+    [int]$X = 0
+    [int]$Y = 0
+    [int]$Width = 40
+    [int]$Height = 10
+    [bool]$IsFocusable = $true
     [System.Collections.ArrayList]$Items
     [System.Collections.ArrayList]$_filteredItems
     [int]$SelectedIndex = 0
@@ -35,7 +40,7 @@ class SearchableListBox : UIElement {
     hidden [System.Collections.Generic.HashSet[string]]$_highlightCache
     hidden [hashtable]$_colors = @{}
     
-    SearchableListBox() : base() {
+    SearchableListBox() {
         $this.Items = [System.Collections.ArrayList]::new()
         $this._filteredItems = [System.Collections.ArrayList]::new()
         $this._highlightCache = [System.Collections.Generic.HashSet[string]]::new()
@@ -75,12 +80,10 @@ class SearchableListBox : UIElement {
             }
         }
         $this._cachedRender = ""
-        $this.Invalidate()
     }
     
     [void] Invalidate() {
         $this._cachedRender = ""
-        ([UIElement]$this).Invalidate()
     }
     
     # Public API
@@ -94,20 +97,17 @@ class SearchableListBox : UIElement {
         $this.ApplyFilter()
         $this.SelectedIndex = 0
         $this.ScrollOffset = 0
-        $this.Invalidate()
     }
     
     [void] AddItem($item) {
         $this.Items.Add($item) | Out-Null
         $this.ApplyFilter()
-        $this.Invalidate()
     }
     
     [void] RemoveItem($item) {
         $this.Items.Remove($item) | Out-Null
         $this.ApplyFilter()
         $this.EnsureSelectionValid()
-        $this.Invalidate()
     }
     
     [object] GetSelectedItem() {
@@ -127,8 +127,7 @@ class SearchableListBox : UIElement {
                 & $this.OnSelectionChanged
             }
             
-            $this.Invalidate()
-        }
+            }
     }
     
     [void] SetSearchQuery([string]$query) {
@@ -137,8 +136,7 @@ class SearchableListBox : UIElement {
             $this.ApplyFilter()
             $this.SelectedIndex = 0  # Reset to top when search changes
             $this.ScrollOffset = 0
-            $this.Invalidate()
-        }
+            }
     }
     
     [void] ClearSearch() {
@@ -147,17 +145,14 @@ class SearchableListBox : UIElement {
     
     [void] EnterSearchMode() {
         $this._searchMode = $true
-        $this.Invalidate()
     }
     
     [void] ExitSearchMode() {
         $this._searchMode = $false
-        $this.Invalidate()
     }
     
     [void] ToggleSearchMode() {
         $this._searchMode = -not $this._searchMode
-        $this.Invalidate()
     }
     
     # Internal methods
@@ -319,7 +314,7 @@ class SearchableListBox : UIElement {
     }
     
     # Rendering
-    [string] OnRender() {
+    [string] Render() {
         if ([string]::IsNullOrEmpty($this._cachedRender)) {
             $this.RebuildCache()
         }
@@ -639,8 +634,7 @@ class SearchableListBox : UIElement {
         
         if ($handled) {
             $this.EnsureVisible()
-            $this.Invalidate()
-            
+                
             # Fire selection changed event
             if ($oldIndex -ne $this.SelectedIndex -and $this.OnSelectionChanged) {
                 & $this.OnSelectionChanged
@@ -652,12 +646,10 @@ class SearchableListBox : UIElement {
     
     [void] OnGotFocus() {
         $this._cachedRender = ""
-        $this.Invalidate()
     }
     
     [void] OnLostFocus() {
         $this._searchMode = $false  # Exit search mode when losing focus
         $this._cachedRender = ""
-        $this.Invalidate()
     }
 }

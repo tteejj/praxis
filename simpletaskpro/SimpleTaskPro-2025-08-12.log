@@ -1,0 +1,625 @@
+--- Log Initialized at 08/12/2025 20:16:58 ---
+20:17:00 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:17:00 DEBUG - InputProcessor: Default commands registered
+20:17:00 INFO  - InputProcessor initialized
+20:17:00 DEBUG - AppThemeManager initialized with Default theme
+20:17:00 DEBUG - Screen TaskListScreen initialized
+20:17:00 INFO  - Bootstrapper: Beginning application cleanup
+--- Log Initialized at 08/12/2025 20:17:20 ---
+20:17:22 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:17:22 DEBUG - InputProcessor: Default commands registered
+20:17:22 INFO  - InputProcessor initialized
+20:17:22 DEBUG - AppThemeManager initialized with Default theme
+20:17:22 DEBUG - Screen TaskListScreen initialized
+20:17:22 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:17:23 INFO  - Bootstrapper: Beginning application cleanup
+--- Log Initialized at 08/12/2025 20:17:51 ---
+20:17:53 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:17:53 DEBUG - InputProcessor: Default commands registered
+20:17:53 INFO  - InputProcessor initialized
+20:17:53 DEBUG - AppThemeManager initialized with Default theme
+20:17:53 DEBUG - Screen TaskListScreen initialized
+20:17:53 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:17:54 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 49
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+20:17:54 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+20:17:54 DEBUG - Screen TimeEntryScreen initialized
+20:17:54 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+20:17:54 DEBUG - Screen CommandLibraryScreen initialized
+20:17:54 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+20:17:54 ERROR - Bootstrapper: Critical error during initialization
+Method invocation failed because [TaskListScreen] does not contain a method named 'SetAppReference'.
+Stack Trace:
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 43
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+20:17:54 INFO  - Bootstrapper: Beginning application cleanup
+--- Log Initialized at 08/12/2025 20:18:13 ---
+20:18:14 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:18:14 DEBUG - InputProcessor: Default commands registered
+20:18:14 INFO  - InputProcessor initialized
+20:18:15 DEBUG - AppThemeManager initialized with Default theme
+20:18:15 DEBUG - Screen TaskListScreen initialized
+20:18:15 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:18:15 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 49
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+20:18:15 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+20:18:15 DEBUG - Screen TimeEntryScreen initialized
+20:18:15 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+20:18:16 DEBUG - Screen CommandLibraryScreen initialized
+20:18:16 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+20:18:16 INFO  - SimpleTaskPro initialization complete
+--- Log Initialized at 08/12/2025 20:27:22 ---
+20:27:23 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:27:23 DEBUG - InputProcessor: Default commands registered
+20:27:23 DEBUG - InputProcessor: Default key mappings registered
+20:27:23 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+20:27:23 INFO  - InputProcessor initialized
+20:27:24 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+20:27:24 INFO  - RenderEngine initialized with 5 pooled string builders
+20:27:24 DEBUG - AppThemeManager initialized with Default theme
+20:27:24 DEBUG - Screen TaskListScreen initialized
+20:27:24 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:27:24 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 72
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+20:27:24 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+20:27:24 DEBUG - Screen TimeEntryScreen initialized
+20:27:24 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+20:27:25 DEBUG - Screen CommandLibraryScreen initialized
+20:27:25 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+20:27:25 INFO  - SimpleTaskPro initialization complete
+20:27:25 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 72
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+--- Log Initialized at 08/12/2025 20:27:53 ---
+20:27:55 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:27:55 DEBUG - InputProcessor: Default commands registered
+20:27:55 DEBUG - InputProcessor: Default key mappings registered
+20:27:55 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+20:27:55 INFO  - InputProcessor initialized
+20:27:55 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+20:27:55 INFO  - RenderEngine initialized with 5 pooled string builders
+20:27:55 DEBUG - AppThemeManager initialized with Default theme
+20:27:56 DEBUG - Screen TaskListScreen initialized
+20:27:56 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:27:56 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+20:27:56 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+20:27:56 DEBUG - Screen TimeEntryScreen initialized
+20:27:56 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+20:27:56 DEBUG - Screen CommandLibraryScreen initialized
+20:27:56 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+20:27:57 INFO  - SimpleTaskPro initialization complete
+20:27:57 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+20:27:57 ERROR - TaskListScreen: Failed to refresh list
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at RefreshList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 70
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 58
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+20:27:57 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 20:29:15 ---
+20:29:17 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:29:17 DEBUG - InputProcessor: Default commands registered
+20:29:17 DEBUG - InputProcessor: Default key mappings registered
+20:29:17 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+20:29:17 INFO  - InputProcessor initialized
+20:29:17 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+20:29:17 INFO  - RenderEngine initialized with 5 pooled string builders
+20:29:17 DEBUG - AppThemeManager initialized with Default theme
+20:29:17 DEBUG - Screen TaskListScreen initialized
+20:29:17 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:29:17 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+20:29:17 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+20:29:18 DEBUG - Screen TimeEntryScreen initialized
+20:29:18 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+20:29:18 DEBUG - Screen CommandLibraryScreen initialized
+20:29:18 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+20:29:18 INFO  - SimpleTaskPro initialization complete
+20:29:18 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+20:29:18 ERROR - TaskListScreen: Failed to refresh list
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at RefreshList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 70
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 58
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+20:29:18 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 20:36:02 ---
+20:36:04 DEBUG - SimpleStateManager initialized with PowerShell-native state
+20:36:04 DEBUG - InputProcessor: Default commands registered
+20:36:04 DEBUG - InputProcessor: Default key mappings registered
+20:36:04 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+20:36:04 INFO  - InputProcessor initialized
+20:36:04 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+20:36:04 INFO  - RenderEngine initialized with 5 pooled string builders
+20:36:04 DEBUG - AppThemeManager initialized with Default theme
+20:36:05 DEBUG - Screen TaskListScreen initialized
+20:36:05 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+20:36:05 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+at <ScriptBlock>, <No file>: line 1
+20:36:05 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+20:36:05 DEBUG - Screen TimeEntryScreen initialized
+20:36:05 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+20:36:05 DEBUG - Screen CommandLibraryScreen initialized
+20:36:05 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+20:36:06 INFO  - SimpleTaskPro initialization complete
+20:36:06 ERROR - TaskListScreen: Failed to load tasks
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+at <ScriptBlock>, <No file>: line 1
+20:36:06 ERROR - TaskListScreen: Failed to refresh list
+BuildFlatList() must be implemented by derived class
+Stack Trace:
+at BuildFlatList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 96
+at RefreshList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 70
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 58
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+at <ScriptBlock>, <No file>: line 1
+20:36:06 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 21:05:55 ---
+21:05:57 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:05:57 DEBUG - InputProcessor: Default commands registered
+21:05:57 DEBUG - InputProcessor: Default key mappings registered
+21:05:57 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:05:57 INFO  - InputProcessor initialized
+21:05:57 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:05:57 INFO  - RenderEngine initialized with 5 pooled string builders
+21:05:57 DEBUG - AppThemeManager initialized with Default theme
+21:05:57 DEBUG - Screen TaskListScreen initialized
+21:05:57 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:05:57 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+21:05:57 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:05:58 DEBUG - Screen TimeEntryScreen initialized
+21:05:58 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:05:58 DEBUG - Screen CommandLibraryScreen initialized
+21:05:58 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:05:58 INFO  - SimpleTaskPro initialization complete
+21:05:58 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+21:05:58 ERROR - TaskListScreen: Failed to refresh list
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at RefreshList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 70
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 58
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+21:05:58 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 21:15:54 ---
+21:15:56 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:15:56 DEBUG - InputProcessor: Default commands registered
+21:15:56 DEBUG - InputProcessor: Default key mappings registered
+21:15:56 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:15:56 INFO  - InputProcessor initialized
+21:15:56 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:15:56 INFO  - RenderEngine initialized with 5 pooled string builders
+21:15:56 DEBUG - AppThemeManager initialized with Default theme
+21:15:56 DEBUG - Screen TaskListScreen initialized
+21:15:56 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:15:57 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+21:15:57 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:15:57 DEBUG - Screen TimeEntryScreen initialized
+21:15:57 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:15:57 DEBUG - Screen CommandLibraryScreen initialized
+21:15:57 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:15:57 INFO  - SimpleTaskPro initialization complete
+21:15:57 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+21:15:57 ERROR - TaskListScreen: Failed to refresh list
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at RefreshList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 70
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 58
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+21:15:57 DEBUG - TaskListScreen: Initialized with dimensions 113x28
+--- Log Initialized at 08/12/2025 21:17:11 ---
+21:17:13 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:17:13 DEBUG - InputProcessor: Default commands registered
+21:17:13 DEBUG - InputProcessor: Default key mappings registered
+21:17:13 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:17:13 INFO  - InputProcessor initialized
+21:17:13 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:17:13 INFO  - RenderEngine initialized with 5 pooled string builders
+21:17:13 DEBUG - AppThemeManager initialized with Default theme
+21:17:13 DEBUG - Screen TaskListScreen initialized
+21:17:13 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:17:13 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+21:17:13 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:17:13 DEBUG - Screen TimeEntryScreen initialized
+21:17:14 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:17:14 DEBUG - Screen CommandLibraryScreen initialized
+21:17:14 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:17:14 INFO  - SimpleTaskPro initialization complete
+21:17:14 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 57
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+21:17:14 ERROR - TaskListScreen: Failed to refresh list
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at RefreshList, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 70
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 58
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 214
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 139
+21:17:14 DEBUG - TaskListScreen: Initialized with dimensions 113x28
+--- Log Initialized at 08/12/2025 21:37:28 ---
+21:37:30 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:37:30 DEBUG - InputProcessor: Default commands registered
+21:37:30 DEBUG - InputProcessor: Default key mappings registered
+21:37:30 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:37:30 INFO  - InputProcessor initialized
+21:37:30 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:37:30 INFO  - RenderEngine initialized with 5 pooled string builders
+21:37:30 DEBUG - AppThemeManager initialized with Default theme
+21:37:30 DEBUG - Screen TaskListScreen initialized
+21:37:30 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:37:31 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 87
+at TaskListScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 36
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 27
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+21:37:31 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:37:31 DEBUG - Screen TimeEntryScreen initialized
+21:37:31 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:37:31 ERROR - Could not initialize TimeTrackingService
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadTimeEntries, /home/teej/projects/github/praxis/simpletaskpro/Screens/TimeEntryScreen.ps1: line 187
+at TimeEntryScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/TimeEntryScreen.ps1: line 55
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 29
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+21:37:31 DEBUG - Screen CommandLibraryScreen initialized
+21:37:31 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:37:31 ERROR - Bootstrapper: Critical error during initialization
+Cannot find an overload for "BuildFlatList" and the argument count: "0".
+Stack Trace:
+at LoadGroups, /home/teej/projects/github/praxis/simpletaskpro/Screens/CommandLibraryScreen.ps1: line 81
+at CommandLibraryScreen, /home/teej/projects/github/praxis/simpletaskpro/Screens/CommandLibraryScreen.ps1: line 55
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 31
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 61
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 133
+21:37:31 INFO  - Bootstrapper: Beginning application cleanup
+--- Log Initialized at 08/12/2025 21:38:24 ---
+21:38:25 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:38:25 DEBUG - InputProcessor: Default commands registered
+21:38:25 DEBUG - InputProcessor: Default key mappings registered
+21:38:25 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:38:25 INFO  - InputProcessor initialized
+21:38:26 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:38:26 INFO  - RenderEngine initialized with 5 pooled string builders
+21:38:26 DEBUG - AppThemeManager initialized with Default theme
+21:38:26 DEBUG - Screen TaskListScreen initialized
+21:38:26 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:38:26 DEBUG - TaskListScreen built flat list with 12 items
+21:38:26 DEBUG - State changed: TaskList = [{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:38:26 DEBUG - TaskListScreen loaded 7 tasks
+21:38:26 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:38:26 DEBUG - Screen TimeEntryScreen initialized
+21:38:26 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:38:27 DEBUG - Screen CommandLibraryScreen initialized
+21:38:27 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:38:27 INFO  - SimpleTaskPro initialization complete
+21:38:27 DEBUG - TaskListScreen built flat list with 12 items
+21:38:27 DEBUG - State changed: TaskList = [{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:38:27 DEBUG - TaskListScreen loaded 7 tasks
+21:38:27 DEBUG - TaskListScreen built flat list with 12 items
+21:38:27 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:38:27 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 21:39:02 ---
+21:39:03 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:39:03 DEBUG - InputProcessor: Default commands registered
+21:39:03 DEBUG - InputProcessor: Default key mappings registered
+21:39:03 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:39:03 INFO  - InputProcessor initialized
+21:39:03 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:39:03 INFO  - RenderEngine initialized with 5 pooled string builders
+21:39:04 DEBUG - AppThemeManager initialized with Default theme
+21:39:04 DEBUG - Screen TaskListScreen initialized
+21:39:04 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+--- Log Initialized at 08/12/2025 21:41:57 ---
+21:41:59 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:41:59 DEBUG - InputProcessor: Default commands registered
+21:41:59 DEBUG - InputProcessor: Default key mappings registered
+21:41:59 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:41:59 INFO  - InputProcessor initialized
+21:41:59 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:41:59 INFO  - RenderEngine initialized with 5 pooled string builders
+21:41:59 DEBUG - AppThemeManager initialized with Default theme
+21:42:00 DEBUG - Screen TaskListScreen initialized
+21:42:00 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:42:00 DEBUG - TaskListScreen built flat list with 12 items
+21:42:00 DEBUG - State changed: TaskList = [{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:42:00 DEBUG - TaskListScreen loaded 7 tasks
+21:42:00 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:42:00 DEBUG - Screen TimeEntryScreen initialized
+21:42:00 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:42:00 DEBUG - Screen CommandLibraryScreen initialized
+21:42:00 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:42:01 INFO  - SimpleTaskPro initialization complete
+21:42:01 DEBUG - TaskListScreen built flat list with 12 items
+21:42:01 DEBUG - State changed: TaskList = [{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:42:01 DEBUG - TaskListScreen loaded 7 tasks
+21:42:01 DEBUG - TaskListScreen built flat list with 12 items
+21:42:01 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:42:01 DEBUG - TaskListScreen: Initialized with dimensions 113x28
+--- Log Initialized at 08/12/2025 21:42:08 ---
+21:42:10 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:42:10 DEBUG - InputProcessor: Default commands registered
+21:42:10 DEBUG - InputProcessor: Default key mappings registered
+21:42:10 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:42:10 INFO  - InputProcessor initialized
+21:42:10 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:42:10 INFO  - RenderEngine initialized with 5 pooled string builders
+21:42:10 DEBUG - AppThemeManager initialized with Default theme
+21:42:10 DEBUG - Screen TaskListScreen initialized
+21:42:10 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:42:10 DEBUG - TaskListScreen built flat list with 12 items
+21:42:10 DEBUG - State changed: TaskList = [{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""}]
+21:42:11 DEBUG - TaskListScreen loaded 7 tasks
+21:42:11 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:42:11 DEBUG - Screen TimeEntryScreen initialized
+21:42:11 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:42:11 DEBUG - Screen CommandLibraryScreen initialized
+21:42:11 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:42:11 INFO  - SimpleTaskPro initialization complete
+21:42:11 DEBUG - TaskListScreen built flat list with 12 items
+21:42:11 DEBUG - State changed: TaskList = [{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""}]
+21:42:11 DEBUG - TaskListScreen loaded 7 tasks
+21:42:11 DEBUG - TaskListScreen built flat list with 12 items
+21:42:11 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:42:11 DEBUG - TaskListScreen: Initialized with dimensions 113x28
+--- Log Initialized at 08/12/2025 21:42:22 ---
+21:42:24 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:42:24 DEBUG - InputProcessor: Default commands registered
+21:42:24 DEBUG - InputProcessor: Default key mappings registered
+21:42:24 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:42:24 INFO  - InputProcessor initialized
+21:42:24 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:42:24 INFO  - RenderEngine initialized with 5 pooled string builders
+21:42:24 DEBUG - AppThemeManager initialized with Default theme
+21:42:24 DEBUG - Screen TaskListScreen initialized
+21:42:24 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:42:24 DEBUG - TaskListScreen built flat list with 12 items
+21:42:24 DEBUG - State changed: TaskList = [{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:42:25 DEBUG - TaskListScreen loaded 7 tasks
+21:42:25 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:42:25 DEBUG - Screen TimeEntryScreen initialized
+21:42:25 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:42:25 DEBUG - Screen CommandLibraryScreen initialized
+21:42:25 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:42:25 INFO  - SimpleTaskPro initialization complete
+21:42:25 DEBUG - TaskListScreen built flat list with 12 items
+21:42:25 DEBUG - State changed: TaskList = [{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:42:25 DEBUG - TaskListScreen loaded 7 tasks
+21:42:25 DEBUG - TaskListScreen built flat list with 12 items
+21:42:25 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:42:25 DEBUG - TaskListScreen: Initialized with dimensions 113x28
+--- Log Initialized at 08/12/2025 21:43:02 ---
+21:43:04 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:43:04 DEBUG - InputProcessor: Default commands registered
+21:43:04 DEBUG - InputProcessor: Default key mappings registered
+21:43:04 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:43:04 INFO  - InputProcessor initialized
+21:43:04 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:43:04 INFO  - RenderEngine initialized with 5 pooled string builders
+21:43:04 DEBUG - AppThemeManager initialized with Default theme
+21:43:05 DEBUG - Screen TaskListScreen initialized
+21:43:05 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:43:05 DEBUG - TaskListScreen built flat list with 12 items
+21:43:05 DEBUG - State changed: TaskList = [{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:43:05 DEBUG - TaskListScreen loaded 7 tasks
+21:43:05 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:43:05 DEBUG - Screen TimeEntryScreen initialized
+21:43:05 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:43:06 DEBUG - Screen CommandLibraryScreen initialized
+21:43:06 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:43:06 INFO  - SimpleTaskPro initialization complete
+21:43:06 DEBUG - TaskListScreen built flat list with 12 items
+21:43:06 DEBUG - State changed: TaskList = [{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"}]
+21:43:06 DEBUG - TaskListScreen loaded 7 tasks
+21:43:06 DEBUG - TaskListScreen built flat list with 12 items
+21:43:06 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:43:06 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 21:43:48 ---
+21:43:50 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:43:50 DEBUG - InputProcessor: Default commands registered
+21:43:50 DEBUG - InputProcessor: Default key mappings registered
+21:43:50 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:43:50 INFO  - InputProcessor initialized
+21:43:50 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:43:51 INFO  - RenderEngine initialized with 5 pooled string builders
+21:43:51 DEBUG - AppThemeManager initialized with Default theme
+21:43:51 DEBUG - Screen TaskListScreen initialized
+21:43:51 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:43:51 DEBUG - TaskListScreen built flat list with 12 items
+21:43:51 DEBUG - State changed: TaskList = [{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""}]
+21:43:51 DEBUG - TaskListScreen loaded 7 tasks
+21:43:51 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:43:52 DEBUG - Screen TimeEntryScreen initialized
+21:43:52 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:43:52 DEBUG - Screen CommandLibraryScreen initialized
+21:43:52 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:43:52 INFO  - SimpleTaskPro initialization complete
+21:43:52 DEBUG - TaskListScreen built flat list with 12 items
+21:43:52 DEBUG - State changed: TaskList = [{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""}]
+21:43:52 DEBUG - TaskListScreen loaded 7 tasks
+21:43:52 DEBUG - TaskListScreen built flat list with 12 items
+21:43:52 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:43:52 DEBUG - TaskListScreen: Initialized with dimensions 80x24
+--- Log Initialized at 08/12/2025 21:45:25 ---
+21:45:27 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:45:27 DEBUG - InputProcessor: Default commands registered
+21:45:27 DEBUG - InputProcessor: Default key mappings registered
+21:45:27 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:45:27 INFO  - InputProcessor initialized
+21:45:27 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:45:27 INFO  - RenderEngine initialized with 5 pooled string builders
+21:45:27 DEBUG - AppThemeManager initialized with Default theme
+21:45:28 DEBUG - Screen TaskListScreen initialized
+21:45:28 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+21:45:28 DEBUG - TaskListScreen built flat list with 12 items
+21:45:28 DEBUG - State changed: TaskList = [{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""}]
+21:45:28 DEBUG - TaskListScreen loaded 7 tasks
+21:45:28 INFO  - TaskListScreen initialized with Phase 1+4 architecture
+21:45:28 DEBUG - Screen TimeEntryScreen initialized
+21:45:28 DEBUG - ListScreen TimeEntryScreen initialized with Phase 1 services
+21:45:28 DEBUG - Screen CommandLibraryScreen initialized
+21:45:28 DEBUG - ListScreen CommandLibraryScreen initialized with Phase 1 services
+21:45:29 INFO  - SimpleTaskPro initialization complete
+21:45:29 DEBUG - TaskListScreen built flat list with 12 items
+21:45:29 DEBUG - State changed: TaskList = [{"Id":"aa9b2891-927a-40d6-b420-cf8b8e1995bc","Title":"Test Task From Script","Completed":false,"Priority":"High","DueDate":"2025-08-06T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-05T00:00:00","ModifiedDate":"2025-08-06T08:45:03","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"85dc5d62-392c-4878-b61f-fa08b1198420","Title":"a1","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-07T14:33:23","ProjectFolderPath":"/home/teej/projects/github/praxis/Tests","T2020CallLogFile":"/home/teej/projects/github/praxis/simpletaskpro/test.txt","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"8b93a6ef-aca9-42c0-8881-7e011cba9c66","Title":"test proj","Completed":false,"Priority":"Medium","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"red","SubtaskColorTheme":"red","SortOrder":0,"Tags":[],"Subtasks":[],"CreatedDate":"2025-08-06T00:00:00","ModifiedDate":"2025-08-06T14:24:19","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"111","ID2":"222333444555"},{"Id":"11233ff1-d847-46e4-a5d4-891b000a9332","Title":"Review code changes","Completed":false,"Priority":"Medium","DueDate":"2025-08-03T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"default","SubtaskColorTheme":"default","SortOrder":0,"Tags":["subtag"],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-06T06:58:20","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"b51b2c70-c7f8-4598-86e4-ee7fa8e27699","Title":"Update documentation","Completed":false,"Priority":"Low","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"orange","SubtaskColorTheme":"orange","SortOrder":0,"Tags":["documentation","api","v2","low-priority"],"Subtasks":[],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-07T12:26:09","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"176f5ccc-ff24-44e7-9f44-c5eb7279b585","Title":"Complete quarterly report","Completed":false,"Priority":"Today","DueDate":"2025-08-05T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"custom_110_238_95","SubtaskColorTheme":"custom_90_238_0","SortOrder":0,"Tags":["today"],"Subtasks":["SimpleTask","SimpleTask","SimpleTask"],"CreatedDate":"2025-08-02T10:16:53","ModifiedDate":"2025-08-09T13:49:10","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""},{"Id":"f3bc7b11-d5f4-4a3b-b6c8-e886c33bc7a3","Title":"Team meeting preparation","Completed":false,"Priority":"High","DueDate":"0001-01-01T00:00:00","Notes":"","ParentId":"","SubtasksCollapsed":false,"ColorTheme":"personal","SubtaskColorTheme":"personal","SortOrder":0,"Tags":[],"Subtasks":["SimpleTask"],"CreatedDate":"2025-08-02T00:00:00","ModifiedDate":"2025-08-07T12:43:01","ProjectFolderPath":"","T2020CallLogFile":"","ExportDataFile":"","ActionLogName":"action-log","ID1":"","ID2":""}]
+21:45:29 DEBUG - TaskListScreen loaded 7 tasks
+21:45:29 DEBUG - TaskListScreen built flat list with 12 items
+21:45:29 DEBUG - TaskListScreen: Refreshed list with 12 items
+21:45:29 DEBUG - TaskListScreen: Initialized with dimensions 113x28
+21:46:50 DEBUG - InputProcessor: Processing key 'Down'
+21:46:50 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:46:50 DEBUG - InputProcessor: Processing key 'Up'
+21:46:50 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+21:46:50 DEBUG - InputProcessor: Processing key 'Up'
+21:46:50 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+21:46:50 DEBUG - InputProcessor: Processing key 'Up'
+21:46:50 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+21:46:51 DEBUG - InputProcessor: Processing key 'Down'
+21:46:51 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:46:51 DEBUG - InputProcessor: Processing key 'Down'
+21:46:51 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:50:00 DEBUG - InputProcessor: Processing key 'Down'
+21:50:00 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:50:04 DEBUG - InputProcessor: Processing key 'Enter'
+21:50:04 DEBUG - InputProcessor: Executing command 'action.select' for key 'Enter'
+21:50:05 DEBUG - InputProcessor: Processing key 'Down'
+21:50:05 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:50:06 DEBUG - InputProcessor: Processing key 'n'
+21:50:07 DEBUG - InputProcessor: No command found for key 'n'
+--- Log Initialized at 08/12/2025 21:53:39 ---
+--- Log Initialized at 08/12/2025 21:54:04 ---
+21:54:06 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:54:06 DEBUG - InputProcessor: Default commands registered
+21:54:06 DEBUG - InputProcessor: Default key mappings registered
+21:54:06 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:54:06 INFO  - InputProcessor initialized
+21:54:06 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+21:54:06 INFO  - RenderEngine initialized with 5 pooled string builders
+21:54:06 DEBUG - AppThemeManager initialized with Default theme
+21:54:06 DEBUG - Screen TaskListScreen initialized
+21:54:06 DEBUG - ListScreen TaskListScreen initialized with Phase 1 services
+--- Log Initialized at 08/12/2025 21:54:38 ---
+--- Log Initialized at 08/12/2025 22:23:34 ---
+22:23:36 DEBUG - SimpleStateManager initialized with PowerShell-native state
+22:23:36 DEBUG - InputProcessor: Default commands registered
+22:23:36 DEBUG - InputProcessor: Default key mappings registered
+22:23:36 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+22:23:36 INFO  - InputProcessor initialized
+--- Log Initialized at 08/12/2025 22:24:02 ---

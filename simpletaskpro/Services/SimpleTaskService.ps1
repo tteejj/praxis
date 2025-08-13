@@ -6,23 +6,29 @@ class SimpleTaskService {
     [System.Collections.Generic.List[SimpleTask]]$Tasks
     
     SimpleTaskService() {
+        "DEBUG: SimpleTaskService constructor start $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.DataFile = Join-Path $PSScriptRoot "../Data/tasks.json"
+        "DEBUG: DataFile set $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.Tasks = [System.Collections.Generic.List[SimpleTask]]::new()
+        "DEBUG: Tasks list created $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.EnsureDataDirectory()
+        "DEBUG: Data directory ensured $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         
-        # Initialize universal backup system
-        [UniversalBackupManager]::Initialize((Join-Path $PSScriptRoot ".."))
+        # TEMPORARILY DISABLED: Initialize universal backup system - this may be causing hang
+        # [UniversalBackupManager]::Initialize((Join-Path $PSScriptRoot ".."))
         
-        # Register auto-save for critical data protection
-        $serviceInstance = $this  # Capture the current instance
-        [UniversalBackupManager]::RegisterAutoSave(
-            "tasks", 
-            $this.DataFile, 
-            { $serviceInstance.Save() }.GetNewClosure(),
-            "tasks"
-        )
+        # TEMPORARILY DISABLED: Register auto-save for critical data protection - this may be causing hang
+        # $serviceInstance = $this  # Capture the current instance
+        # [UniversalBackupManager]::RegisterAutoSave(
+        #     "tasks", 
+        #     $this.DataFile, 
+        #     { $serviceInstance.Save() }.GetNewClosure(),
+        #     "tasks"
+        # )
         
+        "DEBUG: About to call Load() $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
         $this.Load()
+        "DEBUG: Load() completed $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
     }
     
     [void] EnsureDataDirectory() {

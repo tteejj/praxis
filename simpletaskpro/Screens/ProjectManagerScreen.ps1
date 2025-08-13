@@ -1,11 +1,6 @@
-class ProjectManagerScreen {
-    [int]$X
-    [int]$Y
-    [int]$Width
-    [int]$Height
+class ProjectManagerScreen : ListScreen {
     [SimpleTaskService]$TaskService
     [SimpleTask]$ParentTask
-    [int]$SelectedIndex = 0
     
     # Colors for Write-Host (ConsoleColor enum values)
     [ConsoleColor]$HeaderColor = [ConsoleColor]::Cyan
@@ -33,7 +28,8 @@ class ProjectManagerScreen {
     # Menu items
     [array]$MenuItems
     
-    ProjectManagerScreen() {
+    ProjectManagerScreen([ServiceContainer]$services) : base($services) {
+        $this.Title = "Project Manager"
         # Initialize menu items as simple objects
         $this.MenuItems = @()
         $this.MenuItems += [PSCustomObject]@{ Key = "S"; Title = "Project Settings"; Description = "Configure project folder, files, and metadata" }

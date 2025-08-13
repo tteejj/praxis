@@ -1,0 +1,137 @@
+{
+  "mappings": {
+    "d": {
+      "command": "action.delete",
+      "description": "Delete item"
+    },
+    "F4": {
+      "command": "screen.commands",
+      "description": "Switch to Commands screen"
+    },
+    "Up": {
+      "command": "nav.up",
+      "description": "Move selection up"
+    },
+    "Ctrl+n": {
+      "command": "action.new",
+      "description": "Create new item"
+    },
+    "F1": {
+      "command": "app.help",
+      "description": "Show help"
+    },
+    "PageDown": {
+      "command": "nav.page_down",
+      "description": "Page down"
+    },
+    "n": {
+      "command": "action.new",
+      "description": "Create new item"
+    },
+    "F3": {
+      "command": "screen.time",
+      "description": "Switch to Time Entry screen"
+    },
+    "PageUp": {
+      "command": "nav.page_up",
+      "description": "Page up"
+    },
+    "Down": {
+      "command": "nav.down",
+      "description": "Move selection down"
+    },
+    "End": {
+      "command": "nav.end",
+      "description": "Go to end"
+    },
+    "Left": {
+      "command": "nav.left",
+      "description": "Move selection left"
+    },
+    "Ctrl+x": {
+      "command": "edit.cut",
+      "description": "Cut selection"
+    },
+    "Home": {
+      "command": "nav.home",
+      "description": "Go to beginning"
+    },
+    "F5": {
+      "command": "action.refresh",
+      "description": "Refresh data"
+    },
+    "F2": {
+      "command": "action.edit",
+      "description": "Edit item"
+    },
+    "Delete": {
+      "command": "action.delete",
+      "description": "Delete item"
+    },
+    "Spacebar": {
+      "command": "task.toggle.collapse",
+      "description": null
+    },
+    "Right": {
+      "command": "nav.right",
+      "description": "Move selection right"
+    },
+    "r": {
+      "command": "action.refresh",
+      "description": "Refresh data"
+    },
+    "F7": {
+      "command": "screen.tasks",
+      "description": "Switch to Tasks screen"
+    },
+    "Enter": {
+      "command": "action.select",
+      "description": "Select/activate item"
+    },
+    "Backspace": {
+      "command": "edit.backspace",
+      "description": "Delete character backward"
+    },
+    "t": {
+      "command": "app.theme.cycle",
+      "description": null
+    },
+    "Ctrl+c": {
+      "command": "edit.copy",
+      "description": "Copy selection"
+    },
+    "x": {
+      "command": "task.toggle.complete",
+      "description": null
+    },
+    "Ctrl+q": {
+      "command": "app.exit",
+      "description": "Exit application"
+    },
+    "F6": {
+      "command": "screen.excel",
+      "description": "Switch to Excel Mapping screen"
+    },
+    "s": {
+      "command": "action.save",
+      "description": "Save changes"
+    },
+    "Esc": {
+      "command": "action.cancel",
+      "description": "Cancel/escape"
+    },
+    "e": {
+      "command": "action.edit",
+      "description": "Edit item"
+    },
+    "Ctrl+s": {
+      "command": "action.save",
+      "description": "Save changes"
+    },
+    "Ctrl+v": {
+      "command": "edit.paste",
+      "description": "Paste from clipboard"
+    }
+  },
+  "info": "Default key mappings for SimpleTaskPro. Copy entries to keymappings.json to customize."
+}

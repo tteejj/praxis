@@ -6,9 +6,7 @@ class SimpleTaskProApp {
     hidden [ServiceContainer]$_services
     hidden [RenderEngine]$_renderEngine
     hidden [InputProcessor]$_inputProcessor
-    hidden [SimpleStateManager]$_stateManager
-    hidden [Logger]$_logger
-    hidden [EventBus]$_eventBus
+    hidden [StateManager]$_stateManager
     
     # Screen management - flat navigation (no stack)
     hidden [hashtable]$_screens = @{}
@@ -25,12 +23,8 @@ class SimpleTaskProApp {
         $this._renderEngine = $services.GetService("RenderEngine")
         $this._inputProcessor = $services.GetService("InputProcessor")
         $this._stateManager = $services.GetService("StateManager")
-        $this._logger = $services.GetService("Logger")
-        $this._eventBus = $services.GetService("EventBus")
         
-        if ($this._logger) {
-            $this._logger.Info("SimpleTaskProApp initializing with Phase 1 services")
-        }
+        [Logger]::Info("SimpleTaskProApp initializing with Phase 1 services")
         
         # Setup EventBus subscriptions for flat navigation
         $this.SetupEventBusSubscriptions()
@@ -41,83 +35,54 @@ class SimpleTaskProApp {
         # Set initial screen
         $this.SetCurrentScreen("Tasks")
         
-        if ($this._logger) {
-            $this._logger.Info("SimpleTaskProApp initialization complete")
-        }
+        [Logger]::Info("SimpleTaskProApp initialization complete")
     }
     
     # Initialize all application screens
     [void] InitializeScreens() {
-    try {
-        # Load the actual, full-featured screens
-        # The screen constructor takes the service container for dependency injection.
         try {
-            $this._screens["Tasks"] = [TaskListScreen]::new($this._services)
-            if ($this._logger) { $this._logger.Debug("TaskListScreen created successfully") }
+            # For now, create placeholder screens
+            # In the next phase, these will be actual TaskListScreen, etc.
+            $this._screens["Tasks"] = [PlaceholderScreen]::new($this._services, "Tasks", "Task Management")
+            $this._screens["TimeEntry"] = [PlaceholderScreen]::new($this._services, "TimeEntry", "Time Entry")  
+            $this._screens["Commands"] = [PlaceholderScreen]::new($this._services, "Commands", "Command Library")
+            $this._screens["Excel"] = [PlaceholderScreen]::new($this._services, "Excel", "Excel Mappings")
             
-            # Call both post-construction initialization AND dimensional initialization
-            $this._screens["Tasks"].Initialize()  # EventBus subscriptions 
-            $this._screens["Tasks"].Initialize([Console]::WindowWidth, [Console]::WindowHeight)  # Dimensions and data loading
-            if ($this._logger) { $this._logger.Debug("TaskListScreen fully initialized successfully") }
+            [Logger]::Info("Initialized $($this._screens.Keys.Count) screens")
+            
         } catch {
-            if ($this._logger) {
-                $this._logger.Error("Failed to create or initialize TaskListScreen", $_)
-            }
+            [Logger]::Error("Failed to initialize screens", $_)
             throw
         }
-        
-        # $this._screens["TimeEntry"] = [TimeEntryScreen]::new($this._services)
-        # $this._screens["Commands"] = [CommandLibraryScreen]::new($this._services) 
-        # $this._screens["Excel"] = [ExcelMappingScreen]::new($this._services)
-        
-        if ($this._logger) {
-            $this._logger.Info("Initialized $($this._screens.Keys.Count) full-featured screens.")
-        }
-        
-    } catch {
-        if ($this._logger) {
-            $this._logger.Error("Failed to initialize screens", $_)
-        }
-        throw
     }
-}
     
     # Setup EventBus subscriptions for navigation and app control
     [void] SetupEventBusSubscriptions() {
-        # Capture the current instance safely for closures
-        $appInstance = $this
-        
         # App control events
-        $this._eventBus.Subscribe("ApplicationExit", {
-            $appInstance._running = $false
-            if ($appInstance._logger) {
-                $appInstance._logger.Info("Application exit requested")
-            }
-        })
+        [EventBus]::Subscribe("ApplicationExit", {
+            $this._running = $false
+            [Logger]::Info("Application exit requested")
+        }.GetNewClosure())
         
         # Navigation events (flat navigation)
-        $this._eventBus.Subscribe("NavigateTo", {
+        [EventBus]::Subscribe("NavigateTo", {
             param($screenName)
-            $appInstance.SetCurrentScreen($screenName)
-        })
+            $this.SetCurrentScreen($screenName)
+        }.GetNewClosure())
         
         # Window resize events
-        $this._eventBus.Subscribe("WindowResized", {
+        [EventBus]::Subscribe("WindowResized", {
             param($eventData)
-            $appInstance.HandleWindowResize($eventData.Width, $eventData.Height)
-        })
+            $this.HandleWindowResize($eventData.Width, $eventData.Height)
+        }.GetNewClosure())
         
-        if ($this._logger) {
-            $this._logger.Debug("EventBus subscriptions setup complete")
-        }
+        [Logger]::Debug("EventBus subscriptions setup complete")
     }
     
     # Set current screen (flat navigation)
     [void] SetCurrentScreen([string]$screenName) {
         if (-not $this._screens.ContainsKey($screenName)) {
-            if ($this._logger) {
-                $this._logger.Error("Unknown screen: $screenName. Available: $($this._screens.Keys -join ', ')")
-            }
+            [Logger]::Error("Unknown screen: $screenName. Available: $($this._screens.Keys -join ', ')")
             return
         }
         
@@ -130,37 +95,32 @@ class SimpleTaskProApp {
         $this._currentScreen = $this._screens[$screenName]
         $this._currentScreenName = $screenName
         
-        # Set focus (no need to re-initialize dimensions since it's already done)
+        # Set focus and bounds
         $this._currentScreen.SetFocused($true)
+        $this._currentScreen.SetBounds([Console]::WindowWidth, [Console]::WindowHeight)
         
         # Update state manager
-        $this._stateManager.SetCurrentScreen($screenName)
+        $this._stateManager.Dispatch([StateManager]::SetCurrentScreen($screenName))
         
-        if ($this._logger) {
-            $this._logger.Info("Switched to screen: $screenName")
-        }
+        [Logger]::Info("Switched to screen: $screenName")
     }
     
     # Handle window resize
     [void] HandleWindowResize([int]$width, [int]$height) {
         if ($this._currentScreen) {
-            $this._currentScreen.Initialize($width, $height)
+            $this._currentScreen.SetBounds($width, $height)
         }
         
         # Update state manager
-        $this._stateManager.SetWindowDimensions($width, $height)
+        $this._stateManager.Dispatch([StateManager]::SetWindowDimensions($width, $height))
         
-        if ($this._logger) {
-            $this._logger.Debug("Window resized to ${width}x${height}")
-        }
+        [Logger]::Debug("Window resized to ${width}x${height}")
     }
     
     # Main application run loop
     [void] Run() {
         try {
-            if ($this._logger) {
-                $this._logger.Info("Starting SimpleTaskPro main loop")
-            }
+            [Logger]::Info("Starting SimpleTaskPro main loop")
             
             # Optimize console for rendering
             $this._renderEngine.OptimizeConsole()
@@ -193,10 +153,9 @@ class SimpleTaskProApp {
                     # Check for window resize
                     $currentWidth = [Console]::WindowWidth
                     $currentHeight = [Console]::WindowHeight
-                    $stateWidth = $this._stateManager.Get("WindowWidth")
-                    $stateHeight = $this._stateManager.Get("WindowHeight")
+                    $stateSize = $this._stateManager.GetState("UI.WindowDimensions")
                     
-                    if ($currentWidth -ne $stateWidth -or $currentHeight -ne $stateHeight) {
+                    if ($currentWidth -ne $stateSize.Width -or $currentHeight -ne $stateSize.Height) {
                         $this.HandleWindowResize($currentWidth, $currentHeight)
                         $this.RenderFrame()
                     }
@@ -205,17 +164,13 @@ class SimpleTaskProApp {
                     Start-Sleep -Milliseconds 16  # ~60 FPS
                     
                 } catch {
-                    if ($this._logger) {
-                        $this._logger.Error("Error in main loop", $_)
-                    }
+                    [Logger]::Error("Error in main loop", $_)
                     # Continue running unless it's critical
                 }
             }
             
         } catch {
-            if ($this._logger) {
-                $this._logger.Error("Critical error in Run()", $_)
-            }
+            [Logger]::Error("Critical error in Run()", $_)
             throw
         } finally {
             # Cleanup
@@ -236,9 +191,7 @@ class SimpleTaskProApp {
             $this._renderEngine.RenderFrame($renderables)
             
         } catch {
-            if ($this._logger) {
-                $this._logger.Error("Error rendering frame", $_)
-            }
+            [Logger]::Error("Error rendering frame", $_)
         }
     }
     
@@ -260,9 +213,7 @@ class SimpleTaskProApp {
     
     # Application cleanup
     [void] Cleanup() {
-        if ($this._logger) {
-            $this._logger.Info("SimpleTaskProApp cleanup starting")
-        }
+        [Logger]::Info("SimpleTaskProApp cleanup starting")
         
         try {
             # Cleanup current screen
@@ -282,14 +233,10 @@ class SimpleTaskProApp {
             $this._renderEngine.RestoreConsole()
             
         } catch {
-            if ($this._logger) {
-                $this._logger.Error("Error during cleanup", $_)
-            }
+            [Logger]::Error("Error during cleanup", $_)
         }
         
-        if ($this._logger) {
-            $this._logger.Info("SimpleTaskProApp cleanup complete")
-        }
+        [Logger]::Info("SimpleTaskProApp cleanup complete")
     }
     
     # Public API for external access
@@ -307,3 +254,57 @@ class SimpleTaskProApp {
 }
 
 # Placeholder screen for testing - will be replaced with actual screens
+class PlaceholderScreen : Screen {
+    hidden [string]$_screenName
+    hidden [string]$_description
+    
+    PlaceholderScreen([ServiceContainer]$services, [string]$screenName, [string]$description) : base($services) {
+        $this._screenName = $screenName
+        $this._description = $description
+    }
+    
+    [string] Render() {
+        $sb = $this.RenderEngine.GetStringBuilder()
+        try {
+            # Clear screen and move to top
+            [void]$sb.Append($this.RenderEngine.ClearScreen())
+            [void]$sb.Append($this.MoveTo(0, 0))
+            
+            # Header
+            [void]$sb.Append($this.SetForegroundColor(100, 150, 255))
+            [void]$sb.Append("SimpleTaskPro - $($this._description)")
+            [void]$sb.Append($this.Reset())
+            
+            # Content area
+            [void]$sb.Append($this.MoveTo(0, 2))
+            [void]$sb.Append("Screen: $($this._screenName)")
+            [void]$sb.Append($this.MoveTo(0, 3))
+            [void]$sb.Append("Phase 1 services active - Logger, StateManager, InputProcessor, RenderEngine")
+            [void]$sb.Append($this.MoveTo(0, 4))
+            [void]$sb.Append("Flat navigation: F1=Tasks, F3=TimeEntry, F4=Commands, F6=Excel")
+            
+            # Footer
+            [void]$sb.Append($this.MoveTo(0, $this.Height - 2))
+            [void]$sb.Append($this.GetHorizontalLine($this.Width))
+            [void]$sb.Append($this.MoveTo(0, $this.Height - 1))
+            [void]$sb.Append("F1-F6: Navigate | Ctrl+Esc: Exit | Current: $($this._screenName)")
+            
+            return $sb.ToString()
+        }
+        finally {
+            $this.RenderEngine.ReturnStringBuilder($sb)
+        }
+    }
+    
+    [void] HandleScreenCommand([string]$command) {
+        switch ($command) {
+            "screen.tasks" { $this.NavigateTo("Tasks") }
+            "screen.time" { $this.NavigateTo("TimeEntry") }
+            "screen.commands" { $this.NavigateTo("Commands") }
+            "screen.excel" { $this.NavigateTo("Excel") }
+            default {
+                [Logger]::Debug("PlaceholderScreen received command: $command")
+            }
+        }
+    }
+}

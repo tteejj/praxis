@@ -1,28 +1,29 @@
 # SimpleListBox.ps1 - Simple scrollable list component for wizard steps
 
-class SimpleListBox : UIElement {
+class SimpleListBox {
     [System.Collections.ArrayList]$Items
     [int]$SelectedIndex = 0
     [int]$ScrollOffset = 0
     [bool]$ShowBorder = $true
     [scriptblock]$OnSelectionChanged = {}
+    [int]$X = 0
+    [int]$Y = 0
+    [int]$Width = 30
+    [int]$Height = 10
+    [bool]$IsFocusable = $true
     
-    SimpleListBox() : base() {
+    SimpleListBox() {
         $this.Items = [System.Collections.ArrayList]::new()
-        $this.Height = 10
-        $this.IsFocusable = $true
     }
     
     [void] AddItem([string]$item) {
         $this.Items.Add($item) | Out-Null
-        $this.Invalidate()
     }
     
     [void] Clear() {
         $this.Items.Clear()
         $this.SelectedIndex = 0
         $this.ScrollOffset = 0
-        $this.Invalidate()
     }
     
     [void] MoveSelection([int]$delta) {
@@ -49,11 +50,10 @@ class SimpleListBox : UIElement {
                 & $this.OnSelectionChanged
             }
             
-            $this.Invalidate()
-        }
+            }
     }
     
-    [string] OnRender() {
+    [string] Render() {
         $result = ""
         
         # Calculate visible area

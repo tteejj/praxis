@@ -1,0 +1,12 @@
+--- Log Initialized at 08/12/2025 15:49:14 ---
+15:49:14 INFO  - Test log message
+15:49:14 DEBUG - Test debug message
+--- Log Initialized at 08/12/2025 15:49:53 ---
+15:49:53 INFO  - Test info message
+15:49:53 DEBUG - Test debug message
+15:49:53 WARN  - Test warning message
+--- Log Initialized at 08/12/2025 15:50:10 ---
+15:50:10 INFO  - Test info message
+15:50:10 DEBUG - Test debug message
+15:50:10 WARN  - Test warning message
+15:50:10 ERROR - Test error message

@@ -1,25 +1,28 @@
 # MinimalTextBox.ps1 - Simple text input component for ExcelDataFlow
 
-class MinimalTextBox : UIElement {
+class MinimalTextBox {
     [string]$Text = ""
     [string]$Placeholder = ""
     [bool]$IsPassword = $false
     [int]$MaxLength = 0
     [int]$ScrollOffset = 0
+    [int]$X = 0
+    [int]$Y = 0
+    [int]$Width = 20
+    [int]$Height = 1
+    [bool]$IsFocusable = $true
     
-    MinimalTextBox() : base() {
-        $this.Height = 1
-        $this.IsFocusable = $true
+    MinimalTextBox() {
+        # Component initialization
     }
     
     [void] SetText([string]$text) {
         if ($this.Text -ne $text) {
             $this.Text = $text
-            $this.Invalidate()
         }
     }
     
-    [string] OnRender() {
+    [string] Render() {
         $result = ""
         
         # Position cursor
@@ -81,7 +84,6 @@ class MinimalTextBox : UIElement {
                 if ($this.Text.Length -gt 0) {
                     $this.Text = $this.Text.Substring(0, $this.Text.Length - 1)
                     $this.AdjustScrollOffset()
-                    $this.Invalidate()
                     $handled = $true
                 }
             }
@@ -90,7 +92,6 @@ class MinimalTextBox : UIElement {
                 if ($this.Text.Length -gt 0) {
                     $this.Text = $this.Text.Substring(0, $this.Text.Length - 1)
                     $this.AdjustScrollOffset()
-                    $this.Invalidate()
                     $handled = $true
                 }
             }
@@ -100,8 +101,7 @@ class MinimalTextBox : UIElement {
                     if ($this.MaxLength -eq 0 -or $this.Text.Length -lt $this.MaxLength) {
                         $this.Text += $key.KeyChar
                         $this.AdjustScrollOffset()
-                        $this.Invalidate()
-                        $handled = $true
+                            $handled = $true
                     }
                 }
             }

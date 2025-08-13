@@ -73,6 +73,28 @@ try {
     "Loading KeySettingsDialog..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Dialogs/KeySettingsDialog.ps1"
     
+    # Load new base classes for Phase 4.5 components (dependencies first)
+    "Loading ServiceContainer..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Core/ServiceContainer-Phase4.5.ps1"
+    
+    "Loading Logger..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Core/Logger.ps1"
+    
+    "Loading SimpleStateManager..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Core/SimpleStateManager.ps1"
+    
+    "Loading InputProcessor..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Core/InputProcessor.ps1"
+    
+    "Loading RenderEngine..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Core/RenderEngine.ps1"
+    
+    "Loading Screen base class..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Base/Screen.ps1"
+    
+    "Loading ListScreen base class..." | Tee-Object $logFile -Append
+    . "$PSScriptRoot/Base/ListScreen.ps1"
+    
     "Loading ProjectManagerScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/ProjectManagerScreen.ps1"
     
@@ -83,14 +105,12 @@ try {
     "Loading CommandService..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Services/CommandService.ps1"
     
-    "Loading BaseListScreen (core architecture)..." | Tee-Object $logFile -Append
-    . "$PSScriptRoot/Base/BaseListScreen.ps1"
     
     "Loading CommandLibraryScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/CommandLibraryScreen.ps1"
     
     "Loading TaskListScreen..." | Tee-Object $logFile -Append
-    . "$PSScriptRoot/Screens/TaskListScreen.ps1"
+    . "$PSScriptRoot/Screens/TaskListScreen-Phase4.ps1"
     
     "Loading TimeEntryScreen..." | Tee-Object $logFile -Append
     . "$PSScriptRoot/Screens/TimeEntryScreen.ps1"
@@ -133,8 +153,24 @@ try {
     "Initializing console..." | Tee-Object $logFile -Append
     Clear-Host
     
+    "Creating ServiceContainer..." | Tee-Object $logFile -Append
+    $services = [ServiceContainer]::new()
+    $logger = [Logger]::new()
+    $eventBus = [EventBus]::new()
+    $stateManager = [SimpleStateManager]::new($eventBus, $logger)
+    $renderEngine = [RenderEngine]::new($logger)
+    $inputProcessor = [InputProcessor]::new($eventBus, $stateManager, $logger, "")
+    
+    # Register services
+    $services.Register("Logger", $logger)
+    $services.Register("EventBus", $eventBus)
+    $services.Register("StateManager", $stateManager)
+    $services.Register("RenderEngine", $renderEngine)
+    $services.Register("InputProcessor", $inputProcessor)
+    $services.Register("ContentBuilder", [FastLineBuilder]::new())
+    
     "Creating SimpleTaskProApp..." | Tee-Object $logFile -Append
-    $app = [SimpleTaskProApp]::new()
+    $app = [SimpleTaskProApp]::new($services)
     
     "Starting application..." | Tee-Object $logFile -Append
     $app.Run()

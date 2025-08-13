@@ -1,12 +1,11 @@
 # ExcelDataScreen.ps1 - Complete Excel data management screen for SimpleTaskPro
 # Integrates all ExcelDataFlow functionality as a screen within SimpleTaskPro
 
-class ExcelDataScreen {
-    # Core screen properties
-    [int]$Width
-    [int]$Height
-    [int]$SelectedIndex = 0
-    [int]$ScrollTop = 0
+class ExcelDataScreen : ListScreen {
+    # Inherited: [int]$Width
+    # Inherited: [int]$Height  
+    # Inherited: [int]$SelectedIndex = 0
+    # Inherited: [int]$ScrollTop = 0
     [object]$AppReference = $null
     
     # Excel services (from ExcelDataFlow)
@@ -41,7 +40,8 @@ class ExcelDataScreen {
     [hashtable]$ExcelConfig = @{}
     [hashtable]$ExtractedData = @{}
     
-    ExcelDataScreen() {
+    ExcelDataScreen([ServiceContainer]$services) : base($services) {
+        $this.Title = "Excel Data"
         $this.InitializeServices()
     }
     

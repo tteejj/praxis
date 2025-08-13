@@ -1,29 +1,28 @@
 # ExcelMappingScreen.ps1 - Excel field mapping management screen
 # Complete TaskListScreen-quality implementation with all sophisticated components
 
-class ExcelMappingScreen {
+class ExcelMappingScreen : ListScreen {
     [ExcelMappingService]$MappingService
     [object]$ExcelService
     [object]$DataProcessingService
     [object]$TextExportService
     [object]$ExportProfileService
-    [System.Collections.Generic.List[object]]$FlatList
-    [int]$SelectedIndex = 0
-    [int]$ScrollTop = 0
-    [int]$Width = 80
-    [int]$Height = 25
+    # Inherited: [System.Collections.Generic.List[object]]$FlatList
+    # Inherited: [int]$SelectedIndex = 0
+    # Inherited: [int]$ScrollTop = 0
+    # Inherited: [int]$Width = 80
+    # Inherited: [int]$Height = 25
     
-    # Status messages (TaskListScreen pattern)
-    [string]$StatusMessage = ""
-    [datetime]$StatusMessageTime = [DateTime]::MinValue
+    # Inherited: [string]$StatusMessage = ""
+    # Inherited: [datetime]$StatusMessageTime = [DateTime]::MinValue
     
-    # Inline editing state (complete TaskListScreen compatibility)
-    [int]$EditingIndex = -1
-    [string]$EditingField = ""  # "DisplayName", "SourceCell", "DestinationCell", "T2020Name"
-    [string]$EditingValue = ""
-    [int]$EditingCursor = 0
-    [object]$EditingMapping = $null
-    [bool]$IsNewMapping = $false
+    # Inline editing state (inherits from ListScreen)
+    # Inherited: [int]$EditingIndex = -1
+    # Inherited: [string]$EditingField = ""
+    # Inherited: [string]$EditingValue = ""
+    # Inherited: [int]$EditingCursor = 0
+    # Inherited: [object]$EditingItem = $null (use this instead of EditingMapping)
+    # Inherited: [bool]$IsNewItem = $false (use this instead of IsNewMapping)
     
     # TaskListScreen-quality column system (wider spacing for better readability)
     [int]$DisplayNameCol = 25  # Increased from 22 for longer field names
@@ -43,21 +42,20 @@ class ExcelMappingScreen {
     [string]$ValueColor = ""
     [string]$BrowserColor = ""
     
-    ExcelMappingScreen() {
-        "DEBUG: ExcelMappingScreen constructor START $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
+    ExcelMappingScreen([ServiceContainer]$services) : base($services) {
+        $this.Title = "Excel Mapping"
         $this.MappingService = [ExcelMappingService]::new()
         # Only initialize services that are actually available
         try {
             $this.ExcelService = [ExcelService]::new()
         } catch {
-            "DEBUG: ExcelService not available: $_" | Out-File -FilePath "./startup-debug.log" -Append
+            $this.Logger.Warn("ExcelService not available: $_")
             $this.ExcelService = $null
         }
         # Use ExcelMappingService for other functionality until proper services are loaded
         $this.DataProcessingService = $null  # Will use MappingService methods instead
         $this.TextExportService = $null      # Will use MappingService methods instead  
         $this.ExportProfileService = $null   # Will implement basic profile functionality
-        $this.FlatList = [System.Collections.Generic.List[object]]::new()
         $this.InitializeColors()
         $this.LoadMappings()
         "DEBUG: ExcelMappingScreen constructor COMPLETE $(Get-Date)" | Out-File -FilePath "./startup-debug.log" -Append
