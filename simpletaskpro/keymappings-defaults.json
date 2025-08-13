@@ -1,5 +1,82 @@
 {
+  "info": "Default key mappings for SimpleTaskPro. Copy entries to keymappings.json to customize.",
   "mappings": {
+    "Enter": {
+      "command": "action.select",
+      "description": "Select/activate item"
+    },
+    "Esc": {
+      "command": "action.cancel",
+      "description": "Cancel/escape"
+    },
+    "Ctrl+c": {
+      "command": "edit.copy",
+      "description": "Copy selection"
+    },
+    "Backspace": {
+      "command": "edit.backspace",
+      "description": "Delete character backward"
+    },
+    "F5": {
+      "command": "action.refresh",
+      "description": "Refresh data"
+    },
+    "Right": {
+      "command": "nav.right",
+      "description": "Move selection right"
+    },
+    "F3": {
+      "command": "screen.time",
+      "description": "Switch to Time Entry screen"
+    },
+    "PageDown": {
+      "command": "nav.page_down",
+      "description": "Page down"
+    },
+    "PageUp": {
+      "command": "nav.page_up",
+      "description": "Page up"
+    },
+    "n": {
+      "command": "action.new",
+      "description": "Create new item"
+    },
+    "F7": {
+      "command": "screen.tasks",
+      "description": "Switch to Tasks screen"
+    },
+    "Ctrl+x": {
+      "command": "edit.cut",
+      "description": "Cut selection"
+    },
+    "Up": {
+      "command": "nav.up",
+      "description": "Move selection up"
+    },
+    "Down": {
+      "command": "nav.down",
+      "description": "Move selection down"
+    },
+    "Ctrl+s": {
+      "command": "action.save",
+      "description": "Save changes"
+    },
+    "Delete": {
+      "command": "action.delete",
+      "description": "Delete item"
+    },
+    "End": {
+      "command": "nav.end",
+      "description": "Go to end"
+    },
+    "F1": {
+      "command": "app.help",
+      "description": "Show help"
+    },
+    "r": {
+      "command": "action.refresh",
+      "description": "Refresh data"
+    },
     "d": {
       "command": "action.delete",
       "description": "Delete item"
@@ -8,130 +85,53 @@
       "command": "screen.commands",
       "description": "Switch to Commands screen"
     },
-    "Up": {
-      "command": "nav.up",
-      "description": "Move selection up"
-    },
-    "Ctrl+n": {
-      "command": "action.new",
-      "description": "Create new item"
-    },
-    "F1": {
-      "command": "app.help",
-      "description": "Show help"
-    },
-    "PageDown": {
-      "command": "nav.page_down",
-      "description": "Page down"
-    },
-    "n": {
-      "command": "action.new",
-      "description": "Create new item"
-    },
-    "F3": {
-      "command": "screen.time",
-      "description": "Switch to Time Entry screen"
-    },
-    "PageUp": {
-      "command": "nav.page_up",
-      "description": "Page up"
-    },
-    "Down": {
-      "command": "nav.down",
-      "description": "Move selection down"
-    },
-    "End": {
-      "command": "nav.end",
-      "description": "Go to end"
-    },
     "Left": {
       "command": "nav.left",
       "description": "Move selection left"
-    },
-    "Ctrl+x": {
-      "command": "edit.cut",
-      "description": "Cut selection"
-    },
-    "Home": {
-      "command": "nav.home",
-      "description": "Go to beginning"
-    },
-    "F5": {
-      "command": "action.refresh",
-      "description": "Refresh data"
-    },
-    "F2": {
-      "command": "action.edit",
-      "description": "Edit item"
-    },
-    "Delete": {
-      "command": "action.delete",
-      "description": "Delete item"
-    },
-    "Spacebar": {
-      "command": "task.toggle.collapse",
-      "description": null
-    },
-    "Right": {
-      "command": "nav.right",
-      "description": "Move selection right"
-    },
-    "r": {
-      "command": "action.refresh",
-      "description": "Refresh data"
-    },
-    "F7": {
-      "command": "screen.tasks",
-      "description": "Switch to Tasks screen"
-    },
-    "Enter": {
-      "command": "action.select",
-      "description": "Select/activate item"
-    },
-    "Backspace": {
-      "command": "edit.backspace",
-      "description": "Delete character backward"
-    },
-    "t": {
-      "command": "app.theme.cycle",
-      "description": null
-    },
-    "Ctrl+c": {
-      "command": "edit.copy",
-      "description": "Copy selection"
-    },
-    "x": {
-      "command": "task.toggle.complete",
-      "description": null
-    },
-    "Ctrl+q": {
-      "command": "app.exit",
-      "description": "Exit application"
     },
     "F6": {
       "command": "screen.excel",
       "description": "Switch to Excel Mapping screen"
     },
+    "t": {
+      "command": "app.theme.cycle",
+      "description": null
+    },
+    "F2": {
+      "command": "action.edit",
+      "description": "Edit item"
+    },
+    "Spacebar": {
+      "command": "task.toggle.collapse",
+      "description": null
+    },
     "s": {
       "command": "action.save",
       "description": "Save changes"
     },
-    "Esc": {
-      "command": "action.cancel",
-      "description": "Cancel/escape"
+    "Ctrl+q": {
+      "command": "app.exit",
+      "description": "Exit application"
+    },
+    "x": {
+      "command": "task.toggle.complete",
+      "description": null
+    },
+    "Ctrl+v": {
+      "command": "edit.paste",
+      "description": "Paste from clipboard"
     },
     "e": {
       "command": "action.edit",
       "description": "Edit item"
     },
-    "Ctrl+s": {
-      "command": "action.save",
-      "description": "Save changes"
+    "Ctrl+n": {
+      "command": "action.new",
+      "description": "Create new item"
     },
-    "Ctrl+v": {
-      "command": "edit.paste",
-      "description": "Paste from clipboard"
+    "Home": {
+      "command": "nav.home",
+      "description": "Go to beginning"
     }
-  },
-  "info": "Default key mappings for SimpleTaskPro. Copy entries to keymappings.json to customize."
+  }
 }

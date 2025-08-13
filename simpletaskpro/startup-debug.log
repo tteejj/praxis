@@ -1,4 +1,4 @@
-=== SimpleTaskPro Startup Debug 08/13/2025 11:35:23 ===
+=== SimpleTaskPro Startup Debug 08/13/2025 12:37:02 ===
 Loading StringCache...
 Loading VT100...
 Loading UniversalBackupManager...
@@ -11,7 +11,6 @@ Loading SimpleTimeEntry model...
 Loading AppThemeManager (centralized theme system)...
 Loading EventBus (decoupled communication)...
 Loading FastLineBuilder (enhanced rendering)...
-Loading UnifiedRenderer (pure StringBuilder rendering)...
 Loading SimpleTaskService...
 Loading TimeTrackingService...
 Loading KeyMappingService...
@@ -30,30 +29,87 @@ Loading Command model...
 Loading CommandService...
 Loading CommandLibraryScreen...
 Loading TaskListScreen...
-DEBUG: SimpleTaskService constructor start 08/13/2025 11:36:50
-DEBUG: DataFile set 08/13/2025 11:36:50
-DEBUG: Tasks list created 08/13/2025 11:36:50
-DEBUG: Data directory ensured 08/13/2025 11:36:50
-DEBUG: About to call Load() 08/13/2025 11:36:50
-DEBUG: Load() completed 08/13/2025 11:36:51
-DEBUG: SimpleTaskService constructor start 08/13/2025 11:36:52
-DEBUG: DataFile set 08/13/2025 11:36:52
-DEBUG: Tasks list created 08/13/2025 11:36:52
-DEBUG: Data directory ensured 08/13/2025 11:36:52
-DEBUG: About to call Load() 08/13/2025 11:36:52
-DEBUG: Load() completed 08/13/2025 11:36:52
-DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 11:36:53
-DEBUG: LoadData - got 7 tasks 08/13/2025 11:36:53
-DEBUG: LoadData - built flat list 08/13/2025 11:36:53
-DEBUG: LoadData - updated StateManager 08/13/2025 11:36:53
-DEBUG: LoadData - completed successfully 08/13/2025 11:36:53
-DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 11:36:53
-DEBUG: LoadData - got 7 tasks 08/13/2025 11:36:53
-DEBUG: LoadData - built flat list 08/13/2025 11:36:53
-DEBUG: LoadData - updated StateManager 08/13/2025 11:36:53
-DEBUG: LoadData - completed successfully 08/13/2025 11:36:53
-DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 11:36:54
-DEBUG: LoadData - got 7 tasks 08/13/2025 11:36:54
-DEBUG: LoadData - built flat list 08/13/2025 11:36:54
-DEBUG: LoadData - updated StateManager 08/13/2025 11:36:54
-DEBUG: LoadData - completed successfully 08/13/2025 11:36:54
+Loading TimeEntryScreen...
+Loading Excel models and services...
+Loading ExcelMappingScreen...
+Loading SimpleTaskProApp...
+All components loaded successfully!
+Initializing console...
+Creating ServiceContainer...
+Creating SimpleTaskProApp...
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 12:37:05
+DEBUG: LoadData - exception occurred: You cannot call a method on a null-valued expression. 08/13/2025 12:37:05
+DEBUG: SimpleTaskService constructor start 08/13/2025 12:37:05
+DEBUG: DataFile set 08/13/2025 12:37:05
+DEBUG: Tasks list created 08/13/2025 12:37:05
+DEBUG: Data directory ensured 08/13/2025 12:37:05
+DEBUG: About to call Load() 08/13/2025 12:37:05
+DEBUG: Load() completed 08/13/2025 12:37:05
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 12:37:05
+DEBUG: LoadData - got 7 tasks 08/13/2025 12:37:05
+DEBUG: LoadData - built flat list 08/13/2025 12:37:06
+DEBUG: LoadData - updated StateManager 08/13/2025 12:37:06
+DEBUG: LoadData - completed successfully 08/13/2025 12:37:06
+Starting application...
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 12:37:07
+DEBUG: LoadData - got 7 tasks 08/13/2025 12:37:07
+DEBUG: LoadData - built flat list 08/13/2025 12:37:07
+DEBUG: LoadData - updated StateManager 08/13/2025 12:37:07
+DEBUG: LoadData - completed successfully 08/13/2025 12:37:07
+DEBUG: SimpleTaskService constructor start 08/13/2025 13:57:49
+DEBUG: DataFile set 08/13/2025 13:57:49
+DEBUG: Tasks list created 08/13/2025 13:57:49
+DEBUG: Data directory ensured 08/13/2025 13:57:49
+DEBUG: About to call Load() 08/13/2025 13:57:49
+DEBUG: Load() completed 08/13/2025 13:57:50
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 13:57:51
+DEBUG: LoadData - exception occurred: You cannot call a method on a null-valued expression. 08/13/2025 13:57:51
+DEBUG: SimpleTaskService constructor start 08/13/2025 13:57:51
+DEBUG: DataFile set 08/13/2025 13:57:51
+DEBUG: Tasks list created 08/13/2025 13:57:51
+DEBUG: Data directory ensured 08/13/2025 13:57:51
+DEBUG: About to call Load() 08/13/2025 13:57:51
+DEBUG: Load() completed 08/13/2025 13:57:51
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 13:57:52
+DEBUG: LoadData - got 7 tasks 08/13/2025 13:57:52
+DEBUG: LoadData - built flat list 08/13/2025 13:57:52
+DEBUG: LoadData - updated StateManager 08/13/2025 13:57:52
+DEBUG: LoadData - completed successfully 08/13/2025 13:57:52
+DEBUG: SimpleTaskService constructor start 08/13/2025 13:59:30
+DEBUG: DataFile set 08/13/2025 13:59:30
+DEBUG: Tasks list created 08/13/2025 13:59:30
+DEBUG: Data directory ensured 08/13/2025 13:59:30
+DEBUG: About to call Load() 08/13/2025 13:59:30
+DEBUG: Load() completed 08/13/2025 13:59:30
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 13:59:32
+DEBUG: LoadData - exception occurred: You cannot call a method on a null-valued expression. 08/13/2025 13:59:32
+DEBUG: SimpleTaskService constructor start 08/13/2025 13:59:32
+DEBUG: DataFile set 08/13/2025 13:59:32
+DEBUG: Tasks list created 08/13/2025 13:59:32
+DEBUG: Data directory ensured 08/13/2025 13:59:32
+DEBUG: About to call Load() 08/13/2025 13:59:32
+DEBUG: Load() completed 08/13/2025 13:59:32
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 13:59:32
+DEBUG: LoadData - got 7 tasks 08/13/2025 13:59:32
+DEBUG: LoadData - built flat list 08/13/2025 13:59:33
+DEBUG: LoadData - updated StateManager 08/13/2025 13:59:33
+DEBUG: LoadData - completed successfully 08/13/2025 13:59:33
+DEBUG: SimpleTaskService constructor start 08/13/2025 14:00:14
+DEBUG: DataFile set 08/13/2025 14:00:14
+DEBUG: Tasks list created 08/13/2025 14:00:14
+DEBUG: Data directory ensured 08/13/2025 14:00:14
+DEBUG: About to call Load() 08/13/2025 14:00:14
+DEBUG: Load() completed 08/13/2025 14:00:15
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 14:00:16
+DEBUG: LoadData - exception occurred: You cannot call a method on a null-valued expression. 08/13/2025 14:00:16
+DEBUG: SimpleTaskService constructor start 08/13/2025 14:00:16
+DEBUG: DataFile set 08/13/2025 14:00:16
+DEBUG: Tasks list created 08/13/2025 14:00:16
+DEBUG: Data directory ensured 08/13/2025 14:00:16
+DEBUG: About to call Load() 08/13/2025 14:00:16
+DEBUG: Load() completed 08/13/2025 14:00:16
+DEBUG: LoadData - calling TaskService.GetParentTasks 08/13/2025 14:00:16
+DEBUG: LoadData - got 7 tasks 08/13/2025 14:00:16
+DEBUG: LoadData - built flat list 08/13/2025 14:00:17
+DEBUG: LoadData - updated StateManager 08/13/2025 14:00:17
+DEBUG: LoadData - completed successfully 08/13/2025 14:00:17

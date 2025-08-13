@@ -5366,3 +5366,241 @@ at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-
 11:37:44 DEBUG - Screen TaskListScreen cleanup
 11:37:44 DEBUG - RenderEngine: Console state restored
 11:37:44 INFO  - SimpleTaskProApp cleanup complete
+--- Log Initialized at 08/13/2025 11:43:21 ---
+11:43:23 DEBUG - SimpleStateManager initialized with PowerShell-native state
+11:43:23 DEBUG - InputProcessor: Default commands registered
+11:43:23 DEBUG - InputProcessor: Default key mappings registered
+11:43:23 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+11:43:23 INFO  - InputProcessor initialized
+11:43:23 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+11:43:23 INFO  - RenderEngine initialized with 5 pooled string builders
+11:43:23 DEBUG - AppThemeManager initialized with Default theme
+11:43:23 DEBUG - Bootstrapper: About to create SimpleTaskProApp
+11:43:23 INFO  - SimpleTaskProApp initializing with Phase 1 services
+11:43:23 DEBUG - EventBus subscriptions setup complete
+11:43:23 DEBUG - TaskListScreen created successfully
+11:43:23 DEBUG - Screen TaskListScreen initializing...
+11:43:23 DEBUG - ListScreen TaskListScreen post-construction setup complete
+11:43:24 DEBUG - TaskListScreen built flat list with 12 items
+11:43:24 DEBUG - State changed: TaskList = SimpleTask[]
+11:43:24 DEBUG - TaskListScreen loaded 7 tasks
+11:43:24 INFO  - TaskListScreen initialized with proper inheritance
+11:43:24 DEBUG - TaskListScreen built flat list with 12 items
+11:43:24 DEBUG - State changed: TaskList = SimpleTask[]
+11:43:24 DEBUG - TaskListScreen loaded 7 tasks
+11:43:24 DEBUG - TaskListScreen built flat list with 12 items
+11:43:24 DEBUG - TaskListScreen: Refreshed list with 12 items
+11:43:24 DEBUG - TaskListScreen: Initialized with dimensions 90x25
+11:43:24 DEBUG - TaskListScreen fully initialized successfully
+11:43:24 INFO  - Initialized 1 full-featured screens.
+11:43:24 DEBUG - State changed: CurrentScreen = String
+11:43:24 INFO  - Switched to screen: Tasks
+11:43:24 INFO  - SimpleTaskProApp initialization complete
+11:43:24 DEBUG - Bootstrapper: SimpleTaskProApp created successfully
+11:43:24 INFO  - SimpleTaskPro initialization complete
+11:43:24 INFO  - Starting SimpleTaskPro main loop
+11:43:24 DEBUG - RenderEngine: Console optimizations applied
+11:43:25 ERROR - Error rendering frame
+Method invocation failed because [Logger] does not contain a method named 'Error'.
+Stack Trace:
+at RenderFrame, /home/teej/projects/github/praxis/simpletaskpro/Core/RenderEngine.ps1: line 217
+at RenderFrame, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 236
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 169
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 143
+11:43:25 DEBUG - TaskListScreen built flat list with 12 items
+11:43:25 DEBUG - State changed: TaskList = SimpleTask[]
+11:43:25 DEBUG - TaskListScreen loaded 7 tasks
+11:43:25 DEBUG - TaskListScreen built flat list with 12 items
+11:43:25 DEBUG - TaskListScreen: Refreshed list with 12 items
+11:43:25 DEBUG - TaskListScreen: Initialized with dimensions 90x25
+11:43:25 DEBUG - State batch update: WindowHeight, WindowWidth
+11:43:25 DEBUG - Window resized to 90x25
+11:43:25 ERROR - Error rendering frame
+Method invocation failed because [Logger] does not contain a method named 'Error'.
+Stack Trace:
+at RenderFrame, /home/teej/projects/github/praxis/simpletaskpro/Core/RenderEngine.ps1: line 217
+at RenderFrame, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 236
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 201
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 143
+11:43:33 DEBUG - InputProcessor: Processing key 'q'
+11:43:33 DEBUG - InputProcessor: No command found for key 'q'
+11:43:33 DEBUG - InputProcessor: Processing key 'q'
+11:43:34 DEBUG - InputProcessor: No command found for key 'q'
+11:43:34 INFO  - SimpleTaskProApp cleanup starting
+11:43:34 DEBUG - Screen TaskListScreen lost focus
+11:43:34 DEBUG - Screen TaskListScreen cleanup
+11:43:34 DEBUG - Screen TaskListScreen cleanup
+11:43:34 DEBUG - RenderEngine: Console state restored
+11:43:34 INFO  - SimpleTaskProApp cleanup complete
+--- Log Initialized at 08/13/2025 12:26:58 ---
+12:27:00 DEBUG - SimpleStateManager initialized with PowerShell-native state
+12:27:00 DEBUG - InputProcessor: Default commands registered
+12:27:00 DEBUG - InputProcessor: Default key mappings registered
+12:27:00 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+12:27:00 INFO  - InputProcessor initialized
+12:27:00 INFO  - Exported default key mappings to /home/teej/projects/github/praxis/simpletaskpro/keymappings-defaults.json
+12:27:00 INFO  - RenderEngine initialized with 5 pooled string builders
+12:27:00 DEBUG - AppThemeManager initialized with Default theme
+12:27:00 DEBUG - Bootstrapper: About to create SimpleTaskProApp
+12:27:00 INFO  - SimpleTaskProApp initializing with Phase 1 services
+12:27:00 DEBUG - EventBus subscriptions setup complete
+12:27:00 DEBUG - TaskListScreen created successfully
+12:27:00 DEBUG - Screen TaskListScreen bounds set to 90x25
+12:27:00 DEBUG - Screen TaskListScreen initializing...
+12:27:00 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 95
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 72
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen-Phase4.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at InitializeScreens, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 59
+at SimpleTaskProApp, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 39
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Core/Bootstrapper.ps1: line 62
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro-Phase5.ps1: line 135
+12:27:00 DEBUG - ListScreen TaskListScreen post-construction setup complete
+12:27:01 DEBUG - TaskListScreen built flat list with 12 items
+12:27:01 DEBUG - State changed: TaskList = SimpleTask[]
+12:27:01 DEBUG - TaskListScreen loaded 7 tasks
+12:27:01 INFO  - TaskListScreen initialized with proper inheritance
+12:27:01 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+12:27:01 DEBUG - TaskListScreen fully initialized successfully
+12:27:01 INFO  - Initialized 1 full-featured screens.
+12:27:01 DEBUG - State changed: CurrentScreen = String
+12:27:01 INFO  - Switched to screen: Tasks
+12:27:01 INFO  - SimpleTaskProApp initialization complete
+12:27:01 DEBUG - Bootstrapper: SimpleTaskProApp created successfully
+12:27:01 INFO  - SimpleTaskPro initialization complete
+12:27:01 INFO  - Starting SimpleTaskPro main application loop
+12:27:01 DEBUG - RenderEngine: Console optimizations applied
+12:27:02 DEBUG - TaskListScreen built flat list with 12 items
+12:27:02 DEBUG - State changed: TaskList = SimpleTask[]
+12:27:02 DEBUG - TaskListScreen loaded 7 tasks
+12:27:02 DEBUG - TaskListScreen built flat list with 12 items
+12:27:02 DEBUG - TaskListScreen: Refreshed list with 12 items
+12:27:02 DEBUG - TaskListScreen: Initialized with dimensions 90x25
+12:27:02 DEBUG - State batch update: WindowWidth, WindowHeight
+12:27:02 DEBUG - Window resized to 90x25
+12:27:08 DEBUG - InputProcessor: Processing key 'Down'
+12:27:08 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+12:27:08 DEBUG - InputProcessor: Processing key 'Down'
+12:27:08 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+12:27:09 DEBUG - InputProcessor: Processing key 'Down'
+12:27:09 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+12:27:09 DEBUG - InputProcessor: Processing key 'Down'
+12:27:09 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+12:27:09 DEBUG - InputProcessor: Processing key 'Down'
+12:27:09 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+12:27:09 DEBUG - InputProcessor: Processing key 'Down'
+12:27:09 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+12:27:10 DEBUG - InputProcessor: Processing key 'Up'
+12:27:10 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+12:27:31 DEBUG - InputProcessor: Processing key 'q'
+12:27:32 DEBUG - InputProcessor: No command found for key 'q'
+12:27:32 INFO  - SimpleTaskProApp cleanup starting
+12:27:32 DEBUG - Screen TaskListScreen lost focus
+12:27:32 DEBUG - Screen TaskListScreen cleanup
+12:27:32 DEBUG - Screen TaskListScreen cleanup
+12:27:32 DEBUG - RenderEngine: Console state restored
+12:27:32 INFO  - SimpleTaskProApp cleanup complete
+--- Log Initialized at 08/13/2025 13:57:49 ---
+13:57:49 DEBUG - Registering all application services...
+13:57:49 DEBUG - SimpleStateManager initialized with PowerShell-native state
+13:57:49 DEBUG - InputProcessor: Default commands registered
+13:57:49 DEBUG - InputProcessor: Default key mappings registered
+13:57:49 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+13:57:49 INFO  - InputProcessor initialized
+13:57:49 INFO  - RenderEngine initialized with 5 pooled string builders
+13:57:51 INFO  - All application screens have been instantiated.
+13:57:51 INFO  - SimpleTaskPro initialization complete.
+13:57:51 INFO  - Application launcher running. Handing control to initial screen.
+13:57:51 DEBUG - Screen TaskListScreen bounds set to 80x24
+13:57:51 DEBUG - Screen TaskListScreen initializing...
+13:57:51 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 95
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 45
+13:57:51 DEBUG - ListScreen TaskListScreen post-construction setup complete
+13:57:52 DEBUG - TaskListScreen built flat list with 12 items
+13:57:52 DEBUG - State changed: TaskList = SimpleTask[]
+13:57:52 DEBUG - TaskListScreen loaded 7 tasks
+13:57:52 INFO  - TaskListScreen initialized with proper inheritance
+13:57:52 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+13:57:53 INFO  - Bootstrapper: Beginning application cleanup
+13:57:53 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 13:59:29 ---
+13:59:30 DEBUG - Registering all application services...
+13:59:30 DEBUG - SimpleStateManager initialized with PowerShell-native state
+13:59:30 DEBUG - InputProcessor: Default commands registered
+13:59:30 DEBUG - InputProcessor: Default key mappings registered
+13:59:30 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+13:59:30 INFO  - InputProcessor initialized
+13:59:30 INFO  - RenderEngine initialized with 5 pooled string builders
+13:59:32 INFO  - All application screens have been instantiated.
+13:59:32 INFO  - SimpleTaskPro initialization complete.
+13:59:32 INFO  - Application launcher running. Handing control to initial screen.
+13:59:32 DEBUG - Screen TaskListScreen bounds set to 80x24
+13:59:32 DEBUG - Screen TaskListScreen initializing...
+13:59:32 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 95
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 45
+13:59:32 DEBUG - ListScreen TaskListScreen post-construction setup complete
+13:59:33 DEBUG - TaskListScreen built flat list with 12 items
+13:59:33 DEBUG - State changed: TaskList = SimpleTask[]
+13:59:33 DEBUG - TaskListScreen loaded 7 tasks
+13:59:33 INFO  - TaskListScreen initialized with proper inheritance
+13:59:33 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+13:59:34 INFO  - Bootstrapper: Beginning application cleanup
+13:59:34 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 14:00:14 ---
+14:00:14 DEBUG - Registering all application services...
+14:00:14 DEBUG - SimpleStateManager initialized with PowerShell-native state
+14:00:14 DEBUG - InputProcessor: Default commands registered
+14:00:14 DEBUG - InputProcessor: Default key mappings registered
+14:00:14 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+14:00:14 INFO  - InputProcessor initialized
+14:00:14 INFO  - RenderEngine initialized with 5 pooled string builders
+14:00:16 INFO  - All application screens have been instantiated.
+14:00:16 INFO  - SimpleTaskPro initialization complete.
+14:00:16 INFO  - Application launcher running. Handing control to initial screen.
+14:00:16 DEBUG - Screen TaskListScreen bounds set to 90x25
+14:00:16 DEBUG - Screen TaskListScreen initializing...
+14:00:16 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 95
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 45
+14:00:16 DEBUG - ListScreen TaskListScreen post-construction setup complete
+14:00:17 DEBUG - TaskListScreen built flat list with 12 items
+14:00:17 DEBUG - State changed: TaskList = SimpleTask[]
+14:00:17 DEBUG - TaskListScreen loaded 7 tasks
+14:00:17 INFO  - TaskListScreen initialized with proper inheritance
+14:00:17 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+14:00:19 DEBUG - InputProcessor: Processing key 'Down'
+14:00:19 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+14:00:20 DEBUG - InputProcessor: Processing key 'Down'
+14:00:20 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+14:00:20 DEBUG - InputProcessor: Processing key 'Down'
+14:00:20 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+14:00:24 DEBUG - InputProcessor: Processing key 'q'
+14:00:24 DEBUG - InputProcessor: No command found for key 'q'
+14:46:34 INFO  - Bootstrapper: Beginning application cleanup
+14:46:34 DEBUG - RenderEngine: Console state restored

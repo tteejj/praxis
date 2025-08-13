@@ -1,113 +1,67 @@
-# Core/Bootstrapper.ps1 - Application initialization with Phase 1 services
-# Safe, predictable startup sequence for SimpleTaskPro
+# Core/Bootstrapper.ps1 - The SINGLE entry point for creating the application and its services.
 
 class Bootstrapper {
-    static [ServiceContainer]$ServiceContainer = $null
-    static [bool]$IsInitialized = $false
-    
-    # Initialize the entire application with new Phase 1 architecture
-    static [SimpleTaskProApp] Initialize([string]$appRootPath) {
-        if ([Bootstrapper]::IsInitialized) {
-            throw "Bootstrapper: Application already initialized"
-        }
-        
+    static [object] $ServiceContainer = $null
+    static [bool] $IsInitialized = $false
+
+    static [object] Initialize([string]$appRootPath) {
+        if ([Bootstrapper]::IsInitialized) { throw "Bootstrapper: Application already initialized" }
+
+        $logger = $null
         try {
-            Write-Host "SimpleTaskPro starting..." -ForegroundColor Green
-            
-            # Step 1: Initialize Service Container
+            # Step 1: Create Service Container and Core Singletons
             [Bootstrapper]::ServiceContainer = [ServiceContainer]::new()
-            
-            # Step 1.5: Create EventBus and Logger singletons and register them
             $eventBus = [EventBus]::new()
             [Bootstrapper]::ServiceContainer.Register("EventBus", $eventBus)
-            
             $logger = [Logger]::new()
-            # Initialize the logger with proper path and level
             $logger.Initialize($appRootPath, [LogLevel]::Debug)
             [Bootstrapper]::ServiceContainer.Register("Logger", $logger)
-            
-            # Step 2: Register additional services needed by existing app
-            [Bootstrapper]::RegisterExistingServices()
-            
-            # Step 3: Initialize StringCache for performance
+
+            # Step 2: Create and Register ALL Services (BEFORE the app)
+            $logger.Debug("Registering all application services...")
             [StringCache]::Initialize()
-            
-            # Step 4: Create SimpleStateManager and register it
-            $eventBus = [Bootstrapper]::ServiceContainer.GetService("EventBus")
-            $logger = [Bootstrapper]::ServiceContainer.GetService("Logger")
             $stateManager = [SimpleStateManager]::new($eventBus, $logger)
             [Bootstrapper]::ServiceContainer.Register("StateManager", $stateManager)
-            
-            # Step 5: Create InputProcessor with user key mappings and register it  
             $inputProcessor = [InputProcessor]::new($eventBus, $stateManager, $logger, $appRootPath)
             [Bootstrapper]::ServiceContainer.Register("InputProcessor", $inputProcessor)
-            
-            # Export default key mappings for user reference
-            $inputProcessor.ExportDefaultKeyMappings($appRootPath)
-            
-            # Step 6: Create RenderEngine and register it
             $renderEngine = [RenderEngine]::new($logger)
             [Bootstrapper]::ServiceContainer.Register("RenderEngine", $renderEngine)
-            
-            # Step 6.5: Create FastLineBuilder (ContentBuilder) and register it
-            $fastLineBuilder = [FastLineBuilder]::new()
-            [Bootstrapper]::ServiceContainer.Register("ContentBuilder", $fastLineBuilder)
-            
-            # Step 6.6: Initialize AppThemeManager (static class) with default theme
-            [AppThemeManager]::ApplyTheme("Default")
-            $logger.Debug("AppThemeManager initialized with Default theme")
-            
-            # Step 7: Create the main application with service injection
-            $logger.Debug("Bootstrapper: About to create SimpleTaskProApp")
+            $contentBuilder = [FastLineBuilder]::new()
+            [Bootstrapper]::ServiceContainer.Register("ContentBuilder", $contentBuilder)
+            $taskService = [SimpleTaskService]::new()
+            [Bootstrapper]::ServiceContainer.Register("SimpleTaskService", $taskService)
+            $timeTrackingService = [TimeTrackingService]::new()
+            [Bootstrapper]::ServiceContainer.Register("TimeTrackingService", $timeTrackingService)
+            $commandService = [CommandService]::new()
+            [Bootstrapper]::ServiceContainer.Register("CommandService", $commandService)
+            $excelMappingService = [ExcelMappingService]::new()
+            [Bootstrapper]::ServiceContainer.Register("ExcelMappingService", $excelMappingService)
+            $keyMappingService = [KeyMappingService]::new()
+            [Bootstrapper]::ServiceContainer.Register("KeyMappingService", $keyMappingService)
+
+            # Step 3: Initialize Static Managers
+            [AppThemeManager]::ApplyTheme("amber")
+
+            # Step 4: Create the Main Application Launcher
             $app = [SimpleTaskProApp]::new([Bootstrapper]::ServiceContainer)
-            $logger.Debug("Bootstrapper: SimpleTaskProApp created successfully")
             
             [Bootstrapper]::IsInitialized = $true
-            $logger.Info("SimpleTaskPro initialization complete")
-            Write-Host "SimpleTaskPro ready!" -ForegroundColor Green
-            
+            $logger.Info("SimpleTaskPro initialization complete.")
             return $app
-            
         } catch {
-            # Logger may not be available if error happened early
-            try {
-                $logger = [Bootstrapper]::ServiceContainer.GetService("Logger")
-                $logger.Error("Bootstrapper: Critical error during initialization", $_)
-            } catch {
-                # Fallback if logger not available
-            }
-            Write-Host "Failed to initialize SimpleTaskPro: $_" -ForegroundColor Red
-            
-            # Attempt cleanup
-            [Bootstrapper]::Cleanup()
+            if ($logger) { $logger.Error("Bootstrapper: Critical error during initialization", $_) }
             throw
         }
     }
-    
-    # Register services that existing code expects
-    static [void] RegisterExistingServices() {
-        # Create actual service instances instead of placeholders
-        # For now these will be basic implementations
-        
-        # Create core services - Phase 5 expects these to exist
-        $taskService = [SimpleTaskService]::new()
-        [Bootstrapper]::ServiceContainer.Register("TaskService", $taskService)
-        
-        $timeService = [TimeTrackingService]::new()
-        [Bootstrapper]::ServiceContainer.Register("TimeService", $timeService)
-        
-        $commandService = [CommandService]::new()
-        [Bootstrapper]::ServiceContainer.Register("CommandService", $commandService)
-    }
-    
+
     # Get the global service container
-    static [ServiceContainer] GetServiceContainer() {
+    static [object] GetServiceContainer() {
         if (-not [Bootstrapper]::ServiceContainer) {
             throw "Bootstrapper: Application not initialized. Call Initialize() first."
         }
         return [Bootstrapper]::ServiceContainer
     }
-    
+
     # Safe application shutdown
     static [void] Cleanup() {
         try {

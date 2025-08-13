@@ -31,18 +31,22 @@ class Screen {
         $this.Logger = $services.GetService("Logger")
     }
     
-    # NEW: Post-construction initialization - handles complex setup safely
+    # This is the single, public entry point for initializing a screen.
+    # The main application will call this after the screen is created.
     [void] Initialize() {
+        $this.SetBounds([Console]::WindowWidth, [Console]::WindowHeight)
         $this.Logger.Debug("Screen $($this.GetType().Name) initializing...")
         
-        # The problematic EventBus subscription is now safe to run
+        # Subscribe to the core command execution event from the InputProcessor.
+        # This is how the screen receives commands for keys the user presses.
         $this.EventBus.Subscribe("command.executed", {
             param($eventData)
             $this.HandleCommand($eventData.Command)
         }.GetNewClosure())
         
-        # Hook for derived classes
+        # Call the overrideable hook for child classes to perform their specific setup.
         $this.OnInitialize()
+        $this.Logger.Debug("Screen $($this.GetType().Name) OnInitialize hook completed.")
     }
     
     # Hook for derived classes to override

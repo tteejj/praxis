@@ -56,6 +56,19 @@
         "ModifiedDate": "2025-08-10T18:59:35.0812937-06:00"
       },
       {
+        "Id": "cdc59685-22d6-41cc-8f98-5f4e4cc717ec",
+        "Title": "New Command",
+        "CommandText": "",
+        "Description": "New command description",
+        "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+        "CommandsCollapsed": false,
+        "SortOrder": 0,
+        "Tags": null,
+        "Commands": [],
+        "CreatedDate": "2025-08-10T14:21:25.0832936-06:00",
+        "ModifiedDate": "2025-08-10T14:21:29.1557855-06:00"
+      },
+      {
         "Id": "d0487eef-6fa8-4c16-900c-ae6eff4f76ce",
         "Title": "New Command",
         "CommandText": "",
@@ -80,19 +93,6 @@
         "Commands": [],
         "CreatedDate": "2025-08-10T19:22:45.4011298-06:00",
         "ModifiedDate": "2025-08-10T19:22:45.4014864-06:00"
-      },
-      {
-        "Id": "cdc59685-22d6-41cc-8f98-5f4e4cc717ec",
-        "Title": "New Command",
-        "CommandText": "",
-        "Description": "New command description",
-        "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
-        "CommandsCollapsed": false,
-        "SortOrder": 0,
-        "Tags": null,
-        "Commands": [],
-        "CreatedDate": "2025-08-10T14:21:25.0832936-06:00",
-        "ModifiedDate": "2025-08-10T14:21:29.1557855-06:00"
       },
       {
         "Id": "58a3bfc9-d051-4c81-adab-6d3f5da55ef9",
@@ -158,6 +158,19 @@
     "ModifiedDate": "2025-08-10T18:59:35.0812937-06:00"
   },
   {
+    "Id": "cdc59685-22d6-41cc-8f98-5f4e4cc717ec",
+    "Title": "New Command",
+    "CommandText": "",
+    "Description": "New command description",
+    "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
+    "CommandsCollapsed": false,
+    "SortOrder": 0,
+    "Tags": null,
+    "Commands": [],
+    "CreatedDate": "2025-08-10T14:21:25.0832936-06:00",
+    "ModifiedDate": "2025-08-10T14:21:29.1557855-06:00"
+  },
+  {
     "Id": "d0487eef-6fa8-4c16-900c-ae6eff4f76ce",
     "Title": "New Command",
     "CommandText": "",
@@ -182,19 +195,6 @@
     "Commands": [],
     "CreatedDate": "2025-08-10T19:22:45.4011298-06:00",
     "ModifiedDate": "2025-08-10T19:22:45.4014864-06:00"
-  },
-  {
-    "Id": "cdc59685-22d6-41cc-8f98-5f4e4cc717ec",
-    "Title": "New Command",
-    "CommandText": "",
-    "Description": "New command description",
-    "GroupId": "b81861a1-f25a-4a7a-aa97-adb40d7a7004",
-    "CommandsCollapsed": false,
-    "SortOrder": 0,
-    "Tags": null,
-    "Commands": [],
-    "CreatedDate": "2025-08-10T14:21:25.0832936-06:00",
-    "ModifiedDate": "2025-08-10T14:21:29.1557855-06:00"
   },
   {
     "Id": "58a3bfc9-d051-4c81-adab-6d3f5da55ef9",
