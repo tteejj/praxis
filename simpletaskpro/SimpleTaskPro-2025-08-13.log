@@ -5604,3 +5604,1108 @@ at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.
 14:00:24 DEBUG - InputProcessor: No command found for key 'q'
 14:46:34 INFO  - Bootstrapper: Beginning application cleanup
 14:46:34 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:06:12 ---
+15:06:12 DEBUG - Registering all application services...
+15:06:12 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:06:12 DEBUG - InputProcessor: Default commands registered
+15:06:12 DEBUG - InputProcessor: Default key mappings registered
+15:06:12 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:06:12 INFO  - InputProcessor initialized
+15:06:12 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:06:23 ---
+15:06:23 DEBUG - Registering all application services...
+15:06:23 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:06:23 DEBUG - InputProcessor: Default commands registered
+15:06:23 DEBUG - InputProcessor: Default key mappings registered
+15:06:23 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:06:23 INFO  - InputProcessor initialized
+15:06:23 INFO  - RenderEngine initialized with 5 pooled string builders
+15:06:25 INFO  - All application screens have been instantiated.
+15:06:25 INFO  - SimpleTaskPro initialization complete.
+15:06:25 INFO  - Application launcher running. Handing control to initial screen.
+15:06:25 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:06:25 DEBUG - Screen TaskListScreen initializing...
+15:06:25 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 95
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:06:25 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:06:26 DEBUG - TaskListScreen built flat list with 12 items
+15:06:26 DEBUG - State changed: TaskList = SimpleTask[]
+15:06:26 DEBUG - TaskListScreen loaded 7 tasks
+15:06:26 INFO  - TaskListScreen initialized with proper inheritance
+15:06:26 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:06:27 INFO  - Bootstrapper: Beginning application cleanup
+15:06:27 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:07:50 ---
+15:07:50 DEBUG - Registering all application services...
+15:07:50 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:07:50 DEBUG - InputProcessor: Default commands registered
+15:07:50 DEBUG - InputProcessor: Default key mappings registered
+15:07:50 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:07:50 INFO  - InputProcessor initialized
+15:07:50 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:08:03 ---
+15:08:03 DEBUG - Registering all application services...
+15:08:03 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:08:03 DEBUG - InputProcessor: Default commands registered
+15:08:03 DEBUG - InputProcessor: Default key mappings registered
+15:08:03 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:08:04 INFO  - InputProcessor initialized
+15:08:04 INFO  - RenderEngine initialized with 5 pooled string builders
+15:08:06 INFO  - All application screens have been instantiated.
+15:08:06 INFO  - SimpleTaskPro initialization complete.
+15:08:06 INFO  - Application launcher running. Handing control to initial screen.
+15:08:06 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:08:06 DEBUG - Screen TaskListScreen initializing...
+15:08:06 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 95
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:08:06 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:08:06 DEBUG - TaskListScreen built flat list with 12 items
+15:08:06 DEBUG - State changed: TaskList = SimpleTask[]
+15:08:06 DEBUG - TaskListScreen loaded 7 tasks
+15:08:06 INFO  - TaskListScreen initialized with proper inheritance
+15:08:06 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:08:07 INFO  - Bootstrapper: Beginning application cleanup
+15:08:07 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:09:16 ---
+15:09:16 DEBUG - Registering all application services...
+15:09:16 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:09:16 DEBUG - InputProcessor: Default commands registered
+15:09:16 DEBUG - InputProcessor: Default key mappings registered
+15:09:16 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:09:17 INFO  - InputProcessor initialized
+15:09:17 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:09:28 ---
+15:09:28 DEBUG - Registering all application services...
+15:09:29 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:09:29 DEBUG - InputProcessor: Default commands registered
+15:09:29 DEBUG - InputProcessor: Default key mappings registered
+15:09:29 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:09:29 INFO  - InputProcessor initialized
+15:09:29 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:09:44 ---
+15:09:44 DEBUG - Registering all application services...
+15:09:44 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:09:45 DEBUG - InputProcessor: Default commands registered
+15:09:45 DEBUG - InputProcessor: Default key mappings registered
+15:09:45 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:09:45 INFO  - InputProcessor initialized
+15:09:45 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:12:07 ---
+15:12:07 DEBUG - Registering all application services...
+15:12:07 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:12:07 DEBUG - InputProcessor: Default commands registered
+15:12:07 DEBUG - InputProcessor: Default key mappings registered
+15:12:07 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:12:07 INFO  - InputProcessor initialized
+15:12:07 INFO  - RenderEngine initialized with 5 pooled string builders
+15:12:09 INFO  - All application screens have been instantiated.
+15:12:09 INFO  - SimpleTaskPro initialization complete.
+15:12:09 INFO  - Application launcher running. Handing control to initial screen.
+15:12:09 DEBUG - Screen TaskListScreen bounds set to 90x23
+15:12:09 DEBUG - Screen TaskListScreen initializing...
+15:12:10 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 97
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:12:10 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:12:10 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+15:12:10 DEBUG - TaskListScreen: Got TaskService: True
+15:12:10 DEBUG - TaskListScreen built flat list with 12 items
+15:12:10 DEBUG - State changed: TaskList = SimpleTask[]
+15:12:10 DEBUG - TaskListScreen loaded 7 tasks
+15:12:10 INFO  - TaskListScreen initialized with proper inheritance
+15:12:10 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:12:13 DEBUG - InputProcessor: Processing key 'Down'
+15:12:13 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:20 DEBUG - InputProcessor: Processing key 'Down'
+15:12:20 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:20 DEBUG - InputProcessor: Processing key 'Down'
+15:12:20 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:21 DEBUG - InputProcessor: Processing key 'Down'
+15:12:21 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:21 DEBUG - InputProcessor: Processing key 'Down'
+15:12:21 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:21 DEBUG - InputProcessor: Processing key 'Down'
+15:12:21 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:21 DEBUG - InputProcessor: Processing key 'Down'
+15:12:21 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:22 DEBUG - InputProcessor: Processing key 'Down'
+15:12:22 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:12:23 DEBUG - InputProcessor: Processing key 'n'
+15:12:23 DEBUG - InputProcessor: Executing command 'action.new' for key 'n'
+15:12:25 DEBUG - InputProcessor: Processing key 'e'
+15:12:25 DEBUG - InputProcessor: Executing command 'action.edit' for key 'e'
+15:12:40 INFO  - Bootstrapper: Beginning application cleanup
+15:12:40 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:24:03 ---
+15:24:03 DEBUG - Registering all application services...
+15:24:03 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:24:03 DEBUG - InputProcessor: Default commands registered
+15:24:03 DEBUG - InputProcessor: Default key mappings registered
+15:24:03 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:24:03 INFO  - InputProcessor initialized
+15:24:03 INFO  - RenderEngine initialized with 5 pooled string builders
+15:24:06 INFO  - All application screens have been instantiated.
+15:24:06 INFO  - SimpleTaskPro initialization complete.
+15:24:06 INFO  - Application launcher running. Handing control to initial screen.
+15:24:06 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:24:06 DEBUG - Screen TaskListScreen initializing...
+--- Log Initialized at 08/13/2025 15:24:17 ---
+15:24:17 DEBUG - Registering all application services...
+15:24:18 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:24:18 DEBUG - InputProcessor: Default commands registered
+15:24:18 DEBUG - InputProcessor: Default key mappings registered
+15:24:18 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:24:18 INFO  - InputProcessor initialized
+15:24:18 INFO  - RenderEngine initialized with 5 pooled string builders
+15:24:20 INFO  - All application screens have been instantiated.
+15:24:20 INFO  - SimpleTaskPro initialization complete.
+15:24:20 INFO  - Application launcher running. Handing control to initial screen.
+15:24:20 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:24:20 DEBUG - Screen TaskListScreen initializing...
+15:24:20 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 97
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:24:20 DEBUG - ListScreen TaskListScreen post-construction setup complete
+--- Log Initialized at 08/13/2025 15:24:37 ---
+15:24:37 DEBUG - Registering all application services...
+15:24:37 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:24:37 DEBUG - InputProcessor: Default commands registered
+15:24:37 DEBUG - InputProcessor: Default key mappings registered
+15:24:37 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:24:37 INFO  - InputProcessor initialized
+15:24:37 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:25:47 ---
+15:25:47 DEBUG - Registering all application services...
+15:25:47 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:25:47 DEBUG - InputProcessor: Default commands registered
+15:25:47 DEBUG - InputProcessor: Default key mappings registered
+15:25:47 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:25:47 INFO  - InputProcessor initialized
+15:25:47 INFO  - RenderEngine initialized with 5 pooled string builders
+15:25:50 INFO  - All application screens have been instantiated.
+15:25:50 INFO  - SimpleTaskPro initialization complete.
+15:25:50 INFO  - Application launcher running. Handing control to initial screen.
+15:25:50 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:25:50 DEBUG - Screen TaskListScreen initializing...
+15:25:50 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 97
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:25:50 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:25:50 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+15:25:50 DEBUG - TaskListScreen: Got TaskService: True
+15:25:50 DEBUG - TaskListScreen built flat list with 12 items
+15:25:50 DEBUG - State changed: TaskList = SimpleTask[]
+15:25:50 DEBUG - TaskListScreen loaded 7 tasks
+15:25:50 INFO  - TaskListScreen initialized with proper inheritance
+15:25:50 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:25:51 INFO  - Bootstrapper: Beginning application cleanup
+15:25:51 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:29:37 ---
+15:29:37 DEBUG - Registering all application services...
+15:29:37 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:29:37 DEBUG - InputProcessor: Default commands registered
+15:29:38 DEBUG - InputProcessor: Default key mappings registered
+15:29:38 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:29:38 INFO  - InputProcessor initialized
+15:29:38 INFO  - RenderEngine initialized with 5 pooled string builders
+15:29:40 INFO  - All application screens have been instantiated.
+15:29:40 INFO  - SimpleTaskPro initialization complete.
+15:29:40 INFO  - Application launcher running. Handing control to initial screen.
+15:29:40 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:29:40 DEBUG - Screen TaskListScreen initializing...
+15:29:40 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 97
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:29:40 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:29:40 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+15:29:40 DEBUG - TaskListScreen: Got TaskService: True
+15:29:40 DEBUG - TaskListScreen built flat list with 12 items
+15:29:40 DEBUG - State changed: TaskList = SimpleTask[]
+15:29:40 DEBUG - TaskListScreen loaded 7 tasks
+15:29:40 INFO  - TaskListScreen initialized with proper inheritance
+15:29:40 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:29:41 INFO  - Bootstrapper: Beginning application cleanup
+15:29:41 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:43:39 ---
+15:43:39 DEBUG - Registering all application services...
+15:43:39 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:43:39 DEBUG - InputProcessor: Default commands registered
+15:43:39 DEBUG - InputProcessor: Default key mappings registered
+15:43:39 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:43:39 INFO  - InputProcessor initialized
+15:43:39 INFO  - RenderEngine initialized with 5 pooled string builders
+15:43:41 INFO  - All application screens have been instantiated.
+15:43:41 INFO  - SimpleTaskPro initialization complete.
+15:43:41 INFO  - Application launcher running. Handing control to initial screen.
+15:43:41 DEBUG - Screen TaskListScreen bounds set to 104x27
+15:43:41 DEBUG - Screen TaskListScreen initializing...
+15:43:41 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 97
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 37
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:43:41 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:43:41 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+15:43:41 DEBUG - TaskListScreen: Got TaskService: True
+15:43:42 DEBUG - TaskListScreen built flat list with 12 items
+15:43:42 DEBUG - State changed: TaskList = SimpleTask[]
+15:43:42 DEBUG - TaskListScreen loaded 7 tasks
+15:43:42 INFO  - TaskListScreen initialized with proper inheritance
+15:43:42 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:43:45 DEBUG - InputProcessor: Processing key 'Down'
+15:43:45 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+15:44:09 INFO  - Bootstrapper: Beginning application cleanup
+15:44:09 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 15:49:58 ---
+15:49:58 DEBUG - Registering all application services...
+15:49:58 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:49:58 DEBUG - InputProcessor: Default commands registered
+15:49:58 DEBUG - InputProcessor: Default key mappings registered
+15:49:58 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:49:58 INFO  - InputProcessor initialized
+15:49:58 INFO  - RenderEngine initialized with 5 pooled string builders
+15:50:01 INFO  - All application screens have been instantiated.
+15:50:01 INFO  - SimpleTaskPro initialization complete.
+--- Log Initialized at 08/13/2025 15:52:51 ---
+15:52:51 DEBUG - Registering all application services...
+15:52:51 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:52:51 DEBUG - InputProcessor: Default commands registered
+15:52:51 DEBUG - InputProcessor: Default key mappings registered
+15:52:51 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:52:51 INFO  - InputProcessor initialized
+15:52:51 INFO  - RenderEngine initialized with 5 pooled string builders
+15:52:53 INFO  - All application screens have been instantiated.
+15:52:53 INFO  - SimpleTaskPro initialization complete.
+--- Log Initialized at 08/13/2025 15:53:06 ---
+15:53:06 DEBUG - Registering all application services...
+15:53:06 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:53:06 DEBUG - InputProcessor: Default commands registered
+15:53:06 DEBUG - InputProcessor: Default key mappings registered
+15:53:06 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:53:06 INFO  - InputProcessor initialized
+15:53:06 INFO  - RenderEngine initialized with 5 pooled string builders
+15:53:08 INFO  - All application screens have been instantiated.
+15:53:08 INFO  - SimpleTaskPro initialization complete.
+--- Log Initialized at 08/13/2025 15:54:16 ---
+15:54:17 DEBUG - Registering all application services...
+15:54:17 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:54:17 DEBUG - InputProcessor: Default commands registered
+15:54:17 DEBUG - InputProcessor: Default key mappings registered
+15:54:17 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:54:17 INFO  - InputProcessor initialized
+15:54:17 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:54:28 ---
+15:54:28 DEBUG - Registering all application services...
+15:54:28 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:54:28 DEBUG - InputProcessor: Default commands registered
+15:54:28 DEBUG - InputProcessor: Default key mappings registered
+15:54:28 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:54:28 INFO  - InputProcessor initialized
+15:54:28 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 15:54:51 ---
+15:54:51 DEBUG - Registering all application services...
+15:54:51 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:54:51 DEBUG - InputProcessor: Default commands registered
+15:54:51 DEBUG - InputProcessor: Default key mappings registered
+15:54:51 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:54:51 INFO  - InputProcessor initialized
+15:54:51 INFO  - RenderEngine initialized with 5 pooled string builders
+15:54:53 INFO  - All application screens have been instantiated.
+15:54:53 INFO  - SimpleTaskPro initialization complete.
+15:54:53 INFO  - Application launcher running. Handing control to initial screen.
+15:54:53 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:54:53 DEBUG - Screen TaskListScreen initializing...
+15:54:53 DEBUG - TaskListScreen: OnInitialize START
+--- Log Initialized at 08/13/2025 15:55:03 ---
+15:55:03 DEBUG - Registering all application services...
+15:55:03 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:55:03 DEBUG - InputProcessor: Default commands registered
+15:55:03 DEBUG - InputProcessor: Default key mappings registered
+15:55:03 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:55:03 INFO  - InputProcessor initialized
+15:55:03 INFO  - RenderEngine initialized with 5 pooled string builders
+15:55:05 INFO  - All application screens have been instantiated.
+15:55:05 INFO  - SimpleTaskPro initialization complete.
+15:55:05 INFO  - Application launcher running. Handing control to initial screen.
+15:55:06 DEBUG - Screen TaskListScreen bounds set to 80x24
+15:55:06 DEBUG - Screen TaskListScreen initializing...
+--- Log Initialized at 08/13/2025 15:55:49 ---
+15:55:49 DEBUG - Registering all application services...
+15:55:49 DEBUG - SimpleStateManager initialized with PowerShell-native state
+15:55:49 DEBUG - InputProcessor: Default commands registered
+15:55:49 DEBUG - InputProcessor: Default key mappings registered
+15:55:49 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+15:55:49 INFO  - InputProcessor initialized
+15:55:49 INFO  - RenderEngine initialized with 5 pooled string builders
+15:55:51 INFO  - All application screens have been instantiated.
+15:55:51 INFO  - SimpleTaskPro initialization complete.
+15:55:51 INFO  - Application launcher running. Handing control to initial screen.
+15:55:51 DEBUG - Screen TaskListScreen bounds set to 104x27
+15:55:51 DEBUG - Screen TaskListScreen initializing...
+15:55:51 DEBUG - TaskListScreen: OnInitialize START
+15:55:51 ERROR - TaskListScreen: Failed to load tasks
+You cannot call a method on a null-valued expression.
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 112
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 39
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+15:55:51 DEBUG - ListScreen TaskListScreen post-construction setup complete
+15:55:51 DEBUG - TaskListScreen: Base OnInitialize complete
+15:55:51 DEBUG - TaskListScreen: Services available: True
+15:55:51 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+15:55:51 DEBUG - TaskListScreen: Got TaskService: True
+15:55:51 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+15:55:51 DEBUG - TaskListScreen: Setting title to 'Tasks'
+15:55:51 DEBUG - TaskListScreen: Title is now: 'Tasks'
+15:55:51 DEBUG - TaskListScreen: Calling LoadData
+15:55:51 DEBUG - TaskListScreen built flat list with 12 items
+15:55:51 DEBUG - State changed: TaskList = SimpleTask[]
+15:55:51 DEBUG - TaskListScreen loaded 7 tasks
+15:55:51 DEBUG - TaskListScreen: LoadData complete
+15:55:51 INFO  - TaskListScreen initialized with proper inheritance
+15:55:51 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+15:56:25 DEBUG - InputProcessor: Processing key 'q'
+15:56:25 DEBUG - InputProcessor: No command found for key 'q'
+15:56:29 INFO  - Bootstrapper: Beginning application cleanup
+15:56:29 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 16:02:26 ---
+16:02:26 DEBUG - Registering all application services...
+16:02:27 DEBUG - SimpleStateManager initialized with PowerShell-native state
+16:02:27 DEBUG - InputProcessor: Default commands registered
+16:02:27 DEBUG - InputProcessor: Default key mappings registered
+16:02:27 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+16:02:27 INFO  - InputProcessor initialized
+16:02:27 INFO  - RenderEngine initialized with 5 pooled string builders
+--- Log Initialized at 08/13/2025 16:02:39 ---
+16:02:39 DEBUG - Registering all application services...
+16:02:39 DEBUG - SimpleStateManager initialized with PowerShell-native state
+16:02:39 DEBUG - InputProcessor: Default commands registered
+16:02:39 DEBUG - InputProcessor: Default key mappings registered
+16:02:39 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+16:02:39 INFO  - InputProcessor initialized
+16:02:39 INFO  - RenderEngine initialized with 5 pooled string builders
+16:02:41 INFO  - All application screens have been instantiated.
+16:02:41 INFO  - SimpleTaskPro initialization complete.
+16:02:41 INFO  - Application launcher running. Handing control to initial screen.
+16:02:41 DEBUG - Screen TaskListScreen bounds set to 80x24
+16:02:41 DEBUG - Screen TaskListScreen initializing...
+16:02:41 DEBUG - TaskListScreen: OnInitialize START
+16:02:41 ERROR - TaskListScreen: Failed to load tasks
+Cannot find an overload for "Error" and the argument count: "1".
+Stack Trace:
+at LoadData, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 123
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 19
+at OnInitialize, /home/teej/projects/github/praxis/simpletaskpro/Screens/TaskListScreen.ps1: line 39
+at Initialize, /home/teej/projects/github/praxis/simpletaskpro/Base/Screen.ps1: line 48
+at Show, /home/teej/projects/github/praxis/simpletaskpro/Base/ListScreen.ps1: line 26
+at Run, /home/teej/projects/github/praxis/simpletaskpro/Core/SimpleTaskProApp.ps1: line 25
+at <ScriptBlock>, /home/teej/projects/github/praxis/simpletaskpro/SimpleTaskPro.ps1: line 41
+16:02:41 DEBUG - ListScreen TaskListScreen post-construction setup complete
+16:02:41 DEBUG - TaskListScreen: Base OnInitialize complete
+16:02:41 DEBUG - TaskListScreen: Services available: True
+16:02:41 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+16:02:41 DEBUG - TaskListScreen: Got TaskService: True
+16:02:41 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+16:02:41 DEBUG - TaskListScreen: Setting title to 'Tasks'
+16:02:41 DEBUG - TaskListScreen: Title is now: 'Tasks'
+16:02:41 DEBUG - TaskListScreen: Calling LoadData
+16:02:41 DEBUG - TaskListScreen built flat list with 12 items
+16:02:41 DEBUG - State changed: TaskList = SimpleTask[]
+16:02:41 DEBUG - TaskListScreen loaded 7 tasks
+16:02:41 DEBUG - TaskListScreen: LoadData complete
+16:02:41 INFO  - TaskListScreen initialized with proper inheritance
+16:02:41 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+16:02:42 INFO  - Bootstrapper: Beginning application cleanup
+16:02:42 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 16:04:30 ---
+16:04:30 DEBUG - Registering all application services...
+16:04:31 DEBUG - SimpleStateManager initialized with PowerShell-native state
+16:04:31 DEBUG - InputProcessor: Default commands registered
+16:04:31 DEBUG - InputProcessor: Default key mappings registered
+16:04:31 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+16:04:31 INFO  - InputProcessor initialized
+16:04:31 INFO  - RenderEngine initialized with 5 pooled string builders
+16:04:33 INFO  - All application screens have been instantiated.
+16:04:33 INFO  - SimpleTaskPro initialization complete.
+16:04:33 INFO  - Application launcher running. Handing control to initial screen.
+16:04:33 DEBUG - Screen TaskListScreen bounds set to 104x27
+16:04:33 DEBUG - Screen TaskListScreen initializing...
+16:04:33 DEBUG - TaskListScreen: OnInitialize START
+16:04:33 ERROR - TaskListScreen: TaskService is null in LoadData
+16:04:33 DEBUG - ListScreen TaskListScreen post-construction setup complete
+16:04:33 DEBUG - TaskListScreen: Base OnInitialize complete
+16:04:33 DEBUG - TaskListScreen: Services available: True
+16:04:33 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+16:04:33 DEBUG - TaskListScreen: Got TaskService: True
+16:04:33 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+16:04:33 DEBUG - TaskListScreen: Setting title to 'Tasks'
+16:04:33 DEBUG - TaskListScreen: Title is now: 'Tasks'
+16:04:33 DEBUG - TaskListScreen: Calling LoadData
+16:04:33 DEBUG - TaskListScreen built flat list with 12 items
+16:04:33 DEBUG - State changed: TaskList = SimpleTask[]
+16:04:33 DEBUG - TaskListScreen loaded 7 tasks
+16:04:33 DEBUG - TaskListScreen: LoadData complete
+16:04:33 INFO  - TaskListScreen initialized with proper inheritance
+16:04:33 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+16:04:39 DEBUG - InputProcessor: Processing key 'Down'
+16:04:39 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+16:04:41 DEBUG - InputProcessor: Processing key 'Down'
+16:04:41 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+16:04:41 DEBUG - InputProcessor: Processing key 'Down'
+16:04:41 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+16:04:41 DEBUG - InputProcessor: Processing key 'Down'
+16:04:41 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+16:04:44 INFO  - Bootstrapper: Beginning application cleanup
+16:04:44 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 16:04:53 ---
+16:04:53 DEBUG - Registering all application services...
+16:04:53 DEBUG - SimpleStateManager initialized with PowerShell-native state
+16:04:53 DEBUG - InputProcessor: Default commands registered
+16:04:53 DEBUG - InputProcessor: Default key mappings registered
+16:04:53 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+16:04:53 INFO  - InputProcessor initialized
+16:04:53 INFO  - RenderEngine initialized with 5 pooled string builders
+16:04:55 INFO  - All application screens have been instantiated.
+16:04:55 INFO  - SimpleTaskPro initialization complete.
+16:04:55 INFO  - Application launcher running. Handing control to initial screen.
+16:04:55 DEBUG - Screen TaskListScreen bounds set to 104x27
+16:04:55 DEBUG - Screen TaskListScreen initializing...
+16:04:55 DEBUG - TaskListScreen: OnInitialize START
+16:04:55 ERROR - TaskListScreen: TaskService is null in LoadData
+16:04:55 DEBUG - ListScreen TaskListScreen post-construction setup complete
+16:04:55 DEBUG - TaskListScreen: Base OnInitialize complete
+16:04:55 DEBUG - TaskListScreen: Services available: True
+16:04:55 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+16:04:55 DEBUG - TaskListScreen: Got TaskService: True
+16:04:55 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+16:04:55 DEBUG - TaskListScreen: Setting title to 'Tasks'
+16:04:55 DEBUG - TaskListScreen: Title is now: 'Tasks'
+16:04:55 DEBUG - TaskListScreen: Calling LoadData
+16:04:55 DEBUG - TaskListScreen built flat list with 12 items
+16:04:55 DEBUG - State changed: TaskList = SimpleTask[]
+16:04:55 DEBUG - TaskListScreen loaded 7 tasks
+16:04:55 DEBUG - TaskListScreen: LoadData complete
+16:04:55 INFO  - TaskListScreen initialized with proper inheritance
+16:04:55 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+16:04:59 DEBUG - InputProcessor: Processing key 'Down'
+16:04:59 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+16:05:00 DEBUG - InputProcessor: Processing key 'n'
+16:05:00 DEBUG - InputProcessor: Executing command 'action.new' for key 'n'
+16:05:02 DEBUG - InputProcessor: Processing key 'e'
+16:05:02 DEBUG - InputProcessor: Executing command 'action.edit' for key 'e'
+16:05:04 DEBUG - InputProcessor: Processing key 'q'
+16:05:04 DEBUG - InputProcessor: No command found for key 'q'
+16:05:07 DEBUG - InputProcessor: Processing key 'Ctrl+F5'
+16:05:07 DEBUG - InputProcessor: No command found for key 'Ctrl+F5'
+16:05:10 INFO  - Bootstrapper: Beginning application cleanup
+16:05:10 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 18:58:28 ---
+18:58:28 DEBUG - Registering all application services...
+18:58:28 DEBUG - SimpleStateManager initialized with PowerShell-native state
+18:58:28 DEBUG - InputProcessor: Default commands registered
+18:58:28 DEBUG - InputProcessor: Default key mappings registered
+18:58:28 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+18:58:28 INFO  - InputProcessor initialized
+18:58:28 INFO  - RenderEngine initialized with 5 pooled string builders
+18:58:30 INFO  - All application screens have been instantiated.
+18:58:30 INFO  - SimpleTaskPro initialization complete.
+18:58:30 INFO  - Application launcher running. Handing control to initial screen.
+18:58:30 DEBUG - Screen TaskListScreen bounds set to 104x27
+18:58:30 DEBUG - Screen TaskListScreen initializing...
+18:58:30 DEBUG - TaskListScreen: OnInitialize START
+18:58:30 ERROR - TaskListScreen: TaskService is null in LoadData
+18:58:30 DEBUG - ListScreen TaskListScreen post-construction setup complete
+18:58:30 DEBUG - TaskListScreen: Base OnInitialize complete
+18:58:30 DEBUG - TaskListScreen: Services available: True
+18:58:30 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+18:58:30 DEBUG - TaskListScreen: Got TaskService: True
+18:58:30 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+18:58:30 DEBUG - TaskListScreen: Setting title to 'Tasks'
+18:58:30 DEBUG - TaskListScreen: Title is now: 'Tasks'
+18:58:30 DEBUG - TaskListScreen: Calling LoadData
+18:58:30 DEBUG - TaskListScreen built flat list with 12 items
+18:58:30 DEBUG - State changed: TaskList = SimpleTask[]
+18:58:30 DEBUG - TaskListScreen loaded 7 tasks
+18:58:30 DEBUG - TaskListScreen: LoadData complete
+18:58:30 INFO  - TaskListScreen initialized with proper inheritance
+18:58:30 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+18:58:44 DEBUG - InputProcessor: Processing key 'Down'
+18:58:44 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:44 DEBUG - InputProcessor: Processing key 'Down'
+18:58:44 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:45 DEBUG - InputProcessor: Processing key 'Down'
+18:58:45 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:46 DEBUG - InputProcessor: Processing key 'Down'
+18:58:46 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:47 DEBUG - InputProcessor: Processing key 'Down'
+18:58:47 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:47 DEBUG - InputProcessor: Processing key 'Down'
+18:58:47 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:47 DEBUG - InputProcessor: Processing key 'Down'
+18:58:47 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+18:58:50 INFO  - Bootstrapper: Beginning application cleanup
+18:58:50 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 21:14:29 ---
+21:14:29 DEBUG - Registering all application services...
+21:14:29 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:14:29 DEBUG - InputProcessor: Default commands registered
+21:14:29 DEBUG - InputProcessor: Default key mappings registered
+21:14:29 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:14:29 INFO  - InputProcessor initialized
+21:14:29 INFO  - RenderEngine initialized with 5 pooled string builders
+21:14:31 INFO  - All application screens have been instantiated.
+21:14:31 INFO  - SimpleTaskPro initialization complete.
+21:14:31 INFO  - Application launcher running. Handing control to initial screen.
+21:14:31 DEBUG - Screen TaskListScreen bounds set to 104x27
+21:14:31 DEBUG - Screen TaskListScreen initializing...
+21:14:31 DEBUG - TaskListScreen: OnInitialize START
+21:14:31 ERROR - TaskListScreen: TaskService is null in LoadData
+21:14:31 DEBUG - ListScreen TaskListScreen post-construction setup complete
+21:14:31 DEBUG - TaskListScreen: Base OnInitialize complete
+21:14:31 DEBUG - TaskListScreen: Services available: True
+21:14:31 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+21:14:31 DEBUG - TaskListScreen: Got TaskService: True
+21:14:31 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+21:14:31 DEBUG - TaskListScreen: Setting title to 'Tasks'
+21:14:31 DEBUG - TaskListScreen: Title is now: 'Tasks'
+21:14:31 DEBUG - TaskListScreen: Calling LoadData
+21:14:31 DEBUG - TaskListScreen built flat list with 12 items
+21:14:31 DEBUG - State changed: TaskList = SimpleTask[]
+21:14:31 DEBUG - TaskListScreen loaded 7 tasks
+21:14:31 DEBUG - TaskListScreen: LoadData complete
+21:14:31 INFO  - TaskListScreen initialized with proper inheritance
+21:14:31 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+21:14:31 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:14:31 DEBUG - DEBUG: Calling RenderHeader()
+21:14:31 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:14:31 DEBUG - DEBUG: Calling RenderContent()
+21:14:31 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+21:14:32 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+21:14:32 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:14:32 DEBUG - DEBUG: RenderContent() completed successfully
+21:14:32 DEBUG - DEBUG: Calling RenderFooter()
+21:14:32 DEBUG - DEBUG: Calling RenderStatus()
+21:14:32 DEBUG - DEBUG: Render() completed successfully
+21:14:35 DEBUG - InputProcessor: Processing key 'Down'
+21:14:35 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:14:36 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:14:36 DEBUG - DEBUG: Calling RenderHeader()
+21:14:36 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:14:36 DEBUG - DEBUG: Calling RenderContent()
+21:14:36 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+21:14:36 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+21:14:36 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:14:36 DEBUG - DEBUG: RenderContent() completed successfully
+21:14:36 DEBUG - DEBUG: Calling RenderFooter()
+21:14:36 DEBUG - DEBUG: Calling RenderStatus()
+21:14:36 DEBUG - DEBUG: Render() completed successfully
+21:14:36 DEBUG - InputProcessor: Processing key 'Up'
+21:14:36 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+21:14:36 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:14:36 DEBUG - DEBUG: Calling RenderHeader()
+21:14:36 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:14:36 DEBUG - DEBUG: Calling RenderContent()
+21:14:36 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+21:14:36 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+21:14:36 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:14:36 DEBUG - DEBUG: RenderContent() completed successfully
+21:14:36 DEBUG - DEBUG: Calling RenderFooter()
+21:14:36 DEBUG - DEBUG: Calling RenderStatus()
+21:14:36 DEBUG - DEBUG: Render() completed successfully
+21:14:36 DEBUG - InputProcessor: Processing key 'Down'
+21:14:36 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+21:14:36 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:14:36 DEBUG - DEBUG: Calling RenderHeader()
+21:14:36 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:14:36 DEBUG - DEBUG: Calling RenderContent()
+21:14:36 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+21:14:36 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+21:14:36 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:14:36 DEBUG - DEBUG: RenderContent() completed successfully
+21:14:36 DEBUG - DEBUG: Calling RenderFooter()
+21:14:36 DEBUG - DEBUG: Calling RenderStatus()
+21:14:36 DEBUG - DEBUG: Render() completed successfully
+21:14:36 DEBUG - InputProcessor: Processing key 'Left'
+21:14:36 DEBUG - InputProcessor: Executing command 'nav.left' for key 'Left'
+21:14:36 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:14:36 DEBUG - DEBUG: Calling RenderHeader()
+21:14:36 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:14:36 DEBUG - DEBUG: Calling RenderContent()
+21:14:36 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+21:14:36 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+21:14:36 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:14:36 DEBUG - DEBUG: RenderContent() completed successfully
+21:14:36 DEBUG - DEBUG: Calling RenderFooter()
+21:14:36 DEBUG - DEBUG: Calling RenderStatus()
+21:14:36 DEBUG - DEBUG: Render() completed successfully
+21:14:36 DEBUG - InputProcessor: Processing key 'Right'
+21:14:36 DEBUG - InputProcessor: Executing command 'nav.right' for key 'Right'
+21:14:36 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:14:36 DEBUG - DEBUG: Calling RenderHeader()
+21:14:36 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:14:36 DEBUG - DEBUG: Calling RenderContent()
+21:14:36 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+21:14:36 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+21:14:36 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:14:36 DEBUG - DEBUG: RenderContent() completed successfully
+21:14:37 DEBUG - DEBUG: Calling RenderFooter()
+21:14:37 DEBUG - DEBUG: Calling RenderStatus()
+21:14:37 DEBUG - DEBUG: Render() completed successfully
+21:14:41 INFO  - Bootstrapper: Beginning application cleanup
+21:14:41 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 21:15:13 ---
+21:15:13 DEBUG - Registering all application services...
+21:15:13 DEBUG - SimpleStateManager initialized with PowerShell-native state
+21:15:13 DEBUG - InputProcessor: Default commands registered
+21:15:13 DEBUG - InputProcessor: Default key mappings registered
+21:15:13 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+21:15:13 INFO  - InputProcessor initialized
+21:15:13 INFO  - RenderEngine initialized with 5 pooled string builders
+21:15:15 INFO  - All application screens have been instantiated.
+21:15:15 INFO  - SimpleTaskPro initialization complete.
+21:15:15 INFO  - Application launcher running. Handing control to initial screen.
+21:15:15 DEBUG - Screen TaskListScreen bounds set to 80x24
+21:15:15 DEBUG - Screen TaskListScreen initializing...
+21:15:15 DEBUG - TaskListScreen: OnInitialize START
+21:15:15 ERROR - TaskListScreen: TaskService is null in LoadData
+21:15:15 DEBUG - ListScreen TaskListScreen post-construction setup complete
+21:15:15 DEBUG - TaskListScreen: Base OnInitialize complete
+21:15:15 DEBUG - TaskListScreen: Services available: True
+21:15:15 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+21:15:15 DEBUG - TaskListScreen: Got TaskService: True
+21:15:15 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+21:15:15 DEBUG - TaskListScreen: Setting title to 'Tasks'
+21:15:15 DEBUG - TaskListScreen: Title is now: 'Tasks'
+21:15:16 DEBUG - TaskListScreen: Calling LoadData
+21:15:16 DEBUG - TaskListScreen built flat list with 12 items
+21:15:16 DEBUG - State changed: TaskList = SimpleTask[]
+21:15:16 DEBUG - TaskListScreen loaded 7 tasks
+21:15:16 DEBUG - TaskListScreen: LoadData complete
+21:15:16 INFO  - TaskListScreen initialized with proper inheritance
+21:15:16 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+21:15:16 DEBUG - DEBUG: Starting Render() method in ListScreen
+21:15:16 DEBUG - DEBUG: Calling RenderHeader()
+21:15:16 DEBUG - DEBUG: Calling RenderColumnHeaders()
+21:15:16 DEBUG - DEBUG: Calling RenderContent()
+21:15:16 DEBUG - DEBUG: RenderContent() starting - Height=24, FlatList.Count=12
+21:15:16 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=18, maxVisibleItems=9, endIndex=9, ScrollTop=0
+21:15:16 DEBUG - DEBUG: RenderContent() - Built 9 viewModels, calling RenderWithPillbox with SelectedIndex=0
+21:15:17 DEBUG - DEBUG: RenderContent() completed successfully
+21:15:17 DEBUG - DEBUG: Calling RenderFooter()
+21:15:17 DEBUG - DEBUG: Calling RenderStatus()
+21:15:17 DEBUG - DEBUG: Render() completed successfully
+21:15:17 INFO  - Bootstrapper: Beginning application cleanup
+21:15:17 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 22:49:19 ---
+22:49:19 DEBUG - Registering all application services...
+22:49:19 DEBUG - SimpleStateManager initialized with PowerShell-native state
+22:49:19 DEBUG - InputProcessor: Default commands registered
+22:49:19 DEBUG - InputProcessor: Default key mappings registered
+22:49:19 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+22:49:19 INFO  - InputProcessor initialized
+22:49:19 INFO  - RenderEngine initialized with 5 pooled string builders
+22:49:21 INFO  - All application screens have been instantiated.
+22:49:21 INFO  - SimpleTaskPro initialization complete.
+22:49:21 INFO  - Application launcher running. Handing control to initial screen.
+22:49:21 DEBUG - Screen TaskListScreen bounds set to 104x27
+22:49:21 DEBUG - Screen TaskListScreen initializing...
+22:49:21 DEBUG - TaskListScreen: OnInitialize START
+22:49:22 ERROR - TaskListScreen: TaskService is null in LoadData
+22:49:22 DEBUG - ListScreen TaskListScreen post-construction setup complete
+22:49:22 DEBUG - TaskListScreen: Base OnInitialize complete
+22:49:22 DEBUG - TaskListScreen: Services available: True
+22:49:22 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+22:49:22 DEBUG - TaskListScreen: Got TaskService: True
+22:49:22 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+22:49:22 DEBUG - TaskListScreen: Setting title to 'Tasks'
+22:49:22 DEBUG - TaskListScreen: Title is now: 'Tasks'
+22:49:22 DEBUG - TaskListScreen: Calling LoadData
+22:49:22 DEBUG - TaskListScreen built flat list with 12 items
+22:49:22 DEBUG - State changed: TaskList = SimpleTask[]
+22:49:22 DEBUG - TaskListScreen loaded 7 tasks
+22:49:22 DEBUG - TaskListScreen: LoadData complete
+22:49:22 INFO  - TaskListScreen initialized with proper inheritance
+22:49:22 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+22:49:22 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:49:22 DEBUG - DEBUG: Calling RenderHeader()
+22:49:22 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:49:22 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:49:22 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:49:22 DEBUG - DEBUG: Calling RenderContent()
+22:49:22 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:49:22 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:49:22 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:49:23 DEBUG - DEBUG: RenderContent() completed successfully
+22:49:23 DEBUG - DEBUG: Calling RenderFooter()
+22:49:23 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:49:23 DEBUG - DEBUG: Calling RenderStatus()
+22:49:23 DEBUG - DEBUG: Render() completed successfully
+22:49:24 DEBUG - InputProcessor: Processing key 'Down'
+22:49:24 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+22:49:24 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:49:24 DEBUG - DEBUG: Calling RenderHeader()
+22:49:24 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:49:24 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:49:24 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:49:24 DEBUG - DEBUG: Calling RenderContent()
+22:49:24 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:49:24 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:49:24 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:49:24 DEBUG - DEBUG: RenderContent() completed successfully
+22:49:24 DEBUG - DEBUG: Calling RenderFooter()
+22:49:24 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:49:24 DEBUG - DEBUG: Calling RenderStatus()
+22:49:24 DEBUG - DEBUG: Render() completed successfully
+22:49:25 DEBUG - InputProcessor: Processing key 'Down'
+22:49:25 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+22:49:25 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:49:25 DEBUG - DEBUG: Calling RenderHeader()
+22:49:25 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:49:25 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:49:25 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:49:25 DEBUG - DEBUG: Calling RenderContent()
+22:49:25 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:49:25 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:49:25 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:49:25 DEBUG - DEBUG: RenderContent() completed successfully
+22:49:25 DEBUG - DEBUG: Calling RenderFooter()
+22:49:25 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:49:25 DEBUG - DEBUG: Calling RenderStatus()
+22:49:25 DEBUG - DEBUG: Render() completed successfully
+22:49:25 DEBUG - InputProcessor: Processing key 'Down'
+22:49:25 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+22:49:25 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:49:25 DEBUG - DEBUG: Calling RenderHeader()
+22:49:25 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:49:25 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:49:25 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:49:25 DEBUG - DEBUG: Calling RenderContent()
+22:49:25 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:49:25 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:49:25 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:49:25 DEBUG - DEBUG: RenderContent() completed successfully
+22:49:25 DEBUG - DEBUG: Calling RenderFooter()
+22:49:25 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:49:25 DEBUG - DEBUG: Calling RenderStatus()
+22:49:25 DEBUG - DEBUG: Render() completed successfully
+22:53:05 INFO  - Bootstrapper: Beginning application cleanup
+22:53:05 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 22:57:29 ---
+22:57:29 DEBUG - Registering all application services...
+22:57:29 DEBUG - SimpleStateManager initialized with PowerShell-native state
+22:57:29 DEBUG - InputProcessor: Default commands registered
+22:57:29 DEBUG - InputProcessor: Default key mappings registered
+22:57:29 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+22:57:29 INFO  - InputProcessor initialized
+22:57:29 INFO  - RenderEngine initialized with 5 pooled string builders
+22:57:31 INFO  - All application screens have been instantiated.
+22:57:31 INFO  - SimpleTaskPro initialization complete.
+22:57:31 INFO  - Application launcher running. Handing control to initial screen.
+22:57:31 DEBUG - Screen TaskListScreen bounds set to 104x27
+22:57:31 DEBUG - Screen TaskListScreen initializing...
+22:57:32 DEBUG - TaskListScreen: OnInitialize START
+22:57:32 ERROR - TaskListScreen: TaskService is null in LoadData
+22:57:32 DEBUG - ListScreen TaskListScreen post-construction setup complete
+22:57:32 DEBUG - TaskListScreen: Base OnInitialize complete
+22:57:32 DEBUG - TaskListScreen: Services available: True
+22:57:32 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+22:57:32 DEBUG - TaskListScreen: Got TaskService: True
+22:57:32 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+22:57:32 DEBUG - TaskListScreen: Setting title to 'Tasks'
+22:57:32 DEBUG - TaskListScreen: Title is now: 'Tasks'
+22:57:32 DEBUG - TaskListScreen: Calling LoadData
+22:57:32 DEBUG - TaskListScreen built flat list with 12 items
+22:57:32 DEBUG - State changed: TaskList = SimpleTask[]
+22:57:32 DEBUG - TaskListScreen loaded 7 tasks
+22:57:32 DEBUG - TaskListScreen: LoadData complete
+22:57:32 INFO  - TaskListScreen initialized with proper inheritance
+22:57:32 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+22:57:32 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:57:32 DEBUG - DEBUG: Calling RenderHeader()
+22:57:32 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:57:32 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:57:32 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:57:32 DEBUG - DEBUG: Calling RenderContent()
+22:57:32 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:57:32 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:57:33 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:57:33 DEBUG - DEBUG: RenderContent() completed successfully
+22:57:33 DEBUG - DEBUG: Calling RenderFooter()
+22:57:33 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:57:33 DEBUG - DEBUG: Calling RenderStatus()
+22:57:33 DEBUG - DEBUG: Render() completed successfully
+22:59:06 DEBUG - InputProcessor: Processing key 'Down'
+22:59:06 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+22:59:06 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:59:06 DEBUG - DEBUG: Calling RenderHeader()
+22:59:06 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:59:06 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:59:06 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:59:06 DEBUG - DEBUG: Calling RenderContent()
+22:59:06 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:59:06 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:59:06 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:59:06 DEBUG - DEBUG: RenderContent() completed successfully
+22:59:06 DEBUG - DEBUG: Calling RenderFooter()
+22:59:06 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:59:06 DEBUG - DEBUG: Calling RenderStatus()
+22:59:06 DEBUG - DEBUG: Render() completed successfully
+22:59:07 DEBUG - InputProcessor: Processing key 'Down'
+22:59:07 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+22:59:07 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:59:07 DEBUG - DEBUG: Calling RenderHeader()
+22:59:07 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:59:07 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:59:07 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:59:07 DEBUG - DEBUG: Calling RenderContent()
+22:59:07 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:59:07 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:59:07 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:59:07 DEBUG - DEBUG: RenderContent() completed successfully
+22:59:07 DEBUG - DEBUG: Calling RenderFooter()
+22:59:07 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:59:07 DEBUG - DEBUG: Calling RenderStatus()
+22:59:07 DEBUG - DEBUG: Render() completed successfully
+22:59:07 DEBUG - InputProcessor: Processing key 'Up'
+22:59:07 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+22:59:07 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:59:07 DEBUG - DEBUG: Calling RenderHeader()
+22:59:07 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:59:07 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:59:07 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:59:07 DEBUG - DEBUG: Calling RenderContent()
+22:59:07 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:59:07 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:59:07 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:59:07 DEBUG - DEBUG: RenderContent() completed successfully
+22:59:07 DEBUG - DEBUG: Calling RenderFooter()
+22:59:07 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:59:07 DEBUG - DEBUG: Calling RenderStatus()
+22:59:07 DEBUG - DEBUG: Render() completed successfully
+22:59:08 DEBUG - InputProcessor: Processing key 'Down'
+22:59:08 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+22:59:08 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:59:08 DEBUG - DEBUG: Calling RenderHeader()
+22:59:08 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:59:08 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:59:08 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:59:08 DEBUG - DEBUG: Calling RenderContent()
+22:59:08 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:59:08 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:59:08 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:59:08 DEBUG - DEBUG: RenderContent() completed successfully
+22:59:08 DEBUG - DEBUG: Calling RenderFooter()
+22:59:08 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:59:08 DEBUG - DEBUG: Calling RenderStatus()
+22:59:08 DEBUG - DEBUG: Render() completed successfully
+22:59:09 DEBUG - InputProcessor: Processing key 'Up'
+22:59:09 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+22:59:09 DEBUG - DEBUG: Starting Render() method in ListScreen
+22:59:09 DEBUG - DEBUG: Calling RenderHeader()
+22:59:09 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 104
+22:59:09 DEBUG - DEBUG: Calling RenderColumnHeaders()
+22:59:09 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                                               '
+22:59:09 DEBUG - DEBUG: Calling RenderContent()
+22:59:09 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+22:59:09 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=21, maxVisibleItems=10, endIndex=10, ScrollTop=0
+22:59:09 DEBUG - DEBUG: RenderContent() - Built 10 viewModels, calling RenderWithPillbox with SelectedIndex=0
+22:59:09 DEBUG - DEBUG: RenderContent() completed successfully
+22:59:09 DEBUG - DEBUG: Calling RenderFooter()
+22:59:09 DEBUG - DEBUG: RenderFooter() completed - footerY: 25
+22:59:09 DEBUG - DEBUG: Calling RenderStatus()
+22:59:09 DEBUG - DEBUG: Render() completed successfully
+22:59:13 INFO  - Bootstrapper: Beginning application cleanup
+22:59:13 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 23:00:13 ---
+23:00:13 DEBUG - Registering all application services...
+23:00:13 DEBUG - SimpleStateManager initialized with PowerShell-native state
+23:00:13 DEBUG - InputProcessor: Default commands registered
+23:00:13 DEBUG - InputProcessor: Default key mappings registered
+23:00:13 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+23:00:13 INFO  - InputProcessor initialized
+23:00:13 INFO  - RenderEngine initialized with 5 pooled string builders
+23:00:16 INFO  - All application screens have been instantiated.
+23:00:16 INFO  - SimpleTaskPro initialization complete.
+23:00:16 INFO  - Application launcher running. Handing control to initial screen.
+23:00:16 DEBUG - Screen TaskListScreen bounds set to 80x24
+23:00:16 DEBUG - Screen TaskListScreen initializing...
+23:00:16 DEBUG - TaskListScreen: OnInitialize START
+23:00:16 ERROR - TaskListScreen: TaskService is null in LoadData
+23:00:16 DEBUG - ListScreen TaskListScreen post-construction setup complete
+23:00:16 DEBUG - TaskListScreen: Base OnInitialize complete
+23:00:16 DEBUG - TaskListScreen: Services available: True
+23:00:16 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+23:00:16 DEBUG - TaskListScreen: Got TaskService: True
+23:00:16 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+23:00:16 DEBUG - TaskListScreen: Setting title to 'Tasks'
+23:00:16 DEBUG - TaskListScreen: Title is now: 'Tasks'
+23:00:16 DEBUG - TaskListScreen: Calling LoadData
+23:00:16 DEBUG - TaskListScreen built flat list with 12 items
+23:00:16 DEBUG - State changed: TaskList = SimpleTask[]
+23:00:16 DEBUG - TaskListScreen loaded 7 tasks
+23:00:16 DEBUG - TaskListScreen: LoadData complete
+23:00:16 INFO  - TaskListScreen initialized with proper inheritance
+23:00:16 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+23:00:16 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:00:16 DEBUG - DEBUG: Calling RenderHeader()
+23:00:16 DEBUG - DEBUG: RenderHeader() completed - Title: 'Tasks', Width: 80
+23:00:16 DEBUG - DEBUG: Calling RenderColumnHeaders()
+23:00:16 DEBUG - DEBUG: RenderColumnHeaders() completed - columnLine: 'StatPri   Created     Due            Task                                       '
+23:00:16 DEBUG - DEBUG: Calling RenderContent()
+23:00:16 DEBUG - DEBUG: RenderContent() starting - Height=24, FlatList.Count=12
+23:00:16 DEBUG - DEBUG: RenderContent() - startY=4, contentHeight=18, maxVisibleItems=9, endIndex=9, ScrollTop=0
+23:00:17 DEBUG - DEBUG: RenderContent() - Built 9 viewModels, calling RenderWithPillbox with SelectedIndex=0
+23:00:17 DEBUG - DEBUG: RenderContent() completed successfully
+23:00:17 DEBUG - DEBUG: Calling RenderFooter()
+23:00:17 DEBUG - DEBUG: RenderFooter() completed - footerY: 22
+23:00:17 DEBUG - DEBUG: Calling RenderStatus()
+23:00:17 DEBUG - DEBUG: Render() completed successfully
+23:00:17 INFO  - Bootstrapper: Beginning application cleanup
+23:00:17 DEBUG - RenderEngine: Console state restored
+--- Log Initialized at 08/13/2025 23:24:07 ---
+23:24:07 DEBUG - Registering all application services...
+23:24:07 DEBUG - SimpleStateManager initialized with PowerShell-native state
+23:24:07 DEBUG - InputProcessor: Default commands registered
+23:24:07 DEBUG - InputProcessor: Default key mappings registered
+23:24:07 INFO  - No user key mappings file found at /home/teej/projects/github/praxis/simpletaskpro/keymappings.json
+23:24:07 INFO  - InputProcessor initialized
+23:24:07 INFO  - RenderEngine initialized with 5 pooled string builders
+23:24:09 INFO  - All application screens have been instantiated.
+23:24:10 INFO  - SimpleTaskPro initialization complete.
+23:24:10 INFO  - Application launcher running. Handing control to initial screen.
+23:24:10 DEBUG - Screen TaskListScreen bounds set to 104x27
+23:24:10 DEBUG - Screen TaskListScreen initializing...
+23:24:10 DEBUG - TaskListScreen: OnInitialize START
+23:24:10 ERROR - TaskListScreen: TaskService is null in LoadData
+23:24:10 DEBUG - ListScreen TaskListScreen post-construction setup complete
+23:24:10 DEBUG - TaskListScreen: Base OnInitialize complete
+23:24:10 DEBUG - TaskListScreen: Services available: True
+23:24:10 DEBUG - TaskListScreen: Getting SimpleTaskService from container...
+23:24:10 DEBUG - TaskListScreen: Got TaskService: True
+23:24:10 DEBUG - TaskListScreen: TaskService type: SimpleTaskService
+23:24:10 DEBUG - TaskListScreen: Setting title to 'Tasks'
+23:24:10 DEBUG - TaskListScreen: Title is now: 'Tasks'
+23:24:10 DEBUG - TaskListScreen: Calling LoadData
+23:24:10 DEBUG - TaskListScreen built flat list with 12 items
+23:24:10 DEBUG - State changed: TaskList = SimpleTask[]
+23:24:10 DEBUG - TaskListScreen loaded 7 tasks
+23:24:10 DEBUG - TaskListScreen: LoadData complete
+23:24:10 INFO  - TaskListScreen initialized with proper inheritance
+23:24:10 DEBUG - Screen TaskListScreen OnInitialize hook completed.
+23:24:10 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:24:10 DEBUG - DEBUG: Calling RenderContent()
+23:24:10 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:24:10 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:24:10 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:24:10 DEBUG - DEBUG: Render() completed successfully
+23:27:13 DEBUG - InputProcessor: Processing key 'Up'
+23:27:13 DEBUG - InputProcessor: Executing command 'nav.up' for key 'Up'
+23:27:13 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:27:13 DEBUG - DEBUG: Calling RenderContent()
+23:27:13 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:27:13 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:27:13 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:27:13 DEBUG - DEBUG: Render() completed successfully
+23:27:13 DEBUG - InputProcessor: Processing key 'Down'
+23:27:13 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+23:27:13 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:27:13 DEBUG - DEBUG: Calling RenderContent()
+23:27:13 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:27:13 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:27:13 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:27:13 DEBUG - DEBUG: Render() completed successfully
+23:27:14 DEBUG - InputProcessor: Processing key 'Down'
+23:27:14 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+23:27:14 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:27:14 DEBUG - DEBUG: Calling RenderContent()
+23:27:14 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:27:14 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:27:14 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:27:14 DEBUG - DEBUG: Render() completed successfully
+23:27:14 DEBUG - InputProcessor: Processing key 'Down'
+23:27:14 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+23:27:14 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:27:14 DEBUG - DEBUG: Calling RenderContent()
+23:27:14 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:27:14 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:27:14 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:27:14 DEBUG - DEBUG: Render() completed successfully
+23:27:14 DEBUG - InputProcessor: Processing key 'Down'
+23:27:14 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+23:27:14 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:27:14 DEBUG - DEBUG: Calling RenderContent()
+23:27:14 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:27:14 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:27:14 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:27:14 DEBUG - DEBUG: Render() completed successfully
+23:27:14 DEBUG - InputProcessor: Processing key 'Down'
+23:27:14 DEBUG - InputProcessor: Executing command 'nav.down' for key 'Down'
+23:27:14 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:27:14 DEBUG - DEBUG: Calling RenderContent()
+23:27:14 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:27:14 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:27:14 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:27:14 DEBUG - DEBUG: Render() completed successfully
+23:32:04 DEBUG - InputProcessor: Processing key 'q'
+23:32:04 DEBUG - InputProcessor: No command found for key 'q'
+23:32:04 DEBUG - DEBUG: Starting Render() method in ListScreen
+23:32:04 DEBUG - DEBUG: Calling RenderContent()
+23:32:04 DEBUG - DEBUG: RenderContent() starting - Height=27, FlatList.Count=12
+23:32:04 DEBUG - DEBUG: RenderContent() - startY=5, contentHeight=19, itemsToShow=12
+23:32:04 DEBUG - DEBUG: RenderContent() completed - rendered 12 items
+23:32:04 DEBUG - DEBUG: Render() completed successfully
+06:31:46 INFO  - Bootstrapper: Beginning application cleanup
+06:31:46 DEBUG - RenderEngine: Console state restored

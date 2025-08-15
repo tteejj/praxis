@@ -1,0 +1,22 @@
+=== COMPREHENSIVE RENDERING DEBUG 08/13/2025 15:53:05 ===
+1. Testing Bootstrapper initialization...
+   SUCCESS: Bootstrapper created app: SimpleTaskProApp
+2. Testing screen creation...
+   Screen type: TaskListScreen
+   Screen title: ''
+   Screen width: 80
+   Screen height: 25
+3. Testing TaskService injection...
+   TaskService is null: True
+4. Testing theme colors...
+   HeaderBg: '[48;2;100;150;255m' (length: 19)
+   HeaderFg: '[38;2;100;150;255m' (length: 19)
+5. Testing manual render...
+   Header output length: 233
+   Header output (hex): 
+   Header output (escaped): [1;1H[48;2;100;150;255m[38;2;100;150;255m                                                                                [0m\n[48;2;100;150;255m────────────────────────────────────────────────────────────────────────────────[0m\n
+6. Testing full render...
+   Full render length: 571
+   First 200 chars: [2J[H[1;1H[?25l[1;1H[48;2;100;150;255m[38;2;100;150;255m                                                                                [0m
+[48;2;100;150;255m─────────────────────────────────
+=== DEBUG COMPLETE ===

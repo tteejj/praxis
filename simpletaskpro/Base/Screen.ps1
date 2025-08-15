@@ -39,9 +39,12 @@ class Screen {
         
         # Subscribe to the core command execution event from the InputProcessor.
         # This is how the screen receives commands for keys the user presses.
+        $this.Logger.Debug("Screen subscribing to command.executed events")
+        $screenRef = $this  # Capture $this reference for closure
         $this.EventBus.Subscribe("command.executed", {
             param($eventData)
-            $this.HandleCommand($eventData.Command)
+            $screenRef.Logger.Debug("EventBus received command.executed: $($eventData.Command)")
+            $screenRef.HandleCommand($eventData.Command)
         }.GetNewClosure())
         
         # Call the overrideable hook for child classes to perform their specific setup.
@@ -85,6 +88,7 @@ class Screen {
     
     # Command handling - override in derived classes for screen-specific commands
     [void] HandleCommand([string]$command) {
+        $this.Logger.Debug("Screen.HandleCommand called with: '$command'")
         switch ($command) {
             # Handle universal commands here
             "app.exit" {

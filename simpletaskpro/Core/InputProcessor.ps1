@@ -154,6 +154,7 @@ class InputProcessor {
         }
         
         $commandDef = $this._commandRegistry[$command]
+        if ($this._logger) { $this._logger.Debug("InputProcessor: About to publish command.executed for '$command'") }
         
         # Publish command event via EventBus
         $this._eventBus.Publish("command.$command", @{
@@ -169,6 +170,7 @@ class InputProcessor {
             Description = $commandDef.Description
             KeyInfo = $keyInfo
         })
+        if ($this._logger) { $this._logger.Debug("InputProcessor: Published command.executed for '$command'") }
     }
     
     # Get current context for command execution

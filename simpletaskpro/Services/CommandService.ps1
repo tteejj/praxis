@@ -173,17 +173,17 @@ class CommandService {
     }
     
     [void] AddCommand([Command]$command, [string]$groupId) {
-        "DEBUG: CommandService.AddCommand - Looking for group: $groupId" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($global:Debug) { "DEBUG: CommandService.AddCommand - Looking for group: $groupId" | Out-File -FilePath "./startup-debug.log" -Append }
         $group = $this.GetGroup($groupId)
         if ($group) {
-            "DEBUG: Found group: $($group.Title), adding command: $($command.Title)" | Out-File -FilePath "./startup-debug.log" -Append
+            if ($global:Debug) { "DEBUG: Found group: $($group.Title), adding command: $($command.Title)" | Out-File -FilePath "./startup-debug.log" -Append }
             $group.AddCommand($command)
-            "DEBUG: Command added to group, commands count now: $($group.Commands.Count)" | Out-File -FilePath "./startup-debug.log" -Append
+            if ($global:Debug) { "DEBUG: Command added to group, commands count now: $($group.Commands.Count)" | Out-File -FilePath "./startup-debug.log" -Append }
             $this.SortGroups()
             $this.Save()
-            "DEBUG: Saved commands to file" | Out-File -FilePath "./startup-debug.log" -Append
+            if ($global:Debug) { "DEBUG: Saved commands to file" | Out-File -FilePath "./startup-debug.log" -Append }
         } else {
-            "DEBUG: ERROR - Group not found: $groupId" | Out-File -FilePath "./startup-debug.log" -Append
+            if ($global:Debug) { "DEBUG: ERROR - Group not found: $groupId" | Out-File -FilePath "./startup-debug.log" -Append }
         }
     }
     

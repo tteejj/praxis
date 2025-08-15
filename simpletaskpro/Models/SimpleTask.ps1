@@ -91,4 +91,50 @@ class SimpleTask {
             return $this.DueDate.ToString("MM/dd")
         }
     }
+    
+    # === ADDITIONAL METHODS FOR FILTERING ===
+    
+    [bool] IsDueToday() {
+        return $this.DueDate.Date -eq [DateTime]::Today -or $this.Priority -eq "Today"
+    }
+    
+    [bool] IsOverdue() {
+        return $this.DueDate -ne [DateTime]::MinValue -and $this.DueDate.Date -lt [DateTime]::Today
+    }
+    
+    [bool] MatchesTag([string]$tagFilter) {
+        if ([string]::IsNullOrEmpty($tagFilter)) { return $true }
+        return $this.Tags -contains $tagFilter -or 
+               ($this.Tags | Where-Object { $_ -like "*$tagFilter*" }).Count -gt 0
+    }
+    
+    [bool] MatchesFilter([string]$filter) {
+        switch ($filter) {
+            "All" { return $true }
+            "Today" { return $this.IsDueToday() }
+            "High" { return $this.Priority -eq "High" }
+            "Medium" { return $this.Priority -eq "Medium" }
+            "Low" { return $this.Priority -eq "Low" }
+            "Completed" { return $this.Completed }
+            "Pending" { return -not $this.Completed }
+            default { return $true }
+        }
+        return $true
+    }
+    
+    [bool] MatchesSearch([string]$searchTerm) {
+        if ([string]::IsNullOrEmpty($searchTerm)) { return $true }
+        
+        $term = $searchTerm.ToLower()
+        return $this.Title.ToLower().Contains($term) -or
+               $this.Notes.ToLower().Contains($term) -or
+               $this.ID1.ToLower().Contains($term) -or
+               $this.ID2.ToLower().Contains($term) -or
+               ($this.Tags | Where-Object { $_.ToLower().Contains($term) }).Count -gt 0
+    }
+    
+    # Get display title
+    [string] GetDisplayTitle() {
+        return if ([string]::IsNullOrEmpty($this.Title)) { "[No Title]" } else { $this.Title }
+    }
 }

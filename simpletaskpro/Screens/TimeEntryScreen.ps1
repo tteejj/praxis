@@ -64,7 +64,7 @@ class TimeEntryScreen : ListScreen {
     [void] BuildTaskLookup() {
         if (-not $this.TaskService) {
             # Initialize TaskService if not available yet
-            $this.TaskService = $this.Services.GetService("TaskService")
+            $this.TaskService = $this.Services.GetService("SimpleTaskService")
         }
         
         if (-not $this.TaskService) {

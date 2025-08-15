@@ -153,20 +153,59 @@ class ListScreen : Screen {
     }
     
     [void] RenderContent([System.Text.StringBuilder]$sb) {
-        # This is lean and correct. It just gathers the pre-formatted strings.
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderContent() starting - Height=$($this.Height), FlatList.Count=$($this.FlatList.Count)") }
+        $startY = 4  # Start after header (2 lines) + column headers (1 line)
+        $contentHeight = $this.Height - $startY - 3  # Leave room for footer and status
+        
         $viewModels = @()
-        for ($i = 0; $i -lt $this.FlatList.Count; $i++) {
-            $viewModel = @{
-                Text = $this.RenderItem($this.FlatList[$i], $i, ($i -eq $this.SelectedIndex))
-                Item = $this.FlatList[$i]
-                Index = $i
-            }
-            $viewModels += $viewModel
+        # Each item takes 2 lines, so we can show half as many items as there are lines
+        $maxVisibleItems = [Math]::Floor($contentHeight / 2)
+        $endIndex = [Math]::Min($this.ScrollTop + $maxVisibleItems, $this.FlatList.Count)
+        if ($endIndex -lt 0) { $endIndex = 0 }
+        
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderContent() - startY=$startY, contentHeight=$contentHeight, maxVisibleItems=$maxVisibleItems, endIndex=$endIndex, ScrollTop=$($this.ScrollTop)") }
+
+        for ($i = $this.ScrollTop; $i -lt $endIndex; $i++) {
+            $item = $this.FlatList[$i]
+            $content = $this.RenderItem($item, $i, ($i -eq $this.SelectedIndex))
+            $viewModels += @{ Text = $content; Item = $item; Index = $i }
         }
         
-        # It passes the work to the RenderEngine.
-        $renderedContent = $this.RenderEngine.RenderWithPillbox($viewModels, $this.SelectedIndex, 3, $this.ScrollTop)
-        $sb.Append($renderedContent)
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderContent() - Built $($viewModels.Count) viewModels, calling RenderWithPillbox with SelectedIndex=$($this.SelectedIndex)") }
+
+        $renderedContent = $this.RenderEngine.RenderWithPillbox($viewModels, $this.SelectedIndex, $startY, $this.ScrollTop)
+        [void]$sb.Append($renderedContent)
+        
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderContent() completed successfully") }
+    }
+    
+    [void] RenderColumnHeaders([System.Text.StringBuilder]$sb) {
+        # Get theme colors
+        $headerBg = [AppThemeManager]::GetBackgroundColor("Header")
+        $headerFg = [AppThemeManager]::GetColor("Text")
+        
+        # Position after main header (line 3)
+        $sb.Append("`e[3;1H")
+        
+        # Column layout: Status(4) + Priority(6) + Dates(20) + Due(12) + Tree(3) + Title(rest)
+        $statusCol = "Stat"
+        $priorityCol = "Pri"  
+        $createdCol = "Created"
+        $dueCol = "Due"
+        $treeCol = "   "
+        $titleCol = "Task"
+        
+        $columnLine = $statusCol.PadRight(4) + 
+                     $priorityCol.PadRight(6) + 
+                     $createdCol.PadRight(12) + 
+                     $dueCol.PadRight(12) + 
+                     $treeCol.PadRight(3) + 
+                     $titleCol
+        
+        $columnLine = $columnLine.PadRight($this.Width)
+        $sb.Append("${headerBg}${headerFg}$columnLine`e[0m`n")
+        
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderColumnHeaders() completed") }
     }
     
     [void] RenderFooter([System.Text.StringBuilder]$sb) {
@@ -265,58 +304,34 @@ class ListScreen : Screen {
         $this.SetStatusMessage("Item deleted", 2000)
     }
     
-    # Simple Render method - override in derived classes for better rendering
+    # Main Render method with proper header/footer structure
     [string] Render() {
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: Starting Render() method") }
         $sb = $this.RenderEngine.GetStringBuilder()
         try {
-            # Header
-            [void]$sb.Append($this.MoveTo(0, 0))
-            [void]$sb.Append(" $($this.Title)".PadRight($this.Width))
-            [void]$sb.AppendLine()
-            
-            # Content - using advanced RenderEngine with pillbox
-            $startY = 2
-            $availableHeight = $this.Height - 4
-            
-            # Build view models for RenderEngine
-            $viewModels = @()
-            $endIndex = [Math]::Min($this.ScrollTop + $availableHeight, $this.FlatList.Count)
-            
-            for ($i = $this.ScrollTop; $i -lt $endIndex; $i++) {
-                $item = $this.FlatList[$i]
-                $content = $this.RenderItem($item, $i, ($i -eq $this.SelectedIndex))
-                
-                $viewModel = @{
-                    Text = $content
-                    Item = $item
-                    Index = $i
-                }
-                $viewModels += $viewModel
-            }
-            
-            # Calculate local selected index for RenderEngine
-            $localSelectedIndex = if ($this.SelectedIndex -ge $this.ScrollTop -and $this.SelectedIndex -lt $endIndex) {
-                $this.SelectedIndex - $this.ScrollTop
-            } else {
-                -1
-            }
-            
-            # Use RenderEngine's beautiful pillbox rendering
-            $pillboxContent = $this.RenderEngine.RenderWithPillbox($viewModels, $localSelectedIndex, $startY, $this.ScrollTop)
-            [void]$sb.Append($pillboxContent)
-            
-            # Status
-            [void]$sb.Append($this.MoveTo(0, $this.Height - 1))
-            if ($this.StatusMessage -and ((Get-Date) - $this.StatusMessageTime).TotalMilliseconds -lt 3000) {
-                [void]$sb.Append($this.StatusMessage)
-            } else {
-                $count = if ($this.FlatList) { $this.FlatList.Count } else { 0 }
-                $current = if ($count -gt 0) { $this.SelectedIndex + 1 } else { 0 }
-                [void]$sb.Append("Items: $count | Selected: $current")
-            }
-            [void]$sb.Append($this.ClearLine())
-            
+            # Clear screen and position cursor
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Clearing screen and positioning cursor") }
+            [void]$sb.Append($this.RenderEngine.ClearScreen())
+            [void]$sb.Append($this.MoveTo(0,0))
+            [void]$sb.Append([VT]::HideCursor())
+
+            # Render all screen components
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Calling RenderHeader()") }
+            $this.RenderHeader($sb)
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Calling RenderColumnHeaders()") }
+            $this.RenderColumnHeaders($sb)
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Calling RenderContent()") }
+            $this.RenderContent($sb)
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Calling RenderFooter()") }
+            $this.RenderFooter($sb)
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Calling RenderStatus()") }
+            $this.RenderStatus($sb)
+
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: Render() completed successfully") }
             return $sb.ToString()
+        } catch {
+            if ($this.Logger) { $this.Logger.Error("DEBUG: Error in Render() method", $_) }
+            throw
         } finally {
             $this.RenderEngine.ReturnStringBuilder($sb)
         }
@@ -7005,7 +7020,7 @@ class SimpleTaskProApp {
                     # Check for window resize
                     $currentWidth = [Console]::WindowWidth
                     $currentHeight = [Console]::WindowHeight
-                    $stateSize = $this._stateManager.GetState("UI.WindowDimensions")
+                    $stateSize = $this._stateManager.Get("UI.WindowDimensions")
                     
                     if ($currentWidth -ne $stateSize.Width -or $currentHeight -ne $stateSize.Height) {
                         $this.HandleWindowResize($currentWidth, $currentHeight)

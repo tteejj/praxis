@@ -1,7 +1,7 @@
 # Base/ListScreen.ps1 - The "Smart Component" engine.
 
 class ListScreen : Screen {
-    [FastLineBuilder]$ContentBuilder
+    [object]$ContentBuilder  # FastLineBuilder - avoid type dependency during loading
     [System.Collections.Generic.List[object]]$FlatList
     [int]$SelectedIndex = 0
     [int]$ScrollTop = 0
@@ -16,7 +16,7 @@ class ListScreen : Screen {
     [void] OnInitialize() {
         $this.FlatList = [System.Collections.Generic.List[object]]::new()
         $this.ContentBuilder = $this.Services.GetService("ContentBuilder")
-        $this.LoadData() # Load initial data
+        # LoadData() is called by derived classes after they initialize their services
         $this.Logger.Debug("ListScreen $($this.GetType().Name) post-construction setup complete")
     }
     
@@ -28,12 +28,26 @@ class ListScreen : Screen {
         while ($this._isRunning) {
             $output = $this.Render()   # 1. RENDER: Build the entire frame in memory.
             [Console]::Write($output)  # 2. WRITE: Perform a single, atomic write.
-            $key = [Console]::ReadKey($true) # 3. INPUT: Wait for and handle the next key press.
-            $this.HandleInput($key)
+            
+            # 3. INPUT: Try Console.ReadKey with fallback for redirection issues
+            $key = $null
+            try {
+                $key = [Console]::ReadKey($true)
+            } catch {
+                # Last resort - break out of loop if input fails  
+                $this.Logger.Error("Console input failed", $_)
+                $this._isRunning = $false
+                break
+            }
+            
+            if ($key) {
+                # Use the InputProcessor to convert keys to commands and fire events
+                $handled = $this.InputProcessor.ProcessKey($key)
+            }
         }
     }
 
-    # This is now a private helper called by this screen's own loop.
+    # UPDATED VERSION - 2025-08-13-23:40 
     [string] Render() {
         $sb = $this.RenderEngine.GetStringBuilder()
         try {
@@ -42,15 +56,34 @@ class ListScreen : Screen {
             [void]$sb.Append([VT]::HideCursor())
 
             $this.RenderHeader($sb)
-    
-            # This is the fix for the content rendering
+            $this.RenderColumnHeaders($sb)
             $this.RenderContent($sb)
-
             $this.RenderFooter($sb)
             $this.RenderStatus($sb)
 
-            # Cursor logic for inline editing will go here
-            return $sb.ToString()
+            $finalOutput = $sb.ToString()
+            
+            # Debug output only when debug flag enabled
+            if ($global:Debug) {
+                try {
+                    $finalOutput | Out-File -FilePath "./ACTUAL-OUTPUT.txt" -Encoding UTF8 -Force
+                    
+                    # ALSO LOG THE RAW BYTES IN HEX FORMAT  
+                    $bytes = [System.Text.Encoding]::UTF8.GetBytes($finalOutput)
+                    $hexDump = ($bytes | ForEach-Object { $_.ToString("X2") }) -join " "
+                    "BYTE COUNT: $($bytes.Length)" | Out-File -FilePath "./OUTPUT-BYTES.txt" -Encoding ASCII -Force
+                    "HEX DUMP: $hexDump" | Out-File -FilePath "./OUTPUT-BYTES.txt" -Encoding ASCII -Append
+                    
+                    if ($this.Logger) {
+                        $this.Logger.Debug("RENDER OUTPUT: Wrote $($bytes.Length) bytes to ACTUAL-OUTPUT.txt")
+                        $this.Logger.Debug("RENDER OUTPUT PREVIEW: $($finalOutput.Substring(0, [Math]::Min(200, $finalOutput.Length)))")
+                    }
+                } catch {
+                    if ($this.Logger) { $this.Logger.Error("Failed to write debug output", $_) }
+                }
+            }
+            
+            return $finalOutput
         }
         finally {
             $this.RenderEngine.ReturnStringBuilder($sb)
@@ -58,7 +91,7 @@ class ListScreen : Screen {
     }
     
     [void] RenderContent([System.Text.StringBuilder]$sb) {
-        $startY = 3
+        $startY = 4  # Start after header + column headers
         $contentHeight = $this.Height - $startY - 2
         
         $viewModels = @()
@@ -79,12 +112,29 @@ class ListScreen : Screen {
 
     # Override HandleCommand to include an exit command for the loop.
     [void] HandleScreenCommand([string]$command) {
-        if ($command -eq 'app.exit') {
+        $this.Logger.Debug("ListScreen.HandleScreenCommand called with: $command")
+        
+        if ($command -eq 'app.exit' -or $command -eq 'Escape') {
+            $this.Logger.Debug("Exiting application")
             $this._isRunning = $false
             return
         }
-        # This will call the command handler in the final screen (e.g., TaskListScreen)
-        $this.HandleDerivedCommand($command)
+        
+        # Handle basic navigation
+        switch ($command) {
+            "nav.up" { 
+                $this.Logger.Debug("Moving up")
+                $this.MoveUp() 
+            }
+            "nav.down" { 
+                $this.Logger.Debug("Moving down")
+                $this.MoveDown() 
+            }
+            default {
+                # This will call the command handler in the final screen (e.g., TaskListScreen)
+                $this.HandleDerivedCommand($command)
+            }
+        }
     }
 
     # Navigation methods
@@ -123,20 +173,55 @@ class ListScreen : Screen {
 
     # Header rendering
     [void] RenderHeader([System.Text.StringBuilder]$sb) {
-        # Get theme colors
-        $headerBg = [AppThemeManager]::GetColor("HeaderBackground")
-        $headerFg = [AppThemeManager]::GetColor("HeaderForeground")
-        
         # Position at top of screen
         $sb.Append("`e[1;1H")
         
+        # Get theme colors - use defaults if empty
+        $headerBg = [AppThemeManager]::GetBackgroundColor("Header")
+        $headerFg = [AppThemeManager]::GetColor("Header")
+        if (-not $headerBg) { $headerBg = "`e[48;5;4m" }  # Blue background
+        if (-not $headerFg) { $headerFg = "`e[38;5;15m" } # White text
+        
         # Render title bar with background
         $titleLine = " $($this.Title)" + " " * ($this.Width - $this.Title.Length - 1)
-        $sb.Append("`e[${headerBg}m`e[${headerFg}m$titleLine`e[0m`n")
+        $sb.Append("$headerBg$headerFg$titleLine`e[0m")
+        $sb.Append("`n")
         
         # Add separator line  
         $separator = "─" * $this.Width
-        $sb.Append("`e[${headerBg}m$separator`e[0m`n")
+        $sb.Append("$headerBg$separator`e[0m")
+        $sb.Append("`n")
+    }
+
+    # Column headers rendering  
+    [void] RenderColumnHeaders([System.Text.StringBuilder]$sb) {
+        # Get theme colors
+        $headerBg = [AppThemeManager]::GetBackgroundColor("Header")
+        $headerFg = [AppThemeManager]::GetColor("Text")
+        
+        # Position after main header (line 3)
+        $sb.Append("`e[3;1H")
+        
+        # Column layout: ID1(4) + ID2(14) + Created(12) + Due(12) + Tree(3) + Title(rest)
+        $id1Col = "ID1"
+        $id2Col = "ID2"  
+        $createdCol = "Created"
+        $dueCol = "Due"
+        $treeCol = "   "
+        $titleCol = "Task"
+        
+        $columnLine = $id1Col.PadRight(4) + 
+                     $id2Col.PadRight(14) + 
+                     $createdCol.PadRight(12) + 
+                     $dueCol.PadRight(12) + 
+                     $treeCol.PadRight(3) + 
+                     $titleCol
+        
+        $columnLine = $columnLine.PadRight($this.Width)
+        $columnOutput = "${headerBg}${headerFg}$columnLine`e[0m`n"
+        $sb.Append($columnOutput)
+        
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderColumnHeaders() completed - columnLine: '$columnLine'") }
     }
 
     # Footer rendering
@@ -145,13 +230,15 @@ class ListScreen : Screen {
         $sb.Append("`e[${footerY};1H")
         
         # Get theme colors
-        $footerBg = [AppThemeManager]::GetColor("FooterBackground")
-        $footerFg = [AppThemeManager]::GetColor("FooterForeground")
+        $footerBg = [AppThemeManager]::GetBackgroundColor("Header")
+        $footerFg = [AppThemeManager]::GetColor("Header")
         
         # Help text
         $helpText = "Enter: Edit | N: New | Del: Delete | Arrow Keys: Navigate"
         $footerLine = " $helpText" + " " * ($this.Width - $helpText.Length - 1)
-        $sb.Append("`e[${footerBg}m`e[${footerFg}m$footerLine`e[0m")
+        $sb.Append("${footerBg}${footerFg}$footerLine`e[0m")
+        
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderFooter() completed - footerY: $footerY") }
     }
 
     # Status rendering

@@ -942,14 +942,14 @@ class CommandLibraryScreen : ListScreen {
     }
     
     [void] StartNewCommandEdit([string]$groupId) {
-        "DEBUG: StartNewCommandEdit - groupId: $groupId" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($global:Debug) { "DEBUG: StartNewCommandEdit - groupId: $groupId" | Out-File -FilePath "./startup-debug.log" -Append }
         
         # Create temporary command (DON'T ADD TO SERVICE YET)
         $newCommand = [Command]::new("")
         $newCommand.CommandText = ""
         $newCommand.Description = ""
         $newCommand.GroupId = $groupId
-        "DEBUG: Created temporary command for editing" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($global:Debug) { "DEBUG: Created temporary command for editing" | Out-File -FilePath "./startup-debug.log" -Append }
         
         # Create temporary FlatList item for display purposes
         $tempItem = [PSCustomObject]@{
@@ -992,7 +992,7 @@ class CommandLibraryScreen : ListScreen {
         $this.IsNewCommand = $true
         $this.EditingValue = ""
         
-        "DEBUG: Started new command editing mode at index $insertIndex" | Out-File -FilePath "./startup-debug.log" -Append
+        if ($global:Debug) { "DEBUG: Started new command editing mode at index $insertIndex" | Out-File -FilePath "./startup-debug.log" -Append }
     }
     
     [void] DeleteCurrentCommand() {
@@ -1183,19 +1183,19 @@ class CommandLibraryScreen : ListScreen {
                     try {
                         $this.FlatList.RemoveAt($this.EditingIndex)
                     } catch {
-                        "DEBUG: Error removing temporary item: $_" | Out-File -FilePath "./startup-debug.log" -Append
+                        if ($global:Debug) { "DEBUG: Error removing temporary item: $_" | Out-File -FilePath "./startup-debug.log" -Append }
                     }
                 }
                 
                 # NEW COMMAND: Only save if they actually typed something
                 if (-not [string]::IsNullOrWhiteSpace($this.EditingCommand.Title)) {
-                    "DEBUG: Saving new command: $($this.EditingCommand.Title)" | Out-File -FilePath "./startup-debug.log" -Append
+                    if ($global:Debug) { "DEBUG: Saving new command: $($this.EditingCommand.Title)" | Out-File -FilePath "./startup-debug.log" -Append }
                     $this.CommandService.AddCommand($this.EditingCommand, $this.EditingCommand.GroupId)
                     $this.LoadGroups()
                     # Find and select the new command
                     $this.FindAndSelectCommand($this.EditingCommand.Id)
                 } else {
-                    "DEBUG: New command cancelled - no title entered" | Out-File -FilePath "./startup-debug.log" -Append
+                    if ($global:Debug) { "DEBUG: New command cancelled - no title entered" | Out-File -FilePath "./startup-debug.log" -Append }
                     # Reload groups to refresh display without temporary item
                     $this.LoadGroups()
                 }

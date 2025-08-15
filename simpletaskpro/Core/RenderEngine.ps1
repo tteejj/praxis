@@ -72,6 +72,7 @@ class RenderEngine {
     
     # Render view models with pillbox selection supporting two-line items
     [string] RenderWithPillbox([array]$viewModels, [int]$selectedIndex, [int]$startY, [int]$scrollTop = 0) {
+        if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderWithPillbox() called - viewModels.Count=$($viewModels.Count), selectedIndex=$selectedIndex, startY=$startY, scrollTop=$scrollTop") }
         $sb = $this.GetStringBuilder()
         
         try {
@@ -79,6 +80,7 @@ class RenderEngine {
             $consoleHeight = [Console]::WindowHeight
             $consoleWidth = [Console]::WindowWidth
             $contentHeight = $consoleHeight - $startY - 3  # Leave room for footer/status
+            if ($this.Logger) { $this.Logger.Debug("DEBUG: RenderWithPillbox() - consoleHeight=$consoleHeight, consoleWidth=$consoleWidth, contentHeight=$contentHeight") }
             
             # Account for two-line items - each item takes 2 lines
             $maxVisibleItems = [Math]::Floor($contentHeight / 2)
@@ -97,31 +99,31 @@ class RenderEngine {
                 
                 if ($isSelected) {
                     # Beautiful pillbox with box drawing characters
-                    $pillboxBg = "47"    # White background
-                    $pillboxFg = "30"    # Black text
+                    $pillboxBg = [AppThemeManager]::GetBackgroundColor("Selected")
+                    $pillboxFg = [AppThemeManager]::GetColor("Text")
                     
                     # Top border
                     $sb.Append("`e[${currentY};1H")
                     $topBorder = "╭" + ("─" * ($consoleWidth - 2)) + "╮"
-                    $sb.Append("`e[${pillboxBg}m`e[${pillboxFg}m$topBorder`e[0m")
+                    $sb.Append("${pillboxBg}${pillboxFg}$topBorder`e[0m")
                     $currentY++
                     
                     # Content line
                     $sb.Append("`e[${currentY};1H")
                     $contentPadded = "│ " + $contentLine.PadRight($consoleWidth - 4) + " │"
-                    $sb.Append("`e[${pillboxBg}m`e[${pillboxFg}m$contentPadded`e[0m")
+                    $sb.Append("${pillboxBg}${pillboxFg}$contentPadded`e[0m")
                     $currentY++
                     
                     # Tag line
                     $sb.Append("`e[${currentY};1H")
                     $tagPadded = "│ " + $tagLine.PadRight($consoleWidth - 4) + " │"
-                    $sb.Append("`e[${pillboxBg}m`e[${pillboxFg}m$tagPadded`e[0m")
+                    $sb.Append("${pillboxBg}${pillboxFg}$tagPadded`e[0m")
                     $currentY++
                     
                     # Bottom border
                     $sb.Append("`e[${currentY};1H")
                     $bottomBorder = "╰" + ("─" * ($consoleWidth - 2)) + "╯"
-                    $sb.Append("`e[${pillboxBg}m`e[${pillboxFg}m$bottomBorder`e[0m")
+                    $sb.Append("${pillboxBg}${pillboxFg}$bottomBorder`e[0m")
                     $currentY++
                 } else {
                     # Normal two-line item

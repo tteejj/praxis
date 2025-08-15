@@ -5,37 +5,66 @@ param([switch]$Debug)
 Set-Location $PSScriptRoot
 $global:Debug = $Debug
 
-# Load core dependencies in correct order  
+# Load EVERYTHING first, then Bootstrapper
+Write-Host "DEBUG LOAD: Starting file loading..." -ForegroundColor Yellow
+
+# STEP 1: Core utilities and Models FIRST
+Write-Host "DEBUG LOAD: ServiceContainer-Phase4.5.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Core/ServiceContainer-Phase4.5.ps1"
-
-# Load ALL application components in dependency order
+Write-Host "DEBUG LOAD: StringCache.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Core/StringCache.ps1"
+Write-Host "DEBUG LOAD: VT100.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Core/VT100.ps1"
+Write-Host "DEBUG LOAD: UniversalBackupManager.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Core/UniversalBackupManager.ps1"
+Write-Host "DEBUG LOAD: GapBuffer.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Core/GapBuffer.ps1"
+Write-Host "DEBUG LOAD: SimpleTask.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Models/SimpleTask.ps1"
+Write-Host "DEBUG LOAD: SimpleTimeEntry.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Models/SimpleTimeEntry.ps1"
+Write-Host "DEBUG LOAD: Command.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Models/Command.ps1"
+Write-Host "DEBUG LOAD: ExcelFieldMapping.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Models/ExcelFieldMapping.ps1"
-. "$PSScriptRoot/Core/Logger.ps1"
-. "$PSScriptRoot/Core/EventBus.ps1"
-. "$PSScriptRoot/Core/SimpleStateManager.ps1"
-. "$PSScriptRoot/Core/InputProcessor.ps1"
-. "$PSScriptRoot/Core/RenderEngine.ps1"
-. "$PSScriptRoot/Core/AppThemeManager.ps1"
-. "$PSScriptRoot/Core/FastLineBuilder.ps1"
-. "$PSScriptRoot/Services/SimpleTaskService.ps1"
-. "$PSScriptRoot/Services/TimeTrackingService.ps1"
-. "$PSScriptRoot/Services/CommandService.ps1"
-. "$PSScriptRoot/Services/ExcelMappingService.ps1"
-. "$PSScriptRoot/Services/KeyMappingService.ps1"
-. "$PSScriptRoot/Base/Screen.ps1"
-. "$PSScriptRoot/Base/ListScreen.ps1"
-. "$PSScriptRoot/Screens/TaskListScreen.ps1"
-. "$PSScriptRoot/Core/SimpleTaskProApp.ps1"
 
-# Load the Bootstrapper (after all dependencies are loaded)
+# STEP 2: Core services that depend on Models
+Write-Host "DEBUG LOAD: Logger.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/Logger.ps1"
+Write-Host "DEBUG LOAD: EventBus.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/EventBus.ps1"
+Write-Host "DEBUG LOAD: SimpleStateManager.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/SimpleStateManager.ps1"
+Write-Host "DEBUG LOAD: InputProcessor.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/InputProcessor.ps1"
+Write-Host "DEBUG LOAD: AppThemeManager.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/AppThemeManager.ps1"
+Write-Host "DEBUG LOAD: RenderEngine.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/RenderEngine.ps1"
+Write-Host "DEBUG LOAD: FastLineBuilder.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/FastLineBuilder.ps1"
+Write-Host "DEBUG LOAD: SimpleTaskService.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Services/SimpleTaskService.ps1"
+Write-Host "DEBUG LOAD: TimeTrackingService.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Services/TimeTrackingService.ps1"
+Write-Host "DEBUG LOAD: CommandService.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Services/CommandService.ps1"
+Write-Host "DEBUG LOAD: ExcelMappingService.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Services/ExcelMappingService.ps1"
+Write-Host "DEBUG LOAD: KeyMappingService.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Services/KeyMappingService.ps1"
+Write-Host "DEBUG LOAD: Screen.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Base/Screen.ps1"
+Write-Host "DEBUG LOAD: *** LOADING ListScreen.ps1 NOW *** " -ForegroundColor Red
+. "$PSScriptRoot/Base/ListScreen.ps1"
+Write-Host "DEBUG LOAD: *** ListScreen.ps1 LOADED SUCCESSFULLY *** " -ForegroundColor Red
+Write-Host "DEBUG LOAD: TaskListScreen.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Screens/TaskListScreen.ps1"
+Write-Host "DEBUG LOAD: SimpleTaskProApp.ps1" -ForegroundColor Yellow
+. "$PSScriptRoot/Core/SimpleTaskProApp.ps1"
+Write-Host "DEBUG LOAD: Bootstrapper.ps1" -ForegroundColor Yellow
 . "$PSScriptRoot/Core/Bootstrapper.ps1"
+Write-Host "DEBUG LOAD: All files loaded successfully!" -ForegroundColor Green
 
 try {
     # Initialize the entire application through the single, reliable Bootstrapper.

@@ -3,9 +3,22 @@
 ## Project Overview
 Praxis is a PowerShell-based TUI application for project/task/time management. Solo developer project focused on speed, flicker-free performance, and professional text editing capabilities.
 
-## Current Status: Major Refactoring in Progress
-**Goal**: Fix fundamental screen development difficulty while preserving speed/performance
-**Approach**: Architectural solutions, not cosmetic patches
+## CRITICAL STATUS: ARCHITECTURAL CRISIS - EMERGENCY IMPLEMENTATION REQUIRED
+**PRIMARY ISSUE**: SimpleTaskPro codebase has deviated catastrophically from plan_final.md vision
+**EVIDENCE**: 5,113 screen lines vs 1,000 planned (411% over), 4 competing ServiceContainer implementations, 354+ debug file I/O operations causing performance degradation
+**ACTION REQUIRED**: IMMEDIATELY implement the_plan/plan_plan.md step-by-step
+
+## Master Plan Reference
+**DEFINITIVE IMPLEMENTATION PLAN**: `simpletaskpro/the_plan/plan_plan.md`
+**ORIGINAL VISION**: `simpletaskpro/the_plan/plan_final.md` 
+**CURRENT STATE**: Critical architectural violations requiring surgical correction
+
+### Key Implementation Requirements
+1. **ALWAYS refer to plan_plan.md** before making ANY changes to SimpleTaskPro
+2. **Follow the 5-phase approach** - Emergency Stabilization → Service Unification → Screen Migration → Performance → Validation
+3. **Track progress** - Update plan_plan.md with completion status and any discoveries
+4. **Measure success** - Validate line count reductions and performance improvements
+5. **Maintain debug capability** - Conditional debug I/O only when $global:Debug enabled
 
 ## Actual Screens in Use (7 Main + Dialogs)
 **Main Screens:**
@@ -112,7 +125,35 @@ Praxis is a PowerShell-based TUI application for project/task/time management. S
 **Context needed**: New base classes, migration patterns
 **Deliverables**: Usage examples, migration guides
 
-## Progress Tracking
+## Progress Tracking - UPDATED FOR SIMPLETASKPRO CRISIS
+
+**CRITICAL STATUS**: SimpleTaskPro requires complete implementation of plan_plan.md
+**CURRENT PHASE**: Emergency Stabilization (Phase 1 of 5)
+
+### SimpleTaskPro Implementation Status
+- **Phase 1**: Emergency Stabilization ❌ NOT STARTED
+  - Step 1.1: Fix Service Method Mismatch (SaveTask → AddTask/UpdateTask)
+  - Step 1.2: Conditional Debug I/O (354+ debug operations)
+  - Step 1.3: Entry Point Cleanup (85 lines → 20 lines)
+
+- **Phase 2**: Service Container Unification ❌ NOT STARTED 
+  - Step 2.1: Investigate 4 competing ServiceContainer implementations
+  - Step 2.2: Select primary container
+  - Step 2.3: Delete obsolete containers
+  - Step 2.4: Update service registration
+
+- **Phase 3**: Screen Architecture Compliance ❌ NOT STARTED
+  - TaskListScreen: 582 lines → 50 lines target (91% reduction)
+  - TimeEntryScreen: 858 lines → 200 lines target
+  - CommandLibraryScreen: 1,314 lines → 200 lines target
+  - ExcelMappingScreen: 1,307 lines → 200 lines target
+
+- **Phase 4**: Performance Optimization ❌ NOT STARTED
+- **Phase 5**: Architectural Validation ❌ NOT STARTED
+
+**IMMEDIATE ACTION REQUIRED**: Begin Phase 1 implementation immediately
+
+### Legacy Praxis Progress (COMPLETED)
 **PHASE 1 COMPLETE ✅**
 - Phase 1.1: UnifiedDialog class ✅ (Base/UnifiedDialog.ps1)
 - Phase 1.2: CRUDScreen base class ✅ (Base/CRUDScreen.ps1)  
@@ -124,9 +165,6 @@ Praxis is a PowerShell-based TUI application for project/task/time management. S
 - EditProjectDialog: 165 → 61 lines (63% reduction) ✅
 - **Total boilerplate eliminated: 635 lines**
 - All functionality preserved with improved reliability
-
-Current phase: **Phase 2 Ready to Begin**
-Next action: **Migrate remaining screens using proven architecture**
 
 ## Developer Notes
 - Solo developer project - prioritize maintainability over enterprise patterns

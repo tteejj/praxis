@@ -1,0 +1,10 @@
+ncurses.tcz
+readline.tcz
+libnl.tcz
+ca-certificates.tcz
+openssl.tcz
+wpa_supplicant.tcz
+wireless-6.1.69-piCore-v7l.tcz
+wireless_tools.tcz
+firmware-rpi-wifi.tcz
+wifi.tcz

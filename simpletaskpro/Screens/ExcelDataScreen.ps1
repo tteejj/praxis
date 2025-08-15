@@ -47,12 +47,11 @@ class ExcelDataScreen : ListScreen {
     
     [void] InitializeServices() {
         try {
-            # Create service container (adapted from ExcelDataFlow)
-            . "$PSScriptRoot\..\Services\ExcelServiceContainer.ps1"
-            $this.ServiceContainer = [ExcelServiceContainer]::new()
-            
-            # Get core services
-            $this.ConfigService = $this.ServiceContainer.GetService('ConfigurationService')
+            # Use primary ServiceContainer from Phase 1 unification
+            # Note: ExcelServiceContainer was removed during Phase 1 cleanup
+            # This screen may need service refactoring if re-enabled
+            Write-Warning "ExcelDataScreen: ExcelServiceContainer removed. Screen requires service refactoring."
+            return
             $this.ExcelService = $this.ServiceContainer.GetService('ExcelService')
             
             # Initialize processing services

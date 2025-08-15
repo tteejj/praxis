@@ -62,7 +62,7 @@ class EventBus {
     
     # Publish an event to all subscribers
     [void] Publish([string]$eventName, [object]$data = $null) {
-        # Publishing event (no logging dependency)
+        # Publishing event (no logging dependency) 
         
         if ($this.Subscriptions.ContainsKey($eventName)) {
             $subscribers = $this.Subscriptions[$eventName]

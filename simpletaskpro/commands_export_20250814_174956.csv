@@ -1,0 +1,12 @@
+Title,CommandText,Description,Tags,IsGroup
+"Git","","Git version control commands","",True
+"Git Log","git log --oneline -10","Show recent commits","git;log;history",False
+"Git Status","git status","Show working tree status","git;status",False
+"New Command","","New command description","",False
+"New Command","","New command description","",False
+"New Command","","New command description","",False
+"New Command","","New command description","",False
+"New CommandN","","New command description","",False
+"PowerShell","","PowerShell system commands","",True
+"Disk Usage","Get-WmiObject -Class Win32_LogicalDisk | Select-Object DeviceID,Size,FreeSpace","Show disk space usage","powershell;system;disk",False
+"Get Processes","Get-Process | Sort-Object CPU -Descending | Select-Object -First 10","Show top CPU processes","powershell;system;processes",False

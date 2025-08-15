@@ -19,9 +19,12 @@ class SimpleTaskProApp {
     }
 
     [void] Run() {
+        Write-Host "*** DEBUG: SimpleTaskProApp.Run() CALLED ***" -ForegroundColor Cyan
         $this._logger.Info("Application launcher running. Handing control to initial screen.")
         $initialScreen = $this._screens["Tasks"]
+        Write-Host "*** DEBUG: About to call initialScreen.Show() ***" -ForegroundColor Cyan
         # The screen now runs its own main loop. This is the handoff.
         $initialScreen.Show() 
+        Write-Host "*** DEBUG: initialScreen.Show() completed ***" -ForegroundColor Cyan
     }
 }
