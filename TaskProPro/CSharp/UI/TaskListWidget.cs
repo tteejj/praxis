@@ -15,15 +15,25 @@ namespace TaskPro.UI {
         public TagEditor TagEditor { get; set; }
         public TaskCreationDialog TaskCreationDialog { get; set; }
         public NotesEditorDialog NotesEditorDialog { get; set; }
+        public ColorPickerDialog ColorPickerDialog { get; set; }
         
-        // Colors
-        public ConsoleColor HeaderColor { get; set; } = ConsoleColor.Cyan;
-        public ConsoleColor HighPriorityColor { get; set; } = ConsoleColor.Red;
-        public ConsoleColor MediumPriorityColor { get; set; } = ConsoleColor.Yellow;
-        public ConsoleColor LowPriorityColor { get; set; } = ConsoleColor.Green;
-        public ConsoleColor TodayPriorityColor { get; set; } = ConsoleColor.Magenta;
-        public ConsoleColor SubtaskColor { get; set; } = ConsoleColor.Gray;
-        public ConsoleColor TagColor { get; set; } = ConsoleColor.DarkGray;
+        // CYBERPUNK COLOR PALETTE - Retro-Futuristic Terminal Aesthetic
+        public ConsoleColor HeaderColor { get; set; } = ConsoleColor.Cyan;          // Bright cyan headers
+        public ConsoleColor HighPriorityColor { get; set; } = ConsoleColor.Red;     // Emergency red
+        public ConsoleColor MediumPriorityColor { get; set; } = ConsoleColor.Yellow; // Amber warnings
+        public ConsoleColor LowPriorityColor { get; set; } = ConsoleColor.Green;    // System green
+        public ConsoleColor TodayPriorityColor { get; set; } = ConsoleColor.Magenta; // Critical magenta
+        public ConsoleColor SubtaskColor { get; set; } = ConsoleColor.DarkGray;     // Subdued terminals
+        public ConsoleColor TagColor { get; set; } = ConsoleColor.DarkCyan;         // Data tags
+        
+        // Extended cyberpunk palette
+        public ConsoleColor BorderColor { get; set; } = ConsoleColor.Cyan;          // Bright cyan borders
+        public ConsoleColor BackgroundColor { get; set; } = ConsoleColor.Black;     // Deep space black
+        public new ConsoleColor SelectionColor { get; set; } = ConsoleColor.DarkBlue;   // Selection highlight
+        public ConsoleColor AmberText { get; set; } = ConsoleColor.Yellow;          // Classic amber terminal
+        public ConsoleColor StatusGreen { get; set; } = ConsoleColor.Green;         // System status
+        public ConsoleColor DangerRed { get; set; } = ConsoleColor.Red;             // Alert red
+        public ConsoleColor DataBlue { get; set; } = ConsoleColor.Blue;             // Data fields
         
         // State
         private List<TaskListItem> cachedFlatList = new List<TaskListItem>();
@@ -73,45 +83,58 @@ namespace TaskPro.UI {
             NotesEditorDialog.NotesUpdated += OnTaskUpdated;
             NotesEditorDialog.EditorClosed += OnEditCancelled;
             NotesEditorDialog.StatusMessage += OnStatusMessage;
+            
+            // Initialize color picker dialog
+            ColorPickerDialog = new ColorPickerDialog();
+            ColorPickerDialog.TaskColorUpdated += OnTaskUpdated;
+            ColorPickerDialog.DialogClosed += OnEditCancelled;
+            ColorPickerDialog.StatusMessage += OnStatusMessage;
         }
         
-        // Task formatting for the base ListWidget
+        // CYBERPUNK TASK FORMATTING - Proper columnar layout with actual data
         private string FormatTaskItem(TaskListItem item) {
             var task = item.Task;
             var level = item.Level;
             
-            // Build the formatted string for this task
-            var result = "";
+            // COLUMNAR FORMAT: ST | PRI | DUE      | ID1    | ID2    | TITLE                    | TAGS
+            var parts = new string[7];
             
-            // Status icon (☐ or ■)
-            var statusIcon = task.Completed ? "■" : "☐";
-            result += statusIcon + " ";
+            // Column 1: Status (3 chars)
+            parts[0] = task.GetStatusIcon().PadRight(3);
             
-            // Priority indicator
-            var priorityChar = GetPriorityChar(task.Priority);
-            result += priorityChar + " ";
+            // Column 2: Priority (4 chars) 
+            parts[1] = task.GetCyberpunkPriority().PadRight(4);
             
-            // Due date
-            var dueDateText = FormatDueDate(task.DueDate);
-            result += dueDateText.PadRight(11) + " ";
+            // Column 3: Due Date (10 chars)
+            parts[2] = task.GetCyberpunkDate().PadRight(10);
             
-            // Tree indentation for subtasks
-            if (level == 1) {
-                result += "    └─ ";
+            // Column 4: ID1 (8 chars) - ACTUAL DATA
+            var id1Display = string.IsNullOrEmpty(task.ID1) ? "---" : task.ID1;
+            parts[3] = id1Display.PadRight(8);
+            
+            // Column 5: ID2 (8 chars) - ACTUAL DATA  
+            var id2Display = string.IsNullOrEmpty(task.ID2) ? "---" : task.ID2;
+            parts[4] = id2Display.PadRight(8);
+            
+            // Column 6: Title (40 chars max)
+            var title = task.Title;
+            if (title.Length > 40) {
+                title = title.Substring(0, 37) + "...";
             }
+            parts[5] = title.PadRight(40);
             
-            // Task title
-            result += task.Title;
-            
-            // Tags (if any)
+            // Column 7: Tags
+            var tagText = "";
             if (task.Tags.Any()) {
-                result += " ⟨" + string.Join(", ", task.Tags) + "⟩";
+                tagText = string.Join(" ", task.Tags.Select(t => $"<{t}>"));
             }
+            parts[6] = tagText;
             
-            return result;
+            // Join with separators for proper columns
+            return $"{parts[0]}│{parts[1]}│{parts[2]}│{parts[3]}│{parts[4]}│{parts[5]}│{parts[6]}";
         }
         
-        // Color provider for tasks
+        // Color provider for tasks - Enhanced with RGB/theme support
         private ConsoleColor GetTaskItemColor(TaskListItem item) {
             var task = item.Task;
             
@@ -119,12 +142,34 @@ namespace TaskPro.UI {
                 return ConsoleColor.DarkGray;
             }
             
-            return GetPriorityColor(task.Priority);
+            // Check for custom color first
+            if (!string.IsNullOrEmpty(task.CustomColor)) {
+                try {
+                    var customColor = ColorThemeManager.ParseColor(task.CustomColor);
+                    return customColor.ToConsoleColor();
+                } catch {
+                    // Fall back to theme color if custom color is invalid
+                }
+            }
+            
+            // Use theme color
+            if (!string.IsNullOrEmpty(task.ColorTheme) && task.ColorTheme != "default") {
+                var theme = ColorThemeManager.GetTheme(task.ColorTheme);
+                return theme.TaskColor.ToConsoleColor();
+            }
+            
+            // Fall back to task's own priority color method
+            return task.GetPriorityColor();
         }
         
         // Input Handling
         public new bool HandleInput(InputEvent input) {
-            // Check if notes editor dialog is active first (highest priority)
+            // Check if color picker dialog is active first (highest priority)
+            if (ColorPickerDialog?.IsActive == true) {
+                return ColorPickerDialog.HandleInput(input);
+            }
+            
+            // Check if notes editor dialog is active
             if (NotesEditorDialog?.IsActive == true) {
                 return NotesEditorDialog.HandleInput(input);
             }
@@ -187,32 +232,34 @@ namespace TaskPro.UI {
             }
             
             if (input.Key == ConsoleKey.T) {
-                ToggleTheme();
+                if (input.Shift) {
+                    // Shift+T: Open color picker for custom colors
+                    OpenColorPicker();
+                } else {
+                    // T: Toggle through predefined themes
+                    ToggleTheme();
+                }
                 return true;
             }
             
-            if (input.Key == ConsoleKey.R) {
-                EditTags();
-                return true;
-            }
-            
-            if (input.Key == ConsoleKey.E) {
-                StartInlineEditTitle();
-                return true;
-            }
-            
-            if (input.Key == ConsoleKey.P) {
-                StartInlineEditPriority();
-                return true;
-            }
-            
-            if (input.Key == ConsoleKey.U) {
-                StartInlineEditDueDate();
+            if (input.Key == ConsoleKey.O && input.Ctrl) {
+                // Ctrl+O: Open color picker (alternative shortcut)
+                OpenColorPicker();
                 return true;
             }
             
             if (input.Key == ConsoleKey.R) {
                 StartTagEditor();
+                return true;
+            }
+            
+            if (input.Key == ConsoleKey.C) {
+                ToggleTaskCollapse();
+                return true;
+            }
+            
+            if (input.Key == ConsoleKey.G) {
+                ToggleGlobalCollapse();
                 return true;
             }
             
@@ -296,8 +343,64 @@ namespace TaskPro.UI {
             }
         }
         
+        // Global theme state
+        private static string globalTheme = "default";
+        
         private void ToggleTheme() {
-            // Implementation for theme toggling
+            // GLOBAL theme toggling - affects entire interface
+            var nextTheme = ColorThemeManager.GetNextTheme(globalTheme);
+            globalTheme = nextTheme;
+            
+            // Apply theme to UI colors
+            var theme = ColorThemeManager.GetTheme(nextTheme);
+            HeaderColor = theme.TaskColor.ToConsoleColor();
+            HighPriorityColor = ConsoleColor.Red;
+            MediumPriorityColor = ConsoleColor.Yellow;
+            LowPriorityColor = ConsoleColor.Green;
+            TodayPriorityColor = ConsoleColor.Magenta;
+            
+            RefreshList();
+            
+            // Show theme change message (no console output)
+            StatusBar?.ShowSuccess($"Global theme: {theme.Name}");
+        }
+        
+        private void OpenColorPicker() {
+            // Open color picker for custom colors
+            if (base.HasSelection) {
+                ColorPickerDialog?.StartColorPicker(base.SelectedItem.Task);
+            }
+        }
+        
+        private void ToggleTaskCollapse() {
+            // Toggle collapse/expand for individual task - EXACT feature parity
+            if (base.HasSelection) {
+                var item = base.SelectedItem;
+                var task = item.Task;
+                
+                // Only parent tasks (level 0) can be collapsed
+                if (item.Level == 0 && task.HasSubtasks()) {
+                    task.SubtasksCollapsed = !task.SubtasksCollapsed;
+                    task.Touch();
+                    
+                    TaskManager?.UpdateTask(task);
+                    RefreshList(true); // Force rebuild to show/hide subtasks
+                    
+                    var action = task.SubtasksCollapsed ? "collapsed" : "expanded";
+                    StatusBar?.ShowSuccess($"Task '{TruncateTitle(task.Title, 25)}' {action}");
+                } else {
+                    StatusBar?.ShowWarning("Only parent tasks with subtasks can be collapsed");
+                }
+            }
+        }
+        
+        private void ToggleGlobalCollapse() {
+            // Toggle global collapse for all subtasks - EXACT feature parity
+            GlobalCollapseSubtasks = !GlobalCollapseSubtasks;
+            RefreshList(true); // Force rebuild to show/hide all subtasks
+            
+            var action = GlobalCollapseSubtasks ? "collapsed" : "expanded";
+            StatusBar?.ShowSuccess($"All subtasks {action} globally");
         }
         
         private void EditTags() {
@@ -490,15 +593,13 @@ namespace TaskPro.UI {
             var allTasks = TaskManager.GetParentTasks(); // Get parent tasks only
             
             // Apply filtering - EXACT feature parity with standalone
-            var filteredTasks = FilterTasks(allTasks);
+            var filteredTasks = FilterTasks(allTasks).ToList();
             
-            // Convert to display items
-            var items = new List<TaskListItem>();
-            foreach (var task in filteredTasks) {
-                items.Add(new TaskListItem { Task = task });
-            }
+            // Use TaskManager's BuildFlatList for proper hierarchical display with collapse/expand
+            var flatItems = TaskManager.BuildFlatList(filteredTasks, GlobalCollapseSubtasks);
             
-            base.Items = items;
+            base.Items = flatItems;
+            cachedFlatList = flatItems;
         }
         
         private IEnumerable<SimpleTask> FilterTasks(IEnumerable<SimpleTask> tasks) {
@@ -580,6 +681,7 @@ namespace TaskPro.UI {
             };
         }
         
+        
         private string FormatDueDate(DateTime dueDate) {
             if (dueDate == DateTime.MinValue) return "          ";
             
@@ -589,6 +691,23 @@ namespace TaskPro.UI {
             if (dueDate.Date == today.AddDays(-1)) return "Yesterday ";
             
             return dueDate.ToString("yyyy-MM-dd");
+        }
+        
+        // CYBERPUNK DATE FORMATTING - Terminal computer style
+        private string FormatCyberpunkDate(DateTime dueDate) {
+            if (dueDate == DateTime.MinValue) return "--:--:--   ";
+            
+            var today = DateTime.Today;
+            var daysDiff = (dueDate.Date - today).Days;
+            
+            return daysDiff switch {
+                0 => "[TODAY]   ",
+                1 => "[TOM]     ",
+                -1 => "[YEST]    ",
+                < -1 => $"[{Math.Abs(daysDiff)}d AGO] ",
+                <= 7 => $"[+{daysDiff}d]    ",
+                _ => dueDate.ToString("MMdd.yy   ")
+            };
         }
         
         private ConsoleColor GetDateColor(DateTime dueDate) {
@@ -633,10 +752,75 @@ namespace TaskPro.UI {
             StatusBar?.ShowMessage(message);
         }
         
-        // Render method to include editor overlays
+        // CYBERPUNK ENHANCED RENDER - Professional terminal aesthetic as the STANDARD
         public new void Render(Core.ScreenBuffer screen, Core.Rectangle bounds) {
-            // Render the base list widget
-            base.Render(screen, bounds);
+            // CYBERPUNK TASK LIST - Full terminal computer aesthetic as standard
+            
+            // Clear entire area with classic black background
+            screen.FillRect(bounds.X, bounds.Y, bounds.Width, bounds.Height, ' ', 
+                          AmberText, BackgroundColor);
+            
+            // CYBERPUNK COLUMN HEADERS - Professional terminal layout
+            if (bounds.Height >= 3) {
+                var headerY = bounds.Y;
+                // Match the column layout exactly: ST | PRI | DUE      | ID1    | ID2    | TITLE                    | TAGS
+                var headerText = "ST │PRI │DUE DATE  │ID1     │ID2     │TASK TITLE                        │TAGS";
+                screen.WriteAt(bounds.X, headerY, headerText, HeaderColor, BackgroundColor);
+                
+                // Header separator with column markers - cyberpunk style
+                var separator = "───┼────┼──────────┼────────┼────────┼──────────────────────────────────┼────";
+                screen.WriteAt(bounds.X, headerY + 1, separator, HeaderColor, BackgroundColor);
+            }
+            
+            // Task list content area with cyberpunk styling
+            var taskBounds = new Rectangle(bounds.X, bounds.Y + 2, bounds.Width, Math.Max(1, bounds.Height - 2));
+            
+            // Render tasks with enhanced cyberpunk terminal styling
+            if (base.Items == null || !base.Items.Any()) {
+                // No tasks message in terminal style
+                var noTasksMsg = "[NO ACTIVE TASKS IN SYSTEM]";
+                var msgX = taskBounds.X + (taskBounds.Width - noTasksMsg.Length) / 2;
+                var msgY = taskBounds.Y + taskBounds.Height / 2;
+                screen.WriteAt(msgX, msgY, noTasksMsg, SubtaskColor, BackgroundColor);
+            } else {
+                // Calculate visible items based on scrolling
+                var startIndex = Math.Max(0, base.SelectedIndex - taskBounds.Height / 2);
+                var endIndex = Math.Min(base.Items.Count, startIndex + taskBounds.Height);
+                
+                for (int i = startIndex; i < endIndex && i < base.Items.Count; i++) {
+                    var item = base.Items[i];
+                    var displayIndex = i - startIndex;
+                    var y = taskBounds.Y + displayIndex;
+                    
+                    if (y >= taskBounds.Y + taskBounds.Height) break;
+                    
+                    // Professional selection highlighting with cyberpunk style
+                    var isSelected = (base.SelectedIndex == i);
+                    if (isSelected) {
+                        screen.FillRect(taskBounds.X, y, taskBounds.Width, 1, ' ', 
+                                      BackgroundColor, SelectionColor);
+                    }
+                    
+                    // Format and render task with enhanced cyberpunk styling
+                    var taskText = FormatTaskItem(item);
+                    var taskColor = GetEnhancedTaskColor(item);
+                    var bgColor = isSelected ? SelectionColor : BackgroundColor;
+                    
+                    // Limit text to fit in bounds with professional truncation
+                    if (taskText.Length > taskBounds.Width) {
+                        taskText = taskText.Substring(0, taskBounds.Width - 3) + "...";
+                    }
+                    
+                    screen.WriteAt(taskBounds.X, y, taskText, taskColor, bgColor);
+                }
+            }
+            
+            // PROFESSIONAL OVERLAYS - Enhanced UI elements
+            
+            // Render professional inline editing overlay if active
+            if (editingIndex >= 0) {
+                RenderProfessionalInlineEditor(screen, bounds);
+            }
             
             // Render inline editor if active (overlay on top)
             if (InlineEditor?.IsActive == true) {
@@ -653,15 +837,267 @@ namespace TaskPro.UI {
                 TaskCreationDialog.Render(screen, bounds);
             }
             
-            // Render notes editor dialog if active (highest priority overlay)
+            // Render notes editor dialog if active (high priority overlay)
             if (NotesEditorDialog?.IsActive == true) {
                 NotesEditorDialog.Render(screen, bounds);
             }
             
-            // Render filter input if active - EXACT feature parity with standalone
-            if (filterInputActive) {
-                RenderFilterInput(screen, bounds);
+            // Render color picker dialog if active (highest priority overlay)
+            if (ColorPickerDialog?.IsActive == true) {
+                ColorPickerDialog.Render(screen, bounds);
             }
+            
+            // Render enhanced filter input with professional styling
+            if (filterInputActive) {
+                RenderEnhancedFilterInput(screen, bounds);
+            }
+            
+            // Render status overlay for operations
+            RenderStatusOverlay(screen, bounds);
+        }
+        
+        // ENHANCED RENDERING METHODS FOR PROFESSIONAL UI
+        
+        private void RenderProfessionalInlineEditor(ScreenBuffer screen, Rectangle bounds) {
+            if (editingIndex < 0 || editingTask == null) return;
+            
+            // CYBERPUNK INLINE EDITOR - Terminal computer interface
+            var overlayWidth = Math.Min(bounds.Width - 6, 65);
+            var overlayHeight = 15;
+            var overlayX = bounds.X + (bounds.Width - overlayWidth) / 2;
+            var overlayY = bounds.Y + 4;
+            
+            // Terminal shadow effect (classic computer style)
+            for (int y = 1; y <= overlayHeight; y++) {
+                for (int x = 2; x <= overlayWidth + 1; x++) {
+                    if (overlayX + x < bounds.Width && overlayY + y < bounds.Height) {
+                        screen.WriteAt(overlayX + x, overlayY + y, "▓", ConsoleColor.DarkGray, BackgroundColor);
+                    }
+                }
+            }
+            
+            // Main terminal panel background
+            screen.FillRect(overlayX, overlayY, overlayWidth, overlayHeight, ' ', 
+                          AmberText, BackgroundColor);
+            
+            // Cyberpunk border
+            DrawModernBorder(screen, overlayX, overlayY, overlayWidth, overlayHeight, HeaderColor);
+            
+            // Terminal header with classic styling
+            var titleText = $"EDIT MODE - {TruncateTitle(editingTask.Title, 30)}";
+            screen.WriteAt(overlayX + 2, overlayY + 1, titleText, AmberText, BackgroundColor);
+            
+            // System status indicator
+            var statusText = "[SYSTEM: READY FOR INPUT]";
+            screen.WriteAt(overlayX + 2, overlayY + 2, statusText, StatusGreen, BackgroundColor);
+            
+            // Field editing area with terminal styling
+            var fieldY = overlayY + 4;
+            var fieldNames = new[] { "priority", "date", "title", "id1", "id2", "tags", "notes" };
+            var fieldLabels = new[] { "PRIORITY", "DUE DATE", "TASK TITLE", "PROJECT ID1", "PROJECT ID2", "TAGS", "NOTES" };
+            
+            for (int i = 0; i < fieldNames.Length; i++) {
+                var field = fieldNames[i];
+                var isActive = field == editingField;
+                var label = fieldLabels[i];
+                
+                // Terminal field label with brackets
+                var labelColor = isActive ? AmberText : DataBlue;
+                var labelText = isActive ? $">{label}:" : $" {label}:";
+                screen.WriteAt(overlayX + 2, fieldY, labelText, labelColor, BackgroundColor);
+                
+                // Field value with cyberpunk input styling
+                var valueX = overlayX + 14;
+                var valueWidth = overlayWidth - 16;
+                var displayValue = GetFieldDisplayValue(field);
+                
+                if (isActive) {
+                    // Active field with cyberpunk highlight
+                    screen.WriteAt(valueX - 1, fieldY, "[", HeaderColor, BackgroundColor);
+                    screen.FillRect(valueX, fieldY, valueWidth - 2, 1, ' ', BackgroundColor, HeaderColor);
+                    screen.WriteAt(valueX + valueWidth - 2, fieldY, "]", HeaderColor, BackgroundColor);
+                    
+                    var truncatedValue = displayValue.Length > valueWidth - 4 ? 
+                                       displayValue.Substring(0, valueWidth - 4) : displayValue;
+                    screen.WriteAt(valueX, fieldY, truncatedValue.PadRight(valueWidth - 2), 
+                                 BackgroundColor, HeaderColor);
+                    
+                    // Classic terminal cursor (solid block)
+                    if ((DateTime.Now.Millisecond / 400) % 2 == 0) {
+                        var cursorX = valueX + Math.Min(editingValue.Length, valueWidth - 3);
+                        screen.WriteAt(cursorX, fieldY, "█", AmberText, HeaderColor);
+                    }
+                } else {
+                    // Inactive field with terminal styling
+                    screen.WriteAt(valueX - 1, fieldY, "[", DataBlue, BackgroundColor);
+                    screen.FillRect(valueX, fieldY, valueWidth - 2, 1, ' ', BackgroundColor, BackgroundColor);
+                    screen.WriteAt(valueX + valueWidth - 2, fieldY, "]", DataBlue, BackgroundColor);
+                    
+                    var truncatedValue = displayValue.Length > valueWidth - 4 ? 
+                                       displayValue.Substring(0, valueWidth - 4) : displayValue;
+                    screen.WriteAt(valueX, fieldY, truncatedValue, SubtaskColor, BackgroundColor);
+                }
+                
+                fieldY += 2;
+            }
+            
+            // Terminal command help
+            var helpY = overlayY + overlayHeight - 3;
+            screen.WriteAt(overlayX + 2, helpY, "COMMANDS:", DataBlue, BackgroundColor);
+            screen.WriteAt(overlayX + 2, helpY + 1, "TAB=NEXT FIELD  ENTER=SAVE  ESC=ABORT", StatusGreen, BackgroundColor);
+        }
+        
+        private void RenderEnhancedFilterInput(ScreenBuffer screen, Rectangle bounds) {
+            var filterY = bounds.Y + bounds.Height - 1;
+            
+            // CYBERPUNK FILTER INPUT - Terminal command line style
+            screen.FillRect(bounds.X, filterY, bounds.Width, 1, ' ', AmberText, BackgroundColor);
+            
+            // Classic terminal prompt
+            var filterPrompt = "FILTER> ";
+            screen.WriteAt(bounds.X + 1, filterY, filterPrompt, StatusGreen, BackgroundColor);
+            
+            // Terminal input field with cyberpunk styling
+            var inputX = bounds.X + filterPrompt.Length + 1;
+            var inputWidth = Math.Min(25, bounds.Width - inputX - 40);
+            
+            // Input field with terminal brackets
+            screen.WriteAt(inputX - 1, filterY, "[", HeaderColor, BackgroundColor);
+            screen.FillRect(inputX, filterY, inputWidth, 1, ' ', BackgroundColor, HeaderColor);
+            screen.WriteAt(inputX + inputWidth, filterY, "]", HeaderColor, BackgroundColor);
+            
+            // Input text with classic green terminal color
+            var displayText = filterInputValue.Length > inputWidth - 1 ? 
+                            filterInputValue.Substring(0, inputWidth - 1) : filterInputValue;
+            screen.WriteAt(inputX, filterY, displayText.PadRight(inputWidth), 
+                         StatusGreen, BackgroundColor);
+            
+            // Classic terminal cursor (blinking block)
+            if ((DateTime.Now.Millisecond / 500) % 2 == 0) {
+                var cursorX = inputX + Math.Min(filterInputCursor, inputWidth - 1);
+                screen.WriteAt(cursorX, filterY, "█", AmberText, BackgroundColor);
+            }
+            
+            // Terminal-style help text
+            var helpText = "SYNTAX: #tag | high/med/low | today | clear";
+            var helpX = inputX + inputWidth + 4;
+            if (helpX + helpText.Length < bounds.Width) {
+                screen.WriteAt(helpX, filterY, helpText, DataBlue, BackgroundColor);
+            }
+        }
+        
+        private void RenderStatusOverlay(ScreenBuffer screen, Rectangle bounds) {
+            // CYBERPUNK STATUS OVERLAY - Terminal computer feedback
+            if (editingIndex >= 0) {
+                var statusY = bounds.Y + bounds.Height - 3;
+                var statusText = $"[EDIT MODE ACTIVE] FIELD: {editingField?.ToUpper() ?? "NONE"}";
+                screen.WriteAt(bounds.X + 2, statusY, statusText, AmberText, BackgroundColor);
+            }
+        }
+        
+        
+        // ENHANCED TASK COLOR SYSTEM - Professional cyberpunk aesthetic
+        private ConsoleColor GetEnhancedTaskColor(TaskListItem item) {
+            var task = item.Task;
+            
+            // Completed tasks in dim color
+            if (task.Completed) {
+                return SubtaskColor;
+            }
+            
+            // Custom color takes priority (RGB support)
+            if (!string.IsNullOrEmpty(task.CustomColor)) {
+                try {
+                    var customColor = ColorThemeManager.ParseColor(task.CustomColor);
+                    return customColor.ToConsoleColor();
+                } catch {
+                    // Fall through to other colors
+                }
+            }
+            
+            // Theme colors
+            if (!string.IsNullOrEmpty(task.ColorTheme) && task.ColorTheme != "default") {
+                var theme = ColorThemeManager.GetTheme(task.ColorTheme);
+                return theme.TaskColor.ToConsoleColor();
+            }
+            
+            // Enhanced priority-based cyberpunk colors
+            return task.Priority switch {
+                Priority.Today => DangerRed,      // Critical today tasks - bright red
+                Priority.High => AmberText,       // High priority - classic amber terminal
+                Priority.Medium => HeaderColor,   // Medium priority - cyan
+                Priority.Low => StatusGreen,      // Low priority - green
+                _ => AmberText                    // Default amber
+            };
+        }
+        
+        // CYBERPUNK BORDER DRAWING - Professional terminal aesthetic
+        private void DrawCyberpunkBorder(ScreenBuffer screen, int x, int y, int width, int height) {
+            // CLASSIC CYBERPUNK TERMINAL BORDER - Like the game screenshots
+            var borderColor = BorderColor;
+            
+            // Top border with classic terminal styling
+            screen.WriteAt(x, y, "╔", borderColor, BackgroundColor);
+            for (int i = 1; i < width - 1; i++) {
+                screen.WriteAt(x + i, y, "═", borderColor, BackgroundColor);
+            }
+            screen.WriteAt(x + width - 1, y, "╗", borderColor, BackgroundColor);
+            
+            // Side borders
+            for (int i = 1; i < height - 1; i++) {
+                screen.WriteAt(x, y + i, "║", borderColor, BackgroundColor);
+                screen.WriteAt(x + width - 1, y + i, "║", borderColor, BackgroundColor);
+            }
+            
+            // Bottom border
+            screen.WriteAt(x, y + height - 1, "╚", borderColor, BackgroundColor);
+            for (int i = 1; i < width - 1; i++) {
+                screen.WriteAt(x + i, y + height - 1, "═", borderColor, BackgroundColor);
+            }
+            screen.WriteAt(x + width - 1, y + height - 1, "╝", borderColor, BackgroundColor);
+        }
+        
+        private void DrawModernBorder(ScreenBuffer screen, int x, int y, int width, int height, ConsoleColor color) {
+            // Cyberpunk-style border with specified color
+            screen.WriteAt(x, y, "╔", color, BackgroundColor);
+            for (int i = 1; i < width - 1; i++) {
+                screen.WriteAt(x + i, y, "═", color, BackgroundColor);
+            }
+            screen.WriteAt(x + width - 1, y, "╗", color, BackgroundColor);
+            
+            for (int i = 1; i < height - 1; i++) {
+                screen.WriteAt(x, y + i, "║", color, BackgroundColor);
+                screen.WriteAt(x + width - 1, y + i, "║", color, BackgroundColor);
+            }
+            
+            screen.WriteAt(x, y + height - 1, "╚", color, BackgroundColor);
+            for (int i = 1; i < width - 1; i++) {
+                screen.WriteAt(x + i, y + height - 1, "═", color, BackgroundColor);
+            }
+            screen.WriteAt(x + width - 1, y + height - 1, "╝", color, BackgroundColor);
+        }
+        
+        private string GetFieldDisplayValue(string field) {
+            if (editingTask == null) return "";
+            
+            if (field == editingField) {
+                return editingValue ?? "";
+            }
+            
+            return field switch {
+                "priority" => editingTask.Priority switch {
+                    Priority.High => "High",
+                    Priority.Medium => "Medium",
+                    Priority.Low => "Low", 
+                    Priority.Today => "Today",
+                    _ => "Medium"
+                },
+                "date" => editingTask.DueDate != DateTime.MinValue ? editingTask.DueDate.ToString("yyyy-MM-dd") : "",
+                "title" => editingTask.Title ?? "",
+                "tags" => string.Join(", ", editingTask.Tags),
+                "status" => editingTask.Completed ? "Completed" : "Pending",
+                _ => ""
+            };
         }
         
         private void RenderFilterInput(ScreenBuffer screen, Rectangle bounds) {
@@ -702,7 +1138,42 @@ namespace TaskPro.UI {
             return headerText;
         }
         
-        // INLINE EDITING METHODS - EXACT feature parity with standalone
+        // CYBERPUNK FILTER STATUS - Terminal computer style
+        private string GetCyberpunkFilterStatus() {
+            var status = "";
+            if (currentFilterMode != "All") {
+                status += $"[FLT:{currentFilterMode.ToUpper()}]";
+            }
+            if (tagFilter != "") {
+                status += $"[TAG:{tagFilter.ToUpper()}]";
+            }
+            return status;
+        }
+        
+        // ENHANCED INLINE EDITING SYSTEM - Professional UI and Visual Feedback
+        private Dictionary<string, string> fieldDisplayNames = new Dictionary<string, string>
+        {
+            ["priority"] = "PRIORITY",
+            ["date"] = "DUE DATE", 
+            ["title"] = "TASK TITLE",
+            ["tags"] = "TAGS",
+            ["id1"] = "PROJECT ID1",
+            ["id2"] = "PROJECT ID2",
+            ["notes"] = "NOTES"
+        };
+        
+        private Dictionary<string, ConsoleColor> fieldColors = new Dictionary<string, ConsoleColor>
+        {
+            ["priority"] = ConsoleColor.Red,
+            ["date"] = ConsoleColor.Cyan,
+            ["title"] = ConsoleColor.Yellow,
+            ["tags"] = ConsoleColor.Magenta,
+            ["id1"] = ConsoleColor.Green,
+            ["id2"] = ConsoleColor.Blue,
+            ["notes"] = ConsoleColor.White
+        };
+        
+        // PROFESSIONAL INLINE EDITING METHODS
         
         private void StartInlineEdit() {
             if (!base.HasSelection) return;
@@ -841,11 +1312,13 @@ namespace TaskPro.UI {
                 
                 // Validate input based on field type
                 bool isValid = editingField switch {
-                    "status" => newValue.Length <= 1,
                     "priority" => newValue.Length <= 1 && "hmlt".Contains(newValue.ToLower()),
                     "date" => IsValidDateInput(newValue),
                     "title" => newValue.Length <= 100,
                     "tags" => newValue.Length <= 200,
+                    "id1" => newValue.Length <= 20,
+                    "id2" => newValue.Length <= 20,
+                    "notes" => newValue.Length <= 1000,
                     _ => true
                 };
                 
@@ -870,8 +1343,11 @@ namespace TaskPro.UI {
             editingField = editingField switch {
                 "priority" => "date",
                 "date" => "title", 
-                "title" => "tags",
-                "tags" => "priority",
+                "title" => "id1",
+                "id1" => "id2",
+                "id2" => "tags",
+                "tags" => "notes",
+                "notes" => "priority",
                 _ => "priority"
             };
             
@@ -883,10 +1359,13 @@ namespace TaskPro.UI {
             ApplyCurrentFieldValue();
             
             editingField = editingField switch {
-                "priority" => "tags",
+                "priority" => "notes",
                 "date" => "priority",
                 "title" => "date",
-                "tags" => "title",
+                "id1" => "title",
+                "id2" => "id1",
+                "tags" => "id2",
+                "notes" => "tags",
                 _ => "priority"
             };
             
@@ -894,24 +1373,37 @@ namespace TaskPro.UI {
         }
         
         private void ApplyCurrentFieldValue() {
-            if (string.IsNullOrWhiteSpace(editingValue)) return;
+            if (editingTask == null) return;
+            
+            // Allow empty values for some fields
+            var trimmedValue = editingValue?.Trim() ?? "";
             
             switch (editingField) {
                 case "title":
-                    editingTask.Title = editingValue.Trim();
+                    if (!string.IsNullOrWhiteSpace(trimmedValue)) {
+                        editingTask.Title = trimmedValue;
+                    }
                     break;
                 case "priority":
-                    editingTask.Priority = ConvertPriorityInput(editingValue);
+                    if (!string.IsNullOrWhiteSpace(trimmedValue)) {
+                        editingTask.Priority = ConvertPriorityInput(trimmedValue);
+                    }
                     break;
                 case "date":
-                    editingTask.DueDate = ConvertDateInput(editingValue);
+                    editingTask.DueDate = ConvertDateInput(trimmedValue);
                     break;
                 case "tags":
-                    var tagParts = editingValue.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+                    var tagParts = trimmedValue.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
                     editingTask.Tags = tagParts;
                     break;
-                case "status":
-                    editingTask.Completed = editingValue.ToLower().Contains("x") || editingValue.Contains("■");
+                case "id1":
+                    editingTask.ID1 = trimmedValue;
+                    break;
+                case "id2":
+                    editingTask.ID2 = trimmedValue;
+                    break;
+                case "notes":
+                    editingTask.Notes = editingValue ?? ""; // Keep original formatting for notes
                     break;
             }
         }
@@ -924,12 +1416,14 @@ namespace TaskPro.UI {
                     Priority.Medium => "m",
                     Priority.Low => "l",
                     Priority.Today => "t",
-                    _ => ""
+                    _ => "m"
                 },
                 "date" => editingTask.DueDate != DateTime.MinValue ? editingTask.DueDate.ToString("yyyy-MM-dd") : "",
-                "title" => editingTask.Title,
+                "title" => editingTask.Title ?? "",
                 "tags" => string.Join(", ", editingTask.Tags),
-                "status" => editingTask.Completed ? "■" : "☐",
+                "id1" => editingTask.ID1 ?? "",
+                "id2" => editingTask.ID2 ?? "",
+                "notes" => editingTask.Notes ?? "",
                 _ => ""
             };
         }

@@ -290,86 +290,87 @@ namespace TaskPro.UI
                 return true;
             }
             
+            // Clipboard operations - EXACT feature parity
+            if (input.IsCtrlC)
+            {
+                CopySelection();
+                return true;
+            }
+            
+            if (input.IsCtrlX)
+            {
+                CutSelection();
+                return true;
+            }
+            
+            if (input.IsCtrlV)
+            {
+                PasteClipboard();
+                return true;
+            }
+            
             // Navigation with selection support - EXACT feature parity
             if (input.IsArrowLeft)
             {
+                bool extend = input.Shift;
                 if (input.Ctrl)
-                    MoveCursorWordLeft();
+                    MoveCursorWordLeft(extend);
                 else
-                    MoveCursorLeft();
+                    MoveCursorLeft(extend);
                 return true;
             }
             
             if (input.IsArrowRight)
             {
+                bool extend = input.Shift;
                 if (input.Ctrl)
-                    MoveCursorWordRight();
+                    MoveCursorWordRight(extend);
                 else
-                    MoveCursorRight();
+                    MoveCursorRight(extend);
                 return true;
             }
             
             if (input.IsArrowUp)
             {
-                MoveCursorUp();
+                bool extend = input.Shift;
+                MoveCursorUp(extend);
                 return true;
             }
             
             if (input.IsArrowDown)
             {
-                MoveCursorDown();
+                bool extend = input.Shift;
+                MoveCursorDown(extend);
                 return true;
             }
             
             // Home/End - EXACT feature parity
             if (input.IsHome)
             {
-                if (input.Ctrl)
-                {
-                    // Ctrl+Home: Go to beginning of document
-                    cursorX = 0;
-                    cursorY = 0;
-                    EnsureCursorVisible();
-                }
-                else
-                {
-                    // Home: Go to beginning of line
-                    cursorX = 0;
-                    EnsureCursorVisible();
-                }
+                bool extend = input.Shift;
+                MoveCursorHome(extend, input.Ctrl);
                 return true;
             }
             
             if (input.IsEnd)
             {
-                if (input.Ctrl)
-                {
-                    // Ctrl+End: Go to end of document
-                    cursorY = GetLineCount() - 1;
-                    cursorX = GetLine(cursorY).Length;
-                    EnsureCursorVisible();
-                }
-                else
-                {
-                    // End: Go to end of line
-                    cursorX = GetLine(cursorY).Length;
-                    EnsureCursorVisible();
-                }
+                bool extend = input.Shift;
+                MoveCursorEnd(extend, input.Ctrl);
                 return true;
             }
             
             // Page Up/Down - EXACT feature parity
             if (input.IsPageUp)
             {
-                cursorY = Math.Max(0, cursorY - height);
-                EnsureCursorVisible();
+                bool extend = input.Shift;
+                MoveCursorPageUp(extend);
                 return true;
             }
             
             if (input.IsPageDown)
             {
-                cursorY = Math.Min(GetLineCount() - 1, cursorY + height);
-                EnsureCursorVisible();
+                bool extend = input.Shift;
+                MoveCursorPageDown(extend);
                 return true;
             }
             
@@ -408,9 +409,15 @@ namespace TaskPro.UI
             return false;
         }
         
-        // Movement methods - EXACT feature parity
-        private void MoveCursorLeft()
+        // Movement methods - EXACT feature parity with selection support
+        private void MoveCursorLeft(bool extend = false)
         {
+            // Start selection if shift is held and no selection exists
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
             if (cursorX > 0)
             {
                 cursorX--;
@@ -420,11 +427,26 @@ namespace TaskPro.UI
                 cursorY--;
                 cursorX = GetLine(cursorY).Length;
             }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
             EnsureCursorVisible();
         }
         
-        private void MoveCursorRight()
+        private void MoveCursorRight(bool extend = false)
         {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
             var lineLength = GetLine(cursorY).Length;
             if (cursorX < lineLength)
             {
@@ -435,11 +457,26 @@ namespace TaskPro.UI
                 cursorY++;
                 cursorX = 0;
             }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
             EnsureCursorVisible();
         }
         
-        private void MoveCursorUp()
+        private void MoveCursorUp(bool extend = false)
         {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
             if (cursorY > 0)
             {
                 cursorY--;
@@ -447,11 +484,26 @@ namespace TaskPro.UI
                 if (cursorX > lineLength)
                     cursorX = lineLength;
             }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
             EnsureCursorVisible();
         }
         
-        private void MoveCursorDown()
+        private void MoveCursorDown(bool extend = false)
         {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
             if (cursorY < GetLineCount() - 1)
             {
                 cursorY++;
@@ -459,12 +511,27 @@ namespace TaskPro.UI
                 if (cursorX > lineLength)
                     cursorX = lineLength;
             }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
             EnsureCursorVisible();
         }
         
         // Word-based movement - EXACT feature parity
-        private void MoveCursorWordLeft()
+        private void MoveCursorWordLeft(bool extend = false)
         {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
             var line = GetLine(cursorY);
             if (cursorX > 0)
             {
@@ -482,11 +549,26 @@ namespace TaskPro.UI
                 cursorY--;
                 cursorX = GetLine(cursorY).Length;
             }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
             EnsureCursorVisible();
         }
         
-        private void MoveCursorWordRight()
+        private void MoveCursorWordRight(bool extend = false)
         {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
             var line = GetLine(cursorY);
             if (cursorX < line.Length)
             {
@@ -504,7 +586,147 @@ namespace TaskPro.UI
                 cursorY++;
                 cursorX = 0;
             }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
             EnsureCursorVisible();
+        }
+        
+        // Additional movement methods for Home/End/Page navigation
+        private void MoveCursorHome(bool extend, bool toDocument)
+        {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
+            if (toDocument)
+            {
+                // Ctrl+Home: Go to beginning of document
+                cursorX = 0;
+                cursorY = 0;
+            }
+            else
+            {
+                // Home: Go to beginning of line
+                cursorX = 0;
+            }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
+            EnsureCursorVisible();
+        }
+        
+        private void MoveCursorEnd(bool extend, bool toDocument)
+        {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
+            if (toDocument)
+            {
+                // Ctrl+End: Go to end of document
+                cursorY = GetLineCount() - 1;
+                cursorX = GetLine(cursorY).Length;
+            }
+            else
+            {
+                // End: Go to end of line
+                cursorX = GetLine(cursorY).Length;
+            }
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
+            EnsureCursorVisible();
+        }
+        
+        private void MoveCursorPageUp(bool extend)
+        {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
+            cursorY = Math.Max(0, cursorY - height);
+            var lineLength = GetLine(cursorY).Length;
+            if (cursorX > lineLength)
+                cursorX = lineLength;
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
+            EnsureCursorVisible();
+        }
+        
+        private void MoveCursorPageDown(bool extend)
+        {
+            if (extend && !hasSelection)
+            {
+                StartSelection();
+            }
+            
+            cursorY = Math.Min(GetLineCount() - 1, cursorY + height);
+            var lineLength = GetLine(cursorY).Length;
+            if (cursorX > lineLength)
+                cursorX = lineLength;
+            
+            if (extend)
+            {
+                UpdateSelection();
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
+            EnsureCursorVisible();
+        }
+        
+        // Selection methods - EXACT feature parity
+        private void StartSelection()
+        {
+            hasSelection = true;
+            selectionStartX = cursorX;
+            selectionStartY = cursorY;
+            selectionEndX = cursorX;
+            selectionEndY = cursorY;
+        }
+        
+        private void UpdateSelection()
+        {
+            if (hasSelection)
+            {
+                selectionEndX = cursorX;
+                selectionEndY = cursorY;
+            }
         }
         
         // Text editing methods - EXACT feature parity
@@ -598,6 +820,218 @@ namespace TaskPro.UI
         private void ClearSelection()
         {
             hasSelection = false;
+        }
+        
+        // Clipboard operations - EXACT feature parity
+        private void CopySelection()
+        {
+            if (!hasSelection)
+            {
+                StatusMessage?.Invoke("No text selected");
+                return;
+            }
+            
+            string selectedText = GetSelectedText();
+            if (!string.IsNullOrEmpty(selectedText))
+            {
+                // Set clipboard content (simplified for now)
+                try
+                {
+                    // In a real implementation, you'd use platform-specific clipboard APIs
+                    // For now, store in a static field as a simple clipboard simulation
+                    ClipboardText = selectedText;
+                    StatusMessage?.Invoke($"Copied {selectedText.Length} characters");
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage?.Invoke($"Copy failed: {ex.Message}");
+                }
+            }
+        }
+        
+        private void CutSelection()
+        {
+            if (!hasSelection)
+            {
+                StatusMessage?.Invoke("No text selected");
+                return;
+            }
+            
+            string selectedText = GetSelectedText();
+            if (!string.IsNullOrEmpty(selectedText))
+            {
+                try
+                {
+                    // Copy to clipboard first
+                    ClipboardText = selectedText;
+                    
+                    // Delete selected text
+                    DeleteSelection();
+                    
+                    StatusMessage?.Invoke($"Cut {selectedText.Length} characters");
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage?.Invoke($"Cut failed: {ex.Message}");
+                }
+            }
+        }
+        
+        private void PasteClipboard()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ClipboardText))
+                {
+                    StatusMessage?.Invoke("Clipboard is empty");
+                    return;
+                }
+                
+                // Delete selection if any
+                if (hasSelection)
+                {
+                    DeleteSelection();
+                }
+                
+                // Insert clipboard text at cursor
+                InsertText(ClipboardText);
+                
+                StatusMessage?.Invoke($"Pasted {ClipboardText.Length} characters");
+            }
+            catch (Exception ex)
+            {
+                StatusMessage?.Invoke($"Paste failed: {ex.Message}");
+            }
+        }
+        
+        // Simple clipboard simulation - EXACT feature parity would use real clipboard APIs
+        private static string ClipboardText = "";
+        
+        // Helper methods for clipboard operations
+        private string GetSelectedText()
+        {
+            if (!hasSelection) return "";
+            
+            var (startX, startY, endX, endY) = GetNormalizedSelection();
+            var selectedText = new StringBuilder();
+            
+            if (startY == endY)
+            {
+                // Single line selection
+                var line = GetLine(startY);
+                if (startX < line.Length && endX <= line.Length)
+                {
+                    selectedText.Append(line.Substring(startX, endX - startX));
+                }
+            }
+            else
+            {
+                // Multi-line selection
+                for (int lineIndex = startY; lineIndex <= endY; lineIndex++)
+                {
+                    var line = GetLine(lineIndex);
+                    
+                    if (lineIndex == startY)
+                    {
+                        // First line: from startX to end
+                        if (startX < line.Length)
+                        {
+                            selectedText.Append(line.Substring(startX));
+                        }
+                        selectedText.AppendLine();
+                    }
+                    else if (lineIndex == endY)
+                    {
+                        // Last line: from start to endX
+                        if (endX > 0 && endX <= line.Length)
+                        {
+                            selectedText.Append(line.Substring(0, endX));
+                        }
+                    }
+                    else
+                    {
+                        // Middle lines: entire line
+                        selectedText.AppendLine(line);
+                    }
+                }
+            }
+            
+            return selectedText.ToString();
+        }
+        
+        private (int startX, int startY, int endX, int endY) GetNormalizedSelection()
+        {
+            if (!hasSelection) return (0, 0, 0, 0);
+            
+            // Normalize selection coordinates (ensure start is before end)
+            if (selectionStartY < selectionEndY || 
+                (selectionStartY == selectionEndY && selectionStartX <= selectionEndX))
+            {
+                return (selectionStartX, selectionStartY, selectionEndX, selectionEndY);
+            }
+            else
+            {
+                return (selectionEndX, selectionEndY, selectionStartX, selectionStartY);
+            }
+        }
+        
+        private void DeleteSelection()
+        {
+            if (!hasSelection) return;
+            
+            var (startX, startY, endX, endY) = GetNormalizedSelection();
+            
+            // Calculate buffer positions
+            int startPos = GetBufferPosition(startY, startX);
+            int endPos = GetBufferPosition(endY, endX);
+            
+            if (startPos < endPos)
+            {
+                // Delete the selected range
+                for (int i = endPos - 1; i >= startPos; i--)
+                {
+                    if (i < gapBuffer.Length)
+                    {
+                        gapBuffer.Delete(i);
+                    }
+                }
+                
+                // Position cursor at start of deleted selection
+                cursorX = startX;
+                cursorY = startY;
+                
+                lineIndexDirty = true;
+                modified = true;
+                ClearSelection();
+                EnsureCursorVisible();
+            }
+        }
+        
+        private void InsertText(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            
+            int bufferPosition = GetBufferPosition(cursorY, cursorX);
+            gapBuffer.MoveGapTo(bufferPosition);
+            
+            // Insert each character
+            foreach (char ch in text)
+            {
+                gapBuffer.Insert(ch);
+                if (ch == '\n')
+                {
+                    cursorY++;
+                    cursorX = 0;
+                }
+                else
+                {
+                    cursorX++;
+                }
+            }
+            
+            lineIndexDirty = true;
+            modified = true;
+            EnsureCursorVisible();
         }
         
         // Undo/Redo - EXACT feature parity

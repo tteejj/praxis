@@ -17,6 +17,8 @@ $csharpFiles = @(
     "$PSScriptRoot/CSharp/Data/TaskFilter.cs",
     "$PSScriptRoot/CSharp/Data/TaskPersistence.cs",
     "$PSScriptRoot/CSharp/Data/TaskManager.cs",
+    "$PSScriptRoot/CSharp/Data/SimpleTimeEntry.cs",
+    "$PSScriptRoot/CSharp/Data/TimeTrackingService.cs",
     "$PSScriptRoot/CSharp/UI/TaskListItem.cs",
     "$PSScriptRoot/CSharp/UI/TextInputField.cs",
     "$PSScriptRoot/CSharp/UI/ListWidget.cs",
@@ -25,7 +27,10 @@ $csharpFiles = @(
     "$PSScriptRoot/CSharp/UI/TagEditor.cs",
     "$PSScriptRoot/CSharp/UI/TaskCreationDialog.cs",
     "$PSScriptRoot/CSharp/UI/NotesEditorDialog.cs",
-    "$PSScriptRoot/CSharp/UI/TaskListWidget.cs"
+    "$PSScriptRoot/CSharp/UI/ColorTheme.cs",
+    "$PSScriptRoot/CSharp/UI/ColorPickerDialog.cs",
+    "$PSScriptRoot/CSharp/UI/TaskListWidget.cs",
+    "$PSScriptRoot/CSharp/UI/TimeTrackingWidget.cs"
 )
 
 # Check if all files exist

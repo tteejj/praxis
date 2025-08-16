@@ -22,14 +22,16 @@ namespace TaskPro.UI
         // State
         private bool isActive = false;
         private int currentField = 0;
-        private string[] fieldNames = { "Title", "Priority", "Due Date", "Tags", "Notes" };
+        private string[] fieldNames = { "Title", "Priority", "Due Date", "Project ID1", "Project ID2", "Tags", "Notes" };
         private Dictionary<string, object> fieldValues = new Dictionary<string, object>();
         private string errorMessage = "";
         private DateTime errorExpiry = DateTime.MinValue;
         
-        // Text input fields
+        // Text input fields - CYBERPUNK ENHANCED
         private TextInputField titleField = new TextInputField();
         private TextInputField dueDateField = new TextInputField();
+        private TextInputField id1Field = new TextInputField();
+        private TextInputField id2Field = new TextInputField();
         private TextInputField tagsField = new TextInputField();
         private TextInputField notesField = new TextInputField();
         
@@ -46,27 +48,37 @@ namespace TaskPro.UI
         
         public TaskCreationDialog()
         {
-            // Configure text fields
-            titleField.Placeholder = "Enter task title...";
+            // Configure text fields with CYBERPUNK placeholders
+            titleField.Placeholder = "ENTER TASK TITLE...";
             titleField.MaxLength = 200;
             
-            dueDateField.Placeholder = "yyyy-mm-dd or 'today', 'tomorrow'";
+            dueDateField.Placeholder = "YYYY-MM-DD OR 'TODAY', 'TOMORROW'";
             dueDateField.MaxLength = 20;
             
-            tagsField.Placeholder = "tag1, tag2, tag3...";
+            id1Field.Placeholder = "PROJECT CODE 1...";
+            id1Field.MaxLength = 20;
+            
+            id2Field.Placeholder = "PROJECT CODE 2...";
+            id2Field.MaxLength = 20;
+            
+            tagsField.Placeholder = "TAG1, TAG2, TAG3...";
             tagsField.MaxLength = 100;
             
-            notesField.Placeholder = "Optional notes...";
+            notesField.Placeholder = "OPTIONAL NOTES...";
             notesField.MaxLength = 1000;
             
-            // Set up field events
+            // Set up field events for cyberpunk flow
             titleField.EnterPressed += (text) => MoveToNextField();
             dueDateField.EnterPressed += (text) => MoveToNextField();
+            id1Field.EnterPressed += (text) => MoveToNextField();
+            id2Field.EnterPressed += (text) => MoveToNextField();
             tagsField.EnterPressed += (text) => MoveToNextField();
             notesField.EnterPressed += (text) => CreateTask();
             
             titleField.EscapePressed += () => CancelDialog();
             dueDateField.EscapePressed += () => CancelDialog();
+            id1Field.EscapePressed += () => CancelDialog();
+            id2Field.EscapePressed += () => CancelDialog();
             tagsField.EscapePressed += () => CancelDialog();
             notesField.EscapePressed += () => CancelDialog();
         }
@@ -143,10 +155,16 @@ namespace TaskPro.UI
                 case 2: // Due Date
                     return dueDateField.HandleInput(input);
                     
-                case 3: // Tags
+                case 3: // Project ID1
+                    return id1Field.HandleInput(input);
+                    
+                case 4: // Project ID2
+                    return id2Field.HandleInput(input);
+                    
+                case 5: // Tags
                     return tagsField.HandleInput(input);
                     
-                case 4: // Notes
+                case 6: // Notes
                     return notesField.HandleInput(input);
                     
                 default:
@@ -344,16 +362,21 @@ namespace TaskPro.UI
             // Clear all field focus
             titleField.IsFocused = false;
             dueDateField.IsFocused = false;
+            id1Field.IsFocused = false;
+            id2Field.IsFocused = false;
             tagsField.IsFocused = false;
             notesField.IsFocused = false;
             
-            // Set current field focus
+            // Set current field focus - CYBERPUNK FIELD ORDER
             switch (currentField)
             {
-                case 0: titleField.IsFocused = true; break;
-                case 2: dueDateField.IsFocused = true; break;
-                case 3: tagsField.IsFocused = true; break;
-                case 4: notesField.IsFocused = true; break;
+                case 0: titleField.IsFocused = true; break;     // Title
+                case 1: break;                                   // Priority (handled separately)
+                case 2: dueDateField.IsFocused = true; break;   // Due Date
+                case 3: id1Field.IsFocused = true; break;       // Project ID1
+                case 4: id2Field.IsFocused = true; break;       // Project ID2
+                case 5: tagsField.IsFocused = true; break;      // Tags
+                case 6: notesField.IsFocused = true; break;     // Notes
             }
         }
         
@@ -373,11 +396,15 @@ namespace TaskPro.UI
             
             try
             {
-                // Create new task
+                // Create new task with FULL FIELD SUPPORT
                 var task = new SimpleTask();
                 task.Title = titleField.Text.Trim();
                 task.Priority = selectedPriority;
                 task.Notes = notesField.Text.Trim();
+                
+                // Project IDs - CRITICAL FUNCTIONALITY
+                task.ID1 = id1Field.Text.Trim();
+                task.ID2 = id2Field.Text.Trim();
                 
                 // Parse due date
                 if (!string.IsNullOrWhiteSpace(dueDateField.Text))

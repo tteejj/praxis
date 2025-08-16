@@ -5,14 +5,14 @@
     "notes": "Need to review all API documentation and update examples. Critical for project delivery.",
     "completed": false,
     "createdDate": "2025-08-15T23:51:48.7705818-06:00",
-    "modifiedDate": "2025-08-16T00:09:39.5030547-06:00",
+    "modifiedDate": "2025-08-16T00:09:23.8075843-06:00",
     "dueDate": "2025-08-17T00:00:00-06:00",
     "priority": 1,
     "tags": [
       "work",
       "urgent"
     ],
-    "colorTheme": "deadline",
+    "colorTheme": "personal",
     "customColor": "",
     "parentId": "",
     "subtasks": [],

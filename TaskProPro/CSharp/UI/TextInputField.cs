@@ -238,45 +238,56 @@ namespace TaskPro.UI
         }
         
         /// <summary>
-        /// Render the text field to screen buffer
+        /// Render the text field to screen buffer with CYBERPUNK aesthetic
         /// </summary>
         public void Render(ScreenBuffer screen, Rectangle bounds, ConsoleColor normalColor = ConsoleColor.White, 
                           ConsoleColor focusedColor = ConsoleColor.Yellow)
         {
-            var displayText = GetDisplayText(bounds.Width);
-            var color = IsFocused ? focusedColor : normalColor;
-            var bgColor = IsFocused ? ConsoleColor.DarkBlue : ConsoleColor.Black;
+            var displayText = GetDisplayText(bounds.Width - 2); // Account for brackets
             
-            // Clear the field area
-            screen.FillRect(bounds.X, bounds.Y, bounds.Width, 1, ' ', color, bgColor);
+            // CYBERPUNK STYLING
+            var borderColor = IsFocused ? ConsoleColor.Cyan : ConsoleColor.DarkGray;
+            var textColor = IsFocused ? ConsoleColor.Yellow : ConsoleColor.White;
+            var bgColor = ConsoleColor.Black;
             
-            // Render text
+            // Draw cyberpunk field borders
+            screen.WriteAt(bounds.X, bounds.Y, "[", borderColor, bgColor);
+            screen.WriteAt(bounds.X + bounds.Width - 1, bounds.Y, "]", borderColor, bgColor);
+            
+            // Clear the field content area
+            screen.FillRect(bounds.X + 1, bounds.Y, bounds.Width - 2, 1, ' ', textColor, bgColor);
+            
+            // Render text with cyberpunk styling
             if (!string.IsNullOrEmpty(displayText))
             {
-                screen.WriteAt(bounds.X, bounds.Y, displayText, color, bgColor);
+                screen.WriteAt(bounds.X + 1, bounds.Y, displayText, textColor, bgColor);
             }
             else if (!string.IsNullOrEmpty(Placeholder) && !IsFocused)
             {
-                var placeholderText = Placeholder.Length > bounds.Width ? 
-                                    Placeholder.Substring(0, bounds.Width) : Placeholder;
-                screen.WriteAt(bounds.X, bounds.Y, placeholderText, ConsoleColor.DarkGray, bgColor);
+                var placeholderText = Placeholder.Length > bounds.Width - 2 ? 
+                                    Placeholder.Substring(0, bounds.Width - 2) : Placeholder;
+                screen.WriteAt(bounds.X + 1, bounds.Y, placeholderText, ConsoleColor.DarkGray, bgColor);
             }
             
-            // Render selection highlight
+            // Render selection highlight with cyberpunk colors
             if (HasSelection && IsFocused)
             {
-                RenderSelection(screen, bounds, displayText);
+                RenderCyberpunkSelection(screen, bounds, displayText);
             }
             
-            // Show cursor using character highlighting (DoubleBuffer handles cursor internally)
+            // Show cyberpunk cursor with blinking effect
             if (IsFocused)
             {
-                var cursorX = bounds.X + GetVisibleCursorPosition(bounds.Width);
-                if (cursorX >= bounds.X && cursorX < bounds.X + bounds.Width)
+                var cursorX = bounds.X + 1 + GetVisibleCursorPosition(bounds.Width - 2);
+                if (cursorX >= bounds.X + 1 && cursorX < bounds.X + bounds.Width - 1)
                 {
-                    // Highlight cursor position with reverse colors
-                    var cursorChar = cursorPos < text.Length ? text[cursorPos] : ' ';
-                    screen.WriteAt(cursorX, bounds.Y, cursorChar.ToString(), ConsoleColor.Black, ConsoleColor.White);
+                    // Cyberpunk cursor - use block character for classic terminal feel
+                    var isBlinking = (DateTime.Now.Millisecond / 500) % 2 == 0;
+                    if (isBlinking)
+                    {
+                        var cursorChar = cursorPos < text.Length ? text[cursorPos] : ' ';
+                        screen.WriteAt(cursorX, bounds.Y, cursorChar.ToString(), ConsoleColor.Black, ConsoleColor.Cyan);
+                    }
                 }
             }
         }
@@ -320,6 +331,23 @@ namespace TaskPro.UI
                 var selText = displayText.Substring(visSelStart, selLength);
                 screen.WriteAt(bounds.X + visSelStart, bounds.Y, selText, 
                              ConsoleColor.White, ConsoleColor.Blue);
+            }
+        }
+        
+        private void RenderCyberpunkSelection(ScreenBuffer screen, Rectangle bounds, string displayText)
+        {
+            if (!HasSelection) return;
+            
+            var visSelStart = Math.Max(0, Math.Min(selectionStart, selectionEnd) - scrollOffset);
+            var visSelEnd = Math.Min(displayText.Length, Math.Max(selectionStart, selectionEnd) - scrollOffset);
+            
+            if (visSelStart < displayText.Length && visSelEnd > 0)
+            {
+                var selLength = visSelEnd - visSelStart;
+                var selText = displayText.Substring(visSelStart, selLength);
+                // Cyberpunk selection: bright text on dark cyan background
+                screen.WriteAt(bounds.X + 1 + visSelStart, bounds.Y, selText, 
+                             ConsoleColor.Yellow, ConsoleColor.DarkCyan);
             }
         }
         

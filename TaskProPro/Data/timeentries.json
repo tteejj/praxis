@@ -1,0 +1,50 @@
+[
+  {
+    "id": "d02313a9-19d3-42c1-9a55-19e0959e0329",
+    "weekEndingFriday": "20250822",
+    "projectCode": "PRJ001",
+    "description": "TaskProPro Development",
+    "monday": 8.0,
+    "tuesday": 7.5,
+    "wednesday": 8.0,
+    "thursday": 0,
+    "friday": 0,
+    "total": 23.5,
+    "fiscalYear": "2025-2026",
+    "isProjectEntry": true,
+    "created": "2025-08-16T00:21:54.497482-06:00",
+    "modified": "2025-08-16T00:21:54.4992228-06:00"
+  },
+  {
+    "id": "5818c568-80fc-4ad0-b801-d9aadc27a291",
+    "weekEndingFriday": "20250822",
+    "projectCode": "PRJ002",
+    "description": "Code Review and Testing",
+    "monday": 0,
+    "tuesday": 0,
+    "wednesday": 0,
+    "thursday": 4.0,
+    "friday": 6.0,
+    "total": 10.0,
+    "fiscalYear": "2025-2026",
+    "isProjectEntry": true,
+    "created": "2025-08-16T00:21:54.4993082-06:00",
+    "modified": "2025-08-16T00:21:54.4995176-06:00"
+  },
+  {
+    "id": "4a50eae6-aa13-4d2d-8fe6-e861f8c4cc67",
+    "weekEndingFriday": "20250822",
+    "projectCode": "VAC",
+    "description": "Vacation",
+    "monday": 0,
+    "tuesday": 0,
+    "wednesday": 0,
+    "thursday": 0,
+    "friday": 2.0,
+    "total": 2.0,
+    "fiscalYear": "2025-2026",
+    "isProjectEntry": false,
+    "created": "2025-08-16T00:21:54.4995413-06:00",
+    "modified": "2025-08-16T00:21:54.4995446-06:00"
+  }
+]
