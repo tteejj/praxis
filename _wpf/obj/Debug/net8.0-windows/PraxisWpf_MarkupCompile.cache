@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-/home/teej/projects/github/praxis/_wpf/obj/Debug/net8.0-windows/
+C:\Users\jhnhe\OneDrive\Documents\GitHub\praxis\_wpf\obj\Debug\net8.0-windows\
 PraxisWpf
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
-/home/teej/projects/github/praxis/_wpf/App.xaml
-4761577648
+C:\Users\jhnhe\OneDrive\Documents\GitHub\praxis\_wpf\App.xaml
+4742353881
 
-12781609268
-198-891690674
-Features/TaskViewer/TaskView.xaml;MainWindow.xaml;Themes/Cyberpunk.xaml;Themes/MinimalTheme.xaml;
+121206565054
+198-2136442823
+Features\TaskViewer\TaskView.xaml;MainWindow.xaml;Themes\Cyberpunk.xaml;Themes\MinimalTheme.xaml;
 
 False
 
