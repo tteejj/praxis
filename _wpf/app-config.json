@@ -1,12 +1,12 @@
 {
   "logging": {
     "enabled": true,
-    "level": "Info",
-    "includeStackTrace": false,
+    "level": "Debug",
+    "includeStackTrace": true,
     "includeThreadId": true,
-    "enablePerformanceLogging": false,
+    "enablePerformanceLogging": true,
     "logFilePath": ""
   },
   "dataFilePath": "data.json",
-  "debugMode": false
+  "debugMode": true
 }

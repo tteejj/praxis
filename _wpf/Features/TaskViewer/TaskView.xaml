@@ -57,42 +57,19 @@
                                      Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
                                      BorderThickness="1" VerticalAlignment="Center"/>
 
-                            <!-- Priority with color coding -->
-                            <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Priority}" Value="High">
-                                                <Setter Property="Foreground" Value="{DynamicResource CyberErrorBrush}"/>
-                                                <Setter Property="Text" Value="⚡ HIGH"/>
-                                                <Setter Property="FontWeight" Value="Bold"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Priority}" Value="Medium">
-                                                <Setter Property="Foreground" Value="{DynamicResource CyberWarningBrush}"/>
-                                                <Setter Property="Text" Value="▲ MED"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Priority}" Value="Low">
-                                                <Setter Property="Foreground" Value="{DynamicResource CyberInfoBrush}"/>
-                                                <Setter Property="Text" Value="◆ LOW"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                            <!-- Priority with simple display -->
+                            <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource CyberWarningBrush}"/>
 
                             <!-- Assigned Date with cyber formatting -->
                             <TextBlock Grid.Column="2" VerticalAlignment="Center"
                                        Text="{Binding AssignedDate, StringFormat='[{0:MM.dd}]'}"
                                        Foreground="{DynamicResource CyberDimCyan}"/>
 
-                            <!-- ID display with cyber formatting -->
+                            <!-- ID display simplified -->
                             <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                                       Style="{DynamicResource CyberIdText}">
-                                <Run Text="ID:"/>
-                                <Run Text="{Binding Id1}" Foreground="{DynamicResource CyberAccentBrush}"/>
-                                <Run Text="." Foreground="{DynamicResource CyberDimCyan}"/>
-                                <Run Text="{Binding Id2}" Foreground="{DynamicResource CyberAccentBrush}"/>
-                            </TextBlock>
+                                       Text="{Binding Id1}" 
+                                       Foreground="{DynamicResource CyberDimCyan}"/>
                         </Grid>
                     </Border>
                 </HierarchicalDataTemplate>
