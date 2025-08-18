@@ -101,6 +101,8 @@ namespace PraxisWpf.Features.TaskViewer
                 Id2 = 1,
                 Name = "New Task",
                 IsInEditMode = true,
+                Priority = PriorityType.Medium,
+                AssignedDate = DateTime.Now,
                 DueDate = DateTime.Today.AddDays(7), // Default due date 1 week from now
                 BringForwardDate = DateTime.Today.AddDays(1) // Default bring forward tomorrow
             };

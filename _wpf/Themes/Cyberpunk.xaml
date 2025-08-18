@@ -29,6 +29,7 @@
     <SolidColorBrush x:Key="CyberInfoBrush" Color="{StaticResource CyberNeonBlue}"/>
     <SolidColorBrush x:Key="CyberBorderBrush" Color="{StaticResource CyberDimCyan}"/>
     <SolidColorBrush x:Key="CyberHighlightBrush" Color="{StaticResource CyberDimMagenta}"/>
+    <SolidColorBrush x:Key="CyberDimCyanBrush" Color="{StaticResource CyberDimCyan}"/>
 
     <!-- Glow Effects -->
     <DropShadowEffect x:Key="CyberGlowEffect" 
