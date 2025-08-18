@@ -18,6 +18,9 @@ namespace PraxisWpf.Features.TaskViewer
                 Logger.Debug("TaskView", "Initializing XAML components");
                 InitializeComponent();
                 
+                // Set up foolproof focus management
+                Loaded += TaskView_Loaded;
+                
                 Logger.Info("TaskView", "TaskView initialized successfully");
                 Logger.TraceExit();
             }
@@ -27,6 +30,36 @@ namespace PraxisWpf.Features.TaskViewer
                 Logger.TraceExit();
                 throw;
             }
+        }
+
+        private void TaskView_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Logger.TraceEnter();
+            
+            // Ensure TreeView gets focus when control loads (foolproof data focus)
+            TaskTreeView.Focus();
+            Logger.Debug("TaskView", "TreeView focused on load for foolproof data focus");
+            
+            // Hook window activation to ensure focus returns to data
+            var window = System.Windows.Window.GetWindow(this);
+            if (window != null)
+            {
+                window.Activated += Window_Activated;
+                Logger.Debug("TaskView", "Window activation handler attached");
+            }
+            
+            Logger.TraceExit();
+        }
+
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            Logger.TraceEnter();
+            
+            // When window is activated (Alt+Tab back), ensure TreeView has focus
+            TaskTreeView.Focus();
+            Logger.Debug("TaskView", "TreeView focused on window activation (foolproof data focus)");
+            
+            Logger.TraceExit();
         }
 
         private void TaskTreeView_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
@@ -50,6 +83,17 @@ namespace PraxisWpf.Features.TaskViewer
                     {
                         TaskTreeView.Focus();
                         Logger.Debug("TaskView", "TreeView focused for keyboard navigation");
+                    }
+                    
+                    // Ensure selected item is visible
+                    if (e.NewValue != null)
+                    {
+                        var treeViewItem = TaskTreeView.ItemContainerGenerator.ContainerFromItem(e.NewValue) as TreeViewItem;
+                        if (treeViewItem != null)
+                        {
+                            treeViewItem.BringIntoView();
+                            Logger.Debug("TaskView", "Selected item brought into view");
+                        }
                     }
                 }
                 else if (e.NewValue == null && viewModel != null)
@@ -78,8 +122,8 @@ namespace PraxisWpf.Features.TaskViewer
         {
             base.OnApplyTemplate();
             
-            // Ensure TreeView gets initial focus
-            Logger.Debug("TaskView", "Applying template and setting initial focus");
+            // Ensure TreeView gets initial focus (foolproof data focus)
+            Logger.Debug("TaskView", "Applying template and setting foolproof data focus");
             TaskTreeView.Focus();
         }
 
@@ -94,6 +138,49 @@ namespace PraxisWpf.Features.TaskViewer
 
                 switch (e.Key)
                 {
+                    case Key.N:
+                        // N key creates new task
+                        if (viewModel.NewCommand.CanExecute(null))
+                        {
+                            Logger.Info("TaskView", "N key pressed - creating new task");
+                            viewModel.NewCommand.Execute(null);
+                            e.Handled = true;
+                        }
+                        break;
+
+                    case Key.E:
+                        // E key toggles edit mode
+                        if (viewModel.EditCommand.CanExecute(null))
+                        {
+                            Logger.Info("TaskView", "E key pressed - toggling edit mode");
+                            viewModel.EditCommand.Execute(null);
+                            e.Handled = true;
+                        }
+                        break;
+
+                    case Key.Delete:
+                        // Delete key deletes current task
+                        if (viewModel.DeleteCommand.CanExecute(null))
+                        {
+                            Logger.Info("TaskView", "Delete key pressed - deleting task");
+                            viewModel.DeleteCommand.Execute(null);
+                            e.Handled = true;
+                        }
+                        break;
+
+                    case Key.S:
+                        // Ctrl+S saves data
+                        if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+                        {
+                            if (viewModel.SaveCommand.CanExecute(null))
+                            {
+                                Logger.Info("TaskView", "Ctrl+S pressed - saving data");
+                                viewModel.SaveCommand.Execute(null);
+                                e.Handled = true;
+                            }
+                        }
+                        break;
+
                     case Key.Enter:
                         // Enter key should toggle edit mode
                         if (viewModel.EditCommand.CanExecute(null))
@@ -147,6 +234,52 @@ namespace PraxisWpf.Features.TaskViewer
                             e.Handled = true;
                         }
                         break;
+
+                    case Key.OemPlus:
+                    case Key.Add:
+                        // + key expands current item or all items (with Ctrl)
+                        if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+                        {
+                            if (viewModel.ExpandAllCommand.CanExecute(null))
+                            {
+                                Logger.Info("TaskView", "Ctrl+ pressed - expanding all items");
+                                viewModel.ExpandAllCommand.Execute(null);
+                                e.Handled = true;
+                            }
+                        }
+                        else
+                        {
+                            if (viewModel.ExpandCommand.CanExecute(null))
+                            {
+                                Logger.Info("TaskView", "+ pressed - expanding current item");
+                                viewModel.ExpandCommand.Execute(null);
+                                e.Handled = true;
+                            }
+                        }
+                        break;
+
+                    case Key.OemMinus:
+                    case Key.Subtract:
+                        // - key collapses current item or all items (with Ctrl)
+                        if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+                        {
+                            if (viewModel.CollapseAllCommand.CanExecute(null))
+                            {
+                                Logger.Info("TaskView", "Ctrl- pressed - collapsing all items");
+                                viewModel.CollapseAllCommand.Execute(null);
+                                e.Handled = true;
+                            }
+                        }
+                        else
+                        {
+                            if (viewModel.CollapseCommand.CanExecute(null))
+                            {
+                                Logger.Info("TaskView", "- pressed - collapsing current item");
+                                viewModel.CollapseCommand.Execute(null);
+                                e.Handled = true;
+                            }
+                        }
+                        break;
                 }
 
                 Logger.TraceExit();
@@ -176,7 +309,9 @@ namespace PraxisWpf.Features.TaskViewer
                         if (viewModel.SelectedItem != null)
                         {
                             viewModel.SelectedItem.IsInEditMode = false;
-                            TaskTreeView.Focus(); // Return focus to TreeView
+                            // Force focus back to TreeView (foolproof data focus)
+                            TaskTreeView.Focus();
+                            Logger.Debug("TaskView", "Focus returned to TreeView after edit completion");
                         }
                         e.Handled = true;
                         break;
@@ -187,7 +322,9 @@ namespace PraxisWpf.Features.TaskViewer
                         if (viewModel.SelectedItem != null)
                         {
                             viewModel.SelectedItem.IsInEditMode = false;
-                            TaskTreeView.Focus(); // Return focus to TreeView
+                            // Force focus back to TreeView (foolproof data focus)
+                            TaskTreeView.Focus();
+                            Logger.Debug("TaskView", "Focus returned to TreeView after edit cancellation");
                             // TODO: Revert changes if needed
                         }
                         e.Handled = true;

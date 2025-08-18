@@ -4,20 +4,7 @@
         xmlns:taskViewer="clr-namespace:PraxisWpf.Features.TaskViewer"
         Title="Praxis WPF Task Manager" Height="600" Width="800">
     
-    <Window.InputBindings>
-        <KeyBinding Key="N" Command="{Binding NewCommand}"/>
-        <KeyBinding Key="E" Command="{Binding EditCommand}"/>
-        <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
-        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveCommand}"/>
-        <KeyBinding Key="OemPlus" Command="{Binding ExpandCommand}"/>
-        <KeyBinding Key="Add" Command="{Binding ExpandCommand}"/>
-        <KeyBinding Key="OemMinus" Command="{Binding CollapseCommand}"/>
-        <KeyBinding Key="Subtract" Command="{Binding CollapseCommand}"/>
-        <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{Binding ExpandAllCommand}"/>
-        <KeyBinding Key="Add" Modifiers="Ctrl" Command="{Binding ExpandAllCommand}"/>
-        <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding CollapseAllCommand}"/>
-        <KeyBinding Key="Subtract" Modifiers="Ctrl" Command="{Binding CollapseAllCommand}"/>
-    </Window.InputBindings>
+    <!-- No Window.InputBindings - all key handling at data level -->
     
     <Grid>
         <Grid.RowDefinitions>
