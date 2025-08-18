@@ -14,6 +14,7 @@ namespace PraxisWpf.Models
         private bool _isExpanded;
         private bool _isInEditMode;
         private string _name = string.Empty;
+        private PriorityType _priority = PriorityType.Medium;
 
         public TaskItem()
         {
@@ -47,7 +48,34 @@ namespace PraxisWpf.Models
         }
 
         public DateTime AssignedDate { get; set; } = DateTime.Now;
-        public PriorityType Priority { get; set; } = PriorityType.Medium;
+        public DateTime? DueDate { get; set; }
+        public DateTime? BringForwardDate { get; set; }
+        
+        public PriorityType Priority 
+        { 
+            get 
+            { 
+                Logger.TraceProperty("Priority", null, _priority);
+                return _priority; 
+            }
+            set
+            {
+                var oldValue = _priority;
+                Logger.TraceProperty("Priority", oldValue, value);
+                _priority = value;
+                
+                // H=today logic: If priority is set to High and no due date exists, set it to today
+                if (value == PriorityType.High && !DueDate.HasValue)
+                {
+                    DueDate = DateTime.Today;
+                    Logger.Info("TaskItem", $"High priority set - DueDate auto-set to today for Id1={Id1}");
+                }
+                
+                OnPropertyChanged(nameof(Priority));
+                OnPropertyChanged(nameof(IsHighPriorityToday));
+                Logger.Debug("TaskItem", $"Priority changed: {oldValue} → {value} for Id1={Id1}, Name={Name}");
+            }
+        }
 
         public bool IsExpanded
         {
@@ -112,6 +140,11 @@ namespace PraxisWpf.Models
 
         [JsonIgnore]
         public string DisplayName => Name;
+
+        [JsonIgnore]
+        public bool IsHighPriorityToday => Priority == PriorityType.High && 
+                                          DueDate.HasValue && 
+                                          DueDate.Value.Date == DateTime.Today;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

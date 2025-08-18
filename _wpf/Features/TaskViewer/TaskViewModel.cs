@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -59,6 +60,13 @@ namespace PraxisWpf.Features.TaskViewer
             Items = _dataService.LoadItems();
             Logger.Info("TaskViewModel", $"Loaded {Items.Count} root items");
 
+            // Auto-select first item if available
+            if (Items.Count > 0)
+            {
+                SelectedItem = Items[0];
+                Logger.Info("TaskViewModel", $"Auto-selected first item: {SelectedItem.DisplayName}");
+            }
+
             // Wire up collection change events
             Items.CollectionChanged += (s, e) => {
                 Logger.TraceData("CollectionChanged", "Items", 
@@ -92,7 +100,9 @@ namespace PraxisWpf.Features.TaskViewer
                 Id1 = nextId,
                 Id2 = 1,
                 Name = "New Task",
-                IsInEditMode = true
+                IsInEditMode = true,
+                DueDate = DateTime.Today.AddDays(7), // Default due date 1 week from now
+                BringForwardDate = DateTime.Today.AddDays(1) // Default bring forward tomorrow
             };
             Logger.Debug("TaskViewModel", $"New task created: Id1={newTask.Id1}, Name={newTask.Name}");
 

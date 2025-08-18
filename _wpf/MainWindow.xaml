@@ -27,11 +27,11 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="{StaticResource CyberControlBrush}" 
-                BorderBrush="{StaticResource CyberBorderBrush}" 
+        <Border Grid.Row="0" Background="{DynamicResource CyberControlBrush}" 
+                BorderBrush="{DynamicResource CyberBorderBrush}" 
                 BorderThickness="0,0,0,2" Padding="10">
-            <TextBlock Text="PRAXIS TASK MANAGER" 
-                       FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
+            <TextBlock Text="╔═══ PRAXIS TASK MANAGER ═══╗" 
+                       Style="{DynamicResource CyberHeaderText}"/>
         </Border>
 
         <!-- Main content -->

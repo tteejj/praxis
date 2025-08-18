@@ -11,38 +11,52 @@
         </Grid.RowDefinitions>
 
         <!-- Header row with cyber styling -->
-        <Border Grid.Row="0" BorderBrush="{StaticResource CyberBorderBrush}" 
-                BorderThickness="0,0,0,1" Background="{StaticResource CyberControlBrush}"
+        <Border Grid.Row="0" BorderBrush="{DynamicResource CyberBorderBrush}" 
+                BorderThickness="0,0,0,1" Background="{DynamicResource CyberControlBrush}"
                 Padding="8,4">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200"/>
-                    <ColumnDefinition Width="100"/>
-                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="90"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 
-                <TextBlock Grid.Column="0" Text="TASK NAME" FontWeight="Bold" 
-                          Foreground="{StaticResource CyberAccentBrush}"/>
-                <TextBlock Grid.Column="1" Text="PRIORITY" FontWeight="Bold" 
-                          Foreground="{StaticResource CyberAccentBrush}"/>
-                <TextBlock Grid.Column="2" Text="DATE" FontWeight="Bold" 
-                          Foreground="{StaticResource CyberAccentBrush}"/>
-                <TextBlock Grid.Column="3" Text="ID" FontWeight="Bold" 
-                          Foreground="{StaticResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="0" Text="║ TASK NAME" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="1" Text="║ PRI" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="2" Text="║ ASSIGNED" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="3" Text="║ DUE DATE" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="4" Text="║ BRING FWD" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="5" Text="║ ID1.ID2" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
             </Grid>
         </Border>
 
         <TreeView Grid.Row="1" Name="TaskTreeView" ItemsSource="{Binding Items}" 
-                  SelectedItemChanged="TaskTreeView_SelectedItemChanged">
+                  SelectedItemChanged="TaskTreeView_SelectedItemChanged"
+                  KeyDown="TaskTreeView_KeyDown"
+                  Focusable="True"
+                  TabIndex="0">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type models:TaskItem}" 
                                         ItemsSource="{Binding Children}">
-                    <Grid Margin="4,2">
+                    <Border BorderBrush="{DynamicResource CyberBorderBrush}" 
+                            BorderThickness="0,0,0,1" Opacity="0.3"
+                            Padding="4,2">
+                        <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="180"/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="90"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
@@ -52,19 +66,95 @@
                                    VerticalAlignment="Center"/>
                         <TextBox Grid.Column="0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
                                  Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                                 BorderThickness="1" VerticalAlignment="Center"/>
+                                 BorderThickness="1" VerticalAlignment="Center"
+                                 Name="EditTextBox"
+                                 KeyDown="EditTextBox_KeyDown">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsInEditMode}" Value="True">
+                                            <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
 
-                        <!-- Priority with simple display -->
-                        <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center"/>
+                        <!-- Priority with color coding -->
+                        <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Priority}" Value="High">
+                                            <Setter Property="Foreground" Value="{DynamicResource CyberErrorBrush}"/>
+                                            <Setter Property="Text" Value="⚡ HIGH"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Priority}" Value="Medium">
+                                            <Setter Property="Foreground" Value="{DynamicResource CyberWarningBrush}"/>
+                                            <Setter Property="Text" Value="▲ MED"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Priority}" Value="Low">
+                                            <Setter Property="Foreground" Value="{DynamicResource CyberInfoBrush}"/>
+                                            <Setter Property="Text" Value="◆ LOW"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
-                        <!-- Assigned Date with simple formatting -->
+                        <!-- Assigned Date with cyber formatting -->
                         <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                                   Text="{Binding AssignedDate, StringFormat=MM/dd}"/>
+                                   Text="{Binding AssignedDate, StringFormat={}{0:MM/dd}}"
+                                   Foreground="{DynamicResource CyberDimCyan}"/>
 
-                        <!-- ID display simplified -->
+                        <!-- Due Date with alert styling for overdue -->
                         <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                                   Text="{Binding Id1}"/>
-                    </Grid>
+                                   Foreground="{DynamicResource CyberDimCyan}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Text" Value="{Binding DueDate, StringFormat={}{0:MM/dd}}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DueDate}" Value="{x:Null}">
+                                            <Setter Property="Text" Value="-"/>
+                                            <Setter Property="Opacity" Value="0.5"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsHighPriorityToday}" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource CyberErrorBrush}"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="Text" Value="{Binding DueDate, StringFormat={}⚡{0:MM/dd}}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- Bring Forward Date -->
+                        <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource CyberWarningBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Text" Value="{Binding BringForwardDate, StringFormat={}{0:MM/dd}}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding BringForwardDate}" Value="{x:Null}">
+                                            <Setter Property="Text" Value="-"/>
+                                            <Setter Property="Opacity" Value="0.5"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- ID display with proper Id1.Id2 format -->
+                        <TextBlock Grid.Column="5" VerticalAlignment="Center"
+                                   Style="{DynamicResource CyberIdText}">
+                            <Run Text="ID:"/>
+                            <Run Text="{Binding Id1}" Foreground="{DynamicResource CyberAccentBrush}"/>
+                            <Run Text="." Foreground="{DynamicResource CyberDimCyan}"/>
+                            <Run Text="{Binding Id2}" Foreground="{DynamicResource CyberAccentBrush}"/>
+                        </TextBlock>
+                        </Grid>
+                    </Border>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>
