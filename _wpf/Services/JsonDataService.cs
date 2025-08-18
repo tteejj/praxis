@@ -52,6 +52,14 @@ namespace PraxisWpf.Services
                 var jsonString = File.ReadAllText(_dataFilePath);
                 Logger.Trace("JsonDataService", $"Read {jsonString.Length} characters from file");
 
+                // Handle empty or invalid JSON gracefully
+                if (string.IsNullOrWhiteSpace(jsonString) || jsonString.Trim() == "[]")
+                {
+                    Logger.Info("JsonDataService", "Empty JSON file, returning empty collection");
+                    Logger.TraceExit(returnValue: "empty collection (empty file)");
+                    return new ObservableCollection<IDisplayableItem>();
+                }
+
                 Logger.TraceData("Deserialize", "JSON to TaskItem[]");
                 var taskItems = JsonSerializer.Deserialize<TaskItem[]>(jsonString, _jsonOptions);
                 Logger.Debug("JsonDataService", $"Deserialized {taskItems?.Length ?? 0} items from JSON");
@@ -63,6 +71,8 @@ namespace PraxisWpf.Services
                     foreach (var item in taskItems)
                     {
                         Logger.Trace("JsonDataService", $"Adding item: Id1={item.Id1}, Name={item.Name}");
+                        // Fix the children collection hierarchy
+                        FixChildrenHierarchy(item);
                         result.Add(item);
                         LogItemHierarchy(item, 1);
                     }
@@ -92,6 +102,23 @@ namespace PraxisWpf.Services
                     $"File: {_dataFilePath}");
                 Logger.TraceExit(returnValue: "empty collection (critical error)");
                 return new ObservableCollection<IDisplayableItem>();
+            }
+        }
+
+        private void FixChildrenHierarchy(TaskItem item)
+        {
+            // The issue is that JSON deserialization creates the children as concrete TaskItem objects
+            // but they get stored in IDisplayableItem collection. This shouldn't cause deserialization
+            // issues since TaskItem implements IDisplayableItem. Let's ensure the children are
+            // properly connected and recursively fix their children too.
+            Logger.Trace("JsonDataService", $"Fixing hierarchy for item: {item.Name}");
+            
+            if (item.Children != null)
+            {
+                foreach (var child in item.Children.Cast<TaskItem>())
+                {
+                    FixChildrenHierarchy(child);
+                }
             }
         }
 

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Text.Json.Serialization;
 using PraxisWpf.Interfaces;
 using PraxisWpf.Services;
@@ -82,7 +84,31 @@ namespace PraxisWpf.Models
             }
         }
 
+        [JsonIgnore]
         public ObservableCollection<IDisplayableItem> Children { get; set; } = new ObservableCollection<IDisplayableItem>();
+
+        // JSON-specific property that serializes/deserializes concrete TaskItem types
+        [JsonPropertyName("children")]
+        public List<TaskItem> ChildrenForJson
+        {
+            get
+            {
+                Logger.Trace("TaskItem", $"Getting ChildrenForJson for Id1={Id1}, Count={Children.Count}");
+                return Children.Cast<TaskItem>().ToList();
+            }
+            set
+            {
+                Logger.Trace("TaskItem", $"Setting ChildrenForJson for Id1={Id1}, Count={value?.Count ?? 0}");
+                Children.Clear();
+                if (value != null)
+                {
+                    foreach (var item in value)
+                    {
+                        Children.Add(item);
+                    }
+                }
+            }
+        }
 
         [JsonIgnore]
         public string DisplayName => Name;
