@@ -1,0 +1,271 @@
+[2025-08-17 00:04:35.733] [DEBUG] TaskProPro starting at 08/17/2025 00:04:35
+[2025-08-17 00:04:35.820] [DEBUG] Interactive console detected successfully
+[2025-08-17 00:04:35.866] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 00:04:35.884] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 00:04:35.891] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 00:04:35.929] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 00:04:35.954] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 00:04:36.202] [DEBUG] TaskManager initialized successfully
+[2025-08-17 00:04:36.205] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 00:04:36.223] [DEBUG] ScreenBuffer created: 136x38
+[2025-08-17 00:04:36.226] [DEBUG] TaskListWidget created successfully
+[2025-08-17 00:04:36.234] [DEBUG] StatusBar created successfully
+[2025-08-17 00:04:36.237] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 00:04:36.303] [DEBUG] Time tracking components initialized
+[2025-08-17 00:08:44.227] [DEBUG] TaskProPro starting at 08/17/2025 00:08:44
+[2025-08-17 00:08:44.330] [DEBUG] Interactive console detected successfully
+[2025-08-17 00:08:44.384] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 00:08:44.408] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 00:08:44.414] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 00:08:44.455] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 00:08:44.481] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 00:08:44.719] [DEBUG] TaskManager initialized successfully
+[2025-08-17 00:08:44.722] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 00:08:44.739] [DEBUG] ScreenBuffer created: 136x38
+[2025-08-17 00:08:44.743] [DEBUG] TaskListWidget created successfully
+[2025-08-17 00:08:44.750] [DEBUG] StatusBar created successfully
+[2025-08-17 00:08:44.753] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 00:08:44.812] [DEBUG] Time tracking components initialized
+[2025-08-17 00:19:57.559] [DEBUG] TaskProPro starting at 08/17/2025 00:19:57
+[2025-08-17 00:19:57.644] [DEBUG] Interactive console detected successfully
+[2025-08-17 00:19:57.674] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 00:19:57.690] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 00:19:57.695] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 00:19:57.733] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 00:19:57.750] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 00:19:57.963] [DEBUG] TaskManager initialized successfully
+[2025-08-17 00:19:57.966] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 00:19:57.983] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 00:19:57.986] [DEBUG] TaskListWidget created successfully
+[2025-08-17 00:19:57.994] [DEBUG] StatusBar created successfully
+[2025-08-17 00:19:57.997] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 00:19:58.056] [DEBUG] Time tracking components initialized
+[2025-08-17 00:26:38.064] [DEBUG] TaskProPro starting at 08/17/2025 00:26:38
+[2025-08-17 00:26:38.138] [DEBUG] Interactive console detected successfully
+[2025-08-17 00:26:39.837] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 00:26:39.854] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 00:26:39.859] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 00:26:39.895] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 00:26:39.916] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 00:26:40.107] [DEBUG] TaskManager initialized successfully
+[2025-08-17 00:26:40.111] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 00:26:40.129] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 00:26:40.134] [DEBUG] TaskListWidget created successfully
+[2025-08-17 00:26:40.143] [DEBUG] StatusBar created successfully
+[2025-08-17 00:26:40.147] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 00:26:40.202] [DEBUG] Time tracking components initialized
+[2025-08-17 08:48:52.224] [DEBUG] TaskProPro starting at 08/17/2025 08:48:52
+[2025-08-17 08:48:52.388] [DEBUG] Interactive console detected successfully
+[2025-08-17 08:48:54.150] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 08:48:54.194] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 08:48:54.198] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 08:48:54.237] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 08:48:54.257] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 08:48:54.447] [DEBUG] TaskManager initialized successfully
+[2025-08-17 08:48:54.451] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 08:48:54.469] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 08:48:54.474] [DEBUG] TaskListWidget created successfully
+[2025-08-17 08:48:54.483] [DEBUG] StatusBar created successfully
+[2025-08-17 08:48:54.487] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 08:48:54.547] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 10:25:52.404] [DEBUG] TaskProPro starting at 08/17/2025 10:25:52
+[2025-08-17 10:25:52.489] [DEBUG] Interactive console detected successfully
+[2025-08-17 10:25:54.215] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 10:25:54.259] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 10:25:54.264] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 10:25:54.294] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 10:25:54.316] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 10:25:54.509] [DEBUG] TaskManager initialized successfully
+[2025-08-17 10:25:54.513] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 10:25:54.542] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 10:25:54.546] [DEBUG] TaskListWidget created successfully
+[2025-08-17 10:25:54.555] [DEBUG] StatusBar created successfully
+[2025-08-17 10:25:54.559] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 10:25:54.627] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 15:13:05.083] [DEBUG] TaskProPro starting at 08/17/2025 15:13:05
+[2025-08-17 15:13:05.264] [DEBUG] Non-interactive console detected - exiting
+[2025-08-17 15:13:57.330] [DEBUG] TaskProPro starting at 08/17/2025 15:13:57
+[2025-08-17 15:13:57.546] [DEBUG] Interactive console detected successfully
+[2025-08-17 15:13:59.499] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 15:13:59.522] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 15:13:59.526] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 15:13:59.558] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 15:13:59.580] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 15:13:59.772] [DEBUG] TaskManager initialized successfully
+[2025-08-17 15:13:59.776] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 15:13:59.796] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 15:13:59.801] [DEBUG] TaskListWidget created successfully
+[2025-08-17 15:13:59.810] [DEBUG] StatusBar created successfully
+[2025-08-17 15:13:59.814] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 15:13:59.881] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 15:23:54.136] [DEBUG] TaskProPro starting at 08/17/2025 15:23:54
+[2025-08-17 15:23:54.222] [DEBUG] Interactive console detected successfully
+[2025-08-17 15:23:55.927] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 15:23:55.943] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 15:23:55.947] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 15:23:55.976] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 15:23:55.994] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 15:23:56.185] [DEBUG] TaskManager initialized successfully
+[2025-08-17 15:23:56.189] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 15:23:56.207] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 15:23:56.212] [DEBUG] TaskListWidget created successfully
+[2025-08-17 15:23:56.220] [DEBUG] StatusBar created successfully
+[2025-08-17 15:23:56.224] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 15:23:56.284] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 15:23:56.288] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 15:23:56.296] [DEBUG] TaskManager assigned to widget
+[2025-08-17 15:23:56.304] [DEBUG] StatusBar assigned to widget
+[2025-08-17 15:23:56.313] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 15:23:56.332] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 15:45:39.986] [DEBUG] TaskProPro starting at 08/17/2025 15:45:39
+[2025-08-17 15:45:40.059] [DEBUG] Interactive console detected successfully
+[2025-08-17 15:45:41.747] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 15:45:41.764] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 15:45:41.770] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 15:45:41.802] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 15:45:41.823] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 15:45:42.012] [DEBUG] TaskManager initialized successfully
+[2025-08-17 15:45:42.016] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 15:45:42.034] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 15:45:42.038] [DEBUG] TaskListWidget created successfully
+[2025-08-17 15:45:42.047] [DEBUG] StatusBar created successfully
+[2025-08-17 15:45:42.051] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 15:45:42.111] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 15:45:42.115] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 15:45:42.123] [DEBUG] TaskManager assigned to widget
+[2025-08-17 15:45:42.131] [DEBUG] StatusBar assigned to widget
+[2025-08-17 15:45:42.140] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 15:45:42.158] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 16:03:56.693] [DEBUG] TaskProPro starting at 08/17/2025 16:03:56
+[2025-08-17 16:03:56.777] [DEBUG] Interactive console detected successfully
+[2025-08-17 16:03:58.593] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 16:03:58.611] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 16:03:58.616] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 16:03:58.645] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 16:03:58.668] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 16:03:58.872] [DEBUG] TaskManager initialized successfully
+[2025-08-17 16:03:58.876] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 16:03:58.895] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 16:03:58.900] [DEBUG] TaskListWidget created successfully
+[2025-08-17 16:03:58.914] [DEBUG] StatusBar created successfully
+[2025-08-17 16:03:58.920] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 16:03:58.986] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 16:03:58.990] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 16:03:58.998] [DEBUG] TaskManager assigned to widget
+[2025-08-17 16:03:59.006] [DEBUG] StatusBar assigned to widget
+[2025-08-17 16:03:59.016] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 16:03:59.035] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 16:27:57.464] [DEBUG] TaskProPro starting at 08/17/2025 16:27:57
+[2025-08-17 16:27:57.554] [DEBUG] Interactive console detected successfully
+[2025-08-17 16:27:59.286] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 16:27:59.303] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 16:27:59.308] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 16:27:59.339] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 16:27:59.358] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 16:27:59.549] [DEBUG] TaskManager initialized successfully
+[2025-08-17 16:27:59.554] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 16:27:59.573] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 16:27:59.578] [DEBUG] TaskListWidget created successfully
+[2025-08-17 16:27:59.587] [DEBUG] StatusBar created successfully
+[2025-08-17 16:27:59.591] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 16:27:59.652] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 16:27:59.656] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 16:27:59.665] [DEBUG] TaskManager assigned to widget
+[2025-08-17 16:27:59.672] [DEBUG] StatusBar assigned to widget
+[2025-08-17 16:27:59.682] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 16:27:59.702] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 17:01:29.821] [DEBUG] TaskProPro starting at 08/17/2025 17:01:29
+[2025-08-17 17:01:29.908] [DEBUG] Interactive console detected successfully
+[2025-08-17 17:01:31.612] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 17:01:31.628] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 17:01:31.632] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 17:01:31.661] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 17:01:31.679] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 17:01:31.871] [DEBUG] TaskManager initialized successfully
+[2025-08-17 17:01:31.875] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 17:01:31.894] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 17:01:31.898] [DEBUG] TaskListWidget created successfully
+[2025-08-17 17:01:31.907] [DEBUG] StatusBar created successfully
+[2025-08-17 17:01:31.910] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 17:01:31.971] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 17:01:31.975] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 17:01:31.983] [DEBUG] TaskManager assigned to widget
+[2025-08-17 17:01:31.991] [DEBUG] StatusBar assigned to widget
+[2025-08-17 17:01:31.999] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 17:01:32.019] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 17:02:38.966] [DEBUG] TaskProPro starting at 08/17/2025 17:02:38
+[2025-08-17 17:02:39.047] [DEBUG] Interactive console detected successfully
+[2025-08-17 17:02:40.766] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 17:02:40.781] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 17:02:40.785] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 17:02:40.816] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 17:02:40.835] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 17:02:41.024] [DEBUG] TaskManager initialized successfully
+[2025-08-17 17:02:41.028] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 17:02:41.046] [DEBUG] ScreenBuffer created: 104x29
+[2025-08-17 17:02:41.050] [DEBUG] TaskListWidget created successfully
+[2025-08-17 17:02:41.059] [DEBUG] StatusBar created successfully
+[2025-08-17 17:02:41.063] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 17:02:41.122] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 17:02:41.128] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 17:02:41.136] [DEBUG] TaskManager assigned to widget
+[2025-08-17 17:02:41.143] [DEBUG] StatusBar assigned to widget
+[2025-08-17 17:02:41.152] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 17:02:41.171] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 17:40:41.901] [DEBUG] TaskProPro starting at 08/17/2025 17:40:41
+[2025-08-17 17:40:41.987] [DEBUG] Interactive console detected successfully
+[2025-08-17 17:40:43.697] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 17:40:43.713] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 17:40:43.717] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 17:40:43.751] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 17:40:43.769] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 17:40:43.961] [DEBUG] TaskManager initialized successfully
+[2025-08-17 17:40:43.965] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 17:40:43.983] [DEBUG] ScreenBuffer created: 51x27
+[2025-08-17 17:40:43.987] [DEBUG] TaskListWidget created successfully
+[2025-08-17 17:40:43.995] [DEBUG] StatusBar created successfully
+[2025-08-17 17:40:43.999] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 17:40:44.059] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 17:40:44.063] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 17:40:44.071] [DEBUG] TaskManager assigned to widget
+[2025-08-17 17:40:44.078] [DEBUG] StatusBar assigned to widget
+[2025-08-17 17:40:44.087] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 17:40:44.109] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 18:43:52.276] [DEBUG] TaskProPro starting at 08/17/2025 18:43:52
+[2025-08-17 18:43:52.381] [DEBUG] Interactive console detected successfully
+[2025-08-17 18:43:54.092] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 18:43:54.108] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 18:43:54.112] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 18:43:54.144] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 18:43:54.163] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 18:43:54.381] [DEBUG] TaskManager initialized successfully
+[2025-08-17 18:43:54.385] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 18:43:54.404] [DEBUG] ScreenBuffer created: 136x38
+[2025-08-17 18:43:54.408] [DEBUG] TaskListWidget created successfully
+[2025-08-17 18:43:54.417] [DEBUG] StatusBar created successfully
+[2025-08-17 18:43:54.421] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 18:43:54.502] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 18:43:54.506] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 18:43:54.515] [DEBUG] TaskManager assigned to widget
+[2025-08-17 18:43:54.523] [DEBUG] StatusBar assigned to widget
+[2025-08-17 18:43:54.533] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 18:43:54.552] [DEBUG] RefreshTaskList completed successfully
+[2025-08-17 22:26:19.316] [DEBUG] TaskProPro starting at 08/17/2025 22:26:19
+[2025-08-17 22:26:19.400] [DEBUG] Interactive console detected successfully
+[2025-08-17 22:26:21.135] [DEBUG] Loading pre-compiled TaskPro.dll from: /home/teej/projects/github/praxis/TaskProPro/TaskPro.dll
+[2025-08-17 22:26:21.180] [DEBUG] Pre-compiled assembly loaded successfully
+[2025-08-17 22:26:21.184] [DEBUG] Testing TaskListWidget class creation...
+[2025-08-17 22:26:21.217] [DEBUG] TaskListWidget created successfully - enhanced UI is active
+[2025-08-17 22:26:21.237] [DEBUG] Creating TaskManager with data file: /home/teej/projects/github/praxis/TaskProPro/Data/tasks.json
+[2025-08-17 22:26:21.435] [DEBUG] TaskManager initialized successfully
+[2025-08-17 22:26:21.439] [DEBUG] Creating UI components - ScreenBuffer, TaskListWidget, StatusBar
+[2025-08-17 22:26:21.457] [DEBUG] ScreenBuffer created: 136x38
+[2025-08-17 22:26:21.461] [DEBUG] TaskListWidget created successfully
+[2025-08-17 22:26:21.470] [DEBUG] StatusBar created successfully
+[2025-08-17 22:26:21.474] [DEBUG] Creating TimeTrackingService and TimeTrackingWidget
+[2025-08-17 22:26:21.534] [DEBUG] Time tracking components initialized with task integration
+[2025-08-17 22:26:21.539] [DEBUG] Configuring task list widget dependencies
+[2025-08-17 22:26:21.548] [DEBUG] TaskManager assigned to widget
+[2025-08-17 22:26:21.555] [DEBUG] StatusBar assigned to widget
+[2025-08-17 22:26:21.565] [DEBUG] UpdateDependencies called successfully
+[2025-08-17 22:26:21.584] [DEBUG] RefreshTaskList completed successfully

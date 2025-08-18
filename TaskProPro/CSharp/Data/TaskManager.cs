@@ -141,5 +141,10 @@ namespace TaskPro.Data {
         private void SaveToDisk() {
             persistence.SaveTasks(allTasks);
         }
+        
+        // Public save method for UI components
+        public void Save() {
+            SaveToDisk();
+        }
     }
 }

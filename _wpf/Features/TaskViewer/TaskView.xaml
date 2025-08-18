@@ -1,0 +1,102 @@
+<UserControl x:Class="PraxisWpf.Features.TaskViewer.TaskView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PraxisWpf.Features.TaskViewer"
+             xmlns:models="clr-namespace:PraxisWpf.Models">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header row with cyber styling -->
+        <Border Grid.Row="0" BorderBrush="{DynamicResource CyberBorderBrush}" 
+                BorderThickness="0,0,0,1" Background="{DynamicResource CyberControlBrush}"
+                Padding="8,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" Text="║ TASK NAME" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="1" Text="║ PRIORITY" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="2" Text="║ DATE" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="3" Text="║ ID" FontWeight="Bold" 
+                          Foreground="{DynamicResource CyberAccentBrush}"/>
+            </Grid>
+        </Border>
+
+        <TreeView Grid.Row="1" Name="TaskTreeView" ItemsSource="{Binding Items}" 
+                  SelectedItemChanged="TaskTreeView_SelectedItemChanged">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type models:TaskItem}" 
+                                        ItemsSource="{Binding Children}">
+                    <Border BorderBrush="{DynamicResource CyberBorderBrush}" 
+                            BorderThickness="0,0,0,1" Opacity="0.3"
+                            Padding="4,2">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Name column - switches between TextBlock and TextBox -->
+                            <TextBlock Grid.Column="0" Text="{Binding Name}" 
+                                       Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}" 
+                                       VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                     Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                                     BorderThickness="1" VerticalAlignment="Center"/>
+
+                            <!-- Priority with color coding -->
+                            <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Priority}" Value="High">
+                                                <Setter Property="Foreground" Value="{DynamicResource CyberErrorBrush}"/>
+                                                <Setter Property="Text" Value="⚡ HIGH"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Priority}" Value="Medium">
+                                                <Setter Property="Foreground" Value="{DynamicResource CyberWarningBrush}"/>
+                                                <Setter Property="Text" Value="▲ MED"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Priority}" Value="Low">
+                                                <Setter Property="Foreground" Value="{DynamicResource CyberInfoBrush}"/>
+                                                <Setter Property="Text" Value="◆ LOW"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- Assigned Date with cyber formatting -->
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                                       Text="{Binding AssignedDate, StringFormat='[{0:MM.dd}]'}"
+                                       Foreground="{DynamicResource CyberDimCyan}"/>
+
+                            <!-- ID display with cyber formatting -->
+                            <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                                       Style="{DynamicResource CyberIdText}">
+                                <Run Text="ID:"/>
+                                <Run Text="{Binding Id1}" Foreground="{DynamicResource CyberAccentBrush}"/>
+                                <Run Text="." Foreground="{DynamicResource CyberDimCyan}"/>
+                                <Run Text="{Binding Id2}" Foreground="{DynamicResource CyberAccentBrush}"/>
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </Grid>
+</UserControl>

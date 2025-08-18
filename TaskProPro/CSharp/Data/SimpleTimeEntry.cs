@@ -8,8 +8,9 @@ namespace TaskPro.Data {
         // Core Properties
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string WeekEndingFriday { get; set; } = "";  // Format: yyyyMMdd
-        public string ProjectCode { get; set; } = "";       // Project code or time code (VAC, SICK, etc.)
-        public string Description { get; set; } = "";       // Project name or description
+        public string ID1 { get; set; } = "";               // Generic time code allocation (MEET, TRAIN, PROJ, etc.)
+        public string ID2 { get; set; } = "";               // Specific project identifier (links to tasks)
+        public string Description { get; set; } = "";       // Auto-filled from task or manual entry
         
         // Daily Hours (Monday to Friday)
         public decimal Monday { get; set; } = 0m;
@@ -21,7 +22,8 @@ namespace TaskPro.Data {
         
         // Metadata
         public string FiscalYear { get; set; } = "";
-        public bool IsProjectEntry { get; set; } = true;  // true for projects, false for time codes
+        public string TaskId { get; set; } = "";         // Links to specific task if selected
+        public bool IsLinkedToTask { get; set; } = false; // true if linked to a task, false for manual entry
         public DateTime Created { get; set; } = DateTime.Now;
         public DateTime Modified { get; set; } = DateTime.Now;
         
@@ -33,10 +35,11 @@ namespace TaskPro.Data {
             Modified = DateTime.Now;
         }
         
-        public SimpleTimeEntry(string weekEndingFriday, string projectCode) {
+        public SimpleTimeEntry(string weekEndingFriday, string id1, string id2 = "") {
             Id = Guid.NewGuid().ToString();
             WeekEndingFriday = weekEndingFriday;
-            ProjectCode = projectCode;
+            ID1 = id1;
+            ID2 = id2;
             FiscalYear = CalculateFiscalYear();
             Created = DateTime.Now;
             Modified = DateTime.Now;
@@ -89,23 +92,31 @@ namespace TaskPro.Data {
             return $"{mondayDate:MMM dd} - {fridayDate:MMM dd, yyyy}";
         }
         
-        public bool IsTimeCode() {
-            // Time codes are typically 3-5 characters (VAC, SICK, ADMIN)
-            return !IsProjectEntry || (ProjectCode.Length <= 5 && ProjectCode.Length >= 3);
+        public bool IsGenericTimeCode() {
+            // Generic time codes typically don't have an ID2 (specific project)
+            return string.IsNullOrEmpty(ID2);
         }
         
         public string GetDisplayName() {
-            if (IsTimeCode()) {
+            if (IsLinkedToTask && !string.IsNullOrEmpty(ID2)) {
+                // Task-linked entry: show ID1/ID2 - Description
+                return $"{ID1}/{ID2} - {Description}";
+            } else if (!string.IsNullOrEmpty(ID1)) {
+                // Generic time code: show ID1 - Description  
                 if (!string.IsNullOrEmpty(Description)) {
-                    return $"{ProjectCode} - {Description}";
+                    return $"{ID1} - {Description}";
                 }
-                return ProjectCode;
+                return ID1;
             } else {
-                if (!string.IsNullOrEmpty(Description)) {
-                    return $"{ProjectCode} - {Description}";
-                }
-                return ProjectCode;
+                return Description ?? "Untitled Entry";
             }
+        }
+        
+        public string GetProjectIdentifier() {
+            if (!string.IsNullOrEmpty(ID2)) {
+                return $"{ID1}/{ID2}";
+            }
+            return ID1;
         }
         
         public void SetDayHours(string dayName, decimal hours) {
@@ -150,22 +161,22 @@ namespace TaskPro.Data {
         }
         
         public string GetCyberpunkProjectCode() {
-            if (string.IsNullOrEmpty(ProjectCode)) return "[---]";
+            if (string.IsNullOrEmpty(ID1)) return "[---/---]";
             
-            if (IsTimeCode()) {
-                return $"[{ProjectCode}]";  // Time code in brackets
+            if (IsLinkedToTask && !string.IsNullOrEmpty(ID2)) {
+                return $"<{ID1}/{ID2}>";  // Task-linked project in angle brackets
             } else {
-                return $"<{ProjectCode}>";  // Project code in angle brackets
+                return $"[{ID1}]";        // Generic time code in brackets
             }
         }
         
         public ConsoleColor GetProjectCodeColor() {
-            if (string.IsNullOrEmpty(ProjectCode)) return ConsoleColor.DarkGray;
+            if (string.IsNullOrEmpty(ID1)) return ConsoleColor.DarkGray;
             
-            if (IsTimeCode()) {
-                return ConsoleColor.Magenta;  // Time codes in magenta
+            if (IsLinkedToTask && !string.IsNullOrEmpty(ID2)) {
+                return ConsoleColor.Cyan;     // Task-linked projects in cyan
             } else {
-                return ConsoleColor.Cyan;     // Project codes in cyan
+                return ConsoleColor.Magenta;  // Generic time codes in magenta
             }
         }
         
@@ -195,17 +206,29 @@ namespace TaskPro.Data {
             return ConsoleColor.Cyan;                      // Partial day
         }
         
-        // Static method to get common time codes
-        public static List<(string Code, string Description)> GetCommonTimeCodes() {
-            return new List<(string, string)> {
-                ("VAC", "Vacation"),
-                ("SICK", "Sick Leave"),
-                ("STAT", "Statutory Holiday"),
-                ("ADMIN", "Administration"),
-                ("TRAIN", "Training"),
-                ("MTG", "Meetings"),
-                ("PD", "Professional Development")
-            };
+        // Methods for task integration
+        public void LinkToTask(string taskId, string taskTitle, string taskID1, string taskID2) {
+            TaskId = taskId;
+            ID1 = taskID1;
+            ID2 = taskID2; 
+            Description = taskTitle;
+            IsLinkedToTask = true;
+            Touch();
+        }
+        
+        public void UnlinkFromTask() {
+            TaskId = "";
+            IsLinkedToTask = false;
+            Touch();
+        }
+        
+        public bool IsValidEntry() {
+            return !string.IsNullOrEmpty(ID1) && (Total > 0 || IsInCurrentWeek());
+        }
+        
+        public bool IsInCurrentWeek() {
+            var currentWeekFriday = DateTime.ParseExact(GetCurrentWeekEndingFriday(), "yyyyMMdd", null);
+            return WeekEndingFriday == currentWeekFriday.ToString("yyyyMMdd");
         }
         
         // Current day highlighting for UI

@@ -1,0 +1,98 @@
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Text.Json.Serialization;
+using PraxisWpf.Interfaces;
+using PraxisWpf.Services;
+
+namespace PraxisWpf.Models
+{
+    public class TaskItem : IDisplayableItem, INotifyPropertyChanged
+    {
+        private bool _isExpanded;
+        private bool _isInEditMode;
+        private string _name = string.Empty;
+
+        public TaskItem()
+        {
+            Logger.TraceEnter();
+            Children.CollectionChanged += (s, e) => {
+                Logger.TraceData("CollectionChanged", "Children", 
+                    $"Action={e.Action}, NewItems={e.NewItems?.Count ?? 0}, OldItems={e.OldItems?.Count ?? 0}");
+            };
+            Logger.TraceExit();
+        }
+
+        public int Id1 { get; set; }
+        public int Id2 { get; set; }
+        
+        public string Name
+        {
+            get 
+            { 
+                Logger.TraceProperty("Name", null, _name);
+                return _name; 
+            }
+            set
+            {
+                var oldValue = _name;
+                Logger.TraceProperty("Name", oldValue, value);
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+                OnPropertyChanged(nameof(DisplayName));
+                Logger.Debug("TaskItem", $"Name changed: '{oldValue}' → '{value}' for Id1={Id1}");
+            }
+        }
+
+        public DateTime AssignedDate { get; set; } = DateTime.Now;
+        public PriorityType Priority { get; set; } = PriorityType.Medium;
+
+        public bool IsExpanded
+        {
+            get 
+            { 
+                Logger.TraceProperty("IsExpanded", null, _isExpanded);
+                return _isExpanded; 
+            }
+            set
+            {
+                var oldValue = _isExpanded;
+                Logger.TraceProperty("IsExpanded", oldValue, value);
+                _isExpanded = value;
+                OnPropertyChanged(nameof(IsExpanded));
+                Logger.Debug("TaskItem", $"IsExpanded changed: {oldValue} → {value} for Id1={Id1}, Name={Name}");
+            }
+        }
+
+        [JsonIgnore]
+        public bool IsInEditMode
+        {
+            get 
+            { 
+                Logger.TraceProperty("IsInEditMode", null, _isInEditMode);
+                return _isInEditMode; 
+            }
+            set
+            {
+                var oldValue = _isInEditMode;
+                Logger.TraceProperty("IsInEditMode", oldValue, value);
+                _isInEditMode = value;
+                OnPropertyChanged(nameof(IsInEditMode));
+                Logger.Info("TaskItem", $"Edit mode changed: {oldValue} → {value} for Id1={Id1}, Name={Name}");
+            }
+        }
+
+        public ObservableCollection<IDisplayableItem> Children { get; set; } = new ObservableCollection<IDisplayableItem>();
+
+        [JsonIgnore]
+        public string DisplayName => Name;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            Logger.Trace("TaskItem", $"PropertyChanged: {propertyName} for Id1={Id1}");
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}

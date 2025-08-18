@@ -8,7 +8,9 @@ namespace TaskPro.UI {
     public class TimeTrackingWidget {
         // Configuration
         public TimeTrackingService TimeService { get; set; }
+        public TaskManager TaskManager { get; set; }
         public StatusBar StatusBar { get; set; }
+        public TaskSelectionDialog TaskSelectionDialog { get; set; }
         
         // CYBERPUNK COLOR PALETTE - Matching TaskProPro aesthetic
         public ConsoleColor HeaderColor { get; set; } = ConsoleColor.Cyan;
@@ -37,14 +39,15 @@ namespace TaskPro.UI {
         private SimpleTimeEntry editingEntry = null;
         private bool isNewEntry = false;
         
-        // Column widths for time entry layout
-        private const int ProjectCol = 15;
-        private const int DescCol = 30;
-        private const int MonCol = 8;
-        private const int TueCol = 8;
-        private const int WedCol = 8;
-        private const int ThuCol = 8;
-        private const int FriCol = 8;
+        // Column widths for time entry layout - Updated for ID1/ID2 system
+        private const int ID1Col = 8;
+        private const int ID2Col = 12;
+        private const int DescCol = 25;
+        private const int MonCol = 6;
+        private const int TueCol = 6;
+        private const int WedCol = 6;
+        private const int ThuCol = 6;
+        private const int FriCol = 6;
         private const int TotalCol = 8;
         
         public int SelectedIndex => selectedIndex;
@@ -56,8 +59,17 @@ namespace TaskPro.UI {
             // Initialize with default configuration
         }
         
-        public void Initialize(TimeTrackingService timeService) {
+        public void Initialize(TimeTrackingService timeService, TaskManager taskManager = null) {
             TimeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
+            TaskManager = taskManager;
+            
+            // Initialize task selection dialog
+            if (TaskManager != null) {
+                TaskSelectionDialog = new TaskSelectionDialog();
+                TaskSelectionDialog.TaskManager = TaskManager;
+                TaskSelectionDialog.StatusBar = StatusBar;
+            }
+            
             RefreshList();
         }
         
@@ -73,7 +85,12 @@ namespace TaskPro.UI {
         }
         
         public bool HandleInput(InputEvent input) {
-            // Handle inline editing mode first
+            // Handle task selection dialog first (highest priority)
+            if (TaskSelectionDialog?.IsActive == true) {
+                return TaskSelectionDialog.HandleInput(input);
+            }
+            
+            // Handle inline editing mode next
             if (editingIndex >= 0) {
                 return HandleEditingInput(input);
             }
@@ -121,6 +138,11 @@ namespace TaskPro.UI {
                 return true;
             }
             
+            if (input.Key == ConsoleKey.T) {
+                OpenTaskSelection();
+                return true;
+            }
+            
             if (input.Key == ConsoleKey.D) {
                 DeleteEntry();
                 return true;
@@ -144,8 +166,8 @@ namespace TaskPro.UI {
             // Render cyberpunk header
             RenderCyberpunkHeader(screen, bounds);
             
-            // Render time entry list
-            var listBounds = new Rectangle(bounds.X, bounds.Y + 4, bounds.Width, bounds.Height - 6);
+            // Render time entry list (account for 5-line header + status)
+            var listBounds = new Rectangle(bounds.X, bounds.Y + 5, bounds.Width, bounds.Height - 7);
             RenderTimeEntryList(screen, listBounds);
             
             // Render status line
@@ -155,32 +177,43 @@ namespace TaskPro.UI {
             if (editingIndex >= 0) {
                 RenderInlineEditor(screen, bounds);
             }
+            
+            // Render task selection dialog if active
+            if (TaskSelectionDialog?.IsActive == true) {
+                TaskSelectionDialog.Render(screen, bounds);
+            }
         }
         
         private void RenderCyberpunkHeader(ScreenBuffer screen, Rectangle bounds) {
             var headerY = bounds.Y;
             
             // Draw cyberpunk border frame
-            DrawCyberpunkBorder(screen, bounds.X, headerY, bounds.Width, 3);
+            DrawCyberpunkBorder(screen, bounds.X, headerY, bounds.Width, 4);
             
-            // Terminal-style header
-            var headerText = "TIMETRACKER v2.1 - TIME ENTRY MANAGEMENT SYSTEM";
+            // Terminal-style header with TaskProPro branding
+            var headerText = "TASKPRO v2.1 - TIME TRACKING SYSTEM";
             var centerX = bounds.X + (bounds.Width - headerText.Length) / 2;
             screen.WriteAt(centerX, headerY + 1, headerText, AmberText, BackgroundColor);
             
-            // Week display
+            // System status line with mode indicator
+            var systemStatus = "[SYS:ONLINE] [MODE:TIME_TRACK] [F1:TASK_MGMT]";
+            screen.WriteAt(bounds.X + 2, headerY + 2, systemStatus, StatusGreen, BackgroundColor);
+            
+            // Week display with current week indicator
             var weekText = TimeService?.GetWeekDisplayString() ?? "No week selected";
             if (TimeService?.IsCurrentWeek() == true) {
-                weekText += " (CURRENT WEEK)";
+                weekText += " (CURRENT)";
             }
-            screen.WriteAt(bounds.X + 2, headerY + 2, weekText, HeaderColor, BackgroundColor);
+            screen.WriteAt(bounds.X + 2, headerY + 3, $"WEEK: {weekText}", HeaderColor, BackgroundColor);
             
-            // System status
-            var entryCount = timeEntries.Count;
-            var totalHours = timeEntries.Sum(e => e.Total);
-            var systemInfo = $"ENTRIES:{entryCount:D3} | TOTAL:{totalHours:F1}H";
-            var infoX = bounds.X + bounds.Width - systemInfo.Length - 2;
-            screen.WriteAt(infoX, headerY + 2, systemInfo, StatusGreen, BackgroundColor);
+            // Weekly summary with cumulative hours
+            var summary = TimeService?.GetCurrentWeeklySummary();
+            if (summary != null) {
+                var summaryInfo = $"WEEK TOTAL: {summary.WeekTotal:F1}H | ENTRIES: {summary.TotalEntries}";
+                var infoX = bounds.X + bounds.Width - summaryInfo.Length - 2;
+                var summaryColor = summary.GetWeekTotalColor();
+                screen.WriteAt(infoX, headerY + 3, summaryInfo, summaryColor, BackgroundColor);
+            }
         }
         
         private void RenderTimeEntryList(ScreenBuffer screen, Rectangle bounds) {
@@ -197,12 +230,12 @@ namespace TaskPro.UI {
                 var thuHeader = currentDay == "thursday" ? "▸THU" : "THU";
                 var friHeader = currentDay == "friday" ? "▸FRI" : "FRI";
                 
-                // Render column headers with cyberpunk styling
-                var headerText = $"{"PROJECT".PadRight(ProjectCol)}{"DESCRIPTION".PadRight(DescCol)}{monHeader.PadRight(MonCol)}{tueHeader.PadRight(TueCol)}{wedHeader.PadRight(WedCol)}{thuHeader.PadRight(ThuCol)}{friHeader.PadRight(FriCol)}{"TOTAL"}";
+                // Professional column headers with separators - ID1/ID2 system
+                var headerText = $"{"ID1".PadRight(ID1Col)}│{"ID2".PadRight(ID2Col)}│{"DESCRIPTION".PadRight(DescCol)}│{monHeader.PadRight(MonCol)}│{tueHeader.PadRight(TueCol)}│{wedHeader.PadRight(WedCol)}│{thuHeader.PadRight(ThuCol)}│{friHeader.PadRight(FriCol)}│{"TOTAL"}";
                 screen.WriteAt(bounds.X, headerY, headerText, HeaderColor, BackgroundColor);
                 
-                // Header separator
-                var separator = new string('═', Math.Min(headerText.Length, bounds.Width));
+                // Professional header separator with column markers
+                var separator = $"{new string('─', ID1Col)}┼{new string('─', ID2Col)}┼{new string('─', DescCol)}┼{new string('─', MonCol)}┼{new string('─', TueCol)}┼{new string('─', WedCol)}┼{new string('─', ThuCol)}┼{new string('─', FriCol)}┼{new string('─', TotalCol)}";
                 screen.WriteAt(bounds.X, headerY + 1, separator, HeaderColor, BackgroundColor);
             }
             
@@ -245,34 +278,85 @@ namespace TaskPro.UI {
         private void RenderTimeEntryContent(ScreenBuffer screen, int x, int y, SimpleTimeEntry entry, bool isSelected) {
             var bgColor = isSelected ? SelectionColor : BackgroundColor;
             var currentDay = GetCurrentDayOfWeek();
+            var isEditingThis = (editingIndex >= 0 && editingEntry != null && editingEntry.Id == entry.Id);
             
             var xPos = x;
             
-            // Project code column
-            var projectColor = entry.IsTimeCode() ? TimeCodeColor : ProjectColor;
-            var projectText = (entry.ProjectCode ?? "").PadRight(ProjectCol);
-            screen.WriteAt(xPos, y, projectText, projectColor, bgColor);
-            xPos += ProjectCol;
-            
-            // Description column
-            var descText = (entry.Description ?? "").PadRight(DescCol);
-            if (descText.Length > DescCol) {
-                descText = descText.Substring(0, DescCol - 3) + "...";
+            // ID1 column - with inline editing support
+            if (isEditingThis && editingField == "id1") {
+                var editText = editingValue.PadRight(ID1Col);
+                if (editText.Length > ID1Col) editText = editText.Substring(0, ID1Col);
+                screen.WriteAt(xPos, y, editText, BackgroundColor, AmberText);
+            } else {
+                var id1Color = entry.IsLinkedToTask ? ProjectColor : TimeCodeColor;
+                var id1Text = (entry.ID1 ?? "").PadRight(ID1Col);
+                if (id1Text.Length > ID1Col) id1Text = id1Text.Substring(0, ID1Col);
+                screen.WriteAt(xPos, y, id1Text, id1Color, bgColor);
             }
-            screen.WriteAt(xPos, y, descText, SubtaskColor, bgColor);
+            xPos += ID1Col;
+            
+            // Column separator
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            // ID2 column - with inline editing support
+            if (isEditingThis && editingField == "id2") {
+                var editText = editingValue.PadRight(ID2Col);
+                if (editText.Length > ID2Col) editText = editText.Substring(0, ID2Col);
+                screen.WriteAt(xPos, y, editText, BackgroundColor, AmberText);
+            } else {
+                var id2Color = entry.IsLinkedToTask ? ProjectColor : SubtaskColor;
+                var id2Text = (entry.ID2 ?? "").PadRight(ID2Col);
+                if (id2Text.Length > ID2Col) id2Text = id2Text.Substring(0, ID2Col);
+                screen.WriteAt(xPos, y, id2Text, id2Color, bgColor);
+            }
+            xPos += ID2Col;
+            
+            // Column separator
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            // Description column - with inline editing support
+            if (isEditingThis && editingField == "description") {
+                var editText = editingValue.PadRight(DescCol);
+                if (editText.Length > DescCol) editText = editText.Substring(0, DescCol);
+                screen.WriteAt(xPos, y, editText, BackgroundColor, AmberText);
+            } else {
+                var descText = (entry.Description ?? "").PadRight(DescCol);
+                if (descText.Length > DescCol) descText = descText.Substring(0, DescCol - 3) + "...";
+                screen.WriteAt(xPos, y, descText, SubtaskColor, bgColor);
+            }
             xPos += DescCol;
             
-            // Daily hours columns
-            RenderDayColumn(screen, xPos, y, entry.Monday, MonCol, currentDay == "monday", bgColor);
+            // Column separator
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            // Daily hours columns - with inline editing support and separators
+            RenderDayColumn(screen, xPos, y, entry.Monday, MonCol, "monday", currentDay == "monday", bgColor, isEditingThis);
             xPos += MonCol;
-            RenderDayColumn(screen, xPos, y, entry.Tuesday, TueCol, currentDay == "tuesday", bgColor);
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            RenderDayColumn(screen, xPos, y, entry.Tuesday, TueCol, "tuesday", currentDay == "tuesday", bgColor, isEditingThis);
             xPos += TueCol;
-            RenderDayColumn(screen, xPos, y, entry.Wednesday, WedCol, currentDay == "wednesday", bgColor);
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            RenderDayColumn(screen, xPos, y, entry.Wednesday, WedCol, "wednesday", currentDay == "wednesday", bgColor, isEditingThis);
             xPos += WedCol;
-            RenderDayColumn(screen, xPos, y, entry.Thursday, ThuCol, currentDay == "thursday", bgColor);
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            RenderDayColumn(screen, xPos, y, entry.Thursday, ThuCol, "thursday", currentDay == "thursday", bgColor, isEditingThis);
             xPos += ThuCol;
-            RenderDayColumn(screen, xPos, y, entry.Friday, FriCol, currentDay == "friday", bgColor);
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
+            
+            RenderDayColumn(screen, xPos, y, entry.Friday, FriCol, "friday", currentDay == "friday", bgColor, isEditingThis);
             xPos += FriCol;
+            screen.WriteAt(xPos, y, "│", HeaderColor, bgColor);
+            xPos += 1;
             
             // Total column
             var totalText = entry.Total > 0 ? entry.Total.ToString("F1") : "";
@@ -280,14 +364,21 @@ namespace TaskPro.UI {
             screen.WriteAt(xPos, y, totalText.PadRight(TotalCol), totalColor, bgColor);
         }
         
-        private void RenderDayColumn(ScreenBuffer screen, int x, int y, decimal hours, int colWidth, bool isCurrentDay, ConsoleColor bgColor) {
-            var hoursText = hours > 0 ? hours.ToString("F1") : "";
-            var color = isCurrentDay ? TodayColor : (hours > 0 ? LowHoursColor : SubtaskColor);
-            
-            if (hours > 8) color = HighHoursColor;
-            else if (hours >= 4) color = MediumHoursColor;
-            
-            screen.WriteAt(x, y, hoursText.PadRight(colWidth), color, bgColor);
+        private void RenderDayColumn(ScreenBuffer screen, int x, int y, decimal hours, int colWidth, string dayName, bool isCurrentDay, ConsoleColor bgColor, bool isEditingThis) {
+            // Handle inline editing for this day column
+            if (isEditingThis && editingField == dayName) {
+                var editText = editingValue.PadRight(colWidth);
+                if (editText.Length > colWidth) editText = editText.Substring(0, colWidth);
+                screen.WriteAt(x, y, editText, BackgroundColor, AmberText);
+            } else {
+                var hoursText = hours > 0 ? hours.ToString("F1") : "";
+                var color = isCurrentDay ? TodayColor : (hours > 0 ? LowHoursColor : SubtaskColor);
+                
+                if (hours > 8) color = HighHoursColor;
+                else if (hours >= 4) color = MediumHoursColor;
+                
+                screen.WriteAt(x, y, hoursText.PadRight(colWidth), color, bgColor);
+            }
         }
         
         private void RenderStatusLine(ScreenBuffer screen, Rectangle bounds) {
@@ -298,61 +389,14 @@ namespace TaskPro.UI {
                 var statusText = $"EDITING [{editingField?.ToUpper() ?? "UNKNOWN"}]: Tab=Next Field  Enter=Save  Escape=Cancel";
                 screen.WriteAt(bounds.X + 1, statusY, statusText, StatusGreen, BackgroundColor);
             } else {
-                var statusText = "↑↓=Navigate  E=Edit  A=Add  D=Delete  C=Current Week  ←→=Week Nav";
+                var statusText = "↑↓=Navigate  E=Edit  A=Add  T=Task Select  D=Delete  C=Current Week  ←→=Week Nav";
                 screen.WriteAt(bounds.X + 1, statusY, statusText, StatusGreen, BackgroundColor);
             }
         }
         
         private void RenderInlineEditor(ScreenBuffer screen, Rectangle bounds) {
-            if (editingIndex < 0 || editingEntry == null) return;
-            
-            // Simple highlight for the editing field - could be enhanced with overlay
-            var contentY = bounds.Y + 6; // Account for header
-            var y = contentY + (editingIndex - scrollTop);
-            
-            if (y >= contentY && y < bounds.Y + bounds.Height - 2) {
-                // Highlight the current editing position
-                var xPos = bounds.X;
-                
-                // Calculate position based on editing field
-                switch (editingField) {
-                    case "project":
-                        // Project column is at the start
-                        break;
-                    case "description":
-                        xPos += ProjectCol;
-                        break;
-                    case "monday":
-                        xPos += ProjectCol + DescCol;
-                        break;
-                    case "tuesday":
-                        xPos += ProjectCol + DescCol + MonCol;
-                        break;
-                    case "wednesday":
-                        xPos += ProjectCol + DescCol + MonCol + TueCol;
-                        break;
-                    case "thursday":
-                        xPos += ProjectCol + DescCol + MonCol + TueCol + WedCol;
-                        break;
-                    case "friday":
-                        xPos += ProjectCol + DescCol + MonCol + TueCol + WedCol + ThuCol;
-                        break;
-                }
-                
-                // Render editing value with highlight
-                var fieldWidth = editingField switch {
-                    "project" => ProjectCol,
-                    "description" => DescCol,
-                    _ => 8 // Day columns
-                };
-                
-                var editText = (editingValue ?? "").PadRight(fieldWidth);
-                if (editText.Length > fieldWidth) {
-                    editText = editText.Substring(0, fieldWidth);
-                }
-                
-                screen.WriteAt(xPos, y, editText, BackgroundColor, AmberText);
-            }
+            // Inline editing is now handled directly in RenderTimeEntryContent
+            // This method is kept for compatibility but does nothing
         }
         
         private void DrawCyberpunkBorder(ScreenBuffer screen, int x, int y, int width, int height) {
@@ -411,13 +455,25 @@ namespace TaskPro.UI {
         
         // INLINE EDITING METHODS - EXACT feature parity with standalone
         
+        private void OpenTaskSelection() {
+            if (!HasSelection || TaskSelectionDialog == null) return;
+            
+            var entry = timeEntries[selectedIndex];
+            TaskSelectionDialog.StartSelection(entry, (updatedEntry) => {
+                if (updatedEntry != null) {
+                    TimeService?.UpdateTimeEntry(updatedEntry);
+                    RefreshList();
+                }
+            });
+        }
+        
         private void StartInlineEdit() {
             if (!HasSelection) return;
             
             editingIndex = selectedIndex;
             editingEntry = timeEntries[selectedIndex];
-            editingField = "project";
-            editingValue = editingEntry.ProjectCode ?? "";
+            editingField = "id1";
+            editingValue = editingEntry.ID1 ?? "";
             isNewEntry = false;
         }
         
@@ -430,7 +486,7 @@ namespace TaskPro.UI {
             timeEntries.Add(newEntry);
             editingIndex = timeEntries.Count - 1;
             editingEntry = newEntry;
-            editingField = "project";
+            editingField = "id1";
             editingValue = "";
             selectedIndex = editingIndex;
             isNewEntry = true;
@@ -486,14 +542,15 @@ namespace TaskPro.UI {
             ApplyCurrentFieldValue();
             
             editingField = editingField switch {
-                "project" => "description",
+                "id1" => "id2",
+                "id2" => "description",
                 "description" => "monday",
                 "monday" => "tuesday",
                 "tuesday" => "wednesday",
                 "wednesday" => "thursday",
                 "thursday" => "friday",
-                "friday" => "project",
-                _ => "project"
+                "friday" => "id1",
+                _ => "id1"
             };
             
             LoadFieldValue();
@@ -503,14 +560,15 @@ namespace TaskPro.UI {
             ApplyCurrentFieldValue();
             
             editingField = editingField switch {
-                "project" => "friday",
-                "description" => "project",
+                "id1" => "friday",
+                "id2" => "id1",
+                "description" => "id2",
                 "monday" => "description",
                 "tuesday" => "monday",
                 "wednesday" => "tuesday",
                 "thursday" => "wednesday",
                 "friday" => "thursday",
-                _ => "project"
+                _ => "id1"
             };
             
             LoadFieldValue();
@@ -520,8 +578,11 @@ namespace TaskPro.UI {
             if (editingEntry == null) return;
             
             switch (editingField) {
-                case "project":
-                    editingEntry.ProjectCode = editingValue ?? "";
+                case "id1":
+                    editingEntry.ID1 = editingValue ?? "";
+                    break;
+                case "id2":
+                    editingEntry.ID2 = editingValue ?? "";
                     break;
                 case "description":
                     editingEntry.Description = editingValue ?? "";
@@ -546,7 +607,8 @@ namespace TaskPro.UI {
         
         private void LoadFieldValue() {
             editingValue = editingField switch {
-                "project" => editingEntry?.ProjectCode ?? "",
+                "id1" => editingEntry?.ID1 ?? "",
+                "id2" => editingEntry?.ID2 ?? "",
                 "description" => editingEntry?.Description ?? "",
                 "monday" => editingEntry?.Monday > 0 ? editingEntry.Monday.ToString() : "",
                 "tuesday" => editingEntry?.Tuesday > 0 ? editingEntry.Tuesday.ToString() : "",
@@ -569,18 +631,9 @@ namespace TaskPro.UI {
             ApplyCurrentFieldValue();
             
             if (editingEntry != null) {
-                // Determine if it's a time code or project
-                if (!string.IsNullOrEmpty(editingEntry.ProjectCode) && 
-                    editingEntry.ProjectCode.Length <= 5 && 
-                    editingEntry.ProjectCode.Length >= 3) {
-                    editingEntry.IsProjectEntry = false;
-                } else {
-                    editingEntry.IsProjectEntry = true;
-                }
-                
                 editingEntry.CalculateTotal();
                 
-                if (!string.IsNullOrEmpty(editingEntry.ProjectCode)) {
+                if (!string.IsNullOrEmpty(editingEntry.ID1)) {
                     if (isNewEntry) {
                         TimeService?.AddTimeEntry(editingEntry);
                     } else {
@@ -621,7 +674,7 @@ namespace TaskPro.UI {
             var entry = timeEntries[selectedIndex];
             TimeService?.DeleteTimeEntry(entry.Id);
             RefreshList();
-            StatusBar?.ShowWarning($"Deleted time entry for {entry.ProjectCode}");
+            StatusBar?.ShowWarning($"Deleted time entry for {entry.GetProjectIdentifier()}");
         }
     }
 }

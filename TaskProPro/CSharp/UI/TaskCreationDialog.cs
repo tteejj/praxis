@@ -12,12 +12,14 @@ namespace TaskPro.UI
     /// </summary>
     public class TaskCreationDialog
     {
-        // Configuration
+        // CYBERPUNK CONFIGURATION
         public ConsoleColor DialogColor { get; set; } = ConsoleColor.Cyan;
         public ConsoleColor FieldColor { get; set; } = ConsoleColor.White;
         public ConsoleColor HighlightColor { get; set; } = ConsoleColor.Yellow;
         public ConsoleColor ErrorColor { get; set; } = ConsoleColor.Red;
-        public ConsoleColor HintColor { get; set; } = ConsoleColor.DarkGray;
+        public ConsoleColor HintColor { get; set; } = ConsoleColor.Green;
+        public ConsoleColor BackgroundColor { get; set; } = ConsoleColor.Black;
+        public ConsoleColor BorderColor { get; set; } = ConsoleColor.Cyan;
         
         // State
         private bool isActive = false;
@@ -94,6 +96,8 @@ namespace TaskPro.UI
             // Reset all fields
             titleField.Text = "";
             dueDateField.Text = "";
+            id1Field.Text = "";
+            id2Field.Text = "";
             tagsField.Text = "";
             notesField.Text = "";
             selectedPriority = Priority.Medium;
@@ -103,6 +107,35 @@ namespace TaskPro.UI
             SetFieldFocus();
             
             StatusMessage?.Invoke("Creating new task - Tab to move between fields, Enter to save, Esc to cancel");
+        }
+        
+        /// <summary>
+        /// Start the task editing dialog with existing task data
+        /// </summary>
+        public void StartEditDialog(SimpleTask task)
+        {
+            if (task == null) return;
+            
+            isActive = true;
+            currentField = 0;
+            
+            // Populate fields with existing task data
+            titleField.Text = task.Title ?? "";
+            dueDateField.Text = task.DueDate == DateTime.MinValue ? "" : task.DueDate.ToString("yyyy-MM-dd");
+            id1Field.Text = task.ID1 ?? "";
+            id2Field.Text = task.ID2 ?? "";
+            tagsField.Text = string.Join(", ", task.Tags);
+            notesField.Text = task.Notes ?? "";
+            selectedPriority = task.Priority;
+            errorMessage = "";
+            
+            // Store original task for updating
+            CreatedTask = task;
+            
+            // Focus first field
+            SetFieldFocus();
+            
+            StatusMessage?.Invoke("Editing task - Tab to move between fields, Enter to save, Esc to cancel");
         }
         
         /// <summary>
@@ -137,7 +170,7 @@ namespace TaskPro.UI
                 return true;
             }
             
-            if (input.IsCtrlEnter)
+            if (input.IsEnter)
             {
                 CreateTask();
                 return true;
@@ -180,16 +213,16 @@ namespace TaskPro.UI
             if (!isActive) return;
             
             int dialogWidth = Math.Min(80, bounds.Width - 4);
-            int dialogHeight = 18;
+            int dialogHeight = 22;
             int dialogX = (bounds.Width - dialogWidth) / 2;
             int dialogY = (bounds.Height - dialogHeight) / 2;
             
-            // Dialog background
+            // CYBERPUNK DIALOG BACKGROUND
             screen.FillRect(dialogX, dialogY, dialogWidth, dialogHeight, ' ', 
-                           ConsoleColor.White, ConsoleColor.DarkBlue);
+                           FieldColor, BackgroundColor);
             
-            // Border
-            screen.DrawBox(dialogX, dialogY, dialogWidth, dialogHeight, DialogColor);
+            // CYBERPUNK BORDER - Professional terminal styling
+            DrawCyberpunkBorder(screen, dialogX, dialogY, dialogWidth, dialogHeight);
             
             // Title
             var title = "Create New Task";
@@ -210,12 +243,20 @@ namespace TaskPro.UI
             RenderField(screen, dialogX, y, dialogWidth, "Due Date:", dueDateField, 2);
             y += 2;
             
+            // Project ID1 field
+            RenderField(screen, dialogX, y, dialogWidth, "Project ID1:", id1Field, 3);
+            y += 2;
+            
+            // Project ID2 field
+            RenderField(screen, dialogX, y, dialogWidth, "Project ID2:", id2Field, 4);
+            y += 2;
+            
             // Tags field
-            RenderField(screen, dialogX, y, dialogWidth, "Tags:", tagsField, 3);
+            RenderField(screen, dialogX, y, dialogWidth, "Tags:", tagsField, 5);
             y += 2;
             
             // Notes field
-            RenderField(screen, dialogX, y, dialogWidth, "Notes:", notesField, 4);
+            RenderField(screen, dialogX, y, dialogWidth, "Notes:", notesField, 6);
             y += 2;
             
             // Error message
@@ -226,7 +267,7 @@ namespace TaskPro.UI
             }
             
             // Help text
-            var helpText = "Tab: Next field | Shift+Tab: Previous | Ctrl+Enter: Create | Esc: Cancel";
+            var helpText = "Tab: Next field | Shift+Tab: Previous | Enter: Create | Esc: Cancel";
             var helpY = dialogY + dialogHeight - 2;
             if (helpText.Length <= dialogWidth - 4)
             {
@@ -496,6 +537,39 @@ namespace TaskPro.UI
             }
             
             throw new ArgumentException($"Invalid date format: {input}");
+        }
+        
+        /// <summary>
+        /// Draw cyberpunk-style border
+        /// </summary>
+        private void DrawCyberpunkBorder(ScreenBuffer screen, int x, int y, int width, int height)
+        {
+            // CYBERPUNK TERMINAL BORDER
+            var borderColor = BorderColor;
+            var bgColor = BackgroundColor;
+            
+            // Top border
+            screen.WriteAt(x, y, "╔", borderColor, bgColor);
+            for (int i = 1; i < width - 1; i++)
+            {
+                screen.WriteAt(x + i, y, "═", borderColor, bgColor);
+            }
+            screen.WriteAt(x + width - 1, y, "╗", borderColor, bgColor);
+            
+            // Side borders
+            for (int i = 1; i < height - 1; i++)
+            {
+                screen.WriteAt(x, y + i, "║", borderColor, bgColor);
+                screen.WriteAt(x + width - 1, y + i, "║", borderColor, bgColor);
+            }
+            
+            // Bottom border
+            screen.WriteAt(x, y + height - 1, "╚", borderColor, bgColor);
+            for (int i = 1; i < width - 1; i++)
+            {
+                screen.WriteAt(x + i, y + height - 1, "═", borderColor, bgColor);
+            }
+            screen.WriteAt(x + width - 1, y + height - 1, "╝", borderColor, bgColor);
         }
     }
 }

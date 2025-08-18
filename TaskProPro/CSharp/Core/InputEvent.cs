@@ -75,6 +75,14 @@ namespace TaskPro.Core
         public bool IsF3 => Key == ConsoleKey.F3;
         public bool IsF4 => Key == ConsoleKey.F4;
         public bool IsF5 => Key == ConsoleKey.F5;
+        public bool IsF12 => Key == ConsoleKey.F12;
+        
+        // Function key detection
+        public bool IsFunction => Key >= ConsoleKey.F1 && Key <= ConsoleKey.F24;
+        public int FunctionKey => IsFunction ? (int)(Key - ConsoleKey.F1) + 1 : 0;
+        
+        // Space key detection
+        public bool IsSpace => Key == ConsoleKey.Spacebar || Char == ' ';
         
         public static InputEvent FromConsoleKeyInfo(ConsoleKeyInfo keyInfo)
         {

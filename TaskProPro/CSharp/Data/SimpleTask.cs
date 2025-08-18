@@ -96,6 +96,51 @@ namespace TaskPro.Data {
             if (!string.IsNullOrEmpty(ID2)) parts.Add($"P2:{ID2}");
             return parts.Any() ? $"[{string.Join("|", parts)}]" : "";
         }
+        
+        // REQUIRED METHODS FOR TaskListEditMode
+        public SimpleTask DeepCopy() {
+            return new SimpleTask {
+                Id = this.Id,
+                Title = this.Title,
+                Notes = this.Notes,
+                Completed = this.Completed,
+                CreatedDate = this.CreatedDate,
+                ModifiedDate = this.ModifiedDate,
+                DueDate = this.DueDate,
+                Priority = this.Priority,
+                Tags = new List<string>(this.Tags),
+                ColorTheme = this.ColorTheme,
+                CustomColor = this.CustomColor,
+                ParentId = this.ParentId,
+                Subtasks = new List<SimpleTask>(this.Subtasks),
+                SubtasksCollapsed = this.SubtasksCollapsed,
+                SortOrder = this.SortOrder,
+                ID1 = this.ID1,
+                ID2 = this.ID2
+            };
+        }
+        
+        public void CopyFrom(SimpleTask other) {
+            if (other == null) return;
+            
+            this.Id = other.Id;
+            this.Title = other.Title;
+            this.Notes = other.Notes;
+            this.Completed = other.Completed;
+            this.CreatedDate = other.CreatedDate;
+            this.ModifiedDate = other.ModifiedDate;
+            this.DueDate = other.DueDate;
+            this.Priority = other.Priority;
+            this.Tags = new List<string>(other.Tags);
+            this.ColorTheme = other.ColorTheme;
+            this.CustomColor = other.CustomColor;
+            this.ParentId = other.ParentId;
+            this.Subtasks = new List<SimpleTask>(other.Subtasks);
+            this.SubtasksCollapsed = other.SubtasksCollapsed;
+            this.SortOrder = other.SortOrder;
+            this.ID1 = other.ID1;
+            this.ID2 = other.ID2;
+        }
     }
     
     public enum Priority {

@@ -125,7 +125,7 @@ namespace TaskPro.UI
         /// <summary>
         /// Render the list to screen buffer
         /// </summary>
-        public void Render(ScreenBuffer screen, Rectangle bounds)
+        public virtual void Render(ScreenBuffer screen, Rectangle bounds)
         {
             if (bounds.Width < 1 || bounds.Height < 1) return;
             

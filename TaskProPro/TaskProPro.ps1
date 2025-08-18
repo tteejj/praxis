@@ -3,38 +3,114 @@
 
 param(
     [string]$DataFile = "$PSScriptRoot/Data/tasks.json",
-    [switch]$Debug
+    [switch]$Debug,
+    [switch]$Retro
 )
 
 # Set debug mode
 $global:Debug = $Debug.IsPresent
 
+# Initialize logging
+$global:LogFile = "$PSScriptRoot/TaskProPro-$(Get-Date -Format 'yyyy-MM-dd').log"
+
+function Write-DebugLog {
+    param([string]$Message, [string]$Level = "DEBUG")
+    if ($global:Debug) {
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss.fff"
+        $logEntry = "[$timestamp] [$Level] $Message"
+        Add-Content -Path $global:LogFile -Value $logEntry -Encoding UTF8
+    }
+}
+
 # Debug timing
 if ($global:Debug) {
     $startTime = Get-Date
-    Write-Host "Debug: TaskProPro starting at $startTime" -ForegroundColor DarkGray
+    Write-DebugLog "TaskProPro starting at $startTime"
 }
 
-# Suppress all console output during execution
+# Allow splash screen and startup messages
 $ProgressPreference = 'SilentlyContinue'
-$WarningPreference = 'SilentlyContinue'
-$VerbosePreference = 'SilentlyContinue'
-$InformationPreference = 'SilentlyContinue'
 
 try {
     # Check if we have an interactive console
     $hasInteractiveConsole = $true
     try {
         $null = [Console]::KeyAvailable
+        Write-DebugLog "Interactive console detected successfully"
     } catch {
         $hasInteractiveConsole = $false
         Write-Host "Warning: Non-interactive console detected. TaskProPro requires an interactive terminal." -ForegroundColor Yellow
         Write-Host "Please run TaskProPro from an interactive PowerShell session." -ForegroundColor Yellow
+        Write-DebugLog "Non-interactive console detected - exiting"
         exit 1
     }
     
-    # Load professional TUI foundation
-    . "$PSScriptRoot/Load-TaskProPro.ps1"
+    # CYBERPUNK SPLASH SCREEN
+    Clear-Host
+    Write-Host ""
+    Write-Host "╔══════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    if ($Retro.IsPresent) {
+        Write-Host "║              ★ TASKPROPRO RETRO CYBERPUNK EDITION ★              ║" -ForegroundColor Green  
+        Write-Host "║                                                                  ║" -ForegroundColor Green
+        Write-Host "║  🚀 INITIALIZING RETRO ASCII TERMINAL INTERFACE...               ║" -ForegroundColor Yellow
+    } else {
+        Write-Host "║                 ★ TASKPROPRO CYBERPUNK EDITION ★                ║" -ForegroundColor Cyan  
+        Write-Host "║                                                                  ║" -ForegroundColor Cyan
+        Write-Host "║  🚀 INITIALIZING ENHANCED TERMINAL INTERFACE...                  ║" -ForegroundColor Yellow
+    }
+    Write-Host "║    • Loading quantum-encrypted task database                     ║" -ForegroundColor Green
+    Write-Host "║    • Activating cyberpunk rendering engine                      ║" -ForegroundColor Green
+    Write-Host "║    • Establishing neural link protocols                         ║" -ForegroundColor Green
+    Write-Host "║                                                                  ║" -ForegroundColor Cyan
+    Write-Host "╚══════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+    Start-Sleep -Milliseconds 1500
+    
+    # LOAD PRE-COMPILED ASSEMBLY - ONE SYSTEM ONLY
+    Write-Host "Loading Enhanced TaskProPro..." -ForegroundColor Cyan
+    
+    $dllPath = "$PSScriptRoot/TaskPro.dll"
+    
+    # Check if DLL exists, build if needed
+    if (-not (Test-Path $dllPath)) {
+        Write-Host "  TaskPro.dll not found - building..." -ForegroundColor Yellow
+        Write-DebugLog "TaskPro.dll missing - running Build-TaskProDll.ps1"
+        
+        try {
+            & "$PSScriptRoot/Build-TaskProDll.ps1"
+            if (-not (Test-Path $dllPath)) {
+                throw "Build-TaskProDll.ps1 completed but TaskPro.dll was not created"
+            }
+        }
+        catch {
+            Write-Host "  ✗ FAILED to build TaskPro.dll: $($_.Exception.Message)" -ForegroundColor Red
+            Write-DebugLog "CRITICAL: DLL build failed: $($_.Exception.Message)" "ERROR"
+            Write-Host "CRITICAL: Enhanced UI failed to build - TaskProPro cannot continue" -ForegroundColor Red
+            exit 1
+        }
+    }
+    
+    try {
+        Write-DebugLog "Loading pre-compiled TaskPro.dll from: $dllPath"
+        
+        # Load the pre-compiled assembly - instant, no hanging!
+        Add-Type -Path $dllPath
+        Write-Host "  ✓ Enhanced UI loaded from DLL!" -ForegroundColor Green
+        Write-DebugLog "Pre-compiled assembly loaded successfully"
+        
+        # Test that enhanced classes are available
+        Write-DebugLog "Testing TaskListWidget class creation..."
+        $testWidget = [TaskPro.UI.TaskListWidget]::new()
+        Write-DebugLog "TaskListWidget created successfully - enhanced UI is active"
+    }
+    catch {
+        Write-Host "  ✗ FAILED to load TaskPro.dll: $($_.Exception.Message)" -ForegroundColor Red
+        Write-DebugLog "CRITICAL: DLL loading failed: $($_.Exception.Message)" "ERROR"
+        Write-DebugLog "Full error details: $($_.Exception.ToString())" "ERROR"
+        
+        Write-Host "CRITICAL: Enhanced UI failed to load - TaskProPro cannot continue" -ForegroundColor Red
+        exit 1
+    }
     
     Write-Host "Starting TaskProPro..." -ForegroundColor Cyan
     
@@ -46,10 +122,9 @@ try {
     
     # Initialize components with error handling
     try {
+        Write-DebugLog "Creating TaskManager with data file: $DataFile"
         $taskManager = [TaskPro.Data.TaskManager]::new($DataFile)
-        if ($global:Debug) {
-            Write-Host "TaskManager initialized successfully" -ForegroundColor Green
-        }
+        Write-DebugLog "TaskManager initialized successfully"
     }
     catch [TaskPro.Core.DataPersistenceException] {
         Write-Host "Data persistence error: $($_.Exception.Message)" -ForegroundColor Red
@@ -62,25 +137,48 @@ try {
     }
     
     try {
+        Write-DebugLog "Creating UI components - ScreenBuffer, TaskListWidget, StatusBar"
         $screen = [TaskPro.Core.ScreenBuffer]::new([Console]::WindowWidth, [Console]::WindowHeight)
-        $taskListWidget = [TaskPro.UI.TaskListWidget]::new()
+        Write-DebugLog "ScreenBuffer created: $([Console]::WindowWidth)x$([Console]::WindowHeight)"
+        
+        # Use TaskListWidgetRetro as default for now
+        $taskListWidget = [TaskPro.UI.TaskListWidgetRetro]::new()
+        Write-DebugLog "TaskListWidgetRetro created as DEFAULT - ASCII mode active"
+        Write-Host "  ✓ Retro ASCII mode enabled as default!" -ForegroundColor Green
+        
         $statusBar = [TaskPro.UI.StatusBar]::new()
+        Write-DebugLog "StatusBar created successfully"
         
         # Initialize time tracking components
+        Write-DebugLog "Creating TimeTrackingService and TimeTrackingWidget"
         $timeTrackingService = [TaskPro.Data.TimeTrackingService]::new($dataDir)
         $timeTrackingWidget = [TaskPro.UI.TimeTrackingWidget]::new()
-        $timeTrackingWidget.Initialize($timeTrackingService)
+        $timeTrackingWidget.Initialize($timeTrackingService, $taskManager)
         $timeTrackingWidget.StatusBar = $statusBar
+        Write-DebugLog "Time tracking components initialized with task integration"
     }
     catch {
         throw [TaskPro.Core.RenderingException]::new("Failed to initialize UI components", $_.Exception)
     }
     
     # Configure task list widget
+    Write-DebugLog "Configuring task list widget dependencies"
     $taskListWidget.TaskManager = $taskManager
-    $taskListWidget.ShowPillboxSelection = $true
+    Write-DebugLog "TaskManager assigned to widget"
     $taskListWidget.StatusBar = $statusBar
-    $taskListWidget.RefreshList($true)
+    Write-DebugLog "StatusBar assigned to widget"
+    $taskListWidget.UpdateDependencies()
+    Write-DebugLog "UpdateDependencies called successfully"
+    
+    # Enable retro features - now default
+    if ($taskListWidget -is [TaskPro.UI.TaskListWidgetRetro]) {
+        $taskListWidget.ToggleMatrixMode()  # Enable Matrix theme by default
+        Write-Host "  ✓ Matrix cyberpunk theme activated!" -ForegroundColor Green
+        Write-DebugLog "Retro widget Matrix mode enabled"
+    }
+    
+    $taskListWidget.RefreshTaskList()
+    Write-DebugLog "RefreshTaskList completed successfully"
     
     # Create sample data if no tasks exist
     $allTasks = $taskManager.GetAllTasks()
@@ -136,12 +234,14 @@ try {
         $taskManager.AddTask($task4)
         
         Write-Host "Sample tasks created!" -ForegroundColor Green
-        Write-Host "Features: E=Inline Edit (includes ID1/ID2), Enter=Notes, N=New Task, Space=Complete" -ForegroundColor Yellow
-        Write-Host "Themes: T=Cycle Themes, Shift+T=Color Picker, R=Edit Tags" -ForegroundColor Magenta
+        # Retro mode is now default
+        Write-Host "RETRO MODE: Arrow keys=Navigate, Enter=Notes, N=New Task, Space=Complete" -ForegroundColor Yellow
+        Write-Host "Cyberpunk: Ctrl+M=Matrix Theme, Ctrl+B=BladeRunner, Ctrl+G=Glitch, Ctrl+S=Scanlines" -ForegroundColor Green
         Write-Host "Time Tracking: F1=Switch to Time Tracking Mode" -ForegroundColor Cyan
-        $statusBar.ShowSuccess("Welcome! Press F1 for Time Tracking, T to cycle themes, E to edit fields")
+        $statusBar.ShowSuccess("RETRO MODE DEFAULT! Matrix theme enabled. Fixed columns with field highlights.")
     } else {
-        $statusBar.ShowMessage("TaskProPro ready - $(($allTasks | Where-Object { -not $_.Completed }).Count) active tasks")
+        # Retro mode is now default
+        $statusBar.ShowMessage("RETRO CYBERPUNK MODE - $(($allTasks | Where-Object { -not $_.Completed }).Count) active tasks loaded into neural matrix")
     }
     
     # Initialize filter
@@ -193,55 +293,14 @@ try {
                 $screen.BeginFrame()
                 
                 if ($currentMode -eq "Tasks") {
-                    # TASK MANAGEMENT MODE
+                    # UNIFIED TASK MANAGEMENT MODE - Full screen control to TaskListWidget
                     
-                    # CYBERPUNK HEADER
-                    $headerText = "TASKPRO v2.1 - TASK MANAGEMENT SYSTEM"
-                    $filterText = $currentFilter.GetDisplayText()
-                    if ($filterText -ne "All") {
-                        $headerText += " [FLT:$($filterText.ToUpper())]"
-                    }
-                    $screen.WriteAt(0, 0, $headerText, [ConsoleColor]::Cyan)
+                    # Update current filter
+                    $taskListWidget.CurrentFilter = $currentFilter
                     
-                    # System status line
-                    $systemStatus = "[SYS:ONLINE] [MODE:TASK_MGMT] [F1:TIME_TRACK]"
-                    $screen.WriteAt(0, 1, $systemStatus, [ConsoleColor]::Green)
-                    
-                    # Task count info with cyberpunk styling
-                    $taskCount = $taskListWidget.TotalItems
-                    $selectedInfo = if ($taskCount -gt 0) { "SELECTED: $($taskListWidget.SelectedIndex + 1)/$taskCount TASKS" } else { "NO ACTIVE TASKS" }
-                    $screen.WriteAt(0, 2, $selectedInfo, [ConsoleColor]::Yellow)
-                    
-                    # Cyberpunk separator
-                    $separator = "═" * $screen.Width
-                    $screen.WriteAt(0, 3, $separator, [ConsoleColor]::Cyan)
-                    
-                    # Task list widget rendering with safe bounds for cyberpunk header
-                    $listStartY = 4
-                    $listHeight = [Math]::Max(1, $screen.Height - 8)  # Safe minimum height
-                    $listRect = [TaskPro.Core.Rectangle]::new(0, $listStartY, $screen.Width, $listHeight)
-                    $taskListWidget.Render($screen, $listRect)
-                    
-                    # Professional status bar with safe bounds
-                    $statusY = [Math]::Max($listStartY + $listHeight + 1, $screen.Height - 3)
-                    $statusHeight = [Math]::Max(1, $screen.Height - $statusY)
-                    $statusRect = [TaskPro.Core.Rectangle]::new(0, $statusY, $screen.Width, $statusHeight)
-                    
-                    # Build status information
-                    $statusInfo = [TaskPro.UI.StatusInfo]::new()
-                    $statusInfo.TaskCount = $taskListWidget.TotalItems
-                    $statusInfo.SelectedIndex = if ($taskListWidget.TotalItems -gt 0) { $taskListWidget.SelectedIndex } else { 0 }
-                    $statusInfo.FilterText = $currentFilter.GetDisplayText()
-                    
-                    # Count completed tasks and check for due tasks
-                    $allTasks = $taskManager.GetAllTasks()
-                    $statusInfo.CompletedCount = ($allTasks | Where-Object { $_.Completed }).Count
-                    $today = [DateTime]::Today
-                    $statusInfo.HasDueTasks = ($allTasks | Where-Object { 
-                        $_.DueDate -ne [DateTime]::MinValue -and $_.DueDate.Date -le $today -and -not $_.Completed 
-                    }).Count -gt 0
-                    
-                    $statusBar.Render($screen, $statusRect, $statusInfo)
+                    # UNIFIED RENDERING - TaskListWidget handles everything
+                    $fullRect = [TaskPro.Core.Rectangle]::new(0, 0, $screen.Width, $screen.Height)
+                    $taskListWidget.Render($screen, $fullRect)
                     
                 } else {
                     # TIME TRACKING MODE
@@ -257,27 +316,11 @@ try {
                 # End frame - single write, zero flicker!
                 $screen.EndFrame()
             }
-            catch [TaskPro.Core.RenderingException] {
-                if ($global:Debug) {
-                    Write-Host "Rendering error (recovering): $($_.Exception.Message)" -ForegroundColor Red
-                }
-                # Clear screen and try basic recovery
-                try {
-                    Clear-Host
-                    Write-Host "TaskProPro - Rendering Error Recovery Mode" -ForegroundColor Red
-                    Write-Host "Press Ctrl+Q to quit" -ForegroundColor Yellow
-                }
-                catch {
-                    # Even recovery failed - bail out
-                    $running = $false
-                    throw [TaskPro.Core.RenderingException]::new("Critical rendering failure", $_.Exception)
-                }
-            }
             catch {
-                if ($global:Debug) {
-                    Write-Host "Unexpected rendering error: $($_.Exception.Message)" -ForegroundColor Red
-                }
-                throw [TaskPro.Core.RenderingException]::new("Rendering subsystem error", $_.Exception)
+                # NO FALLBACK - Enhanced system must work or exit
+                Write-Host "Enhanced UI failed: $($_.Exception.Message)" -ForegroundColor Red
+                $running = $false
+                throw
             }
             
             # Handle input with error handling
@@ -319,7 +362,7 @@ try {
                         if ($input.IsCtrlR) {
                             # Refresh current mode
                             if ($currentMode -eq "Tasks") {
-                                $taskListWidget.RefreshList($true)
+                                $taskListWidget.RefreshTaskList()
                                 $statusBar.ShowSuccess("Task list refreshed")
                             } else {
                                 $timeTrackingWidget.RefreshList()
@@ -333,9 +376,9 @@ try {
                         
                         # Route input to appropriate widget based on current mode
                         if ($currentMode -eq "Tasks") {
-                            $taskListWidget.HandleInput($input)
+                            $null = $taskListWidget.HandleInput($input)
                         } else {
-                            $timeTrackingWidget.HandleInput($input)
+                            $null = $timeTrackingWidget.HandleInput($input)
                         }
                     }
                     catch [TaskPro.Core.InputHandlingException] {
