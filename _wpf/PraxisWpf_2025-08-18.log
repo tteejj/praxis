@@ -69,3 +69,41 @@ Stack:    at System.Text.Json.ThrowHelper.ThrowNotSupportedException(ReadStack& 
 2025-08-18 12:20:53.699 [T01]INFO     JsonDataService      Successfully loaded 3 root items
 2025-08-18 12:20:53.699 [T01]INFO     TaskViewModel        Loaded 3 root items
 2025-08-18 12:20:53.700 [T01]INFO     MainWindow           MainWindow initialized successfully
+2025-08-18 12:27:55.033 [T01]INFO     Logger               Logger initialized | Level=Info, StackTrace=False, ThreadId=True, Path=PraxisWpf_2025-08-18.log
+2025-08-18 12:27:55.039 [T01]INFO     Logger               Logger initialized | Level=Debug, StackTrace=True, ThreadId=True, Path=PraxisWpf_2025-08-18.log
+2025-08-18 12:27:55.039 [T01]INFO     AppConfig            Configuration loaded from app-config.json
+2025-08-18 12:27:55.039 [T01]INFO     App                  Application starting up
+2025-08-18 12:27:55.039 [T01]DEBUG    App                  Command line args: 
+2025-08-18 12:27:55.040 [T01]INFO     App                  Application startup completed successfully
+2025-08-18 12:27:55.082 [T01]DEBUG    MainWindow           Initializing WPF components
+2025-08-18 12:27:55.224 [T01]DEBUG    TaskView             Initializing XAML components
+2025-08-18 12:27:55.235 [T01]INFO     TaskView             TaskView initialized successfully
+2025-08-18 12:27:55.237 [T01]DEBUG    TaskView.xaml        PERF END: TaskView Constructor | Duration: 10.94ms
+2025-08-18 12:27:55.259 [T01]DEBUG    MainWindow           Creating TaskViewModel
+2025-08-18 12:27:55.260 [T01]INFO     JsonDataService      Initialized with data file: data.json
+2025-08-18 12:27:55.260 [T01]DEBUG    JsonDataService      JSON options configured | WriteIndented=true, CamelCase=true, StringEnumConverter=true
+2025-08-18 12:27:55.260 [T01]DEBUG    TaskViewModel        Data service initialized: JsonDataService
+2025-08-18 12:27:55.261 [T01]DEBUG    JsonDataService      Reading data file: data.json
+2025-08-18 12:27:55.276 [T01]DEBUG    TaskItem             Name changed: '' → 'Project Alpha - Neural Network Implementation' for Id1=1
+2025-08-18 12:27:55.278 [T01]DEBUG    TaskItem             IsExpanded changed: False → True for Id1=1, Name=Project Alpha - Neural Network Implementation
+2025-08-18 12:27:55.278 [T01]DEBUG    TaskItem             Name changed: '' → 'Design architecture blueprint' for Id1=2
+2025-08-18 12:27:55.279 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=2, Name=Design architecture blueprint
+2025-08-18 12:27:55.280 [T01]DEBUG    TaskItem             Name changed: '' → 'Implement core algorithms' for Id1=3
+2025-08-18 12:27:55.280 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=3, Name=Implement core algorithms
+2025-08-18 12:27:55.280 [T01]DEBUG    TaskItem             Name changed: '' → 'Documentation cleanup' for Id1=5
+2025-08-18 12:27:55.280 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=5, Name=Documentation cleanup
+2025-08-18 12:27:55.281 [T01]DEBUG    TaskItem             Name changed: '' → 'Project Beta - Cybersecurity Audit' for Id1=4
+2025-08-18 12:27:55.281 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=4, Name=Project Beta - Cybersecurity Audit
+2025-08-18 12:27:55.281 [T01]DEBUG    TaskItem             Name changed: '' → 'Vulnerability assessment' for Id1=6
+2025-08-18 12:27:55.281 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=6, Name=Vulnerability assessment
+2025-08-18 12:27:55.281 [T01]DEBUG    TaskItem             Name changed: '' → 'Personal - System Maintenance' for Id1=7
+2025-08-18 12:27:55.281 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=7, Name=Personal - System Maintenance
+2025-08-18 12:27:55.281 [T01]DEBUG    JsonDataService      Deserialized 3 items from JSON
+2025-08-18 12:27:55.282 [T01]INFO     JsonDataService      Successfully loaded 3 root items
+2025-08-18 12:27:55.282 [T01]DEBUG    JsonDataService      PERF END: LoadItems | Duration: 20.54ms
+2025-08-18 12:27:55.282 [T01]INFO     TaskViewModel        Loaded 3 root items
+2025-08-18 12:27:55.282 [T01]DEBUG    TaskViewModel        All commands initialized
+2025-08-18 12:27:55.282 [T01]DEBUG    TaskViewModel        PERF END: TaskViewModel Constructor | Duration: 21.63ms
+2025-08-18 12:27:55.282 [T01]INFO     MainWindow           MainWindow initialized successfully
+2025-08-18 12:27:55.282 [T01]DEBUG    MainWindow.xaml      PERF END: MainWindow Constructor | Duration: 200.06ms
+2025-08-18 12:27:55.384 [T01]DEBUG    MainWindow           Window source initialized
