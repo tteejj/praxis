@@ -108,42 +108,15 @@
                                    Text="{Binding AssignedDate, StringFormat={}{0:MM/dd}}"
                                    Foreground="{DynamicResource CyberDimCyan}"/>
 
-                        <!-- Due Date with alert styling for overdue -->
+                        <!-- Due Date -->
                         <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource CyberDimCyan}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                    <Setter Property="Text" Value="{Binding DueDate, StringFormat={}{0:MM/dd}}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding DueDate}" Value="{x:Null}">
-                                            <Setter Property="Text" Value="-"/>
-                                            <Setter Property="Opacity" Value="0.5"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsHighPriorityToday}" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource CyberErrorBrush}"/>
-                                            <Setter Property="FontWeight" Value="Bold"/>
-                                            <Setter Property="Text" Value="{Binding DueDate, StringFormat={}⚡{0:MM/dd}}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                   Text="{Binding DueDate, StringFormat={}{0:MM/dd}}"
+                                   Foreground="{DynamicResource CyberDimCyan}"/>
 
                         <!-- Bring Forward Date -->
                         <TextBlock Grid.Column="4" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource CyberWarningBrush}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                    <Setter Property="Text" Value="{Binding BringForwardDate, StringFormat={}{0:MM/dd}}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding BringForwardDate}" Value="{x:Null}">
-                                            <Setter Property="Text" Value="-"/>
-                                            <Setter Property="Opacity" Value="0.5"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                   Text="{Binding BringForwardDate, StringFormat={}{0:MM/dd}}"
+                                   Foreground="{DynamicResource CyberWarningBrush}"/>
 
                         <!-- ID display with proper Id1.Id2 format -->
                         <TextBlock Grid.Column="5" VerticalAlignment="Center"
