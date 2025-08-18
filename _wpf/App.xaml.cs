@@ -18,6 +18,19 @@ namespace PraxisWpf
                 Logger.Info("App", "Application starting up");
                 Logger.Debug("App", $"Command line args: {string.Join(" ", e.Args)}");
 
+                // Subscribe to global exception handlers
+                AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+                {
+                    Logger.Critical("App", "Unhandled exception in app domain", args.ExceptionObject as Exception);
+                };
+
+                this.DispatcherUnhandledException += (s, args) =>
+                {
+                    Logger.Critical("App", "Unhandled UI thread exception", args.Exception);
+                    args.Handled = true; // Prevent crash
+                    MessageBox.Show($"UI Error: {args.Exception.Message}\n\nSee log for details.", "Application Error");
+                };
+
                 // Check for debug mode command line argument
                 foreach (var arg in e.Args)
                 {
@@ -36,7 +49,7 @@ namespace PraxisWpf
             catch (Exception ex)
             {
                 Logger.Critical("App", "Fatal error during application startup", ex);
-                MessageBox.Show($"Fatal error during startup: {ex.Message}", "Application Error", 
+                MessageBox.Show($"Fatal error during startup: {ex.Message}\n\nStack trace:\n{ex.StackTrace}", "Application Error", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(1);
             }

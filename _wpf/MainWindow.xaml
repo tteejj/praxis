@@ -27,11 +27,11 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Background="{DynamicResource CyberControlBrush}" 
-                BorderBrush="{DynamicResource CyberBorderBrush}" 
+        <Border Grid.Row="0" Background="{StaticResource CyberControlBrush}" 
+                BorderBrush="{StaticResource CyberBorderBrush}" 
                 BorderThickness="0,0,0,2" Padding="10">
-            <TextBlock Text="╔═══ PRAXIS TASK MANAGER ═══╗" 
-                       Style="{DynamicResource CyberHeaderText}"/>
+            <TextBlock Text="PRAXIS TASK MANAGER" 
+                       FontSize="16" FontWeight="Bold" TextAlignment="Center"/>
         </Border>
 
         <!-- Main content -->
@@ -40,23 +40,7 @@
         <!-- Status bar -->
         <StatusBar Grid.Row="2">
             <StatusBarItem>
-                <TextBlock>
-                    <Run Text="[" Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="N" Foreground="{DynamicResource CyberAccentBrush}" FontWeight="Bold"/>
-                    <Run Text="]New " Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="[" Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="E" Foreground="{DynamicResource CyberAccentBrush}" FontWeight="Bold"/>
-                    <Run Text="]Edit " Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="[" Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="Del" Foreground="{DynamicResource CyberErrorBrush}" FontWeight="Bold"/>
-                    <Run Text="]Delete " Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="[" Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="+/-" Foreground="{DynamicResource CyberWarningBrush}" FontWeight="Bold"/>
-                    <Run Text="]Expand/Collapse " Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="[" Foreground="{DynamicResource CyberBorderBrush}"/>
-                    <Run Text="Ctrl+S" Foreground="{DynamicResource CyberInfoBrush}" FontWeight="Bold"/>
-                    <Run Text="]Save" Foreground="{DynamicResource CyberBorderBrush}"/>
-                </TextBlock>
+                <TextBlock Text="N: New | E: Edit | Del: Delete | +/-: Expand/Collapse | Ctrl+S: Save"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>

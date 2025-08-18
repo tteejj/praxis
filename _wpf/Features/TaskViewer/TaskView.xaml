@@ -11,8 +11,8 @@
         </Grid.RowDefinitions>
 
         <!-- Header row with cyber styling -->
-        <Border Grid.Row="0" BorderBrush="{DynamicResource CyberBorderBrush}" 
-                BorderThickness="0,0,0,1" Background="{DynamicResource CyberControlBrush}"
+        <Border Grid.Row="0" BorderBrush="{StaticResource CyberBorderBrush}" 
+                BorderThickness="0,0,0,1" Background="{StaticResource CyberControlBrush}"
                 Padding="8,4">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -22,14 +22,14 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 
-                <TextBlock Grid.Column="0" Text="║ TASK NAME" FontWeight="Bold" 
-                          Foreground="{DynamicResource CyberAccentBrush}"/>
-                <TextBlock Grid.Column="1" Text="║ PRIORITY" FontWeight="Bold" 
-                          Foreground="{DynamicResource CyberAccentBrush}"/>
-                <TextBlock Grid.Column="2" Text="║ DATE" FontWeight="Bold" 
-                          Foreground="{DynamicResource CyberAccentBrush}"/>
-                <TextBlock Grid.Column="3" Text="║ ID" FontWeight="Bold" 
-                          Foreground="{DynamicResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="0" Text="TASK NAME" FontWeight="Bold" 
+                          Foreground="{StaticResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="1" Text="PRIORITY" FontWeight="Bold" 
+                          Foreground="{StaticResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="2" Text="DATE" FontWeight="Bold" 
+                          Foreground="{StaticResource CyberAccentBrush}"/>
+                <TextBlock Grid.Column="3" Text="ID" FontWeight="Bold" 
+                          Foreground="{StaticResource CyberAccentBrush}"/>
             </Grid>
         </Border>
 
@@ -38,40 +38,33 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type models:TaskItem}" 
                                         ItemsSource="{Binding Children}">
-                    <Border BorderBrush="{DynamicResource CyberBorderBrush}" 
-                            BorderThickness="0,0,0,1" Opacity="0.3"
-                            Padding="4,2">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="100"/>
-                                <ColumnDefinition Width="100"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                    <Grid Margin="4,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                            <!-- Name column - switches between TextBlock and TextBox -->
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" 
-                                       Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}" 
-                                       VerticalAlignment="Center"/>
-                            <TextBox Grid.Column="0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                                     Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                                     BorderThickness="1" VerticalAlignment="Center"/>
+                        <!-- Name column - switches between TextBlock and TextBox -->
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" 
+                                   Visibility="{Binding IsInEditMode, Converter={StaticResource InverseBoolToVisibilityConverter}}" 
+                                   VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                 Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                                 BorderThickness="1" VerticalAlignment="Center"/>
 
-                            <!-- Priority with simple display -->
-                            <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource CyberWarningBrush}"/>
+                        <!-- Priority with simple display -->
+                        <TextBlock Grid.Column="1" Text="{Binding Priority}" VerticalAlignment="Center"/>
 
-                            <!-- Assigned Date with cyber formatting -->
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                                       Text="{Binding AssignedDate, StringFormat='[{0:MM.dd}]'}"
-                                       Foreground="{DynamicResource CyberDimCyan}"/>
+                        <!-- Assigned Date with simple formatting -->
+                        <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                                   Text="{Binding AssignedDate, StringFormat=MM/dd}"/>
 
-                            <!-- ID display simplified -->
-                            <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                                       Text="{Binding Id1}" 
-                                       Foreground="{DynamicResource CyberDimCyan}"/>
-                        </Grid>
-                    </Border>
+                        <!-- ID display simplified -->
+                        <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                                   Text="{Binding Id1}"/>
+                    </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>
