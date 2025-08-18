@@ -5072,3 +5072,128 @@ Stack:    at System.Windows.Markup.XamlReader.RewrapException(Exception e, IXaml
 2025-08-18 13:59:37.396 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
 2025-08-18 13:59:49.247 [T01]INFO     MainWindow           Window closing
 2025-08-18 13:59:49.249 [T01]INFO     App                  Application shutting down with exit code: 0
+2025-08-18 16:14:03.935 [T01]INFO     Logger               Logger initialized | Level=Info, StackTrace=False, ThreadId=True, Path=PraxisWpf_2025-08-18.log
+2025-08-18 16:14:03.939 [T01]INFO     Logger               Logger initialized | Level=Debug, StackTrace=True, ThreadId=True, Path=PraxisWpf_2025-08-18.log
+2025-08-18 16:14:03.940 [T01]INFO     AppConfig            Configuration loaded from app-config.json
+2025-08-18 16:14:03.940 [T01]INFO     App                  Application starting up
+2025-08-18 16:14:03.940 [T01]DEBUG    App                  Command line args: 
+2025-08-18 16:14:03.941 [T01]INFO     App                  Application startup completed successfully
+2025-08-18 16:14:03.960 [T01]DEBUG    MainWindow           Initializing WPF components
+2025-08-18 16:14:04.041 [T01]DEBUG    TaskView             Initializing XAML components
+2025-08-18 16:14:04.053 [T01]INFO     TaskView             TaskView initialized successfully
+2025-08-18 16:14:04.055 [T01]DEBUG    TaskView.xaml        PERF END: TaskView Constructor | Duration: 13.05ms
+2025-08-18 16:14:04.064 [T01]DEBUG    MainWindow           Creating TaskViewModel
+2025-08-18 16:14:04.064 [T01]INFO     JsonDataService      Initialized with data file: data.json
+2025-08-18 16:14:04.064 [T01]DEBUG    JsonDataService      JSON options configured | WriteIndented=true, CamelCase=true, StringEnumConverter=true
+2025-08-18 16:14:04.065 [T01]DEBUG    TaskViewModel        Data service initialized: JsonDataService
+2025-08-18 16:14:04.066 [T01]DEBUG    JsonDataService      Reading data file: data.json
+2025-08-18 16:14:04.082 [T01]DEBUG    TaskItem             Name changed: '' → 'Sample Task 1' for Id1=1
+2025-08-18 16:14:04.084 [T01]DEBUG    TaskItem             Priority changed: Medium → High for Id1=1, Name=Sample Task 1
+2025-08-18 16:14:04.085 [T01]DEBUG    TaskItem             IsExpanded changed: False → True for Id1=1, Name=Sample Task 1
+2025-08-18 16:14:04.085 [T01]DEBUG    TaskItem             Name changed: '' → 'Sub-task A' for Id1=1
+2025-08-18 16:14:04.085 [T01]DEBUG    TaskItem             Priority changed: Medium → Medium for Id1=1, Name=Sub-task A
+2025-08-18 16:14:04.085 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=1, Name=Sub-task A
+2025-08-18 16:14:04.086 [T01]DEBUG    TaskItem             Name changed: '' → 'Sample Task 2' for Id1=2
+2025-08-18 16:14:04.086 [T01]DEBUG    TaskItem             Priority changed: Medium → Low for Id1=2, Name=Sample Task 2
+2025-08-18 16:14:04.086 [T01]DEBUG    TaskItem             IsExpanded changed: False → False for Id1=2, Name=Sample Task 2
+2025-08-18 16:14:04.086 [T01]DEBUG    JsonDataService      Deserialized 2 items from JSON
+2025-08-18 16:14:04.087 [T01]INFO     JsonDataService      Successfully loaded 2 root items
+2025-08-18 16:14:04.087 [T01]DEBUG    JsonDataService      PERF END: LoadItems | Duration: 21.55ms
+2025-08-18 16:14:04.087 [T01]INFO     TaskViewModel        Loaded 2 root items
+2025-08-18 16:14:04.087 [T01]INFO     TaskViewModel        Selection changed: 'null' → 'Sample Task 1'
+2025-08-18 16:14:04.087 [T01]INFO     TaskViewModel        Auto-selected first item: Sample Task 1
+2025-08-18 16:14:04.088 [T01]DEBUG    TaskViewModel        All commands initialized
+2025-08-18 16:14:04.088 [T01]DEBUG    TaskViewModel        PERF END: TaskViewModel Constructor | Duration: 22.83ms
+2025-08-18 16:14:04.088 [T01]INFO     MainWindow           MainWindow initialized successfully
+2025-08-18 16:14:04.088 [T01]DEBUG    MainWindow.xaml      PERF END: MainWindow Constructor | Duration: 128.05ms
+2025-08-18 16:14:04.152 [T01]DEBUG    TaskView             Applying template and setting foolproof data focus
+2025-08-18 16:14:04.169 [T01]DEBUG    MainWindow           Window source initialized
+2025-08-18 16:14:04.246 [T01]DEBUG    TaskView             TreeView focused on load for foolproof data focus
+2025-08-18 16:14:04.246 [T01]DEBUG    TaskView             Window activation handler attached
+2025-08-18 16:14:08.199 [T01]INFO     TaskView             TreeView selection changed to: Sample Task 1
+2025-08-18 16:14:08.199 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 1' → 'Sample Task 1'
+2025-08-18 16:14:08.199 [T01]DEBUG    TaskView             ViewModel.SelectedItem updated
+2025-08-18 16:14:08.201 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
+2025-08-18 16:14:08.202 [T01]DEBUG    TaskView             Selected item brought into view
+2025-08-18 16:14:10.338 [T01]INFO     TaskView             TreeView selection changed to: Sample Task 2
+2025-08-18 16:14:10.339 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 1' → 'Sample Task 2'
+2025-08-18 16:14:10.339 [T01]DEBUG    TaskView             ViewModel.SelectedItem updated
+2025-08-18 16:14:10.340 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
+2025-08-18 16:14:10.340 [T01]DEBUG    TaskView             Selected item brought into view
+2025-08-18 16:14:14.021 [T01]INFO     TaskView             N key pressed - creating new task
+2025-08-18 16:14:14.022 [T01]DEBUG    TaskViewModel        Creating new task with Id1=3
+2025-08-18 16:14:14.022 [T01]DEBUG    TaskItem             Name changed: '' → 'New Task' for Id1=3
+2025-08-18 16:14:14.022 [T01]INFO     TaskItem             Edit mode changed: False → True for Id1=3, Name=New Task
+2025-08-18 16:14:14.022 [T01]DEBUG    TaskItem             Priority changed: Medium → Medium for Id1=3, Name=New Task
+2025-08-18 16:14:14.022 [T01]DEBUG    TaskViewModel        New task created: Id1=3, Name=New Task
+2025-08-18 16:14:14.022 [T01]INFO     TaskViewModel        Adding new task as child of 'Sample Task 2'
+2025-08-18 16:14:14.023 [T01]DEBUG    TaskItem             IsExpanded changed: False → True for Id1=2, Name=Sample Task 2
+2025-08-18 16:14:14.023 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 2' → 'New Task'
+2025-08-18 16:14:14.023 [T01]INFO     TaskViewModel        New task 'New Task' created and selected
+2025-08-18 16:14:14.023 [T01]DEBUG    TaskViewModel        PERF END: ExecuteNew | Duration: 1.07ms
+2025-08-18 16:14:17.631 [T01]INFO     TaskView             Enter key pressed - toggling edit mode
+2025-08-18 16:14:17.632 [T01]INFO     TaskItem             Edit mode changed: True → False for Id1=3, Name=New Task
+2025-08-18 16:14:18.741 [T01]INFO     TaskView             TreeView selection changed to: Sample Task 1
+2025-08-18 16:14:18.741 [T01]INFO     TaskViewModel        Selection changed: 'New Task' → 'Sample Task 1'
+2025-08-18 16:14:18.741 [T01]DEBUG    TaskView             ViewModel.SelectedItem updated
+2025-08-18 16:14:18.742 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
+2025-08-18 16:14:18.742 [T01]DEBUG    TaskView             Selected item brought into view
+2025-08-18 16:14:20.027 [T01]INFO     TaskView             TreeView selection changed to: Sample Task 2
+2025-08-18 16:14:20.027 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 1' → 'Sample Task 2'
+2025-08-18 16:14:20.027 [T01]DEBUG    TaskView             ViewModel.SelectedItem updated
+2025-08-18 16:14:20.028 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
+2025-08-18 16:14:20.028 [T01]DEBUG    TaskView             Selected item brought into view
+2025-08-18 16:14:20.634 [T01]INFO     TaskView             N key pressed - creating new task
+2025-08-18 16:14:20.634 [T01]DEBUG    TaskViewModel        Creating new task with Id1=4
+2025-08-18 16:14:20.634 [T01]DEBUG    TaskItem             Name changed: '' → 'New Task' for Id1=4
+2025-08-18 16:14:20.634 [T01]INFO     TaskItem             Edit mode changed: False → True for Id1=4, Name=New Task
+2025-08-18 16:14:20.634 [T01]DEBUG    TaskItem             Priority changed: Medium → Medium for Id1=4, Name=New Task
+2025-08-18 16:14:20.634 [T01]DEBUG    TaskViewModel        New task created: Id1=4, Name=New Task
+2025-08-18 16:14:20.635 [T01]INFO     TaskViewModel        Adding new task as child of 'Sample Task 2'
+2025-08-18 16:14:20.635 [T01]DEBUG    TaskItem             IsExpanded changed: True → True for Id1=2, Name=Sample Task 2
+2025-08-18 16:14:20.635 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 2' → 'New Task'
+2025-08-18 16:14:20.635 [T01]INFO     TaskViewModel        New task 'New Task' created and selected
+2025-08-18 16:14:20.635 [T01]DEBUG    TaskViewModel        PERF END: ExecuteNew | Duration: 0.16ms
+2025-08-18 16:14:21.263 [T01]INFO     TaskView             TreeView selection changed to: Sample Task 1
+2025-08-18 16:14:21.263 [T01]INFO     TaskViewModel        Selection changed: 'New Task' → 'Sample Task 1'
+2025-08-18 16:14:21.263 [T01]DEBUG    TaskView             ViewModel.SelectedItem updated
+2025-08-18 16:14:21.264 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
+2025-08-18 16:14:21.264 [T01]DEBUG    TaskView             Selected item brought into view
+2025-08-18 16:14:21.542 [T01]INFO     TaskView             TreeView selection changed to: Sample Task 2
+2025-08-18 16:14:21.542 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 1' → 'Sample Task 2'
+2025-08-18 16:14:21.542 [T01]DEBUG    TaskView             ViewModel.SelectedItem updated
+2025-08-18 16:14:21.543 [T01]DEBUG    TaskView             TreeView focused for keyboard navigation
+2025-08-18 16:14:21.543 [T01]DEBUG    TaskView             Selected item brought into view
+2025-08-18 16:14:23.252 [T01]INFO     TaskView             E key pressed - toggling edit mode
+2025-08-18 16:14:23.253 [T01]INFO     TaskItem             Edit mode changed: False → True for Id1=2, Name=Sample Task 2
+2025-08-18 16:14:30.753 [T01]INFO     TaskView             N key pressed - creating new task
+2025-08-18 16:14:30.753 [T01]DEBUG    TaskViewModel        Creating new task with Id1=5
+2025-08-18 16:14:30.753 [T01]DEBUG    TaskItem             Name changed: '' → 'New Task' for Id1=5
+2025-08-18 16:14:30.753 [T01]INFO     TaskItem             Edit mode changed: False → True for Id1=5, Name=New Task
+2025-08-18 16:14:30.753 [T01]DEBUG    TaskItem             Priority changed: Medium → Medium for Id1=5, Name=New Task
+2025-08-18 16:14:30.753 [T01]DEBUG    TaskViewModel        New task created: Id1=5, Name=New Task
+2025-08-18 16:14:30.753 [T01]INFO     TaskViewModel        Adding new task as child of 'Sample Task 2'
+2025-08-18 16:14:30.754 [T01]DEBUG    TaskItem             IsExpanded changed: True → True for Id1=2, Name=Sample Task 2
+2025-08-18 16:14:30.754 [T01]INFO     TaskViewModel        Selection changed: 'Sample Task 2' → 'New Task'
+2025-08-18 16:14:30.754 [T01]INFO     TaskViewModel        New task 'New Task' created and selected
+2025-08-18 16:14:30.754 [T01]DEBUG    TaskViewModel        PERF END: ExecuteNew | Duration: 0.15ms
+2025-08-18 16:14:31.041 [T01]INFO     TaskView             E key pressed - toggling edit mode
+2025-08-18 16:14:31.041 [T01]INFO     TaskItem             Edit mode changed: True → False for Id1=5, Name=New Task
+2025-08-18 16:14:31.969 [T01]INFO     TaskView             Enter key pressed - toggling edit mode
+2025-08-18 16:14:31.969 [T01]INFO     TaskItem             Edit mode changed: False → True for Id1=5, Name=New Task
+2025-08-18 16:14:35.394 [T01]INFO     TaskView             Escape pressed in TextBox - canceling edit
+2025-08-18 16:14:35.394 [T01]INFO     TaskItem             Edit mode changed: True → False for Id1=5, Name=New Task
+2025-08-18 16:14:35.396 [T01]DEBUG    TaskView             Focus returned to TreeView after edit cancellation
+2025-08-18 16:14:37.520 [T01]INFO     TaskView             Enter pressed in TextBox - confirming edit
+2025-08-18 16:14:37.520 [T01]INFO     TaskItem             Edit mode changed: False → False for Id1=5, Name=New Task
+2025-08-18 16:14:37.521 [T01]DEBUG    TaskView             Focus returned to TreeView after edit completion
+2025-08-18 16:14:39.326 [T01]INFO     TaskView             Escape pressed in TextBox - canceling edit
+2025-08-18 16:14:39.326 [T01]INFO     TaskItem             Edit mode changed: False → False for Id1=5, Name=New Task
+2025-08-18 16:14:39.327 [T01]DEBUG    TaskView             Focus returned to TreeView after edit cancellation
+2025-08-18 16:14:41.842 [T01]INFO     TaskView             Enter pressed in TextBox - confirming edit
+2025-08-18 16:14:41.842 [T01]INFO     TaskItem             Edit mode changed: False → False for Id1=5, Name=New Task
+2025-08-18 16:14:41.843 [T01]DEBUG    TaskView             Focus returned to TreeView after edit completion
+2025-08-18 16:14:42.057 [T01]INFO     TaskView             Enter key pressed - toggling edit mode
+2025-08-18 16:14:42.057 [T01]INFO     TaskItem             Edit mode changed: False → True for Id1=5, Name=New Task
+2025-08-18 16:14:51.336 [T01]INFO     MainWindow           Window closing
+2025-08-18 16:14:51.338 [T01]INFO     App                  Application shutting down with exit code: 0
