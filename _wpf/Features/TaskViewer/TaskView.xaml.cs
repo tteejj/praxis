@@ -39,15 +39,15 @@ namespace PraxisWpf.Features.TaskViewer
             Logger.TraceEnter();
             
             // Ensure TreeView gets focus when control loads (foolproof data focus)
-            TaskTreeView.Focus();
-            Logger.Debug("TaskView", "TreeView focused on load for foolproof data focus");
+            var focusResult = TaskTreeView.Focus();
+            Logger.Critical("TaskView", $"🔥 TREEVIEW FOCUS ON LOAD: Success={focusResult}, IsFocused={TaskTreeView.IsFocused}, IsKeyboardFocused={TaskTreeView.IsKeyboardFocused}");
             
             // Hook window activation to ensure focus returns to data
             var window = System.Windows.Window.GetWindow(this);
             if (window != null)
             {
                 window.Activated += Window_Activated;
-                Logger.Debug("TaskView", "Window activation handler attached");
+                Logger.Critical("TaskView", "🔥 WINDOW ACTIVATION HANDLER ATTACHED");
             }
             
             Logger.TraceExit();
@@ -131,32 +131,51 @@ namespace PraxisWpf.Features.TaskViewer
 
         private void TaskTreeView_KeyDown(object sender, KeyEventArgs e)
         {
+            Logger.Critical("TaskView", $"🔥 TREEVIEW KEYDOWN: Key={e.Key}, Handled={e.Handled}, Source={e.Source?.GetType().Name}, OriginalSource={e.OriginalSource?.GetType().Name}");
             Logger.TraceEnter(parameters: new object[] { e.Key.ToString() });
 
             try
             {
                 var viewModel = DataContext as TaskViewModel;
-                if (viewModel == null) return;
+                if (viewModel == null) 
+                {
+                    Logger.Critical("TaskView", "🔥 VIEWMODEL IS NULL!");
+                    return;
+                }
+                
+                Logger.Critical("TaskView", $"🔥 ABOUT TO PROCESS KEY: {e.Key}");
 
                 switch (e.Key)
                 {
                     case Key.N:
+                        Logger.Critical("TaskView", "🔥 N KEY CASE HIT!");
                         // N key creates new task
                         if (viewModel.NewCommand.CanExecute(null))
                         {
-                            Logger.Info("TaskView", "N key pressed - creating new task");
+                            Logger.Critical("TaskView", "🔥 N KEY - EXECUTING NEW COMMAND");
                             viewModel.NewCommand.Execute(null);
+                            Logger.Critical("TaskView", "🔥 N KEY - NEW COMMAND EXECUTED");
                             e.Handled = true;
+                        }
+                        else
+                        {
+                            Logger.Critical("TaskView", "🔥 N KEY - NEW COMMAND CAN'T EXECUTE!");
                         }
                         break;
 
                     case Key.E:
+                        Logger.Critical("TaskView", "🔥 E KEY CASE HIT!");
                         // E key toggles edit mode (simple)
                         if (viewModel.EditCommand.CanExecute(null))
                         {
-                            Logger.Info("TaskView", "E key pressed - toggling edit mode");
+                            Logger.Critical("TaskView", "🔥 E KEY - EXECUTING EDIT COMMAND");
                             viewModel.EditCommand.Execute(null);
+                            Logger.Critical("TaskView", "🔥 E KEY - EDIT COMMAND EXECUTED");
                             e.Handled = true;
+                        }
+                        else
+                        {
+                            Logger.Critical("TaskView", "🔥 E KEY - EDIT COMMAND CAN'T EXECUTE!");
                         }
                         break;
 
@@ -171,15 +190,26 @@ namespace PraxisWpf.Features.TaskViewer
                         break;
 
                     case Key.S:
+                        Logger.Critical("TaskView", "🔥 S KEY CASE HIT!");
                         // Ctrl+S saves data
                         if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
                         {
+                            Logger.Critical("TaskView", "🔥 CTRL+S DETECTED!");
                             if (viewModel.SaveCommand.CanExecute(null))
                             {
-                                Logger.Info("TaskView", "Ctrl+S pressed - saving data");
+                                Logger.Critical("TaskView", "🔥 CTRL+S - EXECUTING SAVE COMMAND");
                                 viewModel.SaveCommand.Execute(null);
+                                Logger.Critical("TaskView", "🔥 CTRL+S - SAVE COMMAND EXECUTED");
                                 e.Handled = true;
                             }
+                            else
+                            {
+                                Logger.Critical("TaskView", "🔥 CTRL+S - SAVE COMMAND CAN'T EXECUTE!");
+                            }
+                        }
+                        else
+                        {
+                            Logger.Critical("TaskView", "🔥 S KEY WITHOUT CTRL - IGNORING");
                         }
                         break;
 
@@ -239,22 +269,27 @@ namespace PraxisWpf.Features.TaskViewer
 
                     case Key.OemPlus:
                     case Key.Add:
+                        Logger.Critical("TaskView", "🔥 + KEY CASE HIT!");
                         // + key expands current item or all items (with Ctrl)
                         if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
                         {
+                            Logger.Critical("TaskView", "🔥 CTRL+ DETECTED!");
                             if (viewModel.ExpandAllCommand.CanExecute(null))
                             {
-                                Logger.Info("TaskView", "Ctrl+ pressed - expanding all items");
+                                Logger.Critical("TaskView", "🔥 CTRL+ - EXECUTING EXPAND ALL COMMAND");
                                 viewModel.ExpandAllCommand.Execute(null);
+                                Logger.Critical("TaskView", "🔥 CTRL+ - EXPAND ALL COMMAND EXECUTED");
                                 e.Handled = true;
                             }
                         }
                         else
                         {
+                            Logger.Critical("TaskView", "🔥 + KEY (NO CTRL) DETECTED!");
                             if (viewModel.ExpandCommand.CanExecute(null))
                             {
-                                Logger.Info("TaskView", "+ pressed - expanding current item");
+                                Logger.Critical("TaskView", "🔥 + KEY - EXECUTING EXPAND COMMAND");
                                 viewModel.ExpandCommand.Execute(null);
+                                Logger.Critical("TaskView", "🔥 + KEY - EXPAND COMMAND EXECUTED");
                                 e.Handled = true;
                             }
                         }
@@ -303,16 +338,20 @@ namespace PraxisWpf.Features.TaskViewer
                 if (textBox != null)
                 {
                     // Focus and select all text when edit mode starts
-                    textBox.Focus();
+                    var focusResult = textBox.Focus();
                     textBox.SelectAll();
-                    Logger.Debug("TaskView", "Edit TextBox loaded, focused and text selected");
+                    Logger.Critical("TaskView", $"🔥 EDIT TEXTBOX LOADED: Focus={focusResult}, IsFocused={textBox.IsFocused}, Text='{textBox.Text}'");
+                }
+                else
+                {
+                    Logger.Critical("TaskView", "🔥 EDIT TEXTBOX LOADED BUT SENDER IS NOT TEXTBOX!");
                 }
                 
                 Logger.TraceExit();
             }
             catch (Exception ex)
             {
-                Logger.Error("TaskView", "Error handling TextBox loaded", ex);
+                Logger.Critical("TaskView", "🔥 ERROR IN EDIT TEXTBOX LOADED", ex);
                 Logger.TraceExit();
             }
         }

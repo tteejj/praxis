@@ -123,7 +123,14 @@ namespace PraxisWpf.Features.TaskViewer
             }
 
             SelectedItem = newTask;
-            Logger.Info("TaskViewModel", $"New task '{newTask.Name}' created and selected");
+            Logger.Critical("TaskViewModel", $"🔥 NEW TASK CREATED: Id1={newTask.Id1}, Name='{newTask.Name}', IsInEditMode={newTask.IsInEditMode}");
+            Logger.Critical("TaskViewModel", $"🔥 SELECTED ITEM SET TO: {SelectedItem?.DisplayName ?? "NULL"}");
+            Logger.Critical("TaskViewModel", $"🔥 TOTAL ROOT ITEMS: {Items.Count}");
+            if (SelectedItem != null)
+            {
+                Logger.Critical("TaskViewModel", $"🔥 SELECTED ITEM CHILDREN: {SelectedItem.Children.Count}");
+                Logger.Critical("TaskViewModel", $"🔥 SELECTED ITEM EXPANDED: {SelectedItem.IsExpanded}");
+            }
             Logger.TraceExit();
         }
 
