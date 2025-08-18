@@ -105,17 +105,28 @@
 
                         <!-- Assigned Date with cyber formatting -->
                         <TextBlock Grid.Column="2" VerticalAlignment="Center"
-                                   Text="{Binding AssignedDate, StringFormat={}{0:MM/dd}}"
+                                   Text="{Binding AssignedDate, Converter={StaticResource DateDisplayConverter}}"
                                    Foreground="{DynamicResource CyberDimCyan}"/>
 
-                        <!-- Due Date -->
+                        <!-- Due Date with High priority highlighting -->
                         <TextBlock Grid.Column="3" VerticalAlignment="Center"
-                                   Text="{Binding DueDate, StringFormat={}{0:MM/dd}}"
-                                   Foreground="{DynamicResource CyberDimCyan}"/>
+                                   Text="{Binding DueDate, Converter={StaticResource DateDisplayConverter}}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Foreground" Value="{DynamicResource CyberDimCyan}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Priority}" Value="High">
+                                            <Setter Property="Foreground" Value="{DynamicResource CyberErrorBrush}"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
                         <!-- Bring Forward Date -->
                         <TextBlock Grid.Column="4" VerticalAlignment="Center"
-                                   Text="{Binding BringForwardDate, StringFormat={}{0:MM/dd}}"
+                                   Text="{Binding BringForwardDate, Converter={StaticResource DateDisplayConverter}}"
                                    Foreground="{DynamicResource CyberWarningBrush}"/>
 
                         <!-- ID display with proper Id1.Id2 format -->
