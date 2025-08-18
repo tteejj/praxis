@@ -1,6 +1,8 @@
 using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using PraxisWpf.Interfaces;
 using PraxisWpf.Services;
 
@@ -149,7 +151,7 @@ namespace PraxisWpf.Features.TaskViewer
                         break;
 
                     case Key.E:
-                        // E key toggles edit mode
+                        // E key toggles edit mode (simple)
                         if (viewModel.EditCommand.CanExecute(null))
                         {
                             Logger.Info("TaskView", "E key pressed - toggling edit mode");
@@ -291,6 +293,30 @@ namespace PraxisWpf.Features.TaskViewer
             }
         }
 
+        private void EditTextBox_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Logger.TraceEnter();
+            
+            try
+            {
+                var textBox = sender as TextBox;
+                if (textBox != null)
+                {
+                    // Focus and select all text when edit mode starts
+                    textBox.Focus();
+                    textBox.SelectAll();
+                    Logger.Debug("TaskView", "Edit TextBox loaded, focused and text selected");
+                }
+                
+                Logger.TraceExit();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("TaskView", "Error handling TextBox loaded", ex);
+                Logger.TraceExit();
+            }
+        }
+
         private void EditTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             Logger.TraceEnter(parameters: new object[] { e.Key.ToString() });
@@ -338,6 +364,26 @@ namespace PraxisWpf.Features.TaskViewer
                 Logger.Error("TaskView", "Error handling TextBox key down", ex);
                 Logger.TraceExit();
             }
+        }
+
+        // Helper method to find visual children
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                {
+                    return result;
+                }
+                
+                var childOfChild = FindVisualChild<T>(child);
+                if (childOfChild != null)
+                {
+                    return childOfChild;
+                }
+            }
+            return null;
         }
     }
 }

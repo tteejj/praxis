@@ -128,17 +128,8 @@
                                  Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
                                  BorderThickness="1" VerticalAlignment="Center"
                                  Name="EditTextBox"
-                                 KeyDown="EditTextBox_KeyDown">
-                            <TextBox.Style>
-                                <Style TargetType="TextBox">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsInEditMode}" Value="True">
-                                            <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
+                                 KeyDown="EditTextBox_KeyDown"
+                                 Loaded="EditTextBox_Loaded"/>
                         </Grid>
                     </Border>
                 </HierarchicalDataTemplate>
