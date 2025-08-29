@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Windows.Input;
 using PraxisWpf.Interfaces;
 using PraxisWpf.Models;
@@ -12,24 +14,21 @@ namespace PraxisWpf.Features.TaskViewer
     public class TaskViewModel : INotifyPropertyChanged
     {
         private readonly IDataService _dataService;
-        private IDisplayableItem? _selectedItem;
+        private readonly IDialogService _dialogService;
+        private TaskItem? _selectedItem;
 
-        public ObservableCollection<IDisplayableItem> Items { get; private set; }
+        public ObservableCollection<TaskItem> Items { get; private set; }
 
-        public IDisplayableItem? SelectedItem
+        public TaskItem? SelectedItem
         {
-            get 
-            { 
-                Logger.TraceProperty("SelectedItem", null, _selectedItem?.DisplayName ?? "null");
-                return _selectedItem; 
-            }
+            get => _selectedItem;
             set
             {
-                var oldValue = _selectedItem;
-                Logger.TraceProperty("SelectedItem", oldValue?.DisplayName ?? "null", value?.DisplayName ?? "null");
-                _selectedItem = value;
-                OnPropertyChanged(nameof(SelectedItem));
-                Logger.Info("TaskViewModel", $"Selection changed: '{oldValue?.DisplayName ?? "null"}' → '{value?.DisplayName ?? "null"}'");
+                if (_selectedItem != value)
+                {
+                    _selectedItem = value;
+                    OnPropertyChanged(nameof(SelectedItem));
+                }
             }
         }
 
@@ -42,38 +41,25 @@ namespace PraxisWpf.Features.TaskViewer
         public ICommand ExpandAllCommand { get; }
         public ICommand CollapseAllCommand { get; }
 
-        public TaskViewModel() : this(new JsonDataService())
+        public TaskViewModel() : this(ServiceContainer.GetDataService(), ServiceContainer.GetDialogService())
         {
-            Logger.TraceEnter();
-            Logger.TraceExit();
+            // Default constructor using registered services
         }
 
-        public TaskViewModel(IDataService dataService)
+        public TaskViewModel(IDataService dataService, IDialogService dialogService)
         {
-            Logger.TraceEnter(parameters: new object[] { dataService.GetType().Name });
-            using var perfTracker = Logger.TracePerformance("TaskViewModel Constructor");
-
             _dataService = dataService;
-            Logger.Debug("TaskViewModel", $"Data service initialized: {dataService.GetType().Name}");
-
-            Logger.TraceData("Load", "Items from data service");
+            _dialogService = dialogService;
             Items = _dataService.LoadItems();
-            Logger.Info("TaskViewModel", $"Loaded {Items.Count} root items");
+            Logger.Info("TaskViewModel", $"Loaded {Items.Count} tasks");
 
             // Auto-select first item if available
             if (Items.Count > 0)
             {
                 SelectedItem = Items[0];
-                Logger.Info("TaskViewModel", $"Auto-selected first item: {SelectedItem.DisplayName}");
             }
 
-            // Wire up collection change events
-            Items.CollectionChanged += (s, e) => {
-                Logger.TraceData("CollectionChanged", "Items", 
-                    $"Action={e.Action}, NewItems={e.NewItems?.Count ?? 0}, OldItems={e.OldItems?.Count ?? 0}");
-            };
-
-            Logger.TraceData("Initialize", "Commands");
+            // Initialize commands
             NewCommand = new RelayCommand(ExecuteNew, CanExecuteNew);
             EditCommand = new RelayCommand(ExecuteEdit, CanExecuteEdit);
             DeleteCommand = new RelayCommand(ExecuteDelete, CanExecuteDelete);
@@ -82,19 +68,11 @@ namespace PraxisWpf.Features.TaskViewer
             CollapseCommand = new RelayCommand(ExecuteCollapse, CanExecuteCollapse);
             ExpandAllCommand = new RelayCommand(ExecuteExpandAll);
             CollapseAllCommand = new RelayCommand(ExecuteCollapseAll);
-            Logger.Debug("TaskViewModel", "All commands initialized");
-
-            Logger.TraceExit();
         }
 
         private void ExecuteNew()
         {
-            Logger.TraceEnter();
-            using var perfTracker = Logger.TracePerformance("ExecuteNew");
-
             var nextId = GetNextId1();
-            Logger.Debug("TaskViewModel", $"Creating new task with Id1={nextId}");
-
             var newTask = new TaskItem
             {
                 Id1 = nextId,
@@ -103,35 +81,38 @@ namespace PraxisWpf.Features.TaskViewer
                 IsInEditMode = true,
                 Priority = PriorityType.Medium,
                 AssignedDate = DateTime.Now,
-                DueDate = DateTime.Today.AddDays(7), // Default due date 1 week from now
-                BringForwardDate = DateTime.Today.AddDays(1) // Default bring forward tomorrow
+                DueDate = DateTime.Today.AddDays(7),
+                BringForwardDate = DateTime.Today.AddDays(1)
             };
-            Logger.Debug("TaskViewModel", $"New task created: Id1={newTask.Id1}, Name={newTask.Name}");
+
+            // Validate the new task
+            var validation = ValidationService.ValidateTaskItem(newTask);
+            if (!validation.IsValid)
+            {
+                Logger.Warning("TaskViewModel", $"New task validation failed: {validation.ErrorMessage}");
+                // Continue anyway for new tasks - user can fix in edit mode
+            }
 
             if (SelectedItem != null)
             {
-                Logger.Info("TaskViewModel", $"Adding new task as child of '{SelectedItem.DisplayName}'");
+                // Validate hierarchy
+                var hierarchyValidation = ValidationService.ValidateTaskHierarchy(SelectedItem, newTask);
+                if (!hierarchyValidation.IsValid)
+                {
+                    Logger.Error("TaskViewModel", $"Cannot add task to hierarchy: {hierarchyValidation.ErrorMessage}");
+                    return;
+                }
+
                 SelectedItem.Children.Add(newTask);
                 SelectedItem.IsExpanded = true;
-                Logger.TraceData("Add", "child task", $"Parent: {SelectedItem.DisplayName}");
             }
             else
             {
-                Logger.Info("TaskViewModel", "Adding new task as root item");
                 Items.Add(newTask);
-                Logger.TraceData("Add", "root task");
             }
 
             SelectedItem = newTask;
-            Logger.Critical("TaskViewModel", $"🔥 NEW TASK CREATED: Id1={newTask.Id1}, Name='{newTask.Name}', IsInEditMode={newTask.IsInEditMode}");
-            Logger.Critical("TaskViewModel", $"🔥 SELECTED ITEM SET TO: {SelectedItem?.DisplayName ?? "NULL"}");
-            Logger.Critical("TaskViewModel", $"🔥 TOTAL ROOT ITEMS: {Items.Count}");
-            if (SelectedItem != null)
-            {
-                Logger.Critical("TaskViewModel", $"🔥 SELECTED ITEM CHILDREN: {SelectedItem.Children.Count}");
-                Logger.Critical("TaskViewModel", $"🔥 SELECTED ITEM EXPANDED: {SelectedItem.IsExpanded}");
-            }
-            Logger.TraceExit();
+            Logger.Info("TaskViewModel", $"New task created: '{newTask.Name}'");
         }
 
         private bool CanExecuteNew()
@@ -156,10 +137,36 @@ namespace PraxisWpf.Features.TaskViewer
         {
             if (SelectedItem == null) return;
 
-            // Find and remove from parent collection
-            if (RemoveFromCollection(Items, SelectedItem))
+            var taskName = SelectedItem.Name;
+            var hasChildren = SelectedItem.Children.Count > 0;
+            var childCount = GetTotalChildrenCount(SelectedItem);
+
+            // Build confirmation message
+            var message = $"Are you sure you want to delete the task '{taskName}'?";
+            var details = "";
+
+            if (hasChildren)
             {
-                SelectedItem = null;
+                details = $"This task has {childCount} subtask(s) that will also be deleted.\nThis action cannot be undone.";
+            }
+            else
+            {
+                details = "This action cannot be undone.";
+            }
+
+            // Show confirmation dialog
+            if (_dialogService.ShowConfirmationDialog("Delete Task", message, details))
+            {
+                // Find and remove from parent collection
+                if (RemoveFromCollection(Items, SelectedItem))
+                {
+                    Logger.Info("TaskViewModel", $"Deleted task '{taskName}' with {childCount} children");
+                    SelectedItem = null;
+                }
+            }
+            else
+            {
+                Logger.Debug("TaskViewModel", $"Delete cancelled for task '{taskName}'");
             }
         }
 
@@ -170,119 +177,171 @@ namespace PraxisWpf.Features.TaskViewer
 
         private void ExecuteSave()
         {
-            Logger.TraceEnter();
-            using var perfTracker = Logger.TracePerformance("ExecuteSave");
+            try
+            {
+                // Validate all tasks before saving
+                var invalidTasks = ValidateAllTasks();
+                if (invalidTasks.Any())
+                {
+                    Logger.Warning("TaskViewModel", $"Found {invalidTasks.Count} tasks with validation issues");
+                    // Continue with save but log the issues
+                }
+
+                _dataService.SaveItems(Items);
+                Logger.Info("TaskViewModel", "Data saved successfully");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("TaskViewModel", "Save operation failed", ex);
+                // Data service handles user notification
+            }
+        }
+
+        private List<(TaskItem task, ValidationResult validation)> ValidateAllTasks()
+        {
+            var invalidTasks = new List<(TaskItem, ValidationResult)>();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)); // 30 second timeout
             
-            Logger.Info("TaskViewModel", "Saving data via data service");
-            _dataService.SaveItems(Items);
-            Logger.Info("TaskViewModel", "Data saved successfully");
+            try
+            {
+                ValidateTaskCollection(Items, invalidTasks, 0, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.Warning("TaskViewModel", "Task validation cancelled due to timeout");
+                // Return what we have so far
+            }
             
-            Logger.TraceExit();
+            return invalidTasks;
+        }
+
+        private void ValidateTaskCollection(ObservableCollection<TaskItem> tasks, List<(TaskItem, ValidationResult)> invalidTasks, 
+            int depth = 0, CancellationToken cancellationToken = default)
+        {
+            if (depth > 50) return; // Prevent stack overflow
+            
+            foreach (var task in tasks)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var validation = ValidationService.ValidateTaskItem(task);
+                if (!validation.IsValid)
+                {
+                    invalidTasks.Add((task, validation));
+                    Logger.Debug("TaskViewModel", $"Task '{task.Name}' validation: {validation.ErrorMessage}");
+                }
+
+                // Recursively validate children
+                if (task.Children.Any())
+                {
+                    ValidateTaskCollection(task.Children, invalidTasks, depth + 1, cancellationToken);
+                }
+            }
         }
 
         private void ExecuteExpand()
         {
-            Logger.TraceEnter();
             if (SelectedItem != null)
             {
-                Logger.Info("TaskViewModel", $"Expanding item: {SelectedItem.DisplayName}");
                 SelectedItem.IsExpanded = true;
-                Logger.Debug("TaskViewModel", $"Item '{SelectedItem.DisplayName}' expanded");
             }
-            else
-            {
-                Logger.Warning("TaskViewModel", "Cannot expand: no item selected");
-            }
-            Logger.TraceExit();
         }
 
         private bool CanExecuteExpand()
         {
-            var canExpand = SelectedItem != null && SelectedItem.Children.Count > 0 && !SelectedItem.IsExpanded;
-            Logger.Trace("TaskViewModel", $"CanExecuteExpand: {canExpand}");
-            return canExpand;
+            return SelectedItem != null && SelectedItem.Children.Count > 0 && !SelectedItem.IsExpanded;
         }
 
         private void ExecuteCollapse()
         {
-            Logger.TraceEnter();
             if (SelectedItem != null)
             {
-                Logger.Info("TaskViewModel", $"Collapsing item: {SelectedItem.DisplayName}");
                 SelectedItem.IsExpanded = false;
-                Logger.Debug("TaskViewModel", $"Item '{SelectedItem.DisplayName}' collapsed");
             }
-            else
-            {
-                Logger.Warning("TaskViewModel", "Cannot collapse: no item selected");
-            }
-            Logger.TraceExit();
         }
 
         private bool CanExecuteCollapse()
         {
-            var canCollapse = SelectedItem != null && SelectedItem.Children.Count > 0 && SelectedItem.IsExpanded;
-            Logger.Trace("TaskViewModel", $"CanExecuteCollapse: {canCollapse}");
-            return canCollapse;
+            return SelectedItem != null && SelectedItem.Children.Count > 0 && SelectedItem.IsExpanded;
         }
 
         private void ExecuteExpandAll()
         {
-            Logger.TraceEnter();
-            using var perfTracker = Logger.TracePerformance("ExecuteExpandAll");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
             
-            Logger.Info("TaskViewModel", "Expanding all items");
-            var expandedCount = ExpandAllItems(Items);
-            Logger.Info("TaskViewModel", $"Expanded {expandedCount} items");
-            
-            Logger.TraceExit();
+            try
+            {
+                var expandedCount = ExpandAllItems(Items, 0, cts.Token);
+                if (expandedCount > 0)
+                {
+                    Logger.Info("TaskViewModel", $"Expanded {expandedCount} items");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.Warning("TaskViewModel", "Expand all operation cancelled due to timeout");
+                _dialogService.ShowWarningDialog("Operation Timeout", "The expand all operation took too long and was cancelled.");
+            }
         }
 
         private void ExecuteCollapseAll()
         {
-            Logger.TraceEnter();
-            using var perfTracker = Logger.TracePerformance("ExecuteCollapseAll");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
             
-            Logger.Info("TaskViewModel", "Collapsing all items");
-            var collapsedCount = CollapseAllItems(Items);
-            Logger.Info("TaskViewModel", $"Collapsed {collapsedCount} items");
-            
-            Logger.TraceExit();
+            try
+            {
+                var collapsedCount = CollapseAllItems(Items, 0, cts.Token);
+                if (collapsedCount > 0)
+                {
+                    Logger.Info("TaskViewModel", $"Collapsed {collapsedCount} items");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.Warning("TaskViewModel", "Collapse all operation cancelled due to timeout");
+                _dialogService.ShowWarningDialog("Operation Timeout", "The collapse all operation took too long and was cancelled.");
+            }
         }
 
-        private int ExpandAllItems(ObservableCollection<IDisplayableItem> items)
+        private int ExpandAllItems(ObservableCollection<TaskItem> items, int depth = 0, CancellationToken cancellationToken = default)
         {
+            if (depth > 50) return 0; // Prevent stack overflow
+            
             int count = 0;
             foreach (var item in items)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 if (item.Children.Count > 0 && !item.IsExpanded)
                 {
-                    Logger.Debug("TaskViewModel", $"Expanding: {item.DisplayName}");
                     item.IsExpanded = true;
                     count++;
                 }
-                count += ExpandAllItems(item.Children);
+                count += ExpandAllItems(item.Children, depth + 1, cancellationToken);
             }
             return count;
         }
 
-        private int CollapseAllItems(ObservableCollection<IDisplayableItem> items)
+        private int CollapseAllItems(ObservableCollection<TaskItem> items, int depth = 0, CancellationToken cancellationToken = default)
         {
+            if (depth > 50) return 0; // Prevent stack overflow
+            
             int count = 0;
             foreach (var item in items)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 if (item.Children.Count > 0 && item.IsExpanded)
                 {
-                    Logger.Debug("TaskViewModel", $"Collapsing: {item.DisplayName}");
                     item.IsExpanded = false;
                     count++;
                 }
-                count += CollapseAllItems(item.Children);
+                count += CollapseAllItems(item.Children, depth + 1, cancellationToken);
             }
             return count;
         }
 
-        private bool RemoveFromCollection(ObservableCollection<IDisplayableItem> collection, IDisplayableItem itemToRemove)
+        private bool RemoveFromCollection(ObservableCollection<TaskItem> collection, TaskItem itemToRemove)
         {
             if (collection.Contains(itemToRemove))
             {
@@ -307,16 +366,32 @@ namespace PraxisWpf.Features.TaskViewer
             return maxId + 1;
         }
 
-        private int GetMaxId1(ObservableCollection<IDisplayableItem> items)
+        private int GetMaxId1(ObservableCollection<TaskItem> items, int depth = 0, CancellationToken cancellationToken = default)
         {
+            if (depth > 50) return 0; // Prevent stack overflow
+            
             int max = 0;
-            foreach (var item in items.Cast<TaskItem>())
+            foreach (var item in items)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 if (item.Id1 > max) max = item.Id1;
-                var childMax = GetMaxId1(item.Children);
+                var childMax = GetMaxId1(item.Children, depth + 1, cancellationToken);
                 if (childMax > max) max = childMax;
             }
             return max;
+        }
+
+        private int GetTotalChildrenCount(TaskItem item, int depth = 0)
+        {
+            if (depth > 50) return 0; // Prevent stack overflow
+            
+            int count = item.Children.Count;
+            foreach (var child in item.Children)
+            {
+                count += GetTotalChildrenCount(child, depth + 1);
+            }
+            return count;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -327,32 +402,4 @@ namespace PraxisWpf.Features.TaskViewer
         }
     }
 
-    // Simple RelayCommand implementation
-    public class RelayCommand : ICommand
-    {
-        private readonly System.Action _execute;
-        private readonly System.Func<bool>? _canExecute;
-
-        public RelayCommand(System.Action execute, System.Func<bool>? canExecute = null)
-        {
-            _execute = execute ?? throw new System.ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public event System.EventHandler? CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-
-        public bool CanExecute(object? parameter)
-        {
-            return _canExecute?.Invoke() ?? true;
-        }
-
-        public void Execute(object? parameter)
-        {
-            _execute();
-        }
-    }
 }

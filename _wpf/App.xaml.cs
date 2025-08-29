@@ -15,6 +15,23 @@ namespace PraxisWpf
                 // Initialize configuration system first
                 AppConfig.LoadConfiguration();
                 
+                // Initialize modern DI container and register services
+                var container = DIContainer.Instance;
+                
+                // Register core services
+                container.RegisterSingleton<IDataService>(c => new JsonDataService())
+                         .RegisterSingleton<IDialogService>(c => new DialogService())
+                         .RegisterSingleton<IPreferencesService>(c => new PreferencesService())
+                         .RegisterSingleton<IStatusService>(c => new StatusService())
+                         .RegisterSingleton<IEditorService>(c => new EditorService(c.Resolve<IPreferencesService>(), c.Resolve<IDialogService>()))
+                         .RegisterSingleton<UndoRedoManager>(c => new UndoRedoManager());
+                
+                // Legacy compatibility - register with old service container for existing code
+                ServiceContainer.RegisterDataService(container.Resolve<IDataService>());
+                ServiceContainer.RegisterDialogService(container.Resolve<IDialogService>());
+                
+                container.LogRegisteredServices();
+                
                 Logger.Info("App", "Application starting up");
                 Logger.Debug("App", $"Command line args: {string.Join(" ", e.Args)}");
 

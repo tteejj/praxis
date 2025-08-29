@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PraxisWpf.Features.TaskViewer"
-             xmlns:models="clr-namespace:PraxisWpf.Models">
+             xmlns:models="clr-namespace:PraxisWpf.Models"
+             xmlns:behaviors="clr-namespace:PraxisWpf.Behaviors">
     
     <Grid>
         <Grid.RowDefinitions>
@@ -43,16 +44,33 @@
         </Border>
 
         <TreeView Grid.Row="1" Name="TaskTreeView" ItemsSource="{Binding Items}" 
-                  SelectedItemChanged="TaskTreeView_SelectedItemChanged"
-                  KeyDown="TaskTreeView_KeyDown"
+                  behaviors:TreeViewBehaviors.BindableSelectedItem="{Binding SelectedItem}"
+                  behaviors:TreeViewBehaviors.EnableKeyboardShortcuts="True"
+                  behaviors:KeyboardNavigationBehavior.EnableEnhancedNavigation="True"
+                  behaviors:ResponsiveColumnBehavior.EnableResponsiveColumns="True"
+                  behaviors:ResponsiveColumnBehavior.MinColumnWidth="50"
+                  behaviors:ResponsiveColumnBehavior.MaxColumnWidth="300"
                   Focusable="True"
                   TabIndex="0">
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type models:TaskItem}" 
                                         ItemsSource="{Binding Children}">
-                    <Border BorderBrush="{DynamicResource CyberBorderBrush}" 
-                            BorderThickness="0,0,0,1" Opacity="0.3"
-                            Padding="4,2">
+                    <Border Padding="4,2">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="BorderBrush" Value="{DynamicResource CyberBorderBrush}"/>
+                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                <Setter Property="Opacity" Value="0.3"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsInEditMode}" Value="True">
+                                        <Setter Property="BorderBrush" Value="{DynamicResource CyberNeonYellow}"/>
+                                        <Setter Property="BorderThickness" Value="2"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                        <Setter Property="Background" Value="{DynamicResource CyberLightGray}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
                         <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40"/>
@@ -126,10 +144,10 @@
                                    VerticalAlignment="Center"/>
                         <TextBox Grid.Column="6" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
                                  Visibility="{Binding IsInEditMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                                 BorderThickness="1" VerticalAlignment="Center"
-                                 Name="EditTextBox"
-                                 KeyDown="EditTextBox_KeyDown"
-                                 Loaded="EditTextBox_Loaded"/>
+                                 Style="{StaticResource EditModeTextBox}"
+                                 VerticalAlignment="Center"
+                                 behaviors:TextBoxBehaviors.AutoFocusAndSelect="True"
+                                 behaviors:TextBoxBehaviors.EnableEditModeKeys="True"/>
                         </Grid>
                     </Border>
                 </HierarchicalDataTemplate>

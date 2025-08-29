@@ -18,12 +18,13 @@ namespace PraxisWpf.Models
 
         public TaskItem()
         {
-            Logger.TraceEnter();
+            // Collection change logging only for debug builds
             Children.CollectionChanged += (s, e) => {
-                Logger.TraceData("CollectionChanged", "Children", 
-                    $"Action={e.Action}, NewItems={e.NewItems?.Count ?? 0}, OldItems={e.OldItems?.Count ?? 0}");
+                if (Logger.ShouldLog(LogLevel.Debug))
+                {
+                    Logger.Debug("TaskItem", $"Children collection changed: {e.Action}");
+                }
             };
-            Logger.TraceExit();
         }
 
         public int Id1 { get; set; }
@@ -31,19 +32,15 @@ namespace PraxisWpf.Models
         
         public string Name
         {
-            get 
-            { 
-                Logger.TraceProperty("Name", null, _name);
-                return _name; 
-            }
+            get => _name;
             set
             {
-                var oldValue = _name;
-                Logger.TraceProperty("Name", oldValue, value);
-                _name = value;
-                OnPropertyChanged(nameof(Name));
-                OnPropertyChanged(nameof(DisplayName));
-                Logger.Debug("TaskItem", $"Name changed: '{oldValue}' → '{value}' for Id1={Id1}");
+                if (_name != value)
+                {
+                    _name = value;
+                    OnPropertyChanged(nameof(Name));
+                    OnPropertyChanged(nameof(DisplayName));
+                }
             }
         }
 
@@ -53,90 +50,58 @@ namespace PraxisWpf.Models
         
         public PriorityType Priority 
         { 
-            get 
-            { 
-                Logger.TraceProperty("Priority", null, _priority);
-                return _priority; 
-            }
+            get => _priority;
             set
             {
-                var oldValue = _priority;
-                Logger.TraceProperty("Priority", oldValue, value);
-                _priority = value;
-                
-                // H=today logic: If priority is set to High and no due date exists, set it to today
-                if (value == PriorityType.High && !DueDate.HasValue)
+                if (_priority != value)
                 {
-                    DueDate = DateTime.Today;
-                    Logger.Info("TaskItem", $"High priority set - DueDate auto-set to today for Id1={Id1}");
+                    _priority = value;
+                    
+                    // H=today logic: If priority is set to High and no due date exists, set it to today
+                    if (value == PriorityType.High && !DueDate.HasValue)
+                    {
+                        DueDate = DateTime.Today;
+                        Logger.Info("TaskItem", $"High priority task - DueDate set to today for '{Name}'");
+                    }
+                    
+                    OnPropertyChanged(nameof(Priority));
+                    OnPropertyChanged(nameof(IsHighPriorityToday));
                 }
-                
-                OnPropertyChanged(nameof(Priority));
-                OnPropertyChanged(nameof(IsHighPriorityToday));
-                Logger.Debug("TaskItem", $"Priority changed: {oldValue} → {value} for Id1={Id1}, Name={Name}");
             }
         }
 
         public bool IsExpanded
         {
-            get 
-            { 
-                Logger.TraceProperty("IsExpanded", null, _isExpanded);
-                return _isExpanded; 
-            }
+            get => _isExpanded;
             set
             {
-                var oldValue = _isExpanded;
-                Logger.TraceProperty("IsExpanded", oldValue, value);
-                _isExpanded = value;
-                OnPropertyChanged(nameof(IsExpanded));
-                Logger.Debug("TaskItem", $"IsExpanded changed: {oldValue} → {value} for Id1={Id1}, Name={Name}");
+                if (_isExpanded != value)
+                {
+                    _isExpanded = value;
+                    OnPropertyChanged(nameof(IsExpanded));
+                }
             }
         }
 
         [JsonIgnore]
         public bool IsInEditMode
         {
-            get 
-            { 
-                Logger.TraceProperty("IsInEditMode", null, _isInEditMode);
-                return _isInEditMode; 
-            }
+            get => _isInEditMode;
             set
             {
-                var oldValue = _isInEditMode;
-                Logger.TraceProperty("IsInEditMode", oldValue, value);
-                _isInEditMode = value;
-                OnPropertyChanged(nameof(IsInEditMode));
-                Logger.Info("TaskItem", $"Edit mode changed: {oldValue} → {value} for Id1={Id1}, Name={Name}");
-            }
-        }
-
-        [JsonIgnore]
-        public ObservableCollection<IDisplayableItem> Children { get; set; } = new ObservableCollection<IDisplayableItem>();
-
-        // JSON-specific property that serializes/deserializes concrete TaskItem types
-        [JsonPropertyName("children")]
-        public List<TaskItem> ChildrenForJson
-        {
-            get
-            {
-                Logger.Trace("TaskItem", $"Getting ChildrenForJson for Id1={Id1}, Count={Children.Count}");
-                return Children.Cast<TaskItem>().ToList();
-            }
-            set
-            {
-                Logger.Trace("TaskItem", $"Setting ChildrenForJson for Id1={Id1}, Count={value?.Count ?? 0}");
-                Children.Clear();
-                if (value != null)
+                if (_isInEditMode != value)
                 {
-                    foreach (var item in value)
+                    _isInEditMode = value;
+                    OnPropertyChanged(nameof(IsInEditMode));
+                    if (Logger.ShouldLog(LogLevel.Debug))
                     {
-                        Children.Add(item);
+                        Logger.Debug("TaskItem", $"Edit mode: {value} for '{Name}'");
                     }
                 }
             }
         }
+
+        public ObservableCollection<TaskItem> Children { get; set; } = new ObservableCollection<TaskItem>();
 
         [JsonIgnore]
         public string DisplayName => Name;
@@ -150,7 +115,6 @@ namespace PraxisWpf.Models
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            Logger.Trace("TaskItem", $"PropertyChanged: {propertyName} for Id1={Id1}");
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }

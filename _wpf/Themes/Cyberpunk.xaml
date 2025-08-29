@@ -86,12 +86,23 @@
         <Style.Triggers>
             <Trigger Property="IsFocused" Value="True">
                 <Setter Property="BorderBrush" Value="{StaticResource CyberAccentBrush}"/>
+                <Setter Property="BorderThickness" Value="2"/>
                 <Setter Property="Effect" Value="{StaticResource CyberGlowEffect}"/>
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource CyberHoverBrush}"/>
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- Edit Mode TextBox Style - More prominent for task editing -->
+    <Style x:Key="EditModeTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="Background" Value="{StaticResource CyberLightGray}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource CyberNeonYellow}"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="Foreground" Value="{StaticResource CyberNeonGreen}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Effect" Value="{StaticResource CyberSelectionGlow}"/>
     </Style>
 
     <!-- TreeView Style -->
